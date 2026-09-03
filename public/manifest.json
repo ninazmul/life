@@ -1,0 +1,19 @@
+{
+  "name": "Life — Personal Legacy, Secure Vault & Continuity",
+  "short_name": "Life",
+  "description": "Private personal information, money management, legacy and business continuity system.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#070a12",
+  "theme_color": "#070a12",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/assets/images/logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
