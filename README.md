@@ -6,7 +6,7 @@
 
 **A private, encrypted personal asset registry, financial ledger, and continuity management system designed for life, emergency preparedness, and peace of mind.**
 
-[![Next.js](https://img.shields.io/badge/Next.js-15.5-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16.3-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.0-61DAFB?style=for-the-badge&logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=for-the-badge&logo=mongodb)](https://www.mongodb.com/)
@@ -212,7 +212,7 @@ const SENSITIVE_ROUTES = [
 
 | Layer | Technology | Purpose |
 | :--- | :--- | :--- |
-| **Framework** | [Next.js 15.5 (App Router)](https://nextjs.org/) | Modern server-side rendering, React Server Components & Turbopack |
+| **Framework** | [Next.js 16.3 (App Router)](https://nextjs.org/) | Modern server-side rendering, React Server Components & Turbopack (stable) |
 | **Frontend UI** | [React 19](https://react.dev/) | Concurrent UI rendering and component state |
 | **Language** | [TypeScript 5](https://www.typescriptlang.org/) | End-to-end strict type safety across models, actions, and UI |
 | **Authentication** | [Clerk Auth (`@clerk/nextjs`)](https://clerk.com/) | Secure session management, multi-factor auth, and user identity |

@@ -26,7 +26,7 @@ The platform functions as an installable **Progressive Web App (PWA)** with a mo
 ## 2. Technology Stack & Directory Architecture
 
 ### Core Technologies
-- **Framework**: Next.js 15.5 (App Router with Turbopack)
+- **Framework**: Next.js 16.3.4 (App Router with Turbopack stable)
 - **Frontend**: React 19 (React Server Components + interactive Client Components)
 - **Language**: TypeScript 5 (Strict mode with end-to-end typing)
 - **Styling**: Tailwind CSS 3.4 + Radix UI Primitives + Lucide React
