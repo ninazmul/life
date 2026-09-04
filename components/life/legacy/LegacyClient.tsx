@@ -262,7 +262,7 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
           open={Boolean(selectedLetter)}
           onOpenChange={(open) => !open && setSelectedLetter(null)}
         >
-          <DialogContent className="sm:max-w-xl rounded-3xl border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100 max-h-[85vh] overflow-y-auto">
+          <DialogContent className="life-dialog sm:max-w-xl rounded-3xl border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100 max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <div className="flex items-center justify-between pr-4">
                 <span className="text-xs uppercase font-bold text-rose-400">
@@ -302,7 +302,7 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
 
       {/* Write Legacy Letter Modal */}
       <Dialog open={addModalOpen} onOpenChange={setAddModalOpen}>
-        <DialogContent className="sm:max-w-lg rounded-2xl border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100 max-h-[90vh] overflow-y-auto">
+        <DialogContent className="life-dialog sm:max-w-lg rounded-2xl border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-slate-100 flex items-center gap-2">
               <HeartHandshake className="w-5 h-5 text-rose-400" />

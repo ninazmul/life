@@ -59,7 +59,7 @@ export function LifeSearchDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl p-0 overflow-hidden border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100 shadow-2xl rounded-2xl">
+      <DialogContent className="life-dialog sm:max-w-xl p-0 overflow-hidden border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100 shadow-2xl rounded-2xl">
         <DialogHeader className="sr-only">
           <DialogTitle>Global Search</DialogTitle>
         </DialogHeader>

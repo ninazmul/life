@@ -102,6 +102,101 @@ body {
   min-height: 100vh;
 }
 
+@layer components {
+  body .life-dialog,
+  body .life-drawer {
+    background-color: hsl(var(--card) / 0.98);
+    border-color: hsl(var(--border));
+    color: hsl(var(--card-foreground));
+  }
+
+  .life-dialog input,
+  .life-dialog select,
+  .life-dialog textarea,
+  .life-drawer input,
+  .life-drawer select,
+  .life-drawer textarea {
+    background-color: hsl(var(--background));
+    border-color: hsl(var(--input));
+    color: hsl(var(--foreground));
+  }
+
+  .life-dialog input::placeholder,
+  .life-dialog textarea::placeholder,
+  .life-drawer input::placeholder,
+  .life-drawer textarea::placeholder {
+    color: hsl(var(--muted-foreground));
+  }
+
+  html:not(.dark) .life-dialog .text-slate-100,
+  html:not(.dark) .life-dialog .text-slate-200,
+  html:not(.dark) .life-dialog .text-slate-300,
+  html:not(.dark) .life-drawer .text-slate-100,
+  html:not(.dark) .life-drawer .text-slate-200,
+  html:not(.dark) .life-drawer .text-slate-300 {
+    color: hsl(var(--foreground));
+  }
+
+  html:not(.dark) .life-dialog .text-slate-400,
+  html:not(.dark) .life-dialog .text-slate-500,
+  html:not(.dark) .life-drawer .text-slate-400,
+  html:not(.dark) .life-drawer .text-slate-500 {
+    color: hsl(var(--muted-foreground));
+  }
+
+  html:not(.dark) .life-dialog [class*="bg-slate-900"],
+  html:not(.dark) .life-dialog [class*="bg-slate-950"],
+  html:not(.dark) .life-dialog [class*="bg-slate-800"],
+  html:not(.dark) .life-drawer [class*="bg-slate-900"],
+  html:not(.dark) .life-drawer [class*="bg-slate-950"],
+  html:not(.dark) .life-drawer [class*="bg-slate-800"] {
+    background-color: hsl(var(--muted) / 0.72);
+  }
+
+  html:not(.dark) .life-dialog [class*="border-slate-800"],
+  html:not(.dark) .life-dialog [class*="border-slate-700"],
+  html:not(.dark) .life-drawer [class*="border-slate-800"],
+  html:not(.dark) .life-drawer [class*="border-slate-700"] {
+    border-color: hsl(var(--border));
+  }
+
+  html:not(.dark) .life-dialog .hover\:text-white:hover,
+  html:not(.dark) .life-drawer .hover\:text-white:hover {
+    color: hsl(var(--foreground));
+  }
+
+  html:not(.dark) .life-dialog .hover\:bg-slate-700:hover,
+  html:not(.dark) .life-dialog .hover\:bg-slate-800:hover,
+  html:not(.dark) .life-dialog .hover\:bg-slate-900:hover,
+  html:not(.dark) .life-drawer .hover\:bg-slate-700:hover,
+  html:not(.dark) .life-drawer .hover\:bg-slate-800:hover,
+  html:not(.dark) .life-drawer .hover\:bg-slate-900:hover {
+    background-color: hsl(var(--muted));
+  }
+
+  html:not(.dark) .life-shell .bg-white .text-slate-100,
+  html:not(.dark) .life-shell .bg-white .text-slate-200,
+  html:not(.dark) .life-shell .bg-white .text-slate-300 {
+    color: hsl(var(--foreground));
+  }
+
+  html:not(.dark) .life-shell .bg-white .text-slate-400,
+  html:not(.dark) .life-shell .bg-white .text-slate-500 {
+    color: hsl(var(--muted-foreground));
+  }
+
+  html:not(.dark) .life-shell .bg-white [class*="bg-slate-800"],
+  html:not(.dark) .life-shell .bg-white [class*="bg-slate-900"],
+  html:not(.dark) .life-shell .bg-white [class*="bg-slate-950"] {
+    background-color: hsl(var(--muted));
+  }
+
+  html:not(.dark) .life-shell .bg-white [class*="border-slate-700"],
+  html:not(.dark) .life-shell .bg-white [class*="border-slate-800"] {
+    border-color: hsl(var(--border));
+  }
+}
+
 /* Custom crisp scrollbar for data tables & views */
 ::-webkit-scrollbar {
   width: 6px;

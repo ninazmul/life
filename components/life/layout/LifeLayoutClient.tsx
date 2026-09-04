@@ -22,7 +22,7 @@ export function LifeLayoutClient({
 
   return (
     <PWAProvider>
-      <div className="flex min-h-screen bg-background text-foreground transition-colors">
+      <div className="life-shell flex min-h-screen bg-background text-foreground transition-colors">
         {/* Desktop Responsive Sidebar */}
         <LifeSidebar />
 

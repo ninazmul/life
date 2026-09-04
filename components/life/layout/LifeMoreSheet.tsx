@@ -101,24 +101,24 @@ export function LifeMoreSheet({ open, onOpenChange }: LifeMoreSheetProps) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="max-h-[85vh] rounded-t-3xl border-t border-slate-800 bg-slate-950/98 backdrop-blur-2xl p-0 overflow-hidden"
+        className="life-drawer max-h-[85vh] rounded-t-3xl border-t backdrop-blur-2xl p-0 overflow-hidden shadow-2xl"
       >
         <div
-          className="w-12 h-1.5 bg-slate-700/60 rounded-full mx-auto mt-3 mb-1"
+          className="w-12 h-1.5 bg-muted-foreground/30 rounded-full mx-auto mt-3 mb-1"
           aria-hidden="true"
         />
-        <SheetHeader className="px-6 py-3 flex flex-row items-center justify-between border-b border-slate-800/60">
+        <SheetHeader className="px-6 py-3 flex flex-row items-center justify-between border-b border-border">
           <div className="min-w-0 pr-2">
-            <SheetTitle className="text-base font-bold text-slate-100 flex items-center gap-2">
+            <SheetTitle className="text-base font-bold text-foreground flex items-center gap-2">
               <span>All Life Modules</span>
             </SheetTitle>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Personal Continuity & Legacy Command Center
             </p>
           </div>
           <button
             onClick={() => onOpenChange(false)}
-            className="rounded-full p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 shrink-0 transition-colors"
+            className="rounded-full p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0 transition-colors"
             aria-label="Close modules menu"
           >
             <X
@@ -145,8 +145,8 @@ export function LifeMoreSheet({ open, onOpenChange }: LifeMoreSheetProps) {
                 onClick={() => onOpenChange(false)}
                 className={`flex items-center gap-3.5 p-3 rounded-2xl border transition-all duration-150 ${
                   isActive
-                    ? "bg-slate-900/90 border-emerald-500/50 shadow-sm"
-                    : "bg-slate-900/40 border-slate-800/50 hover:bg-slate-900/80 hover:border-slate-700"
+                    ? "bg-emerald-500/10 border-emerald-500/40 shadow-sm"
+                    : "bg-card border-border hover:bg-muted/70 hover:border-muted-foreground/30"
                 }`}
                 role="listitem"
                 aria-label={
@@ -170,19 +170,19 @@ export function LifeMoreSheet({ open, onOpenChange }: LifeMoreSheetProps) {
                     <span
                       className={`text-sm font-semibold truncate ${
                         isActive
-                          ? "text-emerald-400"
-                          : "text-slate-200"
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-foreground"
                       }`}
                     >
                       {item.title}
                     </span>
                     {isActive && (
-                      <span className="text-[10px] uppercase font-bold text-emerald-400 px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-800/50 shrink-0">
+                      <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/25 shrink-0">
                         Active
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-400 truncate mt-0.5">
+                  <p className="text-xs text-muted-foreground truncate mt-0.5">
                     {item.desc}
                   </p>
                 </div>

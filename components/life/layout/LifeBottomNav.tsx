@@ -56,7 +56,7 @@ export function LifeBottomNav({
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/90 dark:bg-[#070a12]/95 backdrop-blur-xl border-t border-slate-800/80 pb-safe"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 dark:bg-[#070a12]/95 backdrop-blur-xl border-t border-border shadow-[0_-10px_30px_rgba(15,23,42,0.08)] dark:shadow-none pb-safe"
       role="navigation"
       aria-label="Mobile bottom navigation"
     >
@@ -69,8 +69,8 @@ export function LifeBottomNav({
               href={item.href}
               className={`flex flex-col items-center justify-center flex-1 py-1 transition-all duration-200 relative ${
                 item.isActive
-                  ? "text-emerald-400 font-semibold"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "text-emerald-600 dark:text-emerald-400 font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
               aria-label={
                 item.isActive
@@ -101,7 +101,7 @@ export function LifeBottomNav({
               </span>
               {item.isActive && (
                 <span
-                  className="absolute bottom-0.5 w-1 h-1 rounded-full bg-emerald-400"
+                  className="absolute bottom-0.5 w-1 h-1 rounded-full bg-emerald-500 dark:bg-emerald-400"
                   aria-hidden="true"
                 />
               )}
@@ -114,8 +114,8 @@ export function LifeBottomNav({
           onClick={onOpenMore}
           className={`flex flex-col items-center justify-center flex-1 py-1 transition-all duration-200 relative ${
             isMoreActive
-              ? "text-emerald-400 font-semibold"
-              : "text-slate-400 hover:text-slate-200"
+              ? "text-emerald-600 dark:text-emerald-400 font-semibold"
+              : "text-muted-foreground hover:text-foreground"
           }`}
           aria-label={
             isMoreActive
@@ -134,7 +134,7 @@ export function LifeBottomNav({
           <span className="text-[11px] mt-1 tracking-tight">More</span>
           {isMoreActive && (
             <span
-              className="absolute bottom-0.5 w-1 h-1 rounded-full bg-emerald-400"
+              className="absolute bottom-0.5 w-1 h-1 rounded-full bg-emerald-500 dark:bg-emerald-400"
               aria-hidden="true"
             />
           )}
