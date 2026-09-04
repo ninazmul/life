@@ -33,26 +33,34 @@ interface AccessClientProps {
   people: ILifePerson[];
 }
 
-export function AccessClient({ emergencyState: initialEmergency, people: initialPeople }: AccessClientProps) {
+export function AccessClient({
+  emergencyState: initialEmergency,
+  people: initialPeople,
+}: AccessClientProps) {
   const [emergency, setEmergency] = useState(initialEmergency);
   const [people, setPeople] = useState(initialPeople);
   const [loading, setLoading] = useState(false);
 
   // Emergency settings
   const [primaryAdminEmail, setPrimaryAdminEmail] = useState(
-    emergency.primaryAdminEmail || ""
+    emergency.primaryAdminEmail || "",
   );
   const [secondaryAdminEmail, setSecondaryAdminEmail] = useState(
-    emergency.secondaryAdminEmail || ""
+    emergency.secondaryAdminEmail || "",
   );
   const [instructions, setInstructions] = useState(
-    emergency.instructions || ""
+    emergency.instructions || "",
   );
   const [reason, setReason] = useState("");
 
   const handleToggleEmergency = async () => {
     const nextState = !emergency.isEmergencyActive;
-    if (nextState && !confirm("Are you sure you want to ACTIVATE Emergency Mode? This will unlock designated continuity records.")) {
+    if (
+      nextState &&
+      !confirm(
+        "Are you sure you want to ACTIVATE Emergency Mode? This will unlock designated continuity records.",
+      )
+    ) {
       return;
     }
 
@@ -63,7 +71,7 @@ export function AccessClient({ emergencyState: initialEmergency, people: initial
       toast.success(
         res.isEmergencyActive
           ? "Emergency Mode has been ACTIVATED."
-          : "Emergency Mode has been DEACTIVATED."
+          : "Emergency Mode has been DEACTIVATED.",
       );
       setReason("");
     } catch (err: any) {
@@ -94,7 +102,7 @@ export function AccessClient({ emergencyState: initialEmergency, people: initial
   const handlePermissionChange = async (
     personId: string,
     field: keyof LifePermission,
-    currentVal: boolean
+    currentVal: boolean,
   ) => {
     const person = people.find((p) => p._id === personId);
     if (!person) return;
@@ -115,7 +123,9 @@ export function AccessClient({ emergencyState: initialEmergency, people: initial
     try {
       await updatePersonRoleAndPermissions(personId, person.role, newPerms);
       setPeople(
-        people.map((p) => (p._id === personId ? { ...p, permissions: newPerms } : p))
+        people.map((p) =>
+          p._id === personId ? { ...p, permissions: newPerms } : p,
+        ),
       );
       toast.success(`Updated permissions for ${person.name}`);
     } catch (err: any) {
@@ -128,11 +138,17 @@ export function AccessClient({ emergencyState: initialEmergency, people: initial
     if (!person) return;
 
     try {
-      await updatePersonRoleAndPermissions(personId, newRole, person.permissions);
-      setPeople(
-        people.map((p) => (p._id === personId ? { ...p, role: newRole } : p))
+      await updatePersonRoleAndPermissions(
+        personId,
+        newRole,
+        person.permissions,
       );
-      toast.success(`Role updated to ${newRole.toUpperCase()} for ${person.name}`);
+      setPeople(
+        people.map((p) => (p._id === personId ? { ...p, role: newRole } : p)),
+      );
+      toast.success(
+        `Role updated to ${newRole.toUpperCase()} for ${person.name}`,
+      );
     } catch (err: any) {
       toast.error(err.message || "Failed to update role.");
     }
@@ -142,11 +158,12 @@ export function AccessClient({ emergencyState: initialEmergency, people: initial
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+        <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
           Access Control & Emergency Mode
         </h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-          Emergency protocol delegation, resource authorization rules, and instant emergency trigger.
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Emergency protocol delegation, resource authorization rules, and
+          instant emergency trigger.
         </p>
       </div>
 
@@ -155,7 +172,7 @@ export function AccessClient({ emergencyState: initialEmergency, people: initial
         className={`p-5 sm:p-6 rounded-3xl border transition-all ${
           emergency.isEmergencyActive
             ? "bg-red-950/40 border-red-500/60 shadow-lg shadow-red-950/30"
-            : "bg-white dark:bg-slate-900/70 border-slate-200/80 dark:border-slate-800"
+            : "bg-secondary border border-border"
         }`}
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -171,7 +188,7 @@ export function AccessClient({ emergencyState: initialEmergency, people: initial
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                <h3 className="text-base font-bold text-foreground">
                   Emergency Mode State
                 </h3>
                 <span
@@ -184,7 +201,7 @@ export function AccessClient({ emergencyState: initialEmergency, people: initial
                   {emergency.isEmergencyActive ? "ACTIVE PROTOCOL" : "STANDBY"}
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 {emergency.isEmergencyActive
                   ? "Emergency mode is ACTIVE. Designated trusted people have access to authorized instructions."
                   : "Normal state. Sensitive emergency instructions and locked documents remain concealed."}
@@ -217,8 +234,8 @@ export function AccessClient({ emergencyState: initialEmergency, people: initial
       </div>
 
       {/* Delegation Protocol Form */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 space-y-4">
-        <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+      <div className="p-5 sm:p-6 rounded-3xl bg-secondary border border-border space-y-4">
+        <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-emerald-400" />
           <span>Delegated Emergency Admins</span>
         </h3>
@@ -226,7 +243,7 @@ export function AccessClient({ emergencyState: initialEmergency, people: initial
         <form onSubmit={handleSaveProtocol} className="space-y-3.5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-300">
+              <label className="text-xs font-semibold text-muted-foreground">
                 Primary Emergency Admin Email
               </label>
               <Input
@@ -240,7 +257,7 @@ export function AccessClient({ emergencyState: initialEmergency, people: initial
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-300">
+              <label className="text-xs font-semibold text-muted-foreground">
                 Secondary Emergency Admin Email
               </label>
               <Input
@@ -254,7 +271,7 @@ export function AccessClient({ emergencyState: initialEmergency, people: initial
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-300">
+            <label className="text-xs font-semibold text-muted-foreground">
               General Emergency Instructions
             </label>
             <textarea
@@ -279,28 +296,37 @@ export function AccessClient({ emergencyState: initialEmergency, people: initial
 
       {/* Permissions Matrix for People */}
       <div className="space-y-3">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground px-1">
           Individual User Access Matrix
         </h3>
 
-        <div className="rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800/80 overflow-hidden">
+        <div className="rounded-3xl bg-secondary border border-border divide-y divide-border overflow-hidden">
           {people.map((p) => (
-            <div key={p._id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div
+              key={p._id}
+              className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+            >
               <div>
                 <div className="flex items-center gap-2">
-                  <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">
+                  <h4 className="font-bold text-sm text-foreground">
                     {p.name}
                   </h4>
-                  <span className="text-[11px] text-slate-400">({p.relation})</span>
+                  <span className="text-[11px] text-slate-400">
+                    ({p.relation})
+                  </span>
                 </div>
-                <p className="text-[11px] text-slate-500 font-mono mt-0.5">{p.email || "No Clerk email linked"}</p>
+                <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+                  {p.email || "No Clerk email linked"}
+                </p>
               </div>
 
               {/* Role Select & Permission Toggles */}
               <div className="flex flex-wrap items-center gap-2">
                 <select
                   value={p.role}
-                  onChange={(e) => handleRoleChange(p._id, e.target.value as LifeRole)}
+                  onChange={(e) =>
+                    handleRoleChange(p._id, e.target.value as LifeRole)
+                  }
                   className="h-8 px-2.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-200 text-xs font-medium focus:outline-none"
                 >
                   <option value="individual">Individual</option>
@@ -317,7 +343,7 @@ export function AccessClient({ emergencyState: initialEmergency, people: initial
                     handlePermissionChange(
                       p._id,
                       "canViewFinancial",
-                      p.permissions?.canViewFinancial || false
+                      p.permissions?.canViewFinancial || false,
                     )
                   }
                   className={`h-7 px-2.5 text-[10px] rounded-lg border ${
@@ -336,7 +362,7 @@ export function AccessClient({ emergencyState: initialEmergency, people: initial
                     handlePermissionChange(
                       p._id,
                       "canViewBusiness",
-                      p.permissions?.canViewBusiness || false
+                      p.permissions?.canViewBusiness || false,
                     )
                   }
                   className={`h-7 px-2.5 text-[10px] rounded-lg border ${
@@ -355,7 +381,7 @@ export function AccessClient({ emergencyState: initialEmergency, people: initial
                     handlePermissionChange(
                       p._id,
                       "canRevealVault",
-                      p.permissions?.canRevealVault || false
+                      p.permissions?.canRevealVault || false,
                     )
                   }
                   className={`h-7 px-2.5 text-[10px] rounded-lg border ${

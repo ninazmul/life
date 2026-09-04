@@ -13,7 +13,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 47.4% 11.2%;
 
-    --primary: 221.2 83.2% 53.3%;
+    --primary: 271 100% 24%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -22,15 +22,15 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 270 60% 97%;
+    --accent-foreground: 271 100% 24%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --ring: 271 100% 45%;
 
     --radius: 0.75rem;
 
@@ -54,7 +54,7 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 217.2 91.2% 59.8%;
+    --primary: 271 96% 42%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -63,7 +63,7 @@
     --muted: 217.2 32.6% 12%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 270 35% 14%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
@@ -71,16 +71,16 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --ring: 271 96% 55%;
 
     --sidebar-background: 224 71% 3.5%;
     --sidebar-foreground: 215 20.2% 65.1%;
-    --sidebar-primary: 217.2 91.2% 59.8%;
+    --sidebar-primary: 271 96% 42%;
     --sidebar-primary-foreground: 222.2 47.4% 11.2%;
-    --sidebar-accent: 217.2 32.6% 12%;
+    --sidebar-accent: 270 35% 12%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217.2 32.6% 14%;
-    --sidebar-ring: 224.3 76.3% 48%;
+    --sidebar-ring: 271 96% 55%;
   }
 }
 
@@ -92,7 +92,11 @@
 }
 
 body {
-  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-family:
+    var(--font-inter),
+    system-ui,
+    -apple-system,
+    sans-serif;
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   min-height: 100vh;
@@ -166,33 +170,76 @@ body {
 
 /* Laser scan line sweeping top-to-bottom */
 @keyframes scan-laser {
-  0%   { top: 6px; opacity: 1; }
-  48%  { top: calc(100% - 6px); opacity: 1; }
-  50%  { top: calc(100% - 6px); opacity: 0; }
-  52%  { top: 6px; opacity: 0; }
-  54%  { top: 6px; opacity: 1; }
-  100% { top: 6px; opacity: 1; }
+  0% {
+    top: 6px;
+    opacity: 1;
+  }
+  48% {
+    top: calc(100% - 6px);
+    opacity: 1;
+  }
+  50% {
+    top: calc(100% - 6px);
+    opacity: 0;
+  }
+  52% {
+    top: 6px;
+    opacity: 0;
+  }
+  54% {
+    top: 6px;
+    opacity: 1;
+  }
+  100% {
+    top: 6px;
+    opacity: 1;
+  }
 }
 
 /* Viewport success flash */
 @keyframes scan-flash {
-  0%   { opacity: 0; }
-  15%  { opacity: 0.55; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 /* Corner bracket pulse glow */
 @keyframes corner-pulse {
-  0%, 100% { opacity: 0.7; box-shadow: none; }
-  50%       { opacity: 1;   box-shadow: 0 0 10px 2px rgba(52, 211, 153, 0.6); }
+  0%,
+  100% {
+    opacity: 0.7;
+    box-shadow: none;
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 10px 2px rgba(52, 211, 153, 0.6);
+  }
 }
 
 /* Form field autofill highlight – green ring pop then fade */
 @keyframes field-scan-pop {
-  0%   { box-shadow: 0 0 0 0   rgba(16, 185, 129, 0);   background-color: transparent; }
-  20%  { box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.45); background-color: rgba(16, 185, 129, 0.08); }
-  60%  { box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25); background-color: rgba(16, 185, 129, 0.05); }
-  100% { box-shadow: 0 0 0 0   rgba(16, 185, 129, 0);   background-color: transparent; }
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    background-color: transparent;
+  }
+  20% {
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.45);
+    background-color: rgba(16, 185, 129, 0.08);
+  }
+  60% {
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+    background-color: rgba(16, 185, 129, 0.05);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    background-color: transparent;
+  }
 }
 
 .scan-field-highlight {
@@ -202,8 +249,14 @@ body {
 
 /* Ripple out from scan reticle on success */
 @keyframes scan-ripple {
-  0%   { transform: scale(1);   opacity: 0.8; }
-  100% { transform: scale(1.18); opacity: 0; }
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.18);
+    opacity: 0;
+  }
 }
 
 .scan-laser-line {
@@ -211,8 +264,17 @@ body {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(to right, transparent 0%, #34d399 20%, #6ee7b7 50%, #34d399 80%, transparent 100%);
-  box-shadow: 0 0 8px 2px rgba(52, 211, 153, 0.6), 0 0 20px 4px rgba(52, 211, 153, 0.2);
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    #34d399 20%,
+    #6ee7b7 50%,
+    #34d399 80%,
+    transparent 100%
+  );
+  box-shadow:
+    0 0 8px 2px rgba(52, 211, 153, 0.6),
+    0 0 20px 4px rgba(52, 211, 153, 0.2);
   animation: scan-laser 2.2s ease-in-out infinite;
   pointer-events: none;
   z-index: 2;

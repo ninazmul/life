@@ -34,7 +34,7 @@ export function DeleteConfirmDialog({
 }: DeleteConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(o) => !isLoading && onOpenChange(o)}>
-      <DialogContent className="sm:max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
+      <DialogContent className="sm:max-w-md rounded-2xl">
         <DialogHeader className="gap-2">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 shrink-0">
@@ -44,11 +44,11 @@ export function DeleteConfirmDialog({
                 aria-hidden="true"
               />
             </div>
-            <DialogTitle className="text-lg font-bold text-slate-900 dark:text-slate-100">
+            <DialogTitle className="text-lg font-bold text-foreground">
               {title}
             </DialogTitle>
           </div>
-          <DialogDescription className="text-sm text-slate-500 dark:text-slate-400 pt-1">
+          <DialogDescription className="text-sm text-muted-foreground pt-1">
             {description}
           </DialogDescription>
         </DialogHeader>
@@ -58,7 +58,7 @@ export function DeleteConfirmDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
-            className="rounded-xl border-slate-200 dark:border-slate-800"
+            className="rounded-xl"
           >
             {cancelText}
           </Button>

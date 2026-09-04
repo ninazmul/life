@@ -17,15 +17,12 @@ export default function Loader({
   fullScreen = false,
 }: LoaderProps) {
   const wrapperClass = fullScreen
-    ? "fixed inset-0 z-[100] bg-white/80 dark:bg-[#070a12]/90 backdrop-blur-sm flex flex-col items-center justify-center"
+    ? "fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center"
     : "flex flex-col items-center justify-center min-h-screen";
 
   return (
     <div
-      className={cn(
-        `${wrapperClass} gap-4 text-center`,
-        className,
-      )}
+      className={cn(`${wrapperClass} gap-4 text-center`, className)}
       role="status"
       aria-live="polite"
       aria-label={label}
@@ -36,9 +33,7 @@ export default function Loader({
         strokeWidth={2}
         aria-hidden="true"
       />
-      <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
-        {label}
-      </p>
+      <p className="text-muted-foreground text-sm font-medium">{label}</p>
     </div>
   );
 }

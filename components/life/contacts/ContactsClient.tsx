@@ -24,8 +24,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ILifeContact, ContactCategory, ILifePerson, ILifeBusiness } from "@/types";
-import { createContact, deleteContact } from "@/lib/actions/lifeContact.actions";
+import {
+  ILifeContact,
+  ContactCategory,
+  ILifePerson,
+  ILifeBusiness,
+} from "@/types";
+import {
+  createContact,
+  deleteContact,
+} from "@/lib/actions/lifeContact.actions";
 import toast from "react-hot-toast";
 
 interface ContactsClientProps {
@@ -147,15 +155,16 @@ export function ContactsClient({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
               Contact Directory
             </h1>
             <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">
               {contacts.length}
             </span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Key emergency advisors, lawyers, doctors, engineers, and suppliers with 1-tap call & messaging.
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Key emergency advisors, lawyers, doctors, engineers, and suppliers
+            with 1-tap call & messaging.
           </p>
         </div>
 
@@ -171,12 +180,12 @@ export function ContactsClient({
       {/* Search & Category Pills */}
       <div className="flex flex-col sm:flex-row items-center gap-2.5">
         <div className="relative w-full sm:flex-1">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, phone, company, or role..."
-            className="pl-9 h-10 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-xs"
+            className="pl-9 h-10 rounded-xl border-border bg-secondary text-xs"
           />
         </div>
 
@@ -188,7 +197,7 @@ export function ContactsClient({
               className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap capitalize transition-all ${
                 categoryFilter === cat
                   ? "bg-sky-600 text-white font-semibold shadow-xs"
-                  : "bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                  : "bg-secondary border border-border text-muted-foreground hover:text-foreground"
               }`}
             >
               {cat === "all" ? "All Contacts" : cat.replace("_", " ")}
@@ -199,11 +208,14 @@ export function ContactsClient({
 
       {/* Contacts Cards */}
       {filteredContacts.length === 0 ? (
-        <div className="p-10 rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 text-center space-y-2">
-          <Contact className="w-8 h-8 text-slate-500 mx-auto" />
-          <h3 className="text-sm font-bold text-slate-300">No Contacts Found</h3>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Save critical contacts like family doctors, lawyers, bankers, and server engineers.
+        <div className="p-10 rounded-3xl border border-dashed border-border text-center space-y-2">
+          <Contact className="w-8 h-8 text-muted-foreground mx-auto" />
+          <h3 className="text-sm font-bold text-muted-foreground">
+            No Contacts Found
+          </h3>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            Save critical contacts like family doctors, lawyers, bankers, and
+            server engineers.
           </p>
         </div>
       ) : (
@@ -211,7 +223,7 @@ export function ContactsClient({
           {filteredContacts.map((c) => (
             <div
               key={c._id}
-              className="p-4 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-850 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between group shadow-xs"
+              className="p-4 rounded-2xl bg-secondary border border-border hover:border-border transition-all flex flex-col justify-between group shadow-xs"
             >
               <div>
                 <div className="flex items-start justify-between gap-2">
@@ -219,32 +231,36 @@ export function ContactsClient({
                     {c.category.replace("_", " ")}
                   </span>
                   {c.company && (
-                    <span className="text-xs text-slate-400 font-medium truncate max-w-[140px]">
+                    <span className="text-xs text-muted-foreground font-medium truncate max-w-[140px]">
                       {c.company}
                     </span>
                   )}
                 </div>
 
-                <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100 mt-2 line-clamp-1">
+                <h3 className="font-bold text-sm text-foreground mt-2 line-clamp-1">
                   {c.name}
                 </h3>
 
-                <p className="text-xs text-slate-400 font-mono mt-0.5">{c.phone}</p>
+                <p className="text-xs text-muted-foreground font-mono mt-0.5">
+                  {c.phone}
+                </p>
 
                 {c.whenToContact && (
-                  <div className="mt-2.5 p-2.5 rounded-xl bg-slate-100 dark:bg-slate-950/40 text-xs text-slate-300 flex items-start gap-1.5">
+                  <div className="mt-2.5 p-2.5 rounded-xl bg-muted text-xs text-muted-foreground flex items-start gap-1.5">
                     <HelpCircle className="w-3.5 h-3.5 text-sky-400 shrink-0 mt-0.5" />
-                    <span className="line-clamp-2">Why/When: {c.whenToContact}</span>
+                    <span className="line-clamp-2">
+                      Why/When: {c.whenToContact}
+                    </span>
                   </div>
                 )}
               </div>
 
               {/* Action Buttons: 1-tap Call, WhatsApp, Email, Copy */}
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+              <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <a
                     href={`tel:${c.phone}`}
-                    className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-emerald-400 hover:bg-emerald-950/40 transition-colors"
+                    className="p-2 rounded-xl bg-muted text-muted-foreground hover:text-emerald-400 hover:bg-emerald-950/40 transition-colors"
                     title="Call Phone"
                   >
                     <Phone className="w-3.5 h-3.5" />
@@ -253,7 +269,7 @@ export function ContactsClient({
                     href={`https://wa.me/${(c.whatsapp || c.phone).replace(/[^0-9]/g, "")}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-emerald-400 hover:bg-emerald-950/40 transition-colors"
+                    className="p-2 rounded-xl bg-muted text-muted-foreground hover:text-emerald-400 hover:bg-emerald-950/40 transition-colors"
                     title="WhatsApp"
                   >
                     <MessageCircle className="w-3.5 h-3.5" />
@@ -261,7 +277,7 @@ export function ContactsClient({
                   {c.email && (
                     <a
                       href={`mailto:${c.email}`}
-                      className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-sky-400 hover:bg-sky-950/40 transition-colors"
+                      className="p-2 rounded-xl bg-muted text-muted-foreground hover:text-sky-400 hover:bg-sky-950/40 transition-colors"
                       title="Email"
                     >
                       <Mail className="w-3.5 h-3.5" />
@@ -269,7 +285,7 @@ export function ContactsClient({
                   )}
                   <button
                     onClick={() => handleCopy(c.phone, c._id)}
-                    className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-white transition-colors"
+                    className="p-2 rounded-xl bg-muted text-muted-foreground hover:text-white transition-colors"
                     title="Copy Phone"
                   >
                     {copiedId === c._id ? (
@@ -284,7 +300,7 @@ export function ContactsClient({
                   size="sm"
                   variant="ghost"
                   onClick={() => handleDelete(c._id, c.name)}
-                  className="h-7 w-7 p-0 text-slate-500 hover:text-red-400"
+                  className="h-7 w-7 p-0 text-muted-foreground hover:text-red-400"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
@@ -338,7 +354,9 @@ export function ContactsClient({
                 </label>
                 <select
                   value={category}
-                  onChange={(e) => setCategory(e.target.value as ContactCategory)}
+                  onChange={(e) =>
+                    setCategory(e.target.value as ContactCategory)
+                  }
                   className="w-full h-10 px-3 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-sky-500 focus:outline-none"
                 >
                   <option value="family">Family</option>

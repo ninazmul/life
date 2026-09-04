@@ -25,9 +25,7 @@ interface SettingsClientProps {
   settings: Record<string, unknown> | null;
 }
 
-export function SettingsClient({
-  settings: _settings,
-}: SettingsClientProps) {
+export function SettingsClient({ settings: _settings }: SettingsClientProps) {
   const [newPin, setNewPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [pinLoading, setPinLoading] = useState(false);
@@ -77,9 +75,7 @@ export function SettingsClient({
         "Encrypted backup exported successfully. Store this file securely.",
       );
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Backup export failed.",
-      );
+      toast.error(err instanceof Error ? err.message : "Backup export failed.");
     } finally {
       setExportLoading(false);
     }
@@ -88,16 +84,15 @@ export function SettingsClient({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+        <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
           Life Settings & Security
         </h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
-          Configure master vault PIN, PWA install status, and full data
-          backup.
+        <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+          Configure master vault PIN, PWA install status, and full data backup.
         </p>
       </div>
 
-      <section className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 space-y-4">
+      <section className="p-5 sm:p-6 rounded-3xl bg-card border border-border space-y-4">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
             <Smartphone
@@ -107,7 +102,7 @@ export function SettingsClient({
             />
           </div>
           <div className="min-w-0">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+            <h3 className="text-sm font-bold text-foreground truncate">
               Progressive Web App (PWA) Status
             </h3>
             <p className="text-xs text-slate-400 mt-0.5 leading-snug">
@@ -117,7 +112,7 @@ export function SettingsClient({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-          <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 space-y-1">
+          <div className="p-3 rounded-xl bg-muted border border-border space-y-1">
             <span className="text-slate-400 font-medium uppercase text-[10px] tracking-wider block">
               Install Status
             </span>
@@ -131,7 +126,7 @@ export function SettingsClient({
             </div>
           </div>
 
-          <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 space-y-1">
+          <div className="p-3 rounded-xl bg-muted border border-border space-y-1">
             <span className="text-slate-400 font-medium uppercase text-[10px] tracking-wider block">
               Service Worker
             </span>
@@ -145,7 +140,7 @@ export function SettingsClient({
             </div>
           </div>
 
-          <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 space-y-1">
+          <div className="p-3 rounded-xl bg-muted border border-border space-y-1">
             <span className="text-slate-400 font-medium uppercase text-[10px] tracking-wider block">
               Offline Safe APIs
             </span>
@@ -160,14 +155,12 @@ export function SettingsClient({
           </div>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/30 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-400 leading-relaxed space-y-1">
+        <div className="p-3.5 rounded-2xl bg-accent border border-border text-xs text-muted-foreground leading-relaxed space-y-1">
           <p>
-            <strong className="text-slate-600 dark:text-slate-300">
-              How to install:
-            </strong>{" "}
-            On mobile, tap the browser Share button → &quot;Add to Home
-            Screen&quot;. On desktop Chrome, click the install icon (⊕) in
-            the address bar.
+            <strong className="text-foreground">How to install:</strong> On
+            mobile, tap the browser Share button → &quot;Add to Home
+            Screen&quot;. On desktop Chrome, click the install icon (⊕) in the
+            address bar.
           </p>
           <p className="text-amber-500 dark:text-amber-400 font-medium flex items-start gap-1.5 mt-1">
             <Shield
@@ -183,7 +176,7 @@ export function SettingsClient({
         </div>
       </section>
 
-      <section className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 space-y-4">
+      <section className="p-5 sm:p-6 rounded-3xl bg-card border border-border space-y-4">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
             <KeyRound
@@ -193,7 +186,7 @@ export function SettingsClient({
             />
           </div>
           <div className="min-w-0">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+            <h3 className="text-sm font-bold text-foreground truncate">
               Master Vault PIN
             </h3>
             <p className="text-xs text-slate-400 mt-0.5 leading-snug">
@@ -206,7 +199,7 @@ export function SettingsClient({
         <form onSubmit={handleSetPin} className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
+              <label className="text-xs font-semibold text-foreground block">
                 New Vault PIN (min. 4 digits)
               </label>
               <Input
@@ -216,15 +209,13 @@ export function SettingsClient({
                 placeholder="••••"
                 maxLength={12}
                 value={newPin}
-                onChange={(e) =>
-                  setNewPin(e.target.value.replace(/\D/g, ""))
-                }
-                className="h-11 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 text-slate-900 dark:text-slate-100 text-sm text-center font-mono tracking-[0.5em] focus:border-amber-500"
+                onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ""))}
+                className="h-11 border-border bg-card text-foreground text-sm text-center font-mono tracking-[0.5em] focus:border-amber-500"
                 aria-label="New vault PIN input"
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
+              <label className="text-xs font-semibold text-foreground block">
                 Confirm Vault PIN
               </label>
               <Input
@@ -237,7 +228,7 @@ export function SettingsClient({
                 onChange={(e) =>
                   setConfirmPin(e.target.value.replace(/\D/g, ""))
                 }
-                className="h-11 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 text-slate-900 dark:text-slate-100 text-sm text-center font-mono tracking-[0.5em] focus:border-amber-500"
+                className="h-11 border-border bg-card text-foreground text-sm text-center font-mono tracking-[0.5em] focus:border-amber-500"
                 aria-label="Confirm vault PIN input"
               />
             </div>
@@ -269,7 +260,7 @@ export function SettingsClient({
         </form>
       </section>
 
-      <section className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 space-y-4">
+      <section className="p-5 sm:p-6 rounded-3xl bg-card border border-border space-y-4">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shrink-0">
             <Download
@@ -279,7 +270,7 @@ export function SettingsClient({
             />
           </div>
           <div className="min-w-0">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+            <h3 className="text-sm font-bold text-foreground truncate">
               Export Full Data Backup
             </h3>
             <p className="text-xs text-slate-400 mt-0.5 leading-snug">
@@ -300,9 +291,9 @@ export function SettingsClient({
               Security Notice:
             </strong>{" "}
             The backup export includes vault item metadata but{" "}
-            <strong>never</strong> decrypted secrets. Encrypted secret
-            payloads are excluded for your security. Store the backup file in
-            a secure encrypted location.
+            <strong>never</strong> decrypted secrets. Encrypted secret payloads
+            are excluded for your security. Store the backup file in a secure
+            encrypted location.
           </p>
         </div>
 
@@ -329,14 +320,14 @@ export function SettingsClient({
             Download JSON Backup
           </Button>
 
-          <p className="text-xs text-slate-500 dark:text-slate-400 leading-snug">
+          <p className="text-xs text-muted-foreground leading-snug">
             Includes People, Information, Business, Money, Assets, Contacts,
             Documents, Legacy (no vault secrets).
           </p>
         </div>
       </section>
 
-      <section className="p-5 rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800">
+      <section className="p-5 rounded-3xl bg-card border border-border">
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
           <Settings
             className="w-3.5 h-3.5 shrink-0"
@@ -347,20 +338,30 @@ export function SettingsClient({
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
           {[
-            ["Security Model", "AES-256-GCM", "text-emerald-500 dark:text-emerald-400"],
-            ["Auth Provider", "Clerk.dev", "text-slate-800 dark:text-slate-200"],
-            ["Database", "MongoDB Atlas", "text-slate-800 dark:text-slate-200"],
-            ["Framework", "Next.js App Router", "text-slate-800 dark:text-slate-200"],
-            ["Cache Policy", "Zero Cache (Sensitive)", "text-red-500 dark:text-red-400"],
-            ["Vault Reveals Audited", "Yes ✓", "text-emerald-500 dark:text-emerald-400"],
+            [
+              "Security Model",
+              "AES-256-GCM",
+              "text-emerald-500 dark:text-emerald-400",
+            ],
+            ["Auth Provider", "Clerk.dev", "text-foreground"],
+            ["Database", "MongoDB Atlas", "text-foreground"],
+            ["Framework", "Next.js App Router", "text-foreground"],
+            [
+              "Cache Policy",
+              "Zero Cache (Sensitive)",
+              "text-red-500 dark:text-red-400",
+            ],
+            [
+              "Vault Reveals Audited",
+              "Yes ✓",
+              "text-emerald-500 dark:text-emerald-400",
+            ],
           ].map(([label, value, color]) => (
             <div
               key={label}
-              className="p-3 rounded-xl bg-slate-100 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 flex justify-between items-center gap-2"
+              className="p-3 rounded-xl bg-muted border border-border flex justify-between items-center gap-2"
             >
-              <span className="text-slate-500 dark:text-slate-400 shrink-0">
-                {label}
-              </span>
+              <span className="text-muted-foreground shrink-0">{label}</span>
               <span className={`font-bold truncate ${color}`}>{value}</span>
             </div>
           ))}

@@ -23,11 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  ILifeLegacyMessage,
-  ILifePerson,
-  LifeVisibility,
-} from "@/types";
+import { ILifeLegacyMessage, ILifePerson, LifeVisibility } from "@/types";
 import {
   createLegacyMessage,
   toggleLegacyRelease,
@@ -41,24 +37,29 @@ interface LegacyClientProps {
 }
 
 export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
-  const [messages, setMessages] = useState<ILifeLegacyMessage[]>(initialMessages);
+  const [messages, setMessages] =
+    useState<ILifeLegacyMessage[]>(initialMessages);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Read message modal
-  const [selectedLetter, setSelectedLetter] = useState<ILifeLegacyMessage | null>(null);
+  const [selectedLetter, setSelectedLetter] =
+    useState<ILifeLegacyMessage | null>(null);
 
   // Form states
   const [title, setTitle] = useState("");
   const [recipientPersonId, setRecipientPersonId] = useState("");
   const [message, setMessage] = useState("");
   const [releaseCondition, setReleaseCondition] = useState("");
-  const [visibility, setVisibility] = useState<LifeVisibility>("admin_can_release");
+  const [visibility, setVisibility] =
+    useState<LifeVisibility>("admin_can_release");
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !recipientPersonId || !message.trim()) {
-      toast.error("Title, designated recipient and letter message are required.");
+      toast.error(
+        "Title, designated recipient and letter message are required.",
+      );
       return;
     }
 
@@ -92,12 +93,12 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
     try {
       await toggleLegacyRelease(id, next);
       setMessages(
-        messages.map((m) => (m._id === id ? { ...m, isReleased: next } : m))
+        messages.map((m) => (m._id === id ? { ...m, isReleased: next } : m)),
       );
       toast.success(
         next
           ? "Letter released and visible to recipient!"
-          : "Letter concealed and protected."
+          : "Letter concealed and protected.",
       );
     } catch (err: any) {
       toast.error(err.message || "Failed to toggle release.");
@@ -121,15 +122,16 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
               Personal Legacy Messages
             </h1>
             <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">
               {messages.length} Letters
             </span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Private heartfelt letters and confidential instructions designated for loved ones and trusted partners.
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Private heartfelt letters and confidential instructions designated
+            for loved ones and trusted partners.
           </p>
         </div>
 
@@ -146,17 +148,22 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
       <div className="p-5 rounded-3xl bg-gradient-to-br from-rose-950/40 via-slate-900 to-slate-950 border border-rose-500/20 text-xs text-rose-200 flex items-start gap-3.5">
         <HeartHandshake className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
         <p className="leading-relaxed">
-          &quot;If I become unavailable, the people I care about should understand what was intended for them, who to trust, and what personal message I left behind.&quot;
+          &quot;If I become unavailable, the people I care about should
+          understand what was intended for them, who to trust, and what personal
+          message I left behind.&quot;
         </p>
       </div>
 
       {/* Letters List */}
       {messages.length === 0 ? (
-        <div className="p-10 rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 text-center space-y-3">
+        <div className="p-10 rounded-3xl border border-dashed border-border text-center space-y-3">
           <Mail className="w-8 h-8 text-rose-400/60 mx-auto" />
-          <h3 className="text-sm font-bold text-slate-300">No Legacy Letters Written</h3>
+          <h3 className="text-sm font-bold text-slate-300">
+            No Legacy Letters Written
+          </h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Write private letters for your wife, brother, parents, or partners with custom release triggers.
+            Write private letters for your wife, brother, parents, or partners
+            with custom release triggers.
           </p>
           <Button
             size="sm"
@@ -171,7 +178,7 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
           {messages.map((item) => (
             <div
               key={item._id}
-              className="p-5 rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-850 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between group shadow-xs"
+              className="p-5 rounded-3xl bg-card border border-border hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between group shadow-xs"
             >
               <div>
                 <div className="flex items-start justify-between gap-2">
@@ -191,23 +198,26 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
                   </span>
                 </div>
 
-                <h3 className="font-bold text-base text-slate-900 dark:text-slate-100 mt-2.5 line-clamp-1">
+                <h3 className="font-bold text-base text-foreground mt-2.5 line-clamp-1">
                   {item.title}
                 </h3>
 
-                <div className="mt-3 p-4 rounded-2xl bg-slate-100 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80 text-xs text-slate-300 font-serif leading-relaxed line-clamp-3 whitespace-pre-wrap">
+                <div className="mt-3 p-4 rounded-2xl bg-muted border border-border text-xs text-slate-300 font-serif leading-relaxed line-clamp-3 whitespace-pre-wrap">
                   {item.message}
                 </div>
 
                 {item.releaseCondition && (
                   <p className="text-[11px] text-slate-500 mt-2">
-                    Release Condition: <span className="text-slate-400">{item.releaseCondition}</span>
+                    Release Condition:{" "}
+                    <span className="text-slate-400">
+                      {item.releaseCondition}
+                    </span>
                   </p>
                 )}
               </div>
 
               {/* Actions */}
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+              <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Button
                     size="sm"
@@ -219,7 +229,9 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => handleToggleRelease(item._id, item.isReleased)}
+                    onClick={() =>
+                      handleToggleRelease(item._id, item.isReleased)
+                    }
                     className="h-8 px-2.5 text-xs text-slate-400 hover:text-white"
                   >
                     {item.isReleased ? (
@@ -264,7 +276,10 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
                 {selectedLetter.title}
               </DialogTitle>
               <p className="text-xs text-slate-400 font-sans">
-                Dedicated to: <strong className="text-slate-200">{selectedLetter.recipientName}</strong>
+                Dedicated to:{" "}
+                <strong className="text-slate-200">
+                  {selectedLetter.recipientName}
+                </strong>
               </p>
             </DialogHeader>
 
@@ -335,11 +350,17 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
                 </label>
                 <select
                   value={visibility}
-                  onChange={(e) => setVisibility(e.target.value as LifeVisibility)}
+                  onChange={(e) =>
+                    setVisibility(e.target.value as LifeVisibility)
+                  }
                   className="w-full h-10 px-3 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-rose-500 focus:outline-none"
                 >
-                  <option value="admin_can_release">Admin Can Release (Default)</option>
-                  <option value="emergency_only">Emergency Only (Unlocked upon emergency)</option>
+                  <option value="admin_can_release">
+                    Admin Can Release (Default)
+                  </option>
+                  <option value="emergency_only">
+                    Emergency Only (Unlocked upon emergency)
+                  </option>
                   <option value="visible_now">Visible Now to Recipient</option>
                   <option value="hidden">Hidden</option>
                 </select>

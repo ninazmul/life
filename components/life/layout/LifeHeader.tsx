@@ -41,7 +41,7 @@ export function LifeHeader({
   return (
     <>
       <header
-        className="sticky top-0 z-30 flex items-center justify-between px-3 sm:px-6 py-2.5 w-full border-b border-slate-200/80 dark:border-slate-850 bg-white/85 dark:bg-[#070a12]/85 backdrop-blur-xl transition-colors"
+        className="sticky top-0 z-30 flex items-center justify-between px-3 sm:px-6 py-2.5 w-full border-b border-border bg-background/85 backdrop-blur-xl transition-colors"
         role="banner"
       >
         {/* Left: Life Official Logo & Greeting */}
@@ -63,14 +63,14 @@ export function LifeHeader({
             </div>
             <div className="flex flex-col min-w-0">
               <div className="flex items-center gap-1.5 min-w-0">
-                <span className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-slate-100 shrink-0">
+                <span className="text-sm font-extrabold tracking-tight text-foreground shrink-0">
                   Life
                 </span>
                 <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
                   Vault
                 </span>
               </div>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate max-w-[130px] sm:max-w-[200px]">
+              <span className="text-[11px] text-muted-foreground font-medium truncate max-w-[130px] sm:max-w-[200px]">
                 {getGreeting()}, {userName.split(" ")[0]}
               </span>
             </div>
@@ -97,18 +97,18 @@ export function LifeHeader({
           <Button
             variant="outline"
             onClick={() => setSearchOpen(true)}
-            className="h-8.5 px-2.5 sm:px-3 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 text-xs font-medium gap-2 transition-all shadow-none"
+            className="h-8.5 px-2.5 sm:px-3 rounded-xl border-border bg-muted/80 text-muted-foreground hover:text-foreground text-xs font-medium gap-2 transition-all shadow-none"
             aria-label="Open global search (⌘K)"
           >
             <Search
-              className="w-3.5 h-3.5 text-slate-400 shrink-0"
+              className="w-3.5 h-3.5 text-muted-foreground shrink-0"
               strokeWidth={2}
               aria-hidden="true"
             />
-            <span className="hidden md:inline text-xs text-slate-400 font-normal">
+            <span className="hidden md:inline text-xs text-muted-foreground font-normal">
               Quick Search...
             </span>
-            <kbd className="hidden md:inline-flex items-center gap-0.5 text-[10px] font-semibold bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 text-slate-400 shrink-0">
+            <kbd className="hidden md:inline-flex items-center gap-0.5 text-[10px] font-semibold bg-background dark:bg-secondary px-1.5 py-0.5 rounded border border-border text-muted-foreground shrink-0">
               <Command
                 className="w-2.5 h-2.5 shrink-0"
                 strokeWidth={2}
@@ -120,7 +120,7 @@ export function LifeHeader({
 
           <ThemeToggle />
 
-          <div className="pl-1 border-l border-slate-200 dark:border-slate-800 flex items-center shrink-0">
+          <div className="pl-1 border-l border-border flex items-center shrink-0">
             <UserButton
               afterSwitchSessionUrl="/"
               userProfileMode="modal"

@@ -54,7 +54,7 @@ export function AssetsClient({
 
   const totalPortfolioValue = assets.reduce(
     (sum, a) => sum + (Number(a.value) || 0),
-    0
+    0,
   );
 
   const filteredAssets = assets.filter((a) => {
@@ -90,8 +90,10 @@ export function AssetsClient({
         ownershipPercentage: Number(ownershipPercentage) || 100,
         location,
         notes,
-        relatedPersonId: relatedPersonId !== "none" ? relatedPersonId : undefined,
-        relatedBusinessId: relatedBusinessId !== "none" ? relatedBusinessId : undefined,
+        relatedPersonId:
+          relatedPersonId !== "none" ? relatedPersonId : undefined,
+        relatedBusinessId:
+          relatedBusinessId !== "none" ? relatedBusinessId : undefined,
       });
 
       setAssets([created, ...assets]);
@@ -126,21 +128,24 @@ export function AssetsClient({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
               Assets & Holdings Portfolio
             </h1>
             <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
               {assets.length}
             </span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Total recorded holdings across properties, cash, bank deposits, and business investments.
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Total recorded holdings across properties, cash, bank deposits, and
+            business investments.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="text-right hidden sm:block">
-            <span className="text-[11px] text-slate-400 font-medium">Portfolio Valuation</span>
+            <span className="text-[11px] text-muted-foreground font-medium">
+              Portfolio Valuation
+            </span>
             <p className="text-xl font-extrabold text-indigo-400 font-mono">
               ৳{totalPortfolioValue.toLocaleString()}
             </p>
@@ -164,7 +169,7 @@ export function AssetsClient({
             className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap capitalize transition-all ${
               categoryFilter === cat
                 ? "bg-indigo-600 text-white font-semibold shadow-xs"
-                : "bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                : "bg-secondary border border-border text-muted-foreground hover:text-foreground"
             }`}
           >
             {cat === "all" ? "All Assets" : cat.replace("_", " ")}
@@ -174,11 +179,14 @@ export function AssetsClient({
 
       {/* Assets Grid */}
       {filteredAssets.length === 0 ? (
-        <div className="p-10 rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 text-center space-y-2">
-          <Layers className="w-8 h-8 text-slate-500 mx-auto" />
-          <h3 className="text-sm font-bold text-slate-300">No Assets Recorded</h3>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Keep an audit-proof inventory of real estate, bank deposits, vehicles, and valuables.
+        <div className="p-10 rounded-3xl border border-dashed border-border text-center space-y-2">
+          <Layers className="w-8 h-8 text-muted-foreground mx-auto" />
+          <h3 className="text-sm font-bold text-muted-foreground">
+            No Assets Recorded
+          </h3>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            Keep an audit-proof inventory of real estate, bank deposits,
+            vehicles, and valuables.
           </p>
         </div>
       ) : (
@@ -186,19 +194,19 @@ export function AssetsClient({
           {filteredAssets.map((asset) => (
             <div
               key={asset._id}
-              className="p-4 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-850 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between group shadow-xs"
+              className="p-4 rounded-2xl bg-secondary border border-border hover:border-border transition-all flex flex-col justify-between group shadow-xs"
             >
               <div>
                 <div className="flex items-start justify-between gap-2">
                   <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
                     {asset.category.replace("_", " ")}
                   </span>
-                  <span className="text-xs font-bold text-slate-400 font-mono">
+                  <span className="text-xs font-bold text-muted-foreground font-mono">
                     {asset.ownershipPercentage}% Ownership
                   </span>
                 </div>
 
-                <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100 mt-2 line-clamp-1">
+                <h3 className="font-bold text-sm text-foreground mt-2 line-clamp-1">
                   {asset.name}
                 </h3>
 
@@ -207,20 +215,24 @@ export function AssetsClient({
                 </div>
 
                 {asset.location && (
-                  <p className="text-xs text-slate-400 mt-1">Location: {asset.location}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Location: {asset.location}
+                  </p>
                 )}
                 {asset.notes && (
-                  <p className="text-xs text-slate-400 mt-1 line-clamp-2">{asset.notes}</p>
+                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                    {asset.notes}
+                  </p>
                 )}
               </div>
 
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500">
+              <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-[11px] text-muted-foreground">
                 <span className="capitalize">{asset.status}</span>
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => handleDelete(asset._id, asset.name)}
-                  className="h-7 w-7 p-0 text-slate-500 hover:text-red-400"
+                  className="h-7 w-7 p-0 text-muted-foreground hover:text-red-400"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
@@ -266,7 +278,9 @@ export function AssetsClient({
                 >
                   <option value="property">Property / Real Estate</option>
                   <option value="bank_balance">Bank Balance / Deposit</option>
-                  <option value="business_investment">Business Investment</option>
+                  <option value="business_investment">
+                    Business Investment
+                  </option>
                   <option value="cash">Cash Reserve</option>
                   <option value="vehicle">Vehicle</option>
                   <option value="equipment">Equipment / Hardware</option>

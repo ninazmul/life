@@ -68,7 +68,8 @@ export function InformationClient({
     const matchesSearch =
       search === "" ||
       item.title.toLowerCase().includes(search.toLowerCase()) ||
-      (item.summary && item.summary.toLowerCase().includes(search.toLowerCase())) ||
+      (item.summary &&
+        item.summary.toLowerCase().includes(search.toLowerCase())) ||
       item.content.toLowerCase().includes(search.toLowerCase());
 
     const matchesCategory =
@@ -77,7 +78,14 @@ export function InformationClient({
     return matchesSearch && matchesCategory;
   });
 
-  const categories = ["all", "personal", "business", "instruction", "emergency", "other"];
+  const categories = [
+    "all",
+    "personal",
+    "business",
+    "instruction",
+    "emergency",
+    "other",
+  ];
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,8 +103,10 @@ export function InformationClient({
         category,
         priority,
         visibility,
-        relatedPersonId: relatedPersonId !== "none" ? relatedPersonId : undefined,
-        relatedBusinessId: relatedBusinessId !== "none" ? relatedBusinessId : undefined,
+        relatedPersonId:
+          relatedPersonId !== "none" ? relatedPersonId : undefined,
+        relatedBusinessId:
+          relatedBusinessId !== "none" ? relatedBusinessId : undefined,
         isEmergency,
       });
 
@@ -132,15 +142,16 @@ export function InformationClient({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
               Information & Instructions
             </h1>
             <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
               {items.length}
             </span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Centralized repository for personal notes, business instructions, and emergency guidance.
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Centralized repository for personal notes, business instructions,
+            and emergency guidance.
           </p>
         </div>
 
@@ -161,7 +172,7 @@ export function InformationClient({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search notes, instructions, summaries..."
-            className="pl-9 h-10 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-xs"
+            className="pl-9 h-10 rounded-xl border-border bg-card text-xs"
           />
         </div>
 
@@ -173,7 +184,7 @@ export function InformationClient({
               className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap capitalize transition-all ${
                 categoryFilter === cat
                   ? "bg-emerald-600 text-white font-semibold shadow-xs"
-                  : "bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                  : "bg-card border border-border text-muted-foreground hover:text-foreground"
               }`}
             >
               {cat === "all" ? "All Categories" : cat}
@@ -184,11 +195,14 @@ export function InformationClient({
 
       {/* Information Cards Grid */}
       {filteredItems.length === 0 ? (
-        <div className="p-10 rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 text-center space-y-2">
+        <div className="p-10 rounded-3xl border border-dashed border-border text-center space-y-2">
           <FileText className="w-8 h-8 text-slate-500 mx-auto" />
-          <h3 className="text-sm font-bold text-slate-300">No Information Found</h3>
+          <h3 className="text-sm font-bold text-slate-300">
+            No Information Found
+          </h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Add critical instructions, passwords references, server tips or family guidance.
+            Add critical instructions, passwords references, server tips or
+            family guidance.
           </p>
         </div>
       ) : (
@@ -196,7 +210,7 @@ export function InformationClient({
           {filteredItems.map((item) => (
             <div
               key={item._id}
-              className="p-4 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-850 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between group shadow-xs"
+              className="p-4 rounded-2xl bg-card border border-border hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between group shadow-xs"
             >
               <div>
                 {/* Header chips */}
@@ -215,8 +229,8 @@ export function InformationClient({
                         item.priority === "critical"
                           ? "bg-red-900/30 text-red-400 border-red-700/50"
                           : item.priority === "high"
-                          ? "bg-amber-900/30 text-amber-400 border-amber-700/50"
-                          : "bg-slate-800 text-slate-400 border-slate-700"
+                            ? "bg-amber-900/30 text-amber-400 border-amber-700/50"
+                            : "bg-slate-800 text-slate-400 border-slate-700"
                       }`}
                     >
                       {item.priority}
@@ -224,7 +238,7 @@ export function InformationClient({
                   </div>
                 </div>
 
-                <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100 line-clamp-1">
+                <h3 className="font-bold text-sm text-foreground line-clamp-1">
                   {item.title}
                 </h3>
 
@@ -234,13 +248,13 @@ export function InformationClient({
                   </p>
                 )}
 
-                <div className="mt-2.5 p-3 rounded-xl bg-slate-100/70 dark:bg-slate-950/40 text-xs text-slate-300 font-mono line-clamp-4 whitespace-pre-wrap">
+                <div className="mt-2.5 p-3 rounded-xl bg-muted text-xs text-slate-300 font-mono line-clamp-4 whitespace-pre-wrap">
                   {item.content}
                 </div>
               </div>
 
               {/* Card Footer: Metadata & Delete */}
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500">
+              <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-[11px] text-slate-500">
                 <span>{new Date(item.createdAt).toLocaleDateString()}</span>
                 <Button
                   size="sm"
@@ -287,7 +301,9 @@ export function InformationClient({
                 </label>
                 <select
                   value={category}
-                  onChange={(e) => setCategory(e.target.value as LifeInfoCategory)}
+                  onChange={(e) =>
+                    setCategory(e.target.value as LifeInfoCategory)
+                  }
                   className="w-full h-10 px-3 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-emerald-500 focus:outline-none"
                 >
                   <option value="personal">Personal</option>
@@ -387,8 +403,12 @@ export function InformationClient({
                 onChange={(e) => setIsEmergency(e.target.checked)}
                 className="rounded border-slate-700 bg-slate-800 text-emerald-500 focus:ring-emerald-500"
               />
-              <label htmlFor="emergencyCheckbox" className="text-xs text-slate-300">
-                Mark as Critical Emergency Instruction (unlocked in Emergency Mode)
+              <label
+                htmlFor="emergencyCheckbox"
+                className="text-xs text-slate-300"
+              >
+                Mark as Critical Emergency Instruction (unlocked in Emergency
+                Mode)
               </label>
             </div>
 

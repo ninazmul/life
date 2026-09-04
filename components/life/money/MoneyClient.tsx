@@ -105,7 +105,9 @@ export function MoneyClient({
       });
 
       setRecords([created, ...records]);
-      toast.success(`${type.replace("_", " ").toUpperCase()} record added successfully!`);
+      toast.success(
+        `${type.replace("_", " ").toUpperCase()} record added successfully!`,
+      );
       setAddModalOpen(false);
       // Reset form
       setAmount("");
@@ -122,7 +124,7 @@ export function MoneyClient({
   const givenRecords = records.filter((r) => r.type === "given");
   const takenRecords = records.filter((r) => r.type === "taken");
   const investmentRecords = records.filter(
-    (r) => r.type === "invest_made" || r.type === "invest_received"
+    (r) => r.type === "invest_made" || r.type === "invest_received",
   );
   const receivables = givenRecords.filter((r) => r.remainingAmount > 0);
   const payables = takenRecords.filter((r) => r.remainingAmount > 0);
@@ -133,15 +135,16 @@ export function MoneyClient({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
               Money Management
             </h1>
             <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
               Loans & Equity
             </span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Transparent tracking of where money went, who owes me, whom I owe, and active investments.
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Transparent tracking of where money went, who owes me, whom I owe,
+            and active investments.
           </p>
         </div>
 
@@ -156,9 +159,11 @@ export function MoneyClient({
 
       {/* Snapshot Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800">
-          <span className="text-[11px] font-medium text-slate-400">Money Given</span>
-          <div className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-100 font-mono mt-1">
+        <div className="p-3.5 rounded-2xl bg-card border border-border">
+          <span className="text-[11px] font-medium text-muted-foreground">
+            Money Given
+          </span>
+          <div className="text-lg sm:text-xl font-extrabold text-foreground font-mono mt-1">
             ৳{overview?.given?.total?.toLocaleString() || 0}
           </div>
           <span className="text-[10px] text-emerald-500">
@@ -166,30 +171,40 @@ export function MoneyClient({
           </span>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800">
-          <span className="text-[11px] font-medium text-slate-400">Money Taken</span>
+        <div className="p-3.5 rounded-2xl bg-card border border-border">
+          <span className="text-[11px] font-medium text-muted-foreground">
+            Money Taken
+          </span>
           <div className="text-lg sm:text-xl font-extrabold text-amber-500 font-mono mt-1">
             ৳{overview?.taken?.total?.toLocaleString() || 0}
           </div>
-          <span className="text-[10px] text-slate-400">
+          <span className="text-[10px] text-muted-foreground">
             Due: ৳{overview?.taken?.remaining?.toLocaleString() || 0}
           </span>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800">
-          <span className="text-[11px] font-medium text-slate-400">Invested Made</span>
+        <div className="p-3.5 rounded-2xl bg-card border border-border">
+          <span className="text-[11px] font-medium text-muted-foreground">
+            Invested Made
+          </span>
           <div className="text-lg sm:text-xl font-extrabold text-cyan-400 font-mono mt-1">
             ৳{overview?.investMade?.total?.toLocaleString() || 0}
           </div>
-          <span className="text-[10px] text-slate-400">Equity/Return</span>
+          <span className="text-[10px] text-muted-foreground">
+            Equity/Return
+          </span>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800">
-          <span className="text-[11px] font-medium text-slate-400">Invest Received</span>
+        <div className="p-3.5 rounded-2xl bg-card border border-border">
+          <span className="text-[11px] font-medium text-muted-foreground">
+            Invest Received
+          </span>
           <div className="text-lg sm:text-xl font-extrabold text-indigo-400 font-mono mt-1">
             ৳{overview?.investReceived?.total?.toLocaleString() || 0}
           </div>
-          <span className="text-[10px] text-slate-400">Partner capital</span>
+          <span className="text-[10px] text-muted-foreground">
+            Partner capital
+          </span>
         </div>
 
         <div className="p-3.5 rounded-2xl bg-emerald-950/20 border border-emerald-500/30">
@@ -200,7 +215,9 @@ export function MoneyClient({
           <div className="text-lg sm:text-xl font-extrabold text-emerald-400 font-mono mt-1">
             ৳{overview?.receivables?.toLocaleString() || 0}
           </div>
-          <span className="text-[10px] text-emerald-500/80">Pending returns</span>
+          <span className="text-[10px] text-emerald-500/80">
+            Pending returns
+          </span>
         </div>
 
         <div className="p-3.5 rounded-2xl bg-rose-950/20 border border-rose-500/30">
@@ -216,8 +233,12 @@ export function MoneyClient({
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="bg-slate-100 dark:bg-slate-900 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 flex overflow-x-auto scrollbar-none max-w-full justify-start h-auto">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-4"
+      >
+        <TabsList className="bg-muted p-1 rounded-2xl border border-border flex overflow-x-auto scrollbar-none max-w-full justify-start h-auto">
           <TabsTrigger
             value="overview"
             className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
@@ -266,7 +287,7 @@ export function MoneyClient({
         <TabsContent value="overview" className="space-y-4 outline-none">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Urgent Receivables List */}
-            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-3">
+            <div className="p-5 rounded-2xl bg-card border border-border space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-500 flex items-center gap-1.5">
                   <ArrowDownLeft className="w-4 h-4" />
@@ -277,19 +298,23 @@ export function MoneyClient({
                 </span>
               </div>
               {receivables.length === 0 ? (
-                <p className="text-xs text-slate-500 italic">No pending receivables.</p>
+                <p className="text-xs text-muted-foreground italic">
+                  No pending receivables.
+                </p>
               ) : (
                 <div className="space-y-2">
                   {receivables.slice(0, 5).map((rec) => (
                     <div
                       key={rec._id}
-                      className="p-3 rounded-xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-800 flex items-center justify-between"
+                      className="p-3 rounded-xl bg-secondary border border-border flex items-center justify-between"
                     >
                       <div>
-                        <h4 className="text-xs font-bold text-slate-200">
+                        <h4 className="text-xs font-bold text-foreground">
                           {rec.personName || "Counterparty"}
                         </h4>
-                        <span className="text-[11px] text-slate-400">{rec.purpose || "Money Lent"}</span>
+                        <span className="text-[11px] text-muted-foreground">
+                          {rec.purpose || "Money Lent"}
+                        </span>
                       </div>
                       <div className="text-right">
                         <span className="text-xs font-extrabold text-emerald-400 font-mono">
@@ -313,7 +338,7 @@ export function MoneyClient({
             </div>
 
             {/* Urgent Payables List */}
-            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-3">
+            <div className="p-5 rounded-2xl bg-card border border-border space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-rose-500 flex items-center gap-1.5">
                   <ArrowUpRight className="w-4 h-4" />
@@ -324,19 +349,23 @@ export function MoneyClient({
                 </span>
               </div>
               {payables.length === 0 ? (
-                <p className="text-xs text-slate-500 italic">No pending debts or payables.</p>
+                <p className="text-xs text-muted-foreground italic">
+                  No pending debts or payables.
+                </p>
               ) : (
                 <div className="space-y-2">
                   {payables.slice(0, 5).map((rec) => (
                     <div
                       key={rec._id}
-                      className="p-3 rounded-xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-800 flex items-center justify-between"
+                      className="p-3 rounded-xl bg-secondary border border-border flex items-center justify-between"
                     >
                       <div>
-                        <h4 className="text-xs font-bold text-slate-200">
+                        <h4 className="text-xs font-bold text-foreground">
                           {rec.personName || "Lender"}
                         </h4>
-                        <span className="text-[11px] text-slate-400">{rec.purpose || "Money Borrowed"}</span>
+                        <span className="text-[11px] text-muted-foreground">
+                          {rec.purpose || "Money Borrowed"}
+                        </span>
                       </div>
                       <div className="text-right">
                         <span className="text-xs font-extrabold text-rose-400 font-mono">
@@ -363,27 +392,47 @@ export function MoneyClient({
 
         {/* Tab: Money Given */}
         <TabsContent value="given" className="space-y-3 outline-none">
-          {renderRecordList(givenRecords, "No money given records yet.", handleOpenSettlement)}
+          {renderRecordList(
+            givenRecords,
+            "No money given records yet.",
+            handleOpenSettlement,
+          )}
         </TabsContent>
 
         {/* Tab: Money Taken */}
         <TabsContent value="taken" className="space-y-3 outline-none">
-          {renderRecordList(takenRecords, "No borrowed money records.", handleOpenSettlement)}
+          {renderRecordList(
+            takenRecords,
+            "No borrowed money records.",
+            handleOpenSettlement,
+          )}
         </TabsContent>
 
         {/* Tab: Investments */}
         <TabsContent value="investments" className="space-y-3 outline-none">
-          {renderRecordList(investmentRecords, "No investments tracked yet.", handleOpenSettlement)}
+          {renderRecordList(
+            investmentRecords,
+            "No investments tracked yet.",
+            handleOpenSettlement,
+          )}
         </TabsContent>
 
         {/* Tab: Receivables */}
         <TabsContent value="receivables" className="space-y-3 outline-none">
-          {renderRecordList(receivables, "No active receivables due.", handleOpenSettlement)}
+          {renderRecordList(
+            receivables,
+            "No active receivables due.",
+            handleOpenSettlement,
+          )}
         </TabsContent>
 
         {/* Tab: Payables */}
         <TabsContent value="payables" className="space-y-3 outline-none">
-          {renderRecordList(payables, "No active payables due.", handleOpenSettlement)}
+          {renderRecordList(
+            payables,
+            "No active payables due.",
+            handleOpenSettlement,
+          )}
         </TabsContent>
 
         {/* Tab: Transactions Ledger */}
@@ -395,7 +444,10 @@ export function MoneyClient({
               </div>
             ) : (
               transactions.map((tx) => (
-                <div key={tx._id} className="p-3.5 sm:p-4 flex items-center justify-between text-xs">
+                <div
+                  key={tx._id}
+                  className="p-3.5 sm:p-4 flex items-center justify-between text-xs"
+                >
                   <div className="flex items-center gap-3">
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-800 text-emerald-400 font-bold shrink-0">
                       ৳
@@ -405,7 +457,8 @@ export function MoneyClient({
                         {tx.personName || "Financial Movement"}
                       </h4>
                       <p className="text-[11px] text-slate-400">
-                        {tx.type.replace("_", " ")} • {new Date(tx.date).toLocaleDateString()}
+                        {tx.type.replace("_", " ")} •{" "}
+                        {new Date(tx.date).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
@@ -442,8 +495,12 @@ export function MoneyClient({
                 >
                   <option value="given">Money Given (Loan I lent)</option>
                   <option value="taken">Money Taken (Loan I borrowed)</option>
-                  <option value="invest_made">Investment Made (My equity/capital)</option>
-                  <option value="invest_received">Investment Received (External investor)</option>
+                  <option value="invest_made">
+                    Investment Made (My equity/capital)
+                  </option>
+                  <option value="invest_received">
+                    Investment Received (External investor)
+                  </option>
                 </select>
               </div>
 
@@ -597,7 +654,7 @@ export function MoneyClient({
 function renderRecordList(
   records: ILifeMoneyRecord[],
   emptyMessage: string,
-  onSettle: (record: any) => void
+  onSettle: (record: any) => void,
 ) {
   if (records.length === 0) {
     return (
@@ -632,8 +689,8 @@ function renderRecordList(
                   rec.status === "fully_returned"
                     ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                     : rec.status === "overdue"
-                    ? "bg-red-500/10 text-red-400 border-red-500/20"
-                    : "bg-slate-800 text-slate-300 border-slate-700"
+                      ? "bg-red-500/10 text-red-400 border-red-500/20"
+                      : "bg-slate-800 text-slate-300 border-slate-700"
                 }`}
               >
                 {rec.status.replace("_", " ")}
@@ -675,7 +732,8 @@ function renderRecordList(
                       className="flex items-center justify-between text-[11px] text-slate-400"
                     >
                       <span>
-                        Settlement #{idx + 1} ({new Date(s.date).toLocaleDateString()})
+                        Settlement #{idx + 1} (
+                        {new Date(s.date).toLocaleDateString()})
                       </span>
                       <span className="font-mono font-bold text-slate-300">
                         ৳{s.amount.toLocaleString()}

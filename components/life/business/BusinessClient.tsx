@@ -25,11 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  ILifeBusiness,
-  ILifeContinuityStep,
-  ILifePerson,
-} from "@/types";
+import { ILifeBusiness, ILifeContinuityStep, ILifePerson } from "@/types";
 import {
   createBusiness,
   addContinuityStep,
@@ -46,9 +42,10 @@ export function BusinessClient({
   initialBusinesses,
   people,
 }: BusinessClientProps) {
-  const [businesses, setBusinesses] = useState<ILifeBusiness[]>(initialBusinesses);
+  const [businesses, setBusinesses] =
+    useState<ILifeBusiness[]>(initialBusinesses);
   const [expandedBizId, setExpandedBizId] = useState<string | null>(
-    businesses[0]?._id || null
+    businesses[0]?._id || null,
   );
 
   // Add Business Modal State
@@ -66,7 +63,9 @@ export function BusinessClient({
 
   // Add Continuity Step Modal State
   const [addStepModalOpen, setAddStepModalOpen] = useState(false);
-  const [selectedBizForStep, setSelectedBizForStep] = useState<string | null>(null);
+  const [selectedBizForStep, setSelectedBizForStep] = useState<string | null>(
+    null,
+  );
   const [stepLoading, setStepLoading] = useState(false);
   const [stepTitle, setStepTitle] = useState("");
   const [stepInstructions, setStepInstructions] = useState("");
@@ -166,7 +165,7 @@ export function BusinessClient({
             };
           }
           return b;
-        })
+        }),
       );
 
       toast.success("Continuity instruction added!");
@@ -182,7 +181,11 @@ export function BusinessClient({
     }
   };
 
-  const handleToggleStep = async (bizId: string, stepId: string, current: boolean) => {
+  const handleToggleStep = async (
+    bizId: string,
+    stepId: string,
+    current: boolean,
+  ) => {
     const next = !current;
     try {
       await toggleContinuityStep(bizId, stepId, next);
@@ -192,12 +195,12 @@ export function BusinessClient({
             return {
               ...b,
               continuitySteps: (b.continuitySteps || []).map((s) =>
-                s.id === stepId ? { ...s, isCompleted: next } : s
+                s.id === stepId ? { ...s, isCompleted: next } : s,
               ),
             };
           }
           return b;
-        })
+        }),
       );
       toast.success(`Instruction marked as ${next ? "COMPLETED" : "PENDING"}`);
     } catch (err: any) {
@@ -211,15 +214,16 @@ export function BusinessClient({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
               Business Continuity & Operations
             </h1>
             <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
               {businesses.length}
             </span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Structured business operations and dedicated &quot;If I Am Not Available&quot; contingency protocols.
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Structured business operations and dedicated &quot;If I Am Not
+            Available&quot; contingency protocols.
           </p>
         </div>
 
@@ -242,18 +246,23 @@ export function BusinessClient({
             &quot;If I Am Not Available&quot; Continuity Protocol
           </h2>
           <p className="text-xs text-slate-300 mt-0.5 max-w-2xl leading-relaxed">
-            Actionable step-by-step instructions for trusted partners or staff in case you are unreachable (server trouble, supplier contacts, salary payroll, or accounts).
+            Actionable step-by-step instructions for trusted partners or staff
+            in case you are unreachable (server trouble, supplier contacts,
+            salary payroll, or accounts).
           </p>
         </div>
       </div>
 
       {/* Businesses List */}
       {businesses.length === 0 ? (
-        <div className="p-10 rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 text-center space-y-3">
+        <div className="p-10 rounded-3xl border border-dashed border-border text-center space-y-3">
           <Briefcase className="w-8 h-8 text-slate-500 mx-auto" />
-          <h3 className="text-sm font-bold text-slate-300">No Business Entities Added</h3>
+          <h3 className="text-sm font-bold text-slate-300">
+            No Business Entities Added
+          </h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Add your ventures, partnerships, server infrastructure, and contingency instructions.
+            Add your ventures, partnerships, server infrastructure, and
+            contingency instructions.
           </p>
           <Button
             size="sm"
@@ -273,12 +282,12 @@ export function BusinessClient({
             return (
               <div
                 key={biz._id}
-                className="rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-850 overflow-hidden shadow-xs"
+                className="rounded-3xl bg-card border border-border overflow-hidden shadow-xs"
               >
                 {/* Accordion Card Header */}
                 <div
                   onClick={() => setExpandedBizId(isExpanded ? null : biz._id)}
-                  className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+                  className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer hover:bg-secondary transition-colors"
                 >
                   <div className="flex items-center gap-3.5">
                     <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-bold shrink-0">
@@ -286,7 +295,7 @@ export function BusinessClient({
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-base font-extrabold text-slate-900 dark:text-slate-100">
+                        <h3 className="text-base font-extrabold text-foreground">
                           {biz.name}
                         </h3>
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
@@ -294,7 +303,9 @@ export function BusinessClient({
                         </span>
                       </div>
                       <p className="text-xs text-slate-400 mt-0.5">
-                        {biz.serverInfo?.domain || biz.legalName || "Active Business Entity"}
+                        {biz.serverInfo?.domain ||
+                          biz.legalName ||
+                          "Active Business Entity"}
                       </p>
                     </div>
                   </div>
@@ -316,19 +327,22 @@ export function BusinessClient({
 
                 {/* Expanded Details */}
                 {isExpanded && (
-                  <div className="p-5 pt-0 border-t border-slate-100 dark:border-slate-800/80 space-y-5">
+                  <div className="p-5 pt-0 border-t border-border space-y-5">
                     {/* Operational Details Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 text-xs">
                       {/* Server & Hosting */}
-                      <div className="p-3.5 rounded-2xl bg-slate-100/80 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800 space-y-1">
+                      <div className="p-3.5 rounded-2xl bg-muted border border-border space-y-1">
                         <span className="font-bold text-slate-400 flex items-center gap-1.5 uppercase text-[10px] tracking-wider">
-                          <Server className="w-3.5 h-3.5 text-cyan-400" /> Server & Domain
+                          <Server className="w-3.5 h-3.5 text-cyan-400" />{" "}
+                          Server & Domain
                         </span>
                         <p className="text-slate-200 font-medium">
                           {biz.serverInfo?.hosting || "Standard Hosting"}
                         </p>
                         {biz.serverInfo?.ip && (
-                          <p className="text-slate-400 font-mono text-[11px]">IP: {biz.serverInfo.ip}</p>
+                          <p className="text-slate-400 font-mono text-[11px]">
+                            IP: {biz.serverInfo.ip}
+                          </p>
                         )}
                         {biz.serverInfo?.domain && (
                           <p className="text-cyan-400 font-mono text-[11px] truncate">
@@ -338,9 +352,10 @@ export function BusinessClient({
                       </div>
 
                       {/* Key Engineer */}
-                      <div className="p-3.5 rounded-2xl bg-slate-100/80 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800 space-y-1">
+                      <div className="p-3.5 rounded-2xl bg-muted border border-border space-y-1">
                         <span className="font-bold text-slate-400 flex items-center gap-1.5 uppercase text-[10px] tracking-wider">
-                          <Users className="w-3.5 h-3.5 text-emerald-400" /> Technical Contact
+                          <Users className="w-3.5 h-3.5 text-emerald-400" />{" "}
+                          Technical Contact
                         </span>
                         <p className="text-slate-200 font-medium">
                           {biz.engineerContact?.name || "No Engineer Assigned"}
@@ -350,20 +365,23 @@ export function BusinessClient({
                             href={`tel:${biz.engineerContact.phone}`}
                             className="text-emerald-400 font-mono text-[11px] flex items-center gap-1"
                           >
-                            <Phone className="w-3 h-3" /> {biz.engineerContact.phone}
+                            <Phone className="w-3 h-3" />{" "}
+                            {biz.engineerContact.phone}
                           </a>
                         )}
                       </div>
 
                       {/* Financials */}
-                      <div className="p-3.5 rounded-2xl bg-slate-100/80 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800 space-y-1">
+                      <div className="p-3.5 rounded-2xl bg-muted border border-border space-y-1">
                         <span className="font-bold text-slate-400 uppercase text-[10px] tracking-wider">
                           Monthly Expenses
                         </span>
                         <p className="text-lg font-bold text-slate-200 font-mono">
                           ৳{(biz.monthlyExpenses || 0).toLocaleString()}
                         </p>
-                        <p className="text-[11px] text-slate-500">Fixed operational overhead</p>
+                        <p className="text-[11px] text-slate-500">
+                          Fixed operational overhead
+                        </p>
                       </div>
                     </div>
 
@@ -372,7 +390,9 @@ export function BusinessClient({
                       <div className="flex items-center justify-between">
                         <h4 className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
                           <AlertTriangle className="w-4 h-4 text-cyan-400" />
-                          <span>Actionable &quot;If I Am Not Available&quot; Steps</span>
+                          <span>
+                            Actionable &quot;If I Am Not Available&quot; Steps
+                          </span>
                         </h4>
                         <Button
                           size="sm"
@@ -385,14 +405,21 @@ export function BusinessClient({
 
                       {steps.length === 0 ? (
                         <div className="p-6 rounded-2xl border border-dashed border-slate-800 text-center text-xs text-slate-500">
-                          No emergency steps added yet. Add step-by-step instructions for when you are away.
+                          No emergency steps added yet. Add step-by-step
+                          instructions for when you are away.
                         </div>
                       ) : (
                         <div className="space-y-2">
                           {steps.map((step, idx) => (
                             <div
                               key={step.id || idx}
-                              onClick={() => handleToggleStep(biz._id, step.id, step.isCompleted)}
+                              onClick={() =>
+                                handleToggleStep(
+                                  biz._id,
+                                  step.id,
+                                  step.isCompleted,
+                                )
+                              }
                               className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
                                 step.isCompleted
                                   ? "bg-slate-950/30 border-slate-800/60 opacity-60"
@@ -430,7 +457,8 @@ export function BusinessClient({
                                   {step.responsiblePersonName && (
                                     <span className="inline-flex items-center gap-1 text-[11px] text-cyan-400 mt-1.5 font-medium">
                                       Contact: {step.responsiblePersonName}
-                                      {step.contactPhone && ` (${step.contactPhone})`}
+                                      {step.contactPhone &&
+                                        ` (${step.contactPhone})`}
                                     </span>
                                   )}
                                 </div>
@@ -542,7 +570,8 @@ export function BusinessClient({
 
             <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
               <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5" /> Key Engineer / Technical Contact
+                <Users className="w-3.5 h-3.5" /> Key Engineer / Technical
+                Contact
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <Input
@@ -665,7 +694,9 @@ export function BusinessClient({
                 disabled={stepLoading}
                 className="h-9 px-4 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold rounded-xl gap-1.5 shadow-md"
               >
-                {stepLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                {stepLoading && (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                )}
                 Add Instruction
               </Button>
             </div>

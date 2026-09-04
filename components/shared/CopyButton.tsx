@@ -41,20 +41,21 @@ export function CopyButton({
     }
   };
 
-  const displayLabel = label || (text.length > 24 ? `${text.slice(0, 24)}…` : text);
+  const displayLabel =
+    label || (text.length > 24 ? `${text.slice(0, 24)}…` : text);
 
   return (
     <button
       type="button"
       onClick={handleCopy}
-      className={`inline-flex items-center justify-center p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 ${className}`}
+      className={`inline-flex items-center justify-center p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors shrink-0 ${className}`}
       title={`Copy ${displayLabel}`}
       aria-label={copied ? `Copied ${displayLabel}` : `Copy ${displayLabel}`}
       aria-live="polite"
     >
       {copied ? (
         <Check
-          className={`${SIZE_MAP[iconSize]} text-emerald-600 dark:text-emerald-400 shrink-0`}
+          className={`${SIZE_MAP[iconSize]} text-emerald-600 shrink-0`}
           strokeWidth={2.25}
           aria-hidden="true"
         />
