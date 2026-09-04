@@ -171,7 +171,7 @@ export function AccessClient({
       <div
         className={`p-5 sm:p-6 rounded-3xl border transition-all ${
           emergency.isEmergencyActive
-            ? "bg-red-950/40 border-red-500/60 shadow-lg shadow-red-950/30"
+            ? "bg-red-50 dark:bg-red-950/40 border-red-300 dark:border-red-500/60 shadow-lg shadow-red-950/10 dark:shadow-red-950/30"
             : "bg-secondary border border-border"
         }`}
       >
@@ -180,8 +180,8 @@ export function AccessClient({
             <div
               className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold shrink-0 border ${
                 emergency.isEmergencyActive
-                  ? "bg-red-500/20 text-red-400 border-red-500/40 animate-pulse"
-                  : "bg-slate-800 text-slate-400 border-slate-700"
+                  ? "bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-300 border-red-200 dark:border-red-500/40 animate-pulse"
+                  : "bg-muted text-muted-foreground border-border"
               }`}
             >
               <ShieldAlert className="w-6 h-6" />
@@ -194,8 +194,8 @@ export function AccessClient({
                 <span
                   className={`text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full border ${
                     emergency.isEmergencyActive
-                      ? "bg-red-500/20 text-red-400 border-red-500/40"
-                      : "bg-slate-800 text-slate-400 border-slate-700"
+                      ? "bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-300 border-red-200 dark:border-red-500/40"
+                      : "bg-muted text-muted-foreground border-border"
                   }`}
                 >
                   {emergency.isEmergencyActive ? "ACTIVE PROTOCOL" : "STANDBY"}
@@ -214,7 +214,7 @@ export function AccessClient({
             disabled={loading}
             className={`h-10 px-4 rounded-xl text-xs font-bold gap-2 ${
               emergency.isEmergencyActive
-                ? "bg-slate-800 hover:bg-slate-700 text-slate-200"
+                ? "bg-secondary hover:bg-muted text-foreground"
                 : "bg-red-600 hover:bg-red-500 text-white shadow-md shadow-red-950/40"
             }`}
           >
@@ -236,7 +236,7 @@ export function AccessClient({
       {/* Delegation Protocol Form */}
       <div className="p-5 sm:p-6 rounded-3xl bg-secondary border border-border space-y-4">
         <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <ShieldCheck className="w-4 h-4 text-emerald-700 dark:text-emerald-300" />
           <span>Delegated Emergency Admins</span>
         </h3>
 
@@ -252,7 +252,7 @@ export function AccessClient({
                 placeholder="e.g. wife@gmail.com"
                 value={primaryAdminEmail}
                 onChange={(e) => setPrimaryAdminEmail(e.target.value)}
-                className="h-10 border-slate-800 bg-slate-900/90 text-slate-100 text-xs"
+                className="h-10 border-border bg-card text-foreground text-xs"
               />
             </div>
 
@@ -265,7 +265,7 @@ export function AccessClient({
                 placeholder="e.g. brother@gmail.com"
                 value={secondaryAdminEmail}
                 onChange={(e) => setSecondaryAdminEmail(e.target.value)}
-                className="h-10 border-slate-800 bg-slate-900/90 text-slate-100 text-xs"
+                className="h-10 border-border bg-card text-foreground text-xs"
               />
             </div>
           </div>
@@ -278,7 +278,7 @@ export function AccessClient({
               rows={2}
               value={instructions}
               onChange={(e) => setInstructions(e.target.value)}
-              className="w-full p-3 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:outline-none"
+              className="w-full p-3 rounded-xl border border-border bg-card text-foreground text-xs focus:outline-none"
             />
           </div>
 
@@ -311,7 +311,7 @@ export function AccessClient({
                   <h4 className="font-bold text-sm text-foreground">
                     {p.name}
                   </h4>
-                  <span className="text-[11px] text-slate-400">
+                  <span className="text-[11px] text-muted-foreground">
                     ({p.relation})
                   </span>
                 </div>
@@ -327,7 +327,7 @@ export function AccessClient({
                   onChange={(e) =>
                     handleRoleChange(p._id, e.target.value as LifeRole)
                   }
-                  className="h-8 px-2.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-200 text-xs font-medium focus:outline-none"
+                  className="h-8 px-2.5 rounded-lg border border-border bg-card text-foreground text-xs font-medium focus:outline-none"
                 >
                   <option value="individual">Individual</option>
                   <option value="business">Business</option>
@@ -348,8 +348,8 @@ export function AccessClient({
                   }
                   className={`h-7 px-2.5 text-[10px] rounded-lg border ${
                     p.permissions?.canViewFinancial
-                      ? "border-emerald-500/40 bg-emerald-950/40 text-emerald-400"
-                      : "border-slate-800 text-slate-500"
+                      ? "border-emerald-200 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300"
+                      : "border-border text-muted-foreground"
                   }`}
                 >
                   Financial {p.permissions?.canViewFinancial ? "✓" : "✕"}
@@ -367,8 +367,8 @@ export function AccessClient({
                   }
                   className={`h-7 px-2.5 text-[10px] rounded-lg border ${
                     p.permissions?.canViewBusiness
-                      ? "border-cyan-500/40 bg-cyan-950/40 text-cyan-400"
-                      : "border-slate-800 text-slate-500"
+                      ? "border-cyan-200 dark:border-cyan-500/40 bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300"
+                      : "border-border text-muted-foreground"
                   }`}
                 >
                   Business {p.permissions?.canViewBusiness ? "✓" : "✕"}
@@ -386,8 +386,8 @@ export function AccessClient({
                   }
                   className={`h-7 px-2.5 text-[10px] rounded-lg border ${
                     p.permissions?.canRevealVault
-                      ? "border-amber-500/40 bg-amber-950/40 text-amber-400"
-                      : "border-slate-800 text-slate-500"
+                      ? "border-amber-200 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300"
+                      : "border-border text-muted-foreground"
                   }`}
                 >
                   Vault Reveal {p.permissions?.canRevealVault ? "✓" : "✕"}

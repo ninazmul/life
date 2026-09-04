@@ -135,7 +135,7 @@ export function DocumentsClient({
             <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
               Private Documents Library
             </h1>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20">
               {documents.length}
             </span>
           </div>
@@ -186,7 +186,7 @@ export function DocumentsClient({
       {filteredDocuments.length === 0 ? (
         <div className="p-10 rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 text-center space-y-2">
           <FolderLock className="w-8 h-8 text-slate-500 mx-auto" />
-          <h3 className="text-sm font-bold text-slate-300">No Documents Uploaded</h3>
+          <h3 className="text-sm font-bold text-foreground">No Documents Uploaded</h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
             Store scanned copies of passport/NID, property registrations, loan agreements, and company trade licenses.
           </p>
@@ -200,7 +200,7 @@ export function DocumentsClient({
             >
               <div>
                 <div className="flex items-start justify-between gap-2">
-                  <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                  <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20">
                     {doc.category}
                   </span>
                   <span className="text-[10px] uppercase font-bold text-slate-500">
@@ -209,7 +209,7 @@ export function DocumentsClient({
                 </div>
 
                 <div className="flex items-center gap-3 mt-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-950/50 text-indigo-400 border border-indigo-800/40 shrink-0">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/40 shrink-0">
                     <File className="w-5 h-5" />
                   </div>
                   <div className="min-w-0">
@@ -233,7 +233,7 @@ export function DocumentsClient({
                   asChild
                   size="sm"
                   variant="outline"
-                  className="h-8 px-3 text-xs border-indigo-500/30 text-indigo-400 hover:bg-indigo-950/40 rounded-xl gap-1.5 font-medium"
+                  className="h-8 px-3 text-xs border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-xl gap-1.5 font-medium"
                 >
                   <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="w-3.5 h-3.5" /> View File
@@ -244,7 +244,7 @@ export function DocumentsClient({
                   size="sm"
                   variant="ghost"
                   onClick={() => handleDelete(doc._id, doc.title)}
-                  className="h-7 w-7 p-0 text-slate-500 hover:text-red-400"
+                  className="h-7 w-7 p-0 text-slate-500 hover:text-red-700 dark:hover:text-red-300"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
@@ -259,7 +259,7 @@ export function DocumentsClient({
         <DialogContent className="life-dialog sm:max-w-md rounded-2xl border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-slate-100 flex items-center gap-2">
-              <FolderLock className="w-5 h-5 text-indigo-400" />
+              <FolderLock className="w-5 h-5 text-indigo-300" />
               <span>Add Document Record</span>
             </DialogTitle>
           </DialogHeader>

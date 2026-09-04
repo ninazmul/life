@@ -64,7 +64,7 @@ export function PersonDetailClient({ personData }: PersonDetailClientProps) {
       <div className="flex items-center justify-between">
         <Link
           href="/people"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to People
@@ -78,8 +78,8 @@ export function PersonDetailClient({ personData }: PersonDetailClientProps) {
             disabled={loading}
             className={`h-8 rounded-xl text-xs font-medium gap-1.5 ${
               person.status === "locked"
-                ? "border-emerald-500/30 text-emerald-400 hover:bg-emerald-950/40"
-                : "border-red-500/30 text-red-400 hover:bg-red-950/40"
+                ? "border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                : "border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/40"
             }`}
           >
             {person.status === "locked" ? (
@@ -101,7 +101,7 @@ export function PersonDetailClient({ personData }: PersonDetailClientProps) {
       <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/30 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-extrabold text-2xl shrink-0 shadow-md">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/30 border border-emerald-500/40 flex items-center justify-center text-emerald-700 dark:text-emerald-300 font-extrabold text-2xl shrink-0 shadow-md">
               {person.name.charAt(0).toUpperCase()}
             </div>
             <div>
@@ -109,21 +109,21 @@ export function PersonDetailClient({ personData }: PersonDetailClientProps) {
                 <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
                   {person.name}
                 </h1>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-muted-foreground border border-slate-200 dark:border-slate-700">
                   {person.relation}
                 </span>
                 <span
                   className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${
                     person.status === "active"
-                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                      : "bg-red-500/10 text-red-400 border-red-500/20"
+                      ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
+                      : "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/20"
                   }`}
                 >
                   {person.status}
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-1 flex items-center gap-2">
-                <span>Role: <strong className="text-slate-200 capitalize">{person.role.replace("_", " ")}</strong></span>
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
+                <span>Role: <strong className="text-foreground capitalize">{person.role.replace("_", " ")}</strong></span>
                 {person.email && <span>• {person.email}</span>}
               </p>
             </div>
@@ -148,14 +148,14 @@ export function PersonDetailClient({ personData }: PersonDetailClientProps) {
                 asChild
                 variant="outline"
                 size="sm"
-                className="h-9 px-3 rounded-xl border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-semibold gap-1.5"
+                className="h-9 px-3 rounded-xl border-border bg-secondary hover:bg-muted text-foreground text-xs font-semibold gap-1.5"
               >
                 <a
                   href={`https://wa.me/${(person.whatsapp || person.phone || "").replace(/[^0-9]/g, "")}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+                  <MessageCircle className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-300" />
                   WhatsApp
                 </a>
               </Button>
@@ -165,10 +165,10 @@ export function PersonDetailClient({ personData }: PersonDetailClientProps) {
                 asChild
                 variant="outline"
                 size="sm"
-                className="h-9 px-3 rounded-xl border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-semibold gap-1.5"
+                className="h-9 px-3 rounded-xl border-border bg-secondary hover:bg-muted text-foreground text-xs font-semibold gap-1.5"
               >
                 <a href={`mailto:${person.email}`}>
-                  <Mail className="w-3.5 h-3.5 text-sky-400" />
+                  <Mail className="w-3.5 h-3.5 text-sky-700 dark:text-sky-300" />
                   Email
                 </a>
               </Button>
@@ -223,12 +223,12 @@ export function PersonDetailClient({ personData }: PersonDetailClientProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Responsibilities */}
             <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-300" />
                 <span>Responsibilities</span>
               </h3>
               {person.responsibilities && person.responsibilities.length > 0 ? (
-                <ul className="space-y-1.5 text-xs text-slate-300">
+                <ul className="space-y-1.5 text-xs text-foreground">
                   {person.responsibilities.map((r: string, idx: number) => (
                     <li key={idx} className="flex items-start gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
@@ -243,12 +243,12 @@ export function PersonDetailClient({ personData }: PersonDetailClientProps) {
 
             {/* Business Instructions */}
             <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-amber-400" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-amber-700 dark:text-amber-300" />
                 <span>Business Instructions</span>
               </h3>
               {person.businessInstructions && person.businessInstructions.length > 0 ? (
-                <ul className="space-y-1.5 text-xs text-slate-300">
+                <ul className="space-y-1.5 text-xs text-foreground">
                   {person.businessInstructions.map((b: string, idx: number) => (
                     <li key={idx} className="flex items-start gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
@@ -266,12 +266,12 @@ export function PersonDetailClient({ personData }: PersonDetailClientProps) {
         {/* Tab: Personal Message */}
         <TabsContent value="message" className="outline-none">
           <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-3">
-            <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-              <MessageCircle className="w-4 h-4 text-emerald-400" />
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <MessageCircle className="w-4 h-4 text-emerald-700 dark:text-emerald-300" />
               <span>Personal Letter / Note for {person.name}</span>
             </h3>
             {person.personalMessage ? (
-              <div className="p-4 rounded-2xl bg-slate-950/40 border border-slate-800/80 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap font-serif">
+              <div className="p-4 rounded-2xl bg-muted border border-border text-sm text-foreground leading-relaxed whitespace-pre-wrap font-serif">
                 {person.personalMessage}
               </div>
             ) : (
@@ -285,7 +285,7 @@ export function PersonDetailClient({ personData }: PersonDetailClientProps) {
         {/* Tab: Financial */}
         <TabsContent value="financial" className="outline-none space-y-3">
           {personData.moneyRecords.length === 0 ? (
-            <div className="p-8 text-center rounded-2xl border border-dashed border-slate-800 text-xs text-slate-500">
+            <div className="p-8 text-center rounded-2xl border border-dashed border-border text-xs text-muted-foreground">
               No financial records (money given, taken, or investments) associated with {person.name}.
             </div>
           ) : (
@@ -296,21 +296,21 @@ export function PersonDetailClient({ personData }: PersonDetailClientProps) {
                   className="p-4 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 flex justify-between items-center"
                 >
                   <div>
-                    <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
                       {rec.type.replace("_", " ")}
                     </span>
-                    <h4 className="text-sm font-bold text-slate-200 mt-1">
+                    <h4 className="text-sm font-bold text-foreground mt-1">
                       ৳{rec.amount.toLocaleString()}
                     </h4>
-                    <p className="text-xs text-slate-400">
-                      Remaining: <strong className="text-emerald-400">৳{rec.remainingAmount.toLocaleString()}</strong>
+                    <p className="text-xs text-muted-foreground">
+                      Remaining: <strong className="text-emerald-700 dark:text-emerald-300">৳{rec.remainingAmount.toLocaleString()}</strong>
                     </p>
                   </div>
                   <span
                     className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${
                       rec.status === "active"
-                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                        : "bg-slate-800 text-slate-400 border-slate-700"
+                        ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
+                        : "bg-muted text-muted-foreground border-border"
                     }`}
                   >
                     {rec.status.replace("_", " ")}
@@ -324,7 +324,7 @@ export function PersonDetailClient({ personData }: PersonDetailClientProps) {
         {/* Tab: Documents */}
         <TabsContent value="documents" className="outline-none space-y-3">
           {personData.documents.length === 0 ? (
-            <div className="p-8 text-center rounded-2xl border border-dashed border-slate-800 text-xs text-slate-500">
+            <div className="p-8 text-center rounded-2xl border border-dashed border-border text-xs text-muted-foreground">
               No private documents assigned or related to {person.name}.
             </div>
           ) : (
@@ -335,13 +335,13 @@ export function PersonDetailClient({ personData }: PersonDetailClientProps) {
                   className="p-3.5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between"
                 >
                   <div className="flex items-center gap-3">
-                    <FolderLock className="w-5 h-5 text-indigo-400 shrink-0" />
+                    <FolderLock className="w-5 h-5 text-indigo-700 dark:text-indigo-300 shrink-0" />
                     <div>
-                      <h4 className="text-xs font-bold text-slate-200">{doc.title}</h4>
-                      <span className="text-[11px] text-slate-400">{doc.category}</span>
+                      <h4 className="text-xs font-bold text-foreground">{doc.title}</h4>
+                      <span className="text-[11px] text-muted-foreground">{doc.category}</span>
                     </div>
                   </div>
-                  <Button asChild size="sm" variant="ghost" className="text-xs text-indigo-400">
+                  <Button asChild size="sm" variant="ghost" className="text-xs text-indigo-700 dark:text-indigo-300">
                     <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">
                       View
                     </a>
@@ -355,7 +355,7 @@ export function PersonDetailClient({ personData }: PersonDetailClientProps) {
         {/* Tab: Contacts */}
         <TabsContent value="contacts" className="outline-none space-y-3">
           {personData.contacts.length === 0 ? (
-            <div className="p-8 text-center rounded-2xl border border-dashed border-slate-800 text-xs text-slate-500">
+            <div className="p-8 text-center rounded-2xl border border-dashed border-border text-xs text-muted-foreground">
               No emergency contacts associated with {person.name}.
             </div>
           ) : (
@@ -366,12 +366,12 @@ export function PersonDetailClient({ personData }: PersonDetailClientProps) {
                   className="p-3.5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between"
                 >
                   <div>
-                    <h4 className="text-xs font-bold text-slate-200">{c.name}</h4>
-                    <p className="text-[11px] text-slate-400">{c.phone}</p>
+                    <h4 className="text-xs font-bold text-foreground">{c.name}</h4>
+                    <p className="text-[11px] text-muted-foreground">{c.phone}</p>
                   </div>
                   <a
                     href={`tel:${c.phone}`}
-                    className="p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-emerald-400"
+                    className="p-2 rounded-xl bg-muted text-muted-foreground hover:text-emerald-700 dark:hover:text-emerald-300"
                   >
                     <Phone className="w-3.5 h-3.5" />
                   </a>
@@ -384,37 +384,37 @@ export function PersonDetailClient({ personData }: PersonDetailClientProps) {
         {/* Tab: Access Rules */}
         <TabsContent value="access" className="outline-none">
           <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-4 text-xs">
-            <h3 className="font-bold text-slate-100 flex items-center gap-2">
-              <Shield className="w-4 h-4 text-emerald-400" />
+            <h3 className="font-bold text-foreground flex items-center gap-2">
+              <Shield className="w-4 h-4 text-emerald-700 dark:text-emerald-300" />
               <span>Permission & Authorization Matrix</span>
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-slate-300">
-              <div className="p-3 rounded-xl bg-slate-950/40 border border-slate-800 flex justify-between items-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-foreground">
+              <div className="p-3 rounded-xl bg-muted border border-border flex justify-between items-center">
                 <span>View Personal Notes</span>
-                <span className={person.permissions?.canViewPersonal ? "text-emerald-400 font-bold" : "text-slate-500"}>
+                <span className={person.permissions?.canViewPersonal ? "text-emerald-700 dark:text-emerald-300 font-bold" : "text-slate-500"}>
                   {person.permissions?.canViewPersonal ? "Allowed ✓" : "Restricted ✕"}
                 </span>
               </div>
-              <div className="p-3 rounded-xl bg-slate-950/40 border border-slate-800 flex justify-between items-center">
+              <div className="p-3 rounded-xl bg-muted border border-border flex justify-between items-center">
                 <span>View Business Info</span>
-                <span className={person.permissions?.canViewBusiness ? "text-emerald-400 font-bold" : "text-slate-500"}>
+                <span className={person.permissions?.canViewBusiness ? "text-emerald-700 dark:text-emerald-300 font-bold" : "text-slate-500"}>
                   {person.permissions?.canViewBusiness ? "Allowed ✓" : "Restricted ✕"}
                 </span>
               </div>
-              <div className="p-3 rounded-xl bg-slate-950/40 border border-slate-800 flex justify-between items-center">
+              <div className="p-3 rounded-xl bg-muted border border-border flex justify-between items-center">
                 <span>View Financial Data</span>
-                <span className={person.permissions?.canViewFinancial ? "text-emerald-400 font-bold" : "text-slate-500"}>
+                <span className={person.permissions?.canViewFinancial ? "text-emerald-700 dark:text-emerald-300 font-bold" : "text-slate-500"}>
                   {person.permissions?.canViewFinancial ? "Allowed ✓" : "Restricted ✕"}
                 </span>
               </div>
-              <div className="p-3 rounded-xl bg-slate-950/40 border border-slate-800 flex justify-between items-center">
+              <div className="p-3 rounded-xl bg-muted border border-border flex justify-between items-center">
                 <span>Reveal Vault Secrets</span>
-                <span className={person.permissions?.canRevealVault ? "text-emerald-400 font-bold" : "text-slate-500"}>
+                <span className={person.permissions?.canRevealVault ? "text-emerald-700 dark:text-emerald-300 font-bold" : "text-slate-500"}>
                   {person.permissions?.canRevealVault ? "Allowed ✓" : "Restricted ✕"}
                 </span>
               </div>
             </div>
-            <p className="text-[11px] text-slate-400 italic">
+            <p className="text-[11px] text-muted-foreground italic">
               Access permissions are enforced strictly server-side by the Life RBAC engine.
             </p>
           </div>

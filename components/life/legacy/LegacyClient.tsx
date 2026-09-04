@@ -125,7 +125,7 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
             <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
               Personal Legacy Messages
             </h1>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20">
               {messages.length} Letters
             </span>
           </div>
@@ -145,8 +145,8 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
       </div>
 
       {/* Legacy Emotional Quote Banner */}
-      <div className="p-5 rounded-3xl bg-gradient-to-br from-rose-950/40 via-slate-900 to-slate-950 border border-rose-500/20 text-xs text-rose-200 flex items-start gap-3.5">
-        <HeartHandshake className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+      <div className="p-5 rounded-3xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-500/20 text-xs text-rose-800 dark:text-rose-200 flex items-start gap-3.5">
+        <HeartHandshake className="w-5 h-5 text-rose-700 dark:text-rose-300 shrink-0 mt-0.5" />
         <p className="leading-relaxed">
           &quot;If I become unavailable, the people I care about should
           understand what was intended for them, who to trust, and what personal
@@ -157,8 +157,8 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
       {/* Letters List */}
       {messages.length === 0 ? (
         <div className="p-10 rounded-3xl border border-dashed border-border text-center space-y-3">
-          <Mail className="w-8 h-8 text-rose-400/60 mx-auto" />
-          <h3 className="text-sm font-bold text-slate-300">
+          <Mail className="w-8 h-8 text-rose-700 dark:text-rose-300/60 mx-auto" />
+          <h3 className="text-sm font-bold text-foreground">
             No Legacy Letters Written
           </h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
@@ -183,15 +183,15 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
               <div>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-rose-400 bg-rose-950/60 px-2.5 py-0.5 rounded-full border border-rose-800/40">
+                    <span className="text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-0.5 rounded-full border border-rose-200 dark:border-rose-800/40">
                       To: {item.recipientName}
                     </span>
                   </div>
                   <span
                     className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${
                       item.isReleased
-                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                        : "bg-slate-800 text-slate-400 border-slate-700"
+                        ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
+                        : "bg-muted text-muted-foreground border-border"
                     }`}
                   >
                     {item.isReleased ? "Released" : "Concealed"}
@@ -202,7 +202,7 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
                   {item.title}
                 </h3>
 
-                <div className="mt-3 p-4 rounded-2xl bg-muted border border-border text-xs text-slate-300 font-serif leading-relaxed line-clamp-3 whitespace-pre-wrap">
+                <div className="mt-3 p-4 rounded-2xl bg-muted border border-border text-xs text-foreground font-serif leading-relaxed line-clamp-3 whitespace-pre-wrap">
                   {item.message}
                 </div>
 
@@ -222,9 +222,9 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
                   <Button
                     size="sm"
                     onClick={() => setSelectedLetter(item)}
-                    className="h-8 px-3 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-semibold gap-1.5"
+                    className="h-8 px-3 text-xs bg-secondary hover:bg-muted text-foreground rounded-xl font-semibold gap-1.5"
                   >
-                    <Eye className="w-3.5 h-3.5 text-rose-400" /> Read Letter
+                    <Eye className="w-3.5 h-3.5 text-rose-700 dark:text-rose-300" /> Read Letter
                   </Button>
                   <Button
                     size="sm"
@@ -237,7 +237,7 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
                     {item.isReleased ? (
                       <EyeOff className="w-3.5 h-3.5" />
                     ) : (
-                      <Send className="w-3.5 h-3.5 text-emerald-400" />
+                      <Send className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-300" />
                     )}
                   </Button>
                 </div>
@@ -246,7 +246,7 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
                   size="sm"
                   variant="ghost"
                   onClick={() => handleDelete(item._id, item.title)}
-                  className="h-7 w-7 p-0 text-slate-500 hover:text-red-400"
+                  className="h-7 w-7 p-0 text-slate-500 hover:text-red-700 dark:hover:text-red-300"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
@@ -265,7 +265,7 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
           <DialogContent className="life-dialog sm:max-w-xl rounded-3xl border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100 max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <div className="flex items-center justify-between pr-4">
-                <span className="text-xs uppercase font-bold text-rose-400">
+                <span className="text-xs uppercase font-bold text-rose-300">
                   Private Legacy Letter
                 </span>
                 <span className="text-[10px] text-slate-500 font-mono">
@@ -305,7 +305,7 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
         <DialogContent className="life-dialog sm:max-w-lg rounded-2xl border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-slate-100 flex items-center gap-2">
-              <HeartHandshake className="w-5 h-5 text-rose-400" />
+              <HeartHandshake className="w-5 h-5 text-rose-300" />
               <span>Compose Legacy Letter</span>
             </DialogTitle>
           </DialogHeader>

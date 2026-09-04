@@ -158,7 +158,7 @@ export function ContactsClient({
             <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
               Contact Directory
             </h1>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20">
               {contacts.length}
             </span>
           </div>
@@ -227,7 +227,7 @@ export function ContactsClient({
             >
               <div>
                 <div className="flex items-start justify-between gap-2">
-                  <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                  <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20">
                     {c.category.replace("_", " ")}
                   </span>
                   {c.company && (
@@ -247,7 +247,7 @@ export function ContactsClient({
 
                 {c.whenToContact && (
                   <div className="mt-2.5 p-2.5 rounded-xl bg-muted text-xs text-muted-foreground flex items-start gap-1.5">
-                    <HelpCircle className="w-3.5 h-3.5 text-sky-400 shrink-0 mt-0.5" />
+                    <HelpCircle className="w-3.5 h-3.5 text-sky-700 dark:text-sky-300 shrink-0 mt-0.5" />
                     <span className="line-clamp-2">
                       Why/When: {c.whenToContact}
                     </span>
@@ -260,7 +260,7 @@ export function ContactsClient({
                 <div className="flex items-center gap-1.5">
                   <a
                     href={`tel:${c.phone}`}
-                    className="p-2 rounded-xl bg-muted text-muted-foreground hover:text-emerald-400 hover:bg-emerald-950/40 transition-colors"
+                    className="p-2 rounded-xl bg-muted text-muted-foreground hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
                     title="Call Phone"
                   >
                     <Phone className="w-3.5 h-3.5" />
@@ -269,7 +269,7 @@ export function ContactsClient({
                     href={`https://wa.me/${(c.whatsapp || c.phone).replace(/[^0-9]/g, "")}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-2 rounded-xl bg-muted text-muted-foreground hover:text-emerald-400 hover:bg-emerald-950/40 transition-colors"
+                    className="p-2 rounded-xl bg-muted text-muted-foreground hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
                     title="WhatsApp"
                   >
                     <MessageCircle className="w-3.5 h-3.5" />
@@ -277,7 +277,7 @@ export function ContactsClient({
                   {c.email && (
                     <a
                       href={`mailto:${c.email}`}
-                      className="p-2 rounded-xl bg-muted text-muted-foreground hover:text-sky-400 hover:bg-sky-950/40 transition-colors"
+                      className="p-2 rounded-xl bg-muted text-muted-foreground hover:text-sky-700 dark:hover:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors"
                       title="Email"
                     >
                       <Mail className="w-3.5 h-3.5" />
@@ -289,7 +289,7 @@ export function ContactsClient({
                     title="Copy Phone"
                   >
                     {copiedId === c._id ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      <Check className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-300" />
                     ) : (
                       <Copy className="w-3.5 h-3.5" />
                     )}
@@ -300,7 +300,7 @@ export function ContactsClient({
                   size="sm"
                   variant="ghost"
                   onClick={() => handleDelete(c._id, c.name)}
-                  className="h-7 w-7 p-0 text-muted-foreground hover:text-red-400"
+                  className="h-7 w-7 p-0 text-muted-foreground hover:text-red-700 dark:hover:text-red-300"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
@@ -315,7 +315,7 @@ export function ContactsClient({
         <DialogContent className="life-dialog sm:max-w-md rounded-2xl border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-slate-100 flex items-center gap-2">
-              <Contact className="w-5 h-5 text-sky-400" />
+              <Contact className="w-5 h-5 text-sky-300" />
               <span>Add Directory Contact</span>
             </DialogTitle>
           </DialogHeader>

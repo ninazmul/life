@@ -155,7 +155,7 @@ export function VaultClient({ initialItems }: VaultClientProps) {
             <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
               Secure Vault
             </h1>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
               AES-256-GCM
             </span>
           </div>
@@ -174,14 +174,14 @@ export function VaultClient({ initialItems }: VaultClientProps) {
       </div>
 
       {/* Security Banner */}
-      <div className="p-3.5 rounded-2xl bg-amber-950/20 border border-amber-500/30 text-xs text-amber-300 flex items-center justify-between">
+      <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-500/30 text-xs text-amber-700 dark:text-amber-300 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Shield className="w-4 h-4 shrink-0 text-amber-400" />
+          <Shield className="w-4 h-4 shrink-0 text-amber-700 dark:text-amber-300" />
           <span>
             Secrets are encrypted at rest. Plaintext passwords are never returned in listings.
           </span>
         </div>
-        <span className="text-[10px] font-mono text-amber-400 font-bold hidden sm:inline">
+        <span className="text-[10px] font-mono text-amber-700 dark:text-amber-300 font-bold hidden sm:inline">
           Tamper-Resistant
         </span>
       </div>
@@ -219,7 +219,7 @@ export function VaultClient({ initialItems }: VaultClientProps) {
       {filteredItems.length === 0 ? (
         <div className="p-10 rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 text-center space-y-2">
           <KeyRound className="w-8 h-8 text-amber-500/60 mx-auto" />
-          <h3 className="text-sm font-bold text-slate-300">No Vault Records Found</h3>
+          <h3 className="text-sm font-bold text-foreground">No Vault Records Found</h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
             Store root server passwords, Cloudflare credentials, router admin logins, and recovery phrases.
           </p>
@@ -233,7 +233,7 @@ export function VaultClient({ initialItems }: VaultClientProps) {
             >
               <div>
                 <div className="flex items-start justify-between gap-2">
-                  <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                  <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
                     {item.category}
                   </span>
                   <span className="text-[10px] font-mono text-slate-500">
@@ -247,13 +247,13 @@ export function VaultClient({ initialItems }: VaultClientProps) {
 
                 <div className="mt-2.5 space-y-1 text-xs text-slate-400 font-mono">
                   {item.systemOrWebsite && (
-                    <p className="truncate text-slate-300">System: {item.systemOrWebsite}</p>
+                    <p className="truncate text-foreground">System: {item.systemOrWebsite}</p>
                   )}
                   {item.username && (
-                    <p className="truncate">Username: <span className="text-slate-200">{item.username}</span></p>
+                    <p className="truncate">Username: <span className="text-foreground">{item.username}</span></p>
                   )}
                   {item.url && (
-                    <p className="truncate text-cyan-400">
+                    <p className="truncate text-cyan-700 dark:text-cyan-300">
                       <a href={item.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
                         {item.url}
                       </a>
@@ -263,7 +263,7 @@ export function VaultClient({ initialItems }: VaultClientProps) {
 
                 {item.recoveryInfo && (
                   <div className="mt-2.5 p-2 rounded-xl bg-slate-950/50 text-[11px] text-slate-400">
-                    <span className="text-amber-400 font-bold">Recovery:</span> {item.recoveryInfo}
+                    <span className="text-amber-700 dark:text-amber-300 font-bold">Recovery:</span> {item.recoveryInfo}
                   </div>
                 )}
               </div>
@@ -282,7 +282,7 @@ export function VaultClient({ initialItems }: VaultClientProps) {
                   size="sm"
                   variant="ghost"
                   onClick={() => handleDelete(item._id, item.title)}
-                  className="h-7 w-7 p-0 text-slate-500 hover:text-red-400"
+                  className="h-7 w-7 p-0 text-slate-500 hover:text-red-700 dark:hover:text-red-300"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
@@ -305,7 +305,7 @@ export function VaultClient({ initialItems }: VaultClientProps) {
         <DialogContent className="life-dialog sm:max-w-md rounded-2xl border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-slate-100 flex items-center gap-2">
-              <KeyRound className="w-5 h-5 text-amber-400" />
+              <KeyRound className="w-5 h-5 text-amber-300" />
               <span>Store Vault Secret</span>
             </DialogTitle>
           </DialogHeader>
@@ -387,7 +387,7 @@ export function VaultClient({ initialItems }: VaultClientProps) {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-amber-400">
+              <label className="text-xs font-semibold text-amber-300">
                 Secret / Password (Encrypted at rest with AES-256-GCM) *
               </label>
               <Input

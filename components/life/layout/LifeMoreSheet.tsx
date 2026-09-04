@@ -36,28 +36,31 @@ export function LifeMoreSheet({ open, onOpenChange }: LifeMoreSheetProps) {
       href: "/information",
       icon: FileText,
       color:
-        "text-emerald-400 bg-emerald-950/60 border-emerald-800/40",
+        "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800/40",
     },
     {
       title: "Business & Continuity",
       desc: '"If I Am Not Available" checklist',
       href: "/business",
       icon: Briefcase,
-      color: "text-amber-400 bg-amber-950/60 border-amber-800/40",
+      color:
+        "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-800/40",
     },
     {
       title: "Assets Portfolio",
       desc: "Bank balances, property & valuations",
       href: "/assets",
       icon: Layers,
-      color: "text-cyan-400 bg-cyan-950/60 border-cyan-800/40",
+      color:
+        "text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/60 border-cyan-200 dark:border-cyan-800/40",
     },
     {
       title: "Contact Directory",
       desc: "Emergency & key advisors (1-tap call)",
       href: "/contacts",
       icon: Contact,
-      color: "text-sky-400 bg-sky-950/60 border-sky-800/40",
+      color:
+        "text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 border-sky-200 dark:border-sky-800/40",
     },
     {
       title: "Documents Library",
@@ -65,35 +68,39 @@ export function LifeMoreSheet({ open, onOpenChange }: LifeMoreSheetProps) {
       href: "/documents",
       icon: FolderLock,
       color:
-        "text-indigo-400 bg-indigo-950/60 border-indigo-800/40",
+        "text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 border-indigo-200 dark:border-indigo-800/40",
     },
     {
       title: "Legacy Messages",
       desc: "Private letters for designated people",
       href: "/legacy",
       icon: HeartHandshake,
-      color: "text-rose-400 bg-rose-950/60 border-rose-800/40",
+      color:
+        "text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800/40",
     },
     {
       title: "Access & Emergency",
       desc: "Delegate admin & Emergency protocol",
       href: "/access",
       icon: ShieldAlert,
-      color: "text-red-400 bg-red-950/60 border-red-800/40",
+      color:
+        "text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/60 border-red-200 dark:border-red-800/40",
     },
     {
       title: "Activity & Audit Trail",
       desc: "Vault reveals & system log",
       href: "/activity",
       icon: History,
-      color: "text-slate-400 bg-slate-900 border-slate-800",
+      color:
+        "text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800",
     },
     {
       title: "Settings & Backup",
       desc: "Security PIN, PWA & offline backup",
       href: "/settings",
       icon: Settings,
-      color: "text-emerald-400 bg-slate-900 border-slate-800",
+      color:
+        "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-slate-900 border-emerald-200 dark:border-slate-800",
     },
   ];
 
@@ -116,17 +123,6 @@ export function LifeMoreSheet({ open, onOpenChange }: LifeMoreSheetProps) {
               Personal Continuity & Legacy Command Center
             </p>
           </div>
-          <button
-            onClick={() => onOpenChange(false)}
-            className="rounded-full p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0 transition-colors"
-            aria-label="Close modules menu"
-          >
-            <X
-              className="w-5 h-5 shrink-0"
-              strokeWidth={2}
-              aria-hidden="true"
-            />
-          </button>
         </SheetHeader>
 
         <div
@@ -170,14 +166,14 @@ export function LifeMoreSheet({ open, onOpenChange }: LifeMoreSheetProps) {
                     <span
                       className={`text-sm font-semibold truncate ${
                         isActive
-                          ? "text-emerald-600 dark:text-emerald-400"
+                          ? "text-emerald-600 dark:text-emerald-300"
                           : "text-foreground"
                       }`}
                     >
                       {item.title}
                     </span>
                     {isActive && (
-                      <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/25 shrink-0">
+                      <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-300 px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/25 shrink-0">
                         Active
                       </span>
                     )}

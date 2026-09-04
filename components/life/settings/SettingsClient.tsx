@@ -95,7 +95,7 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
 
       <section className="p-5 sm:p-6 rounded-3xl bg-card border border-border space-y-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 shrink-0">
             <Smartphone
               className="w-5 h-5 shrink-0"
               strokeWidth={2}
@@ -106,7 +106,7 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
             <h3 className="text-sm font-bold text-foreground truncate">
               Progressive Web App (PWA) Status
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5 leading-snug">
+            <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
               Life is installable as a native mobile app from your browser.
             </p>
           </div>
@@ -114,10 +114,10 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
           <div className="p-3 rounded-xl bg-muted border border-border space-y-1">
-            <span className="text-slate-400 font-medium uppercase text-[10px] tracking-wider block">
+            <span className="text-muted-foreground font-medium uppercase text-[10px] tracking-wider block">
               Install Status
             </span>
-            <div className="flex items-center gap-1.5 font-bold text-emerald-400">
+            <div className="flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-300">
               <CheckCircle2
                 className="w-3.5 h-3.5 shrink-0"
                 strokeWidth={2}
@@ -128,10 +128,10 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
           </div>
 
           <div className="p-3 rounded-xl bg-muted border border-border space-y-1">
-            <span className="text-slate-400 font-medium uppercase text-[10px] tracking-wider block">
+            <span className="text-muted-foreground font-medium uppercase text-[10px] tracking-wider block">
               Service Worker
             </span>
-            <div className="flex items-center gap-1.5 font-bold text-emerald-400">
+            <div className="flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-300">
               <CheckCircle2
                 className="w-3.5 h-3.5 shrink-0"
                 strokeWidth={2}
@@ -142,10 +142,10 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
           </div>
 
           <div className="p-3 rounded-xl bg-muted border border-border space-y-1">
-            <span className="text-slate-400 font-medium uppercase text-[10px] tracking-wider block">
+            <span className="text-muted-foreground font-medium uppercase text-[10px] tracking-wider block">
               Offline Safe APIs
             </span>
-            <div className="flex items-center gap-1.5 font-bold text-amber-400">
+            <div className="flex items-center gap-1.5 font-bold text-amber-700 dark:text-amber-300">
               <AlertCircle
                 className="w-3.5 h-3.5 shrink-0"
                 strokeWidth={2}
@@ -163,7 +163,7 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
             Screen&quot;. On desktop Chrome, click the install icon (⊕) in the
             address bar.
           </p>
-          <p className="text-amber-500 dark:text-amber-400 font-medium flex items-start gap-1.5 mt-1">
+          <p className="text-amber-700 dark:text-amber-300 font-medium flex items-start gap-1.5 mt-1">
             <Shield
               className="w-3.5 h-3.5 mt-0.5 shrink-0"
               strokeWidth={2}
@@ -179,7 +179,7 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
 
       <section className="p-5 sm:p-6 rounded-3xl bg-card border border-border space-y-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 shrink-0">
             <KeyRound
               className="w-5 h-5 shrink-0"
               strokeWidth={2}
@@ -190,7 +190,7 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
             <h3 className="text-sm font-bold text-foreground truncate">
               Master Vault PIN
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5 leading-snug">
+            <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
               Required to reveal any encrypted vault secret. Stored hashed —
               never plaintext.
             </p>
@@ -263,7 +263,7 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
 
       <section className="p-5 sm:p-6 rounded-3xl bg-card border border-border space-y-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shrink-0">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20 shrink-0">
             <Download
               className="w-5 h-5 shrink-0"
               strokeWidth={2}
@@ -274,16 +274,16 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
             <h3 className="text-sm font-bold text-foreground truncate">
               Export Full Data Backup
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5 leading-snug">
+            <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
               Download a complete JSON backup of all Life modules (People,
               Money, Business, Vault metadata, etc).
             </p>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-red-950/20 border border-red-800/30 text-xs text-red-700 dark:text-red-300 flex items-start gap-2">
+        <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/30 text-xs text-red-700 dark:text-red-300 flex items-start gap-2">
           <AlertCircle
-            className="w-4 h-4 shrink-0 mt-0.5 text-red-500 dark:text-red-400"
+            className="w-4 h-4 shrink-0 mt-0.5 text-red-700 dark:text-red-300"
             strokeWidth={2}
             aria-hidden="true"
           />
@@ -329,7 +329,7 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
       </section>
 
       <section className="p-5 rounded-3xl bg-card border border-border">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
           <Settings
             className="w-3.5 h-3.5 shrink-0"
             strokeWidth={2}
@@ -342,7 +342,7 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
             [
               "Security Model",
               "AES-256-GCM",
-              "text-emerald-500 dark:text-emerald-400",
+              "text-emerald-700 dark:text-emerald-300",
             ],
             ["Auth Provider", "Clerk.dev", "text-foreground"],
             ["Database", "MongoDB Atlas", "text-foreground"],
@@ -351,12 +351,12 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
             [
               "Cache Policy",
               "Zero Cache (Sensitive)",
-              "text-red-500 dark:text-red-400",
+              "text-red-700 dark:text-red-300",
             ],
             [
               "Vault Reveals Audited",
               "Yes ✓",
-              "text-emerald-500 dark:text-emerald-400",
+              "text-emerald-700 dark:text-emerald-300",
             ],
           ].map(([label, value, color]) => (
             <div

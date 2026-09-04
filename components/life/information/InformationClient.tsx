@@ -197,7 +197,7 @@ export function InformationClient({
       {filteredItems.length === 0 ? (
         <div className="p-10 rounded-3xl border border-dashed border-border text-center space-y-2">
           <FileText className="w-8 h-8 text-slate-500 mx-auto" />
-          <h3 className="text-sm font-bold text-slate-300">
+          <h3 className="text-sm font-bold text-foreground">
             No Information Found
           </h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
@@ -215,22 +215,22 @@ export function InformationClient({
               <div>
                 {/* Header chips */}
                 <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
                     {item.category}
                   </span>
                   <div className="flex items-center gap-1.5">
                     {item.isEmergency && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-500/10 text-red-700 dark:text-red-300 border border-red-500/20">
                         Emergency
                       </span>
                     )}
                     <span
                       className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded border ${
                         item.priority === "critical"
-                          ? "bg-red-900/30 text-red-400 border-red-700/50"
+                          ? "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-700/50"
                           : item.priority === "high"
-                            ? "bg-amber-900/30 text-amber-400 border-amber-700/50"
-                            : "bg-slate-800 text-slate-400 border-slate-700"
+                            ? "bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700/50"
+                            : "bg-muted text-muted-foreground border-border"
                       }`}
                     >
                       {item.priority}
@@ -248,7 +248,7 @@ export function InformationClient({
                   </p>
                 )}
 
-                <div className="mt-2.5 p-3 rounded-xl bg-muted text-xs text-slate-300 font-mono line-clamp-4 whitespace-pre-wrap">
+                <div className="mt-2.5 p-3 rounded-xl bg-muted text-xs text-foreground font-mono line-clamp-4 whitespace-pre-wrap">
                   {item.content}
                 </div>
               </div>
@@ -260,7 +260,7 @@ export function InformationClient({
                   size="sm"
                   variant="ghost"
                   onClick={() => handleDelete(item._id, item.title)}
-                  className="h-7 w-7 p-0 text-slate-500 hover:text-red-400"
+                  className="h-7 w-7 p-0 text-slate-500 hover:text-red-700 dark:hover:text-red-300"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
@@ -275,7 +275,7 @@ export function InformationClient({
         <DialogContent className="life-dialog sm:max-w-lg rounded-2xl border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-slate-100 flex items-center gap-2">
-              <FileText className="w-5 h-5 text-emerald-400" />
+              <FileText className="w-5 h-5 text-emerald-300" />
               <span>Add Note / Information Record</span>
             </DialogTitle>
           </DialogHeader>

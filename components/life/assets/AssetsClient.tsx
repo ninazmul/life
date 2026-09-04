@@ -131,7 +131,7 @@ export function AssetsClient({
             <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
               Assets & Holdings Portfolio
             </h1>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20">
               {assets.length}
             </span>
           </div>
@@ -146,7 +146,7 @@ export function AssetsClient({
             <span className="text-[11px] text-muted-foreground font-medium">
               Portfolio Valuation
             </span>
-            <p className="text-xl font-extrabold text-indigo-400 font-mono">
+            <p className="text-xl font-extrabold text-indigo-700 dark:text-indigo-300 font-mono">
               ৳{totalPortfolioValue.toLocaleString()}
             </p>
           </div>
@@ -198,7 +198,7 @@ export function AssetsClient({
             >
               <div>
                 <div className="flex items-start justify-between gap-2">
-                  <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                  <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20">
                     {asset.category.replace("_", " ")}
                   </span>
                   <span className="text-xs font-bold text-muted-foreground font-mono">
@@ -210,7 +210,7 @@ export function AssetsClient({
                   {asset.name}
                 </h3>
 
-                <div className="mt-2 text-xl font-extrabold text-indigo-400 font-mono">
+                <div className="mt-2 text-xl font-extrabold text-indigo-700 dark:text-indigo-300 font-mono">
                   ৳{asset.value.toLocaleString()}
                 </div>
 
@@ -232,7 +232,7 @@ export function AssetsClient({
                   size="sm"
                   variant="ghost"
                   onClick={() => handleDelete(asset._id, asset.name)}
-                  className="h-7 w-7 p-0 text-muted-foreground hover:text-red-400"
+                  className="h-7 w-7 p-0 text-muted-foreground hover:text-red-700 dark:hover:text-red-300"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
@@ -247,7 +247,7 @@ export function AssetsClient({
         <DialogContent className="life-dialog sm:max-w-md rounded-2xl border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-slate-100 flex items-center gap-2">
-              <Layers className="w-5 h-5 text-indigo-400" />
+              <Layers className="w-5 h-5 text-indigo-300" />
               <span>Record New Asset</span>
             </DialogTitle>
           </DialogHeader>

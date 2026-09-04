@@ -217,7 +217,7 @@ export function BusinessClient({
             <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
               Business Continuity & Operations
             </h1>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20">
               {businesses.length}
             </span>
           </div>
@@ -237,15 +237,15 @@ export function BusinessClient({
       </div>
 
       {/* Continuity Highlight Banner */}
-      <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-cyan-950/60 via-slate-900 to-slate-900 border border-cyan-500/30 flex items-start gap-3.5">
-        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-500/20 text-cyan-400 shrink-0 border border-cyan-500/40">
+      <div className="p-4 sm:p-5 rounded-3xl bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-500/30 flex items-start gap-3.5">
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-100 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 shrink-0 border border-cyan-200 dark:border-cyan-500/40">
           <Briefcase className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-sm font-bold text-slate-100">
+          <h2 className="text-sm font-bold text-foreground">
             &quot;If I Am Not Available&quot; Continuity Protocol
           </h2>
-          <p className="text-xs text-slate-300 mt-0.5 max-w-2xl leading-relaxed">
+          <p className="text-xs text-muted-foreground mt-0.5 max-w-2xl leading-relaxed">
             Actionable step-by-step instructions for trusted partners or staff
             in case you are unreachable (server trouble, supplier contacts,
             salary payroll, or accounts).
@@ -257,10 +257,10 @@ export function BusinessClient({
       {businesses.length === 0 ? (
         <div className="p-10 rounded-3xl border border-dashed border-border text-center space-y-3">
           <Briefcase className="w-8 h-8 text-slate-500 mx-auto" />
-          <h3 className="text-sm font-bold text-slate-300">
+          <h3 className="text-sm font-bold text-foreground">
             No Business Entities Added
           </h3>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
             Add your ventures, partnerships, server infrastructure, and
             contingency instructions.
           </p>
@@ -290,7 +290,7 @@ export function BusinessClient({
                   className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer hover:bg-secondary transition-colors"
                 >
                   <div className="flex items-center gap-3.5">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-bold shrink-0">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20 font-bold shrink-0">
                       {biz.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -298,11 +298,11 @@ export function BusinessClient({
                         <h3 className="text-base font-extrabold text-foreground">
                           {biz.name}
                         </h3>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20">
                           {biz.ownershipPercentage}% Ownership
                         </span>
                       </div>
-                      <p className="text-xs text-slate-400 mt-0.5">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         {biz.serverInfo?.domain ||
                           biz.legalName ||
                           "Active Business Entity"}
@@ -312,7 +312,7 @@ export function BusinessClient({
 
                   <div className="flex items-center gap-3 self-end sm:self-center">
                     <div className="text-right">
-                      <span className="text-xs font-bold text-slate-300 font-mono">
+                      <span className="text-xs font-bold text-foreground font-mono">
                         {completedCount}/{steps.length}
                       </span>
                       <p className="text-[10px] text-slate-500">Steps Ready</p>
@@ -332,20 +332,20 @@ export function BusinessClient({
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 text-xs">
                       {/* Server & Hosting */}
                       <div className="p-3.5 rounded-2xl bg-muted border border-border space-y-1">
-                        <span className="font-bold text-slate-400 flex items-center gap-1.5 uppercase text-[10px] tracking-wider">
-                          <Server className="w-3.5 h-3.5 text-cyan-400" />{" "}
+                        <span className="font-bold text-muted-foreground flex items-center gap-1.5 uppercase text-[10px] tracking-wider">
+                          <Server className="w-3.5 h-3.5 text-cyan-700 dark:text-cyan-300" />{" "}
                           Server & Domain
                         </span>
-                        <p className="text-slate-200 font-medium">
+                        <p className="text-foreground font-medium">
                           {biz.serverInfo?.hosting || "Standard Hosting"}
                         </p>
                         {biz.serverInfo?.ip && (
-                          <p className="text-slate-400 font-mono text-[11px]">
+                          <p className="text-muted-foreground font-mono text-[11px]">
                             IP: {biz.serverInfo.ip}
                           </p>
                         )}
                         {biz.serverInfo?.domain && (
-                          <p className="text-cyan-400 font-mono text-[11px] truncate">
+                          <p className="text-cyan-700 dark:text-cyan-300 font-mono text-[11px] truncate">
                             {biz.serverInfo.domain}
                           </p>
                         )}
@@ -353,17 +353,17 @@ export function BusinessClient({
 
                       {/* Key Engineer */}
                       <div className="p-3.5 rounded-2xl bg-muted border border-border space-y-1">
-                        <span className="font-bold text-slate-400 flex items-center gap-1.5 uppercase text-[10px] tracking-wider">
-                          <Users className="w-3.5 h-3.5 text-emerald-400" />{" "}
+                        <span className="font-bold text-muted-foreground flex items-center gap-1.5 uppercase text-[10px] tracking-wider">
+                          <Users className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-300" />{" "}
                           Technical Contact
                         </span>
-                        <p className="text-slate-200 font-medium">
+                        <p className="text-foreground font-medium">
                           {biz.engineerContact?.name || "No Engineer Assigned"}
                         </p>
                         {biz.engineerContact?.phone && (
                           <a
                             href={`tel:${biz.engineerContact.phone}`}
-                            className="text-emerald-400 font-mono text-[11px] flex items-center gap-1"
+                            className="text-emerald-700 dark:text-emerald-300 font-mono text-[11px] flex items-center gap-1"
                           >
                             <Phone className="w-3 h-3" />{" "}
                             {biz.engineerContact.phone}
@@ -373,10 +373,10 @@ export function BusinessClient({
 
                       {/* Financials */}
                       <div className="p-3.5 rounded-2xl bg-muted border border-border space-y-1">
-                        <span className="font-bold text-slate-400 uppercase text-[10px] tracking-wider">
+                        <span className="font-bold text-muted-foreground uppercase text-[10px] tracking-wider">
                           Monthly Expenses
                         </span>
-                        <p className="text-lg font-bold text-slate-200 font-mono">
+                        <p className="text-lg font-bold text-foreground font-mono">
                           ৳{(biz.monthlyExpenses || 0).toLocaleString()}
                         </p>
                         <p className="text-[11px] text-slate-500">
@@ -388,8 +388,8 @@ export function BusinessClient({
                     {/* "If I Am Not Available" Checklist */}
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
-                          <AlertTriangle className="w-4 h-4 text-cyan-400" />
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-cyan-700 dark:text-cyan-300 flex items-center gap-1.5">
+                          <AlertTriangle className="w-4 h-4 text-cyan-700 dark:text-cyan-300" />
                           <span>
                             Actionable &quot;If I Am Not Available&quot; Steps
                           </span>
@@ -397,7 +397,7 @@ export function BusinessClient({
                         <Button
                           size="sm"
                           onClick={() => handleOpenAddStep(biz._id)}
-                          className="h-7 text-xs bg-cyan-950/80 hover:bg-cyan-900/80 text-cyan-300 border border-cyan-500/30 rounded-xl gap-1"
+                          className="h-7 text-xs bg-cyan-50 hover:bg-cyan-100 dark:bg-cyan-950/80 dark:hover:bg-cyan-900/80 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-500/30 rounded-xl gap-1"
                         >
                           <Plus className="w-3 h-3" /> Add Step
                         </Button>
@@ -422,40 +422,40 @@ export function BusinessClient({
                               }
                               className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
                                 step.isCompleted
-                                  ? "bg-slate-950/30 border-slate-800/60 opacity-60"
-                                  : "bg-slate-900/80 border-slate-800 hover:border-cyan-500/40"
+                                  ? "bg-muted border-border opacity-70"
+                                  : "bg-card border-border hover:border-cyan-300 dark:bg-slate-900/80 dark:border-slate-800 dark:hover:border-cyan-500/40"
                               }`}
                             >
                               <div className="flex items-start gap-3">
-                                <button className="mt-0.5 text-cyan-400">
+                                <button className="mt-0.5 text-cyan-700 dark:text-cyan-300">
                                   {step.isCompleted ? (
-                                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                                    <CheckCircle2 className="w-5 h-5 text-emerald-700 dark:text-emerald-300" />
                                   ) : (
                                     <Circle className="w-5 h-5 text-slate-500" />
                                   )}
                                 </button>
                                 <div>
                                   <div className="flex items-center gap-2">
-                                    <span className="text-xs font-mono font-bold text-slate-400">
+                                    <span className="text-xs font-mono font-bold text-muted-foreground">
                                       #{idx + 1}
                                     </span>
                                     <h5
                                       className={`text-xs font-bold ${
                                         step.isCompleted
                                           ? "line-through text-slate-400"
-                                          : "text-slate-100"
+                                          : "text-foreground"
                                       }`}
                                     >
                                       {step.title}
                                     </h5>
                                   </div>
                                   {step.instructions && (
-                                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                                       {step.instructions}
                                     </p>
                                   )}
                                   {step.responsiblePersonName && (
-                                    <span className="inline-flex items-center gap-1 text-[11px] text-cyan-400 mt-1.5 font-medium">
+                                    <span className="inline-flex items-center gap-1 text-[11px] text-cyan-700 dark:text-cyan-300 mt-1.5 font-medium">
                                       Contact: {step.responsiblePersonName}
                                       {step.contactPhone &&
                                         ` (${step.contactPhone})`}
@@ -481,7 +481,7 @@ export function BusinessClient({
         <DialogContent className="life-dialog sm:max-w-lg rounded-2xl border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-slate-100 flex items-center gap-2">
-              <Briefcase className="w-5 h-5 text-cyan-400" />
+              <Briefcase className="w-5 h-5 text-cyan-300" />
               <span>Add Business Entity</span>
             </DialogTitle>
           </DialogHeader>
@@ -543,7 +543,7 @@ export function BusinessClient({
             </div>
 
             <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
-              <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
+              <h4 className="text-xs font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-1.5">
                 <Server className="w-3.5 h-3.5" /> Server Information
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -569,7 +569,7 @@ export function BusinessClient({
             </div>
 
             <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
-              <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+              <h4 className="text-xs font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
                 <Users className="w-3.5 h-3.5" /> Key Engineer / Technical
                 Contact
               </h4>
@@ -616,7 +616,7 @@ export function BusinessClient({
         <DialogContent className="life-dialog sm:max-w-md rounded-2xl border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-slate-100 flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-cyan-400" />
+              <AlertTriangle className="w-5 h-5 text-cyan-300" />
               <span>Add &quot;If I Am Not Available&quot; Instruction</span>
             </DialogTitle>
           </DialogHeader>

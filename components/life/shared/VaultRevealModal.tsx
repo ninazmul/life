@@ -90,7 +90,7 @@ export function VaultRevealModal({
       <DialogContent className="life-dialog sm:max-w-md rounded-2xl border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100">
         <DialogHeader>
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10 text-amber-300 border border-amber-500/20 shrink-0">
               <Lock className="w-5 h-5" />
             </div>
             <div>
@@ -107,7 +107,7 @@ export function VaultRevealModal({
         {!secret ? (
           <form onSubmit={handleReveal} className="space-y-4 pt-2">
             <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-300 flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <AlertCircle className="w-4 h-4 text-amber-300 shrink-0 mt-0.5" />
               <span>
                 Enter your Master Security PIN to decrypt this confidential secret. Every reveal is recorded in the permanent audit trail.
               </span>
@@ -150,7 +150,7 @@ export function VaultRevealModal({
           <div className="space-y-4 pt-2">
             <div className="p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-xs text-emerald-300 flex items-center justify-between">
               <span>Auto-conceal in:</span>
-              <span className="font-mono font-bold text-emerald-400 text-sm bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/40">
+              <span className="font-mono font-bold text-emerald-300 text-sm bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/40">
                 00:{secondsRemaining < 10 ? `0${secondsRemaining}` : secondsRemaining}
               </span>
             </div>
@@ -170,7 +170,7 @@ export function VaultRevealModal({
                   onClick={handleCopy}
                   className="h-11 px-3.5 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-xl shrink-0"
                 >
-                  {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  {copied ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
                 </Button>
               </div>
             </div>

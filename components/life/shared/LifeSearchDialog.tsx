@@ -80,7 +80,7 @@ export function LifeSearchDialog({
           />
           {isPending && (
             <Loader2
-              className="w-4 h-4 text-emerald-400 animate-spin shrink-0"
+              className="w-4 h-4 text-emerald-300 animate-spin shrink-0"
               strokeWidth={2}
               aria-hidden="true"
             />
@@ -117,10 +117,10 @@ export function LifeSearchDialog({
             >
               <div className="flex flex-col min-w-0 pr-2">
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-xs uppercase font-extrabold px-1.5 py-0.5 rounded bg-slate-800 text-emerald-400 border border-slate-700/60 text-[10px] shrink-0">
+                  <span className="text-xs uppercase font-extrabold px-1.5 py-0.5 rounded bg-slate-800 text-emerald-300 border border-slate-700/60 text-[10px] shrink-0">
                     {item.category}
                   </span>
-                  <span className="text-sm font-semibold text-slate-200 truncate group-hover:text-emerald-400 transition-colors">
+                  <span className="text-sm font-semibold text-slate-200 truncate group-hover:text-emerald-300 transition-colors">
                     {item.title}
                   </span>
                 </div>
@@ -131,7 +131,7 @@ export function LifeSearchDialog({
                 )}
               </div>
               <ArrowRight
-                className="w-4 h-4 text-slate-600 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all shrink-0"
+                className="w-4 h-4 text-slate-600 group-hover:text-emerald-300 group-hover:translate-x-1 transition-all shrink-0"
                 strokeWidth={2}
                 aria-hidden="true"
               />

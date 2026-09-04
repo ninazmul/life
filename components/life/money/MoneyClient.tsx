@@ -187,7 +187,7 @@ export function MoneyClient({
           <span className="text-[11px] font-medium text-muted-foreground">
             Invested Made
           </span>
-          <div className="text-lg sm:text-xl font-extrabold text-cyan-400 font-mono mt-1">
+          <div className="text-lg sm:text-xl font-extrabold text-cyan-700 dark:text-cyan-300 font-mono mt-1">
             ৳{overview?.investMade?.total?.toLocaleString() || 0}
           </div>
           <span className="text-[10px] text-muted-foreground">
@@ -199,7 +199,7 @@ export function MoneyClient({
           <span className="text-[11px] font-medium text-muted-foreground">
             Invest Received
           </span>
-          <div className="text-lg sm:text-xl font-extrabold text-indigo-400 font-mono mt-1">
+          <div className="text-lg sm:text-xl font-extrabold text-indigo-700 dark:text-indigo-300 font-mono mt-1">
             ৳{overview?.investReceived?.total?.toLocaleString() || 0}
           </div>
           <span className="text-[10px] text-muted-foreground">
@@ -207,28 +207,28 @@ export function MoneyClient({
           </span>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-emerald-950/20 border border-emerald-500/30">
-          <span className="text-[11px] font-medium text-emerald-400 flex items-center gap-1">
+        <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-500/30">
+          <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
             <ArrowDownLeft className="w-3 h-3" />
             To Receive
           </span>
-          <div className="text-lg sm:text-xl font-extrabold text-emerald-400 font-mono mt-1">
+          <div className="text-lg sm:text-xl font-extrabold text-emerald-700 dark:text-emerald-300 font-mono mt-1">
             ৳{overview?.receivables?.toLocaleString() || 0}
           </div>
-          <span className="text-[10px] text-emerald-500/80">
+          <span className="text-[10px] text-emerald-700/80 dark:text-emerald-300/80">
             Pending returns
           </span>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-rose-950/20 border border-rose-500/30">
-          <span className="text-[11px] font-medium text-rose-400 flex items-center gap-1">
+        <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-500/30">
+          <span className="text-[11px] font-medium text-rose-700 dark:text-rose-300 flex items-center gap-1">
             <ArrowUpRight className="w-3 h-3" />
             To Pay
           </span>
-          <div className="text-lg sm:text-xl font-extrabold text-rose-400 font-mono mt-1">
+          <div className="text-lg sm:text-xl font-extrabold text-rose-700 dark:text-rose-300 font-mono mt-1">
             ৳{overview?.payables?.toLocaleString() || 0}
           </div>
-          <span className="text-[10px] text-rose-400/80">Obligations</span>
+          <span className="text-[10px] text-rose-700/80 dark:text-rose-300/80">Obligations</span>
         </div>
       </div>
 
@@ -293,7 +293,7 @@ export function MoneyClient({
                   <ArrowDownLeft className="w-4 h-4" />
                   <span>Pending Receivables</span>
                 </h3>
-                <span className="text-xs font-bold text-emerald-400 font-mono">
+                <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300 font-mono">
                   {receivables.length} Active
                 </span>
               </div>
@@ -317,7 +317,7 @@ export function MoneyClient({
                         </span>
                       </div>
                       <div className="text-right">
-                        <span className="text-xs font-extrabold text-emerald-400 font-mono">
+                        <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-300 font-mono">
                           ৳{rec.remainingAmount.toLocaleString()}
                         </span>
                         <div className="mt-1">
@@ -325,7 +325,7 @@ export function MoneyClient({
                             size="sm"
                             variant="ghost"
                             onClick={() => handleOpenSettlement(rec)}
-                            className="h-6 px-2 text-[10px] bg-emerald-950/60 text-emerald-400 hover:bg-emerald-900/60 rounded-lg"
+                            className="h-6 px-2 text-[10px] bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded-lg"
                           >
                             + Settle
                           </Button>
@@ -344,7 +344,7 @@ export function MoneyClient({
                   <ArrowUpRight className="w-4 h-4" />
                   <span>Pending Payables</span>
                 </h3>
-                <span className="text-xs font-bold text-rose-400 font-mono">
+                <span className="text-xs font-bold text-rose-700 dark:text-rose-300 font-mono">
                   {payables.length} Active
                 </span>
               </div>
@@ -368,7 +368,7 @@ export function MoneyClient({
                         </span>
                       </div>
                       <div className="text-right">
-                        <span className="text-xs font-extrabold text-rose-400 font-mono">
+                        <span className="text-xs font-extrabold text-rose-700 dark:text-rose-300 font-mono">
                           ৳{rec.remainingAmount.toLocaleString()}
                         </span>
                         <div className="mt-1">
@@ -376,7 +376,7 @@ export function MoneyClient({
                             size="sm"
                             variant="ghost"
                             onClick={() => handleOpenSettlement(rec)}
-                            className="h-6 px-2 text-[10px] bg-rose-950/60 text-rose-400 hover:bg-rose-900/60 rounded-lg"
+                            className="h-6 px-2 text-[10px] bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/60 rounded-lg"
                           >
                             + Repay
                           </Button>
@@ -449,11 +449,11 @@ export function MoneyClient({
                   className="p-3.5 sm:p-4 flex items-center justify-between text-xs"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-800 text-emerald-400 font-bold shrink-0">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 dark:bg-slate-800 text-emerald-700 dark:text-emerald-300 font-bold shrink-0">
                       ৳
                     </div>
                     <div>
-                      <h4 className="font-bold text-slate-200">
+                      <h4 className="font-bold text-foreground">
                         {tx.personName || "Financial Movement"}
                       </h4>
                       <p className="text-[11px] text-slate-400">
@@ -462,7 +462,7 @@ export function MoneyClient({
                       </p>
                     </div>
                   </div>
-                  <span className="font-extrabold text-sm font-mono text-emerald-400">
+                  <span className="font-extrabold text-sm font-mono text-emerald-700 dark:text-emerald-300">
                     ৳{tx.amount.toLocaleString()}
                   </span>
                 </div>
@@ -477,7 +477,7 @@ export function MoneyClient({
         <DialogContent className="life-dialog sm:max-w-lg rounded-2xl border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-slate-100 flex items-center gap-2">
-              <Wallet className="w-5 h-5 text-emerald-400" />
+              <Wallet className="w-5 h-5 text-emerald-300" />
               <span>Add Financial Record</span>
             </DialogTitle>
           </DialogHeader>
@@ -581,7 +581,7 @@ export function MoneyClient({
             {(type === "invest_made" || type === "invest_received") && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-xl bg-slate-900/60 border border-slate-800">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-cyan-400">
+                  <label className="text-xs font-semibold text-cyan-300">
                     Ownership Percentage (%)
                   </label>
                   <Input
@@ -593,7 +593,7 @@ export function MoneyClient({
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-cyan-400">
+                  <label className="text-xs font-semibold text-cyan-300">
                     Profit Share Terms
                   </label>
                   <Input
@@ -658,7 +658,7 @@ function renderRecordList(
 ) {
   if (records.length === 0) {
     return (
-      <div className="p-10 rounded-2xl border border-dashed border-slate-800 text-center text-xs text-slate-500">
+      <div className="p-10 rounded-2xl border border-dashed border-border text-center text-xs text-muted-foreground">
         {emptyMessage}
       </div>
     );
@@ -674,23 +674,23 @@ function renderRecordList(
           <div>
             <div className="flex items-start justify-between gap-2">
               <div>
-                <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-slate-800 text-emerald-400 border border-slate-700/60">
+                <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-slate-800 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-slate-700/60">
                   {rec.type.replace("_", " ")}
                 </span>
-                <h3 className="font-bold text-sm text-slate-200 mt-1">
+                <h3 className="font-bold text-sm text-foreground mt-1">
                   {rec.personName || "Counterparty"}
                 </h3>
                 {rec.purpose && (
-                  <p className="text-xs text-slate-400">{rec.purpose}</p>
+                  <p className="text-xs text-muted-foreground">{rec.purpose}</p>
                 )}
               </div>
               <span
                 className={`text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full border ${
                   rec.status === "fully_returned"
-                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                    ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
                     : rec.status === "overdue"
-                      ? "bg-red-500/10 text-red-400 border-red-500/20"
-                      : "bg-slate-800 text-slate-300 border-slate-700"
+                      ? "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/20"
+                      : "bg-muted text-muted-foreground border-border"
                 }`}
               >
                 {rec.status.replace("_", " ")}
@@ -701,19 +701,19 @@ function renderRecordList(
             <div className="mt-3 grid grid-cols-3 gap-2 p-2.5 rounded-xl bg-slate-100 dark:bg-slate-950/50 text-xs">
               <div>
                 <span className="text-[10px] text-slate-500">Total</span>
-                <p className="font-bold text-slate-200 font-mono">
+                <p className="font-bold text-foreground font-mono">
                   ৳{rec.amount.toLocaleString()}
                 </p>
               </div>
               <div>
                 <span className="text-[10px] text-slate-500">Returned</span>
-                <p className="font-bold text-slate-400 font-mono">
+                <p className="font-bold text-muted-foreground font-mono">
                   ৳{rec.paidAmount.toLocaleString()}
                 </p>
               </div>
               <div>
                 <span className="text-[10px] text-slate-500">Remaining</span>
-                <p className="font-bold text-emerald-400 font-mono">
+                <p className="font-bold text-emerald-700 dark:text-emerald-300 font-mono">
                   ৳{rec.remainingAmount.toLocaleString()}
                 </p>
               </div>
@@ -721,7 +721,7 @@ function renderRecordList(
 
             {/* Settlements history snapshot */}
             {rec.settlements && rec.settlements.length > 0 && (
-              <div className="mt-3 pt-2 border-t border-slate-800/60 space-y-1">
+              <div className="mt-3 pt-2 border-t border-border space-y-1">
                 <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
                   Settlements History ({rec.settlements.length})
                 </span>
@@ -729,13 +729,13 @@ function renderRecordList(
                   {rec.settlements.map((s, idx) => (
                     <div
                       key={s._id || idx}
-                      className="flex items-center justify-between text-[11px] text-slate-400"
+                      className="flex items-center justify-between text-[11px] text-muted-foreground"
                     >
                       <span>
                         Settlement #{idx + 1} (
                         {new Date(s.date).toLocaleDateString()})
                       </span>
-                      <span className="font-mono font-bold text-slate-300">
+                      <span className="font-mono font-bold text-foreground">
                         ৳{s.amount.toLocaleString()}
                       </span>
                     </div>
@@ -747,7 +747,7 @@ function renderRecordList(
 
           {/* Bottom Settle action */}
           {rec.remainingAmount > 0 && (
-            <div className="mt-4 pt-3 border-t border-slate-800/80 flex justify-end">
+            <div className="mt-4 pt-3 border-t border-border flex justify-end">
               <Button
                 size="sm"
                 onClick={() => onSettle(rec)}

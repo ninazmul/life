@@ -41,15 +41,15 @@ export function ActivityClient({ initialLogs }: ActivityClientProps) {
   const getIcon = (type: string) => {
     switch (type) {
       case "vault":
-        return <KeyRound className="w-4 h-4 text-amber-400" />;
+        return <KeyRound className="w-4 h-4 text-amber-700 dark:text-amber-300" />;
       case "money":
-        return <DollarSign className="w-4 h-4 text-emerald-400" />;
+        return <DollarSign className="w-4 h-4 text-emerald-700 dark:text-emerald-300" />;
       case "business":
-        return <Briefcase className="w-4 h-4 text-cyan-400" />;
+        return <Briefcase className="w-4 h-4 text-cyan-700 dark:text-cyan-300" />;
       case "document":
-        return <FolderLock className="w-4 h-4 text-indigo-400" />;
+        return <FolderLock className="w-4 h-4 text-indigo-700 dark:text-indigo-300" />;
       case "emergency":
-        return <ShieldAlert className="w-4 h-4 text-red-400" />;
+        return <ShieldAlert className="w-4 h-4 text-red-700 dark:text-red-300" />;
       default:
         return <ShieldCheck className="w-4 h-4 text-slate-400" />;
     }
@@ -63,7 +63,7 @@ export function ActivityClient({ initialLogs }: ActivityClientProps) {
           <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
             Activity & Security Audit Log
           </h1>
-          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
             {logs.length} Events
           </span>
         </div>
@@ -105,7 +105,7 @@ export function ActivityClient({ initialLogs }: ActivityClientProps) {
       {filteredLogs.length === 0 ? (
         <div className="p-10 rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 text-center space-y-2">
           <History className="w-8 h-8 text-slate-500 mx-auto" />
-          <h3 className="text-sm font-bold text-slate-300">No Activity Logged</h3>
+          <h3 className="text-sm font-bold text-foreground">No Activity Logged</h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
             Sensitive actions like revealing vault secrets or recording settlements will be automatically audited here.
           </p>
@@ -127,7 +127,7 @@ export function ActivityClient({ initialLogs }: ActivityClientProps) {
                       • {log.actorEmail}
                     </span>
                   </div>
-                  <p className="text-slate-300 font-medium mt-1 leading-relaxed">
+                  <p className="text-foreground font-medium mt-1 leading-relaxed">
                     {log.details}
                   </p>
                   <span className="text-[10px] text-slate-500 font-mono mt-1 block">

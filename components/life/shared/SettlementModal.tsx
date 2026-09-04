@@ -80,7 +80,7 @@ export function SettlementModal({
       <DialogContent className="life-dialog sm:max-w-md rounded-2xl border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100">
         <DialogHeader>
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 shrink-0">
               <DollarSign className="w-5 h-5" />
             </div>
             <div>
@@ -97,7 +97,7 @@ export function SettlementModal({
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/20 text-xs text-emerald-300 flex items-center justify-between">
             <span>Remaining Due Balance:</span>
-            <span className="font-extrabold text-sm text-emerald-400 font-mono">
+            <span className="font-extrabold text-sm text-emerald-300 font-mono">
               ৳{moneyRecord.remainingAmount.toLocaleString()}
             </span>
           </div>
