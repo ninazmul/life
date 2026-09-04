@@ -35,7 +35,8 @@ export function LifeMoreSheet({ open, onOpenChange }: LifeMoreSheetProps) {
       desc: "Personal, instructions & emergency data",
       href: "/information",
       icon: FileText,
-      color: "text-emerald-400 bg-emerald-950/60 border-emerald-800/40",
+      color:
+        "text-emerald-400 bg-emerald-950/60 border-emerald-800/40",
     },
     {
       title: "Business & Continuity",
@@ -63,7 +64,8 @@ export function LifeMoreSheet({ open, onOpenChange }: LifeMoreSheetProps) {
       desc: "Private deeds, contracts & receipts",
       href: "/documents",
       icon: FolderLock,
-      color: "text-indigo-400 bg-indigo-950/60 border-indigo-800/40",
+      color:
+        "text-indigo-400 bg-indigo-950/60 border-indigo-800/40",
     },
     {
       title: "Legacy Messages",
@@ -101,25 +103,37 @@ export function LifeMoreSheet({ open, onOpenChange }: LifeMoreSheetProps) {
         side="bottom"
         className="max-h-[85vh] rounded-t-3xl border-t border-slate-800 bg-slate-950/98 backdrop-blur-2xl p-0 overflow-hidden"
       >
-        <div className="w-12 h-1.5 bg-slate-700/60 rounded-full mx-auto mt-3 mb-1" />
+        <div
+          className="w-12 h-1.5 bg-slate-700/60 rounded-full mx-auto mt-3 mb-1"
+          aria-hidden="true"
+        />
         <SheetHeader className="px-6 py-3 flex flex-row items-center justify-between border-b border-slate-800/60">
-          <div>
+          <div className="min-w-0 pr-2">
             <SheetTitle className="text-base font-bold text-slate-100 flex items-center gap-2">
               <span>All Life Modules</span>
             </SheetTitle>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-400 mt-0.5">
               Personal Continuity & Legacy Command Center
             </p>
           </div>
           <button
             onClick={() => onOpenChange(false)}
-            className="rounded-full p-1.5 text-slate-400 hover:text-white hover:bg-slate-800"
+            className="rounded-full p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 shrink-0 transition-colors"
+            aria-label="Close modules menu"
           >
-            <X className="w-5 h-5" />
+            <X
+              className="w-5 h-5 shrink-0"
+              strokeWidth={2}
+              aria-hidden="true"
+            />
           </button>
         </SheetHeader>
 
-        <div className="p-4 overflow-y-auto max-h-[calc(85vh-80px)] space-y-2 pb-10">
+        <div
+          className="p-4 overflow-y-auto max-h-[calc(85vh-80px)] space-y-2 pb-10"
+          role="list"
+          aria-label="Life modules list"
+        >
           {moreItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname.startsWith(item.href);
@@ -134,23 +148,36 @@ export function LifeMoreSheet({ open, onOpenChange }: LifeMoreSheetProps) {
                     ? "bg-slate-900/90 border-emerald-500/50 shadow-sm"
                     : "bg-slate-900/40 border-slate-800/50 hover:bg-slate-900/80 hover:border-slate-700"
                 }`}
+                role="listitem"
+                aria-label={
+                  isActive
+                    ? `${item.title} — currently open`
+                    : `Open ${item.title}`
+                }
+                aria-current={isActive ? "page" : undefined}
               >
                 <div
                   className={`flex h-10 w-10 items-center justify-center rounded-xl border shrink-0 ${item.color}`}
                 >
-                  <Icon className="w-5 h-5" />
+                  <Icon
+                    className="w-5 h-5 shrink-0"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <span
                       className={`text-sm font-semibold truncate ${
-                        isActive ? "text-emerald-400" : "text-slate-200"
+                        isActive
+                          ? "text-emerald-400"
+                          : "text-slate-200"
                       }`}
                     >
                       {item.title}
                     </span>
                     {isActive && (
-                      <span className="text-[10px] uppercase font-bold text-emerald-400 px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-800/50">
+                      <span className="text-[10px] uppercase font-bold text-emerald-400 px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-800/50 shrink-0">
                         Active
                       </span>
                     )}

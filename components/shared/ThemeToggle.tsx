@@ -18,10 +18,10 @@ export function ThemeToggle() {
       <Button
         variant="outline"
         size="icon"
-        className="h-9 w-9 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+        className="h-9 w-9 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shrink-0"
         aria-label="Toggle theme"
       >
-        <span className="h-4 w-4" />
+        <span className="h-4 w-4 shrink-0" aria-hidden="true" />
       </Button>
     );
   }
@@ -33,16 +33,28 @@ export function ThemeToggle() {
       variant="outline"
       size="icon"
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="h-9 w-9 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+      className="h-9 w-9 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shrink-0"
       title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-      aria-label="Toggle theme"
+      aria-label={
+        isDark
+          ? "Switch to Light Mode (currently dark)"
+          : "Switch to Dark Mode (currently light)"
+      }
+      aria-pressed={isDark}
     >
       {isDark ? (
-        <Sun className="h-4 w-4 text-amber-500 dark:text-amber-400 transition-all" />
+        <Sun
+          className="h-4 w-4 text-amber-500 dark:text-amber-400 transition-all shrink-0"
+          strokeWidth={2}
+          aria-hidden="true"
+        />
       ) : (
-        <Moon className="h-4 w-4 text-slate-600 dark:text-slate-300 transition-all" />
+        <Moon
+          className="h-4 w-4 text-slate-600 dark:text-slate-300 transition-all shrink-0"
+          strokeWidth={2}
+          aria-hidden="true"
+        />
       )}
     </Button>
   );
 }
-

@@ -18,6 +18,8 @@ interface DeleteConfirmDialogProps {
   description: string;
   onConfirm: () => Promise<void> | void;
   isLoading?: boolean;
+  confirmText?: string;
+  cancelText?: string;
 }
 
 export function DeleteConfirmDialog({
@@ -27,14 +29,20 @@ export function DeleteConfirmDialog({
   description,
   onConfirm,
   isLoading = false,
+  confirmText = "Confirm Delete",
+  cancelText = "Cancel",
 }: DeleteConfirmDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(o) => !isLoading && onOpenChange(o)}>
       <DialogContent className="sm:max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
         <DialogHeader className="gap-2">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400">
-              <AlertTriangle className="w-5 h-5" />
+            <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 shrink-0">
+              <AlertTriangle
+                className="w-5 h-5 shrink-0"
+                strokeWidth={2}
+                aria-hidden="true"
+              />
             </div>
             <DialogTitle className="text-lg font-bold text-slate-900 dark:text-slate-100">
               {title}
@@ -52,21 +60,27 @@ export function DeleteConfirmDialog({
             disabled={isLoading}
             className="rounded-xl border-slate-200 dark:border-slate-800"
           >
-            Cancel
+            {cancelText}
           </Button>
           <Button
             type="button"
             variant="destructive"
             onClick={onConfirm}
             disabled={isLoading}
-            className="rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-medium"
+            className="rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-medium gap-2"
+            aria-busy={isLoading}
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Deleting...
+                <Loader2
+                  className="w-4 h-4 animate-spin shrink-0"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
+                Deleting...
               </>
             ) : (
-              "Confirm Delete"
+              confirmText
             )}
           </Button>
         </DialogFooter>

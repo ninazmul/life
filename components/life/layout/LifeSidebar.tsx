@@ -124,7 +124,10 @@ export function LifeSidebar({ activeLoansCount = 0 }: LifeSidebarProps) {
   ];
 
   return (
-    <aside className="hidden md:flex flex-col w-64 border-r border-slate-200/80 dark:border-slate-850 bg-white dark:bg-[#070a12] shrink-0 h-screen sticky top-0 overflow-y-auto">
+    <aside
+      className="hidden md:flex flex-col w-64 border-r border-slate-200/80 dark:border-slate-850 bg-white dark:bg-[#070a12] shrink-0 h-screen sticky top-0 overflow-y-auto"
+      aria-label="Main navigation"
+    >
       {/* Brand Header */}
       <div className="p-4 border-b border-slate-100 dark:border-slate-850 flex items-center gap-3">
         <div className="relative w-10 h-10 rounded-2xl overflow-hidden shadow-lg shadow-emerald-950/20 ring-1 ring-emerald-500/30 shrink-0">
@@ -134,14 +137,15 @@ export function LifeSidebar({ activeLoansCount = 0 }: LifeSidebarProps) {
             fill
             className="object-cover"
             priority
+            sizes="40px"
           />
         </div>
-        <div className="flex flex-col">
+        <div className="flex flex-col min-w-0">
           <div className="flex items-center gap-1.5">
             <span className="font-extrabold text-base tracking-tight text-slate-900 dark:text-slate-100">
               Life
             </span>
-            <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
               PWA
             </span>
           </div>
@@ -154,7 +158,11 @@ export function LifeSidebar({ activeLoansCount = 0 }: LifeSidebarProps) {
       {/* Navigation Sections */}
       <div className="flex-1 py-4 px-3 space-y-6">
         {sections.map((section) => (
-          <div key={section.title} className="space-y-1">
+          <nav
+            key={section.title}
+            className="space-y-1"
+            aria-label={section.title}
+          >
             <h3 className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500 px-3 mb-1.5">
               {section.title}
             </h3>
@@ -170,42 +178,61 @@ export function LifeSidebar({ activeLoansCount = 0 }: LifeSidebarProps) {
                         ? "bg-emerald-500/10 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-semibold border border-emerald-500/20 shadow-xs"
                         : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900/60"
                     }`}
+                    aria-label={
+                      item.isActive
+                        ? `${item.title} (current page)`
+                        : `Navigate to ${item.title}`
+                    }
+                    aria-current={item.isActive ? "page" : undefined}
                   >
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       <Icon
-                        className={`w-4 h-4 transition-transform group-hover:scale-110 ${
+                        className={`w-4 h-4 transition-transform group-hover:scale-110 shrink-0 ${
                           item.isActive
                             ? "text-emerald-500 dark:text-emerald-400"
                             : "text-slate-400 dark:text-slate-500"
                         }`}
+                        strokeWidth={2}
+                        aria-hidden="true"
                       />
-                      <span>{item.title}</span>
+                      <span className="truncate">{item.title}</span>
                     </div>
 
                     {item.badge !== undefined && (
-                      <span className="flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-amber-500 text-slate-950 text-[10px] font-extrabold">
+                      <span
+                        className="flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-amber-500 text-slate-950 text-[10px] font-extrabold shrink-0"
+                        aria-label={`${item.badge} active items`}
+                      >
                         {item.badge}
                       </span>
                     )}
 
                     {item.isActive && (
-                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-emerald-500 dark:bg-emerald-400 rounded-r-full" />
+                      <span
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-emerald-500 dark:bg-emerald-400 rounded-r-full"
+                        aria-hidden="true"
+                      />
                     )}
                   </Link>
                 );
               })}
             </div>
-          </div>
+          </nav>
         ))}
       </div>
 
       {/* Security Footer Info */}
-      <div className="p-3 m-3 rounded-xl bg-slate-100/70 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
+      <div className="p-3 m-3 rounded-xl bg-slate-100/70 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between gap-2">
         <span className="flex items-center gap-1.5 font-medium">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span
+            className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"
+            aria-hidden="true"
+          />
           Vault AES-256
         </span>
-        <span className="text-[10px] font-mono text-slate-400">v1.0 PWA</span>
+        <span className="text-[10px] font-mono text-slate-400 shrink-0">
+          v1.0 PWA
+        </span>
       </div>
     </aside>
   );

@@ -2,11 +2,10 @@
 // Life PWA Service Worker (Secure Zero-Cache Policy for Private Data)
 // ============================================================
 
-const CACHE_NAME = "life-pwa-shell-v1";
+const CACHE_NAME = "life-pwa-shell-v2";
 const STATIC_ASSETS = [
   "/manifest.json",
-  "/assets/images/logo.png",
-  "/favicon.ico"
+  "/assets/images/logo.png"
 ];
 
 self.addEventListener("install", (event) => {
