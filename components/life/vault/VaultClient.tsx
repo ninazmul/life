@@ -175,8 +175,8 @@ export function VaultClient({ initialItems }: VaultClientProps) {
 
       {/* Security Banner */}
       <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-500/30 text-xs text-amber-700 dark:text-amber-300 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Shield className="w-4 h-4 shrink-0 text-amber-700 dark:text-amber-300" />
+        <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300">
+          <Shield className="w-4 h-4 shrink-0" />
           <span>
             Secrets are encrypted at rest. Plaintext passwords are never returned in listings.
           </span>
@@ -229,7 +229,7 @@ export function VaultClient({ initialItems }: VaultClientProps) {
           {filteredItems.map((item) => (
             <div
               key={item._id}
-              className="p-4 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-850 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between group shadow-xs"
+              className="p-4 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between group shadow-xs"
             >
               <div>
                 <div className="flex items-start justify-between gap-2">

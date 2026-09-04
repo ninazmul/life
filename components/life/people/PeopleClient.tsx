@@ -185,7 +185,7 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
           {filteredPeople.map((person) => (
             <div
               key={person._id}
-              className="p-4 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-850 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between group shadow-xs"
+              className="p-4 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between group shadow-xs"
             >
               <div>
                 {/* Top: Avatar, Name, Relation, Status */}

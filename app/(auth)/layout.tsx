@@ -33,7 +33,7 @@ const features = [
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="relative flex min-h-dvh w-full overflow-x-hidden bg-[#06080f]">
+    <div className="relative flex min-h-dvh w-full overflow-x-hidden bg-[#06080f] text-white">
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="absolute -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-violet-600/10 blur-[120px]" />
         <div className="absolute top-1/2 left-1/4 h-[350px] w-[350px] -translate-y-1/2 rounded-full bg-blue-600/8 blur-[100px]" />
@@ -76,7 +76,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               strokeWidth={2}
               aria-hidden="true"
             />
-            <span className="text-xs font-medium text-white/70 tracking-wide">
+            <span className="text-xs font-medium text-white/80 tracking-wide">
               Personal Legacy & Continuity System
             </span>
           </div>
@@ -91,7 +91,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               <br />
               protected.
             </h1>
-            <p className="max-w-sm text-sm xl:text-base leading-relaxed text-white/50">
+            <p className="max-w-sm text-sm xl:text-base leading-relaxed text-white/75">
               A private vault for your assets, debts, business continuity plans,
               and legacy messages — secured so the right people can act when you
               cannot.
@@ -116,7 +116,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                   <p className="text-sm font-semibold text-white/90 truncate">
                     {label}
                   </p>
-                  <p className="text-xs text-white/40 mt-0.5 leading-snug">
+                  <p className="text-xs text-white/65 mt-0.5 leading-snug">
                     {desc}
                   </p>
                 </div>
@@ -124,7 +124,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             ))}
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-white/35">
+          <div className="flex items-center gap-2 text-xs text-white/65">
             <ChevronRight
               className="h-3.5 w-3.5 text-violet-500 shrink-0"
               strokeWidth={2}
@@ -134,13 +134,13 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
 
-        <p className="text-[11px] text-white/20">
+        <p className="text-[11px] text-white/60">
           © {new Date().getFullYear()} LIFE — Strictly private. Zero third-party
           analytics.
         </p>
       </aside>
 
-      <main className="relative z-10 flex w-full flex-col items-center justify-center lg:w-[48%] xl:w-[45%] px-5 py-10 sm:px-10">
+      <main className="relative z-10 flex w-full flex-col items-center justify-center lg:w-[48%] xl:w-[45%] px-5 py-10 sm:px-10 text-white">
         <div className="mb-8 flex flex-col items-center gap-3 lg:hidden">
           <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-700 shadow-lg shadow-violet-700/30 shrink-0 overflow-hidden">
             <Image
@@ -156,18 +156,18 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             <p className="text-xl font-extrabold tracking-tight text-white">
               LIFE
             </p>
-            <p className="mt-1 text-xs text-white/40">
+            <p className="mt-1 text-xs text-white/65">
               Personal Legacy & Continuity
             </p>
           </div>
         </div>
 
-        <div className="w-full max-w-[420px]">
-          <div className="rounded-3xl border border-white/8 bg-white/4 p-2 shadow-[0_32px_80px_-20px_rgba(109,40,217,0.25)] backdrop-blur-2xl">
+        <div className="w-full max-w-[420px] text-white">
+          <div className="rounded-3xl border border-white/8 bg-white/4 p-2 text-white shadow-[0_32px_80px_-20px_rgba(109,40,217,0.25)] backdrop-blur-2xl">
             {children}
           </div>
 
-          <p className="mt-5 text-center text-[11px] text-white/25 leading-relaxed">
+          <p className="mt-5 text-center text-[11px] text-white/60 leading-relaxed">
             Access is restricted to authorized individuals only.
             <br />
             All sessions are logged and audited.

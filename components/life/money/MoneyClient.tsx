@@ -669,7 +669,7 @@ function renderRecordList(
       {records.map((rec) => (
         <div
           key={rec._id}
-          className="p-4 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-850 flex flex-col justify-between"
+          className="p-4 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between"
         >
           <div>
             <div className="flex items-start justify-between gap-2">

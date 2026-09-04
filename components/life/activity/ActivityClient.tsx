@@ -111,7 +111,7 @@ export function ActivityClient({ initialLogs }: ActivityClientProps) {
           </p>
         </div>
       ) : (
-        <div className="rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-850 divide-y divide-slate-100 dark:divide-slate-800/80 overflow-hidden">
+        <div className="rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800/80 overflow-hidden">
           {filteredLogs.map((log) => (
             <div key={log._id} className="p-4 flex items-start justify-between gap-3 text-xs">
               <div className="flex items-start gap-3 min-w-0">

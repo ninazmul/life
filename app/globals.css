@@ -144,6 +144,69 @@ body {
     color: hsl(var(--muted-foreground));
   }
 
+  html:not(.dark) .life-dialog .text-emerald-300,
+  html:not(.dark) .life-dialog .text-emerald-400,
+  html:not(.dark) .life-dialog .text-emerald-500,
+  html:not(.dark) .life-drawer .text-emerald-300,
+  html:not(.dark) .life-drawer .text-emerald-400,
+  html:not(.dark) .life-drawer .text-emerald-500 {
+    color: rgb(4 120 87);
+  }
+
+  html:not(.dark) .life-dialog .text-amber-300,
+  html:not(.dark) .life-dialog .text-amber-400,
+  html:not(.dark) .life-dialog .text-amber-500,
+  html:not(.dark) .life-drawer .text-amber-300,
+  html:not(.dark) .life-drawer .text-amber-400,
+  html:not(.dark) .life-drawer .text-amber-500 {
+    color: rgb(180 83 9);
+  }
+
+  html:not(.dark) .life-dialog .text-cyan-300,
+  html:not(.dark) .life-dialog .text-cyan-400,
+  html:not(.dark) .life-dialog .text-cyan-500,
+  html:not(.dark) .life-drawer .text-cyan-300,
+  html:not(.dark) .life-drawer .text-cyan-400,
+  html:not(.dark) .life-drawer .text-cyan-500 {
+    color: rgb(14 116 144);
+  }
+
+  html:not(.dark) .life-dialog .text-sky-300,
+  html:not(.dark) .life-dialog .text-sky-400,
+  html:not(.dark) .life-dialog .text-sky-500,
+  html:not(.dark) .life-drawer .text-sky-300,
+  html:not(.dark) .life-drawer .text-sky-400,
+  html:not(.dark) .life-drawer .text-sky-500 {
+    color: rgb(3 105 161);
+  }
+
+  html:not(.dark) .life-dialog .text-indigo-300,
+  html:not(.dark) .life-dialog .text-indigo-400,
+  html:not(.dark) .life-dialog .text-indigo-500,
+  html:not(.dark) .life-drawer .text-indigo-300,
+  html:not(.dark) .life-drawer .text-indigo-400,
+  html:not(.dark) .life-drawer .text-indigo-500 {
+    color: rgb(67 56 202);
+  }
+
+  html:not(.dark) .life-dialog .text-rose-300,
+  html:not(.dark) .life-dialog .text-rose-400,
+  html:not(.dark) .life-dialog .text-rose-500,
+  html:not(.dark) .life-drawer .text-rose-300,
+  html:not(.dark) .life-drawer .text-rose-400,
+  html:not(.dark) .life-drawer .text-rose-500 {
+    color: rgb(190 18 60);
+  }
+
+  html:not(.dark) .life-dialog .text-red-300,
+  html:not(.dark) .life-dialog .text-red-400,
+  html:not(.dark) .life-dialog .text-red-500,
+  html:not(.dark) .life-drawer .text-red-300,
+  html:not(.dark) .life-drawer .text-red-400,
+  html:not(.dark) .life-drawer .text-red-500 {
+    color: rgb(185 28 28);
+  }
+
   html:not(.dark) .life-dialog [class*="bg-slate-900"],
   html:not(.dark) .life-dialog [class*="bg-slate-950"],
   html:not(.dark) .life-dialog [class*="bg-slate-800"],
@@ -151,6 +214,41 @@ body {
   html:not(.dark) .life-drawer [class*="bg-slate-950"],
   html:not(.dark) .life-drawer [class*="bg-slate-800"] {
     background-color: hsl(var(--muted) / 0.72);
+  }
+
+  html:not(.dark) .life-dialog [class*="bg-emerald-950"],
+  html:not(.dark) .life-drawer [class*="bg-emerald-950"] {
+    background-color: rgb(209 250 229 / 0.78);
+  }
+
+  html:not(.dark) .life-dialog [class*="bg-amber-950"],
+  html:not(.dark) .life-drawer [class*="bg-amber-950"] {
+    background-color: rgb(254 243 199 / 0.82);
+  }
+
+  html:not(.dark) .life-dialog [class*="bg-cyan-950"],
+  html:not(.dark) .life-drawer [class*="bg-cyan-950"] {
+    background-color: rgb(207 250 254 / 0.78);
+  }
+
+  html:not(.dark) .life-dialog [class*="bg-sky-950"],
+  html:not(.dark) .life-drawer [class*="bg-sky-950"] {
+    background-color: rgb(224 242 254 / 0.82);
+  }
+
+  html:not(.dark) .life-dialog [class*="bg-indigo-950"],
+  html:not(.dark) .life-drawer [class*="bg-indigo-950"] {
+    background-color: rgb(224 231 255 / 0.82);
+  }
+
+  html:not(.dark) .life-dialog [class*="bg-rose-950"],
+  html:not(.dark) .life-drawer [class*="bg-rose-950"] {
+    background-color: rgb(255 228 230 / 0.82);
+  }
+
+  html:not(.dark) .life-dialog [class*="bg-red-950"],
+  html:not(.dark) .life-drawer [class*="bg-red-950"] {
+    background-color: rgb(254 226 226 / 0.82);
   }
 
   html:not(.dark) .life-dialog [class*="border-slate-800"],
@@ -234,6 +332,32 @@ body {
   html:not(.dark) .life-shell select,
   html:not(.dark) .life-shell textarea {
     color: hsl(var(--foreground));
+  }
+
+  html:not(.dark) .life-shell .text-emerald-500 {
+    color: rgb(4 120 87);
+  }
+
+  html:not(.dark) .life-shell .text-amber-500 {
+    color: rgb(180 83 9);
+  }
+
+  html:not(.dark) .life-shell .text-red-500 {
+    color: rgb(185 28 28);
+  }
+
+  html:not(.dark) .life-shell .text-rose-500 {
+    color: rgb(190 18 60);
+  }
+
+  html:not(.dark) .life-shell .text-violet-500,
+  html:not(.dark) .life-shell .text-indigo-500 {
+    color: rgb(67 56 202);
+  }
+
+  .dark .life-shell .text-slate-500,
+  .dark .life-shell .text-gray-500 {
+    color: hsl(var(--muted-foreground));
   }
 }
 
