@@ -23,6 +23,8 @@ const APP_DESCRIPTION =
   "Private personal information, money management, legacy and business continuity system. AES-256 secured vault for your life's most important data.";
 const APP_URL = "https://life.app";
 const LOGO_URL = "/assets/images/logo.png";
+const DEVELOPER_NAME = "ArtistyCode Studio";
+const DEVELOPER_URL = "https://www.artistycode.studio/";
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
@@ -44,9 +46,9 @@ export const metadata: Metadata = {
     "AES-256",
     "PWA",
   ],
-  authors: [{ name: "Life Security Team" }],
-  creator: "Life",
-  publisher: "Life",
+  authors: [{ name: DEVELOPER_NAME, url: DEVELOPER_URL }],
+  creator: DEVELOPER_NAME,
+  publisher: DEVELOPER_NAME,
   formatDetection: {
     email: false,
     address: false,

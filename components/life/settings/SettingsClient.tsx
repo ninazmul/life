@@ -12,6 +12,7 @@ import {
   Loader2,
   Save,
   Shield,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -346,6 +347,7 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
             ["Auth Provider", "Clerk.dev", "text-foreground"],
             ["Database", "MongoDB Atlas", "text-foreground"],
             ["Framework", "Next.js App Router", "text-foreground"],
+            ["Developer", "ArtistyCode Studio", "text-foreground"],
             [
               "Cache Policy",
               "Zero Cache (Sensitive)",
@@ -362,7 +364,23 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
               className="p-3 rounded-xl bg-muted border border-border flex justify-between items-center gap-2"
             >
               <span className="text-muted-foreground shrink-0">{label}</span>
-              <span className={`font-bold truncate ${color}`}>{value}</span>
+              {label === "Developer" ? (
+                <a
+                  href="https://www.artistycode.studio/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`inline-flex min-w-0 items-center gap-1.5 font-bold truncate hover:text-primary ${color}`}
+                >
+                  <span className="truncate">{value}</span>
+                  <ExternalLink
+                    className="h-3.5 w-3.5 shrink-0"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
+                </a>
+              ) : (
+                <span className={`font-bold truncate ${color}`}>{value}</span>
+              )}
             </div>
           ))}
         </div>
