@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Home,
   Users,
@@ -17,9 +17,9 @@ import {
   Settings,
   BookOpen,
   ChevronRight,
-  Lock,
-  Eye,
-  EyeOff,
+  ChevronLeft,
+  Menu,
+  X,
   AlertTriangle,
   CheckCircle2,
   Info,
@@ -673,206 +673,445 @@ const sections: GuideSection[] = [
 
 // ─── Icon helpers ─────────────────────────────────────────────────────────────
 const tipIconMap = {
-  tip: { icon: Zap, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/40" },
-  warning: { icon: AlertTriangle, color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/40" },
-  info: { icon: Info, color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800/40" },
-  security: { icon: Shield, color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50 dark:bg-violet-950/40 border-violet-200 dark:border-violet-800/40" },
+  tip: {
+    icon: Zap,
+    label: "Tip",
+    color: "text-emerald-600 dark:text-emerald-400",
+    bg: "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/40",
+    badge: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300",
+  },
+  warning: {
+    icon: AlertTriangle,
+    label: "Warning",
+    color: "text-amber-600 dark:text-amber-400",
+    bg: "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/40",
+    badge: "bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300",
+  },
+  info: {
+    icon: Info,
+    label: "Note",
+    color: "text-blue-600 dark:text-blue-400",
+    bg: "bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800/40",
+    badge: "bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300",
+  },
+  security: {
+    icon: Shield,
+    label: "Security",
+    color: "text-violet-600 dark:text-violet-400",
+    bg: "bg-violet-50 dark:bg-violet-950/40 border-violet-200 dark:border-violet-800/40",
+    badge: "bg-violet-100 text-violet-800 dark:bg-violet-900/60 dark:text-violet-300",
+  },
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export function UserGuideClient() {
   const [activeId, setActiveId] = useState<string>("dashboard");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const mainRef = useRef<HTMLDivElement>(null);
 
-  const active = sections.find((s) => s.id === activeId) ?? sections[0];
+  const activeIndex = sections.findIndex((s) => s.id === activeId);
+  const active = sections[activeIndex >= 0 ? activeIndex : 0];
   const ActiveIcon = active.icon;
 
+  const prevSection = activeIndex > 0 ? sections[activeIndex - 1] : null;
+  const nextSection = activeIndex < sections.length - 1 ? sections[activeIndex + 1] : null;
+
+  const selectSection = useCallback((id: string) => {
+    setActiveId(id);
+    setDrawerOpen(false);
+  }, []);
+
+  // Scroll to top whenever section changes
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [activeId]);
+
+  // Handle escape key to close mobile drawer
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && drawerOpen) {
+        setDrawerOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [drawerOpen]);
+
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    if (drawerOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [drawerOpen]);
+
   return (
-    <div className="flex min-h-[calc(100dvh-57px)] bg-background">
-      {/* ── Sidebar Nav ── */}
+    <div className="flex h-[calc(100dvh-57px)] overflow-hidden bg-background relative">
+      {/* ── Desktop Sidebar (md+) ── */}
       <aside
-        className={`shrink-0 border-r border-border bg-card/80 backdrop-blur-sm overflow-y-auto transition-all duration-300
-          ${sidebarOpen ? "w-64" : "w-14 md:w-64"}
-          hidden sm:flex flex-col`}
+        className="hidden md:flex flex-col w-64 lg:w-72 shrink-0 border-r border-border bg-card/60 backdrop-blur-sm h-full overflow-hidden"
+        aria-label="Desktop Guide Navigation"
       >
-        {/* Sidebar header */}
-        <div className="sticky top-0 bg-card/90 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center gap-2.5 z-10">
-          <BookOpen className="w-4 h-4 text-emerald-500 shrink-0" strokeWidth={2.5} />
-          <span className="font-bold text-sm text-foreground hidden md:block tracking-tight">
-            User Guide
+        {/* Sidebar Header */}
+        <div className="shrink-0 px-4 py-3.5 border-b border-border bg-card/90 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+              <BookOpen className="w-4 h-4" strokeWidth={2.5} />
+            </div>
+            <div>
+              <h2 className="font-bold text-sm text-foreground tracking-tight leading-none">
+                User Guide
+              </h2>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                {sections.length} topic guides
+              </p>
+            </div>
+          </div>
+          <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
+            {activeIndex + 1}/{sections.length}
           </span>
         </div>
 
-        <nav className="p-2 space-y-0.5" aria-label="Guide sections">
-          {sections.map((section) => {
+        {/* Section List */}
+        <nav className="flex-1 overflow-y-auto p-2 space-y-1" aria-label="Guide modules">
+          {sections.map((section, idx) => {
             const Icon = section.icon;
             const isActive = section.id === activeId;
             return (
               <button
                 key={section.id}
-                onClick={() => setActiveId(section.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all text-xs font-medium group
-                  ${isActive
-                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
+                onClick={() => selectSection(section.id)}
+                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all text-xs font-medium group relative
+                  ${
+                    isActive
+                      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold shadow-xs"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                   }`}
                 aria-current={isActive ? "page" : undefined}
               >
-                <Icon
-                  className={`w-4 h-4 shrink-0 ${isActive ? "text-emerald-500" : "text-muted-foreground/60 group-hover:text-foreground"}`}
-                  strokeWidth={2}
-                />
-                <span className="hidden md:block truncate">{section.title}</span>
                 {isActive && (
-                  <span className="hidden md:block ml-auto">
-                    <ChevronRight className="w-3.5 h-3.5 text-emerald-500" />
-                  </span>
+                  <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-emerald-500" />
                 )}
+                <Icon
+                  className={`w-4 h-4 shrink-0 transition-colors ${
+                    isActive
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : "text-muted-foreground/70 group-hover:text-foreground"
+                  }`}
+                  strokeWidth={isActive ? 2.5 : 2}
+                />
+                <span className="truncate flex-1">{section.title}</span>
+                <span
+                  className={`text-[10px] font-mono shrink-0 ${
+                    isActive ? "text-emerald-500 font-bold" : "text-muted-foreground/50"
+                  }`}
+                >
+                  {String(idx + 1).padStart(2, "0")}
+                </span>
               </button>
             );
           })}
         </nav>
 
-        {/* Bottom hint */}
-        <div className="hidden md:block mt-auto p-3 m-2 rounded-xl bg-muted/50 border border-border text-[11px] text-muted-foreground">
-          <p className="font-semibold text-foreground/70 mb-1">Need more help?</p>
-          <p className="leading-relaxed">
-            Check the technical docs or contact your system administrator.
+        {/* Bottom Hint */}
+        <div className="shrink-0 p-3 m-2 rounded-xl bg-muted/40 border border-border/80 text-[11px] text-muted-foreground">
+          <p className="font-semibold text-foreground/80 mb-0.5">Quick Reference</p>
+          <p className="leading-relaxed text-[10px]">
+            Switch topics anytime to see workflows, access rules, and security tips.
           </p>
         </div>
       </aside>
 
-      {/* ── Mobile section picker ── */}
-      <div className="sm:hidden w-full border-b border-border bg-card sticky top-0 z-20 px-3 py-2 overflow-x-auto flex gap-2">
-        {sections.map((section) => {
-          const Icon = section.icon;
-          const isActive = section.id === activeId;
-          return (
+      {/* ── Main Column ── */}
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        {/* Mobile Sticky Top Header (md:hidden) */}
+        <header className="md:hidden shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-3.5 py-2.5 flex items-center justify-between gap-2 z-20">
+          {/* Drawer toggle button */}
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-muted/70 hover:bg-muted text-foreground border border-border text-xs font-semibold shrink-0 active:scale-95 transition-all"
+            aria-label="Open topic menu"
+          >
+            <Menu className="w-4 h-4 text-muted-foreground" />
+            <span className="max-w-[140px] truncate text-left">{active.title}</span>
+            <span className="text-[10px] font-mono text-muted-foreground px-1.5 py-0.2 rounded bg-background/80 border border-border/60">
+              {activeIndex + 1}/{sections.length}
+            </span>
+          </button>
+
+          {/* Quick Prev / Next icons */}
+          <div className="flex items-center gap-1 shrink-0">
             <button
-              key={section.id}
-              onClick={() => setActiveId(section.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold shrink-0 border transition-all
-                ${isActive
-                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
-                  : "bg-muted/50 text-muted-foreground border-border hover:text-foreground"
-                }`}
+              onClick={() => prevSection && selectSection(prevSection.id)}
+              disabled={!prevSection}
+              className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed hover:bg-muted/60 transition-colors"
+              aria-label="Previous section"
             >
-              <Icon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
-              <span>{section.title}</span>
+              <ChevronLeft className="w-4 h-4" />
             </button>
-          );
-        })}
-      </div>
-
-      {/* ── Main Content ── */}
-      <main className="flex-1 overflow-y-auto" id="guide-content">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-
-          {/* Section Header */}
-          <div className={`rounded-2xl border p-6 ${active.bg} ${active.border}`}>
-            <div className="flex items-start gap-4">
-              <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${active.bg} ${active.border}`}>
-                <ActiveIcon className={`w-6 h-6 ${active.color}`} strokeWidth={2} />
-              </div>
-              <div className="min-w-0">
-                <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${active.color}`}>
-                  {active.subtitle}
-                </p>
-                <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
-                  {active.title}
-                </h1>
-                <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                  {active.description}
-                </p>
-              </div>
-            </div>
-
-            {/* Who can access */}
-            <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground bg-background/60 rounded-xl px-3 py-2 border border-border/50">
-              <UserCheck className="w-3.5 h-3.5 shrink-0 text-emerald-500" strokeWidth={2} />
-              <span><strong className="text-foreground/80">Access:</strong> {active.whoCanAccess}</span>
-            </div>
+            <button
+              onClick={() => nextSection && selectSection(nextSection.id)}
+              disabled={!nextSection}
+              className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed hover:bg-muted/60 transition-colors"
+              aria-label="Next section"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
+        </header>
 
-          {/* Step-by-step */}
-          <section aria-labelledby="steps-heading">
-            <h2 id="steps-heading" className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" strokeWidth={2} />
-              How to use it
-            </h2>
-            <div className="space-y-3">
-              {active.steps.map((step, i) => (
+        {/* Scrollable Content View */}
+        <main
+          ref={mainRef}
+          className="flex-1 overflow-y-auto"
+          id="guide-content"
+          tabIndex={-1}
+        >
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-6 sm:space-y-8 pb-12">
+            {/* Section Hero Card */}
+            <div
+              className={`rounded-2xl border p-4 sm:p-6 transition-colors shadow-xs ${active.bg} ${active.border}`}
+            >
+              <div className="flex flex-col sm:flex-row items-start gap-4">
                 <div
-                  key={i}
-                  className="flex gap-4 p-4 rounded-2xl bg-card border border-border hover:border-muted-foreground/20 transition-colors"
+                  className={`flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl border shadow-xs bg-background/80 ${active.border}`}
                 >
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-extrabold text-foreground/60 mt-0.5">
-                    {i + 1}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-foreground mb-1">{step.title}</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{step.detail}</p>
-                  </div>
+                  <ActiveIcon className={`w-6 h-6 sm:w-7 sm:h-7 ${active.color}`} strokeWidth={2} />
                 </div>
-              ))}
-            </div>
-          </section>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
+                    <p className={`text-xs font-bold uppercase tracking-wider ${active.color}`}>
+                      {active.subtitle}
+                    </p>
+                    <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-background/80 border border-border text-muted-foreground">
+                      Module {activeIndex + 1} of {sections.length}
+                    </span>
+                  </div>
+                  <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
+                    {active.title}
+                  </h1>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-2 leading-relaxed">
+                    {active.description}
+                  </p>
+                </div>
+              </div>
 
-          {/* Tips, Warnings, Security Notes */}
-          <section aria-labelledby="tips-heading">
-            <h2 id="tips-heading" className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
-              <Zap className="w-4 h-4 text-amber-500" strokeWidth={2} />
-              Tips & Important Notes
-            </h2>
-            <div className="space-y-3">
-              {active.tips.map((tip, i) => {
-                const { icon: TipIcon, color, bg } = tipIconMap[tip.type];
-                return (
+              {/* Access permission badge */}
+              <div className="mt-4 pt-3 border-t border-border/40 flex items-center gap-2 text-xs text-muted-foreground bg-background/50 rounded-xl px-3 py-2 border border-border/50">
+                <UserCheck className="w-4 h-4 shrink-0 text-emerald-500" strokeWidth={2} />
+                <span className="truncate">
+                  <strong className="text-foreground/90 font-semibold">Access:</strong>{" "}
+                  {active.whoCanAccess}
+                </span>
+              </div>
+            </div>
+
+            {/* Steps: How to use it */}
+            <section aria-labelledby="steps-heading" className="space-y-3 sm:space-y-4">
+              <div className="flex items-center justify-between">
+                <h2
+                  id="steps-heading"
+                  className="text-xs sm:text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" strokeWidth={2} />
+                  How It Works & Steps
+                </h2>
+                <span className="text-[11px] text-muted-foreground font-medium">
+                  {active.steps.length} steps
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {active.steps.map((step, i) => (
                   <div
                     key={i}
-                    className={`flex items-start gap-3 p-4 rounded-2xl border text-xs leading-relaxed ${bg}`}
+                    className="flex gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-2xl bg-card border border-border/80 hover:border-border transition-all shadow-xs"
                   >
-                    <TipIcon className={`w-4 h-4 shrink-0 mt-0.5 ${color}`} strokeWidth={2} />
-                    <p className="text-foreground/80">{tip.text}</p>
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold mt-0.5">
+                      {i + 1}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-sm font-semibold text-foreground mb-1">
+                        {step.title}
+                      </h3>
+                      <p className="text-xs sm:text-[13px] text-muted-foreground leading-relaxed">
+                        {step.detail}
+                      </p>
+                    </div>
                   </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Tips & Best Practices */}
+            <section aria-labelledby="tips-heading" className="space-y-3 sm:space-y-4">
+              <h2
+                id="tips-heading"
+                className="text-xs sm:text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2"
+              >
+                <Zap className="w-4 h-4 text-amber-500" strokeWidth={2} />
+                Tips & Important Notes
+              </h2>
+
+              <div className="space-y-3">
+                {active.tips.map((tip, i) => {
+                  const tipConfig = tipIconMap[tip.type];
+                  const TipIcon = tipConfig.icon;
+                  return (
+                    <div
+                      key={i}
+                      className={`flex flex-col sm:flex-row sm:items-start gap-2.5 sm:gap-3 p-3.5 sm:p-4 rounded-2xl border text-xs leading-relaxed transition-all shadow-xs ${tipConfig.bg}`}
+                    >
+                      <div className="flex items-center gap-2 shrink-0">
+                        <TipIcon className={`w-4 h-4 shrink-0 ${tipConfig.color}`} strokeWidth={2} />
+                        <span
+                          className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md ${tipConfig.badge}`}
+                        >
+                          {tipConfig.label}
+                        </span>
+                      </div>
+                      <p className="text-foreground/90 font-medium sm:pt-0.5">
+                        {tip.text}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* Bottom Section Pager Navigation */}
+            <nav
+              className="pt-6 border-t border-border flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3"
+              aria-label="Section pagination"
+            >
+              {prevSection ? (
+                <button
+                  onClick={() => selectSection(prevSection.id)}
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-border bg-card hover:bg-muted/60 text-foreground transition-all group text-left"
+                >
+                  <ChevronLeft className="w-4 h-4 text-muted-foreground group-hover:text-foreground shrink-0 transition-transform group-hover:-translate-x-0.5" />
+                  <div className="min-w-0">
+                    <p className="text-[10px] uppercase font-semibold text-muted-foreground">
+                      Previous
+                    </p>
+                    <p className="text-xs font-semibold truncate text-foreground">
+                      {prevSection.title}
+                    </p>
+                  </div>
+                </button>
+              ) : (
+                <div className="hidden sm:block flex-1" />
+              )}
+
+              <div className="text-center font-mono text-[11px] text-muted-foreground/70 py-1">
+                {activeIndex + 1} / {sections.length}
+              </div>
+
+              {nextSection ? (
+                <button
+                  onClick={() => selectSection(nextSection.id)}
+                  className="flex items-center justify-end gap-2.5 px-3 py-2.5 rounded-xl border border-border bg-card hover:bg-muted/60 text-foreground transition-all group text-right"
+                >
+                  <div className="min-w-0">
+                    <p className="text-[10px] uppercase font-semibold text-muted-foreground">
+                      Next
+                    </p>
+                    <p className="text-xs font-semibold truncate text-foreground">
+                      {nextSection.title}
+                    </p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground shrink-0 transition-transform group-hover:translate-x-0.5" />
+                </button>
+              ) : (
+                <div className="hidden sm:block flex-1" />
+              )}
+            </nav>
+          </div>
+        </main>
+      </div>
+
+      {/* ── Mobile Navigation Drawer Modal ── */}
+      {drawerOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-50 flex"
+          role="dialog"
+          aria-modal="true"
+          aria-label="User Guide Topics"
+        >
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in"
+            onClick={() => setDrawerOpen(false)}
+            aria-hidden="true"
+          />
+
+          {/* Slide-in Panel */}
+          <div className="relative z-10 w-80 max-w-[85vw] h-full bg-card border-r border-border shadow-2xl flex flex-col animate-in slide-in-from-left duration-200">
+            {/* Drawer Header */}
+            <div className="shrink-0 px-4 py-3 border-b border-border bg-card/90 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-emerald-500" strokeWidth={2.5} />
+                <h3 className="font-bold text-sm text-foreground">User Guide Topics</h3>
+              </div>
+              <button
+                onClick={() => setDrawerOpen(false)}
+                className="p-1 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Close menu"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Topics List */}
+            <nav className="flex-1 overflow-y-auto p-2 space-y-1" aria-label="Mobile guide sections">
+              {sections.map((section, idx) => {
+                const Icon = section.icon;
+                const isActive = section.id === activeId;
+                return (
+                  <button
+                    key={section.id}
+                    onClick={() => selectSection(section.id)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs font-medium transition-all
+                      ${
+                        isActive
+                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold border border-emerald-500/30"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                      }`}
+                  >
+                    <Icon
+                      className={`w-4 h-4 shrink-0 ${
+                        isActive
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-muted-foreground"
+                      }`}
+                      strokeWidth={isActive ? 2.5 : 2}
+                    />
+                    <span className="truncate flex-1">{section.title}</span>
+                    <span
+                      className={`text-[10px] font-mono ${
+                        isActive ? "text-emerald-500 font-bold" : "text-muted-foreground/50"
+                      }`}
+                    >
+                      {String(idx + 1).padStart(2, "0")}
+                    </span>
+                  </button>
                 );
               })}
-            </div>
-          </section>
+            </nav>
 
-          {/* Navigation between sections */}
-          <div className="flex items-center justify-between pt-4 border-t border-border">
-            {(() => {
-              const idx = sections.findIndex((s) => s.id === activeId);
-              const prev = sections[idx - 1];
-              const next = sections[idx + 1];
-              return (
-                <>
-                  <button
-                    onClick={() => prev && setActiveId(prev.id)}
-                    disabled={!prev}
-                    className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronRight className="w-4 h-4 rotate-180" />
-                    {prev ? prev.title : ""}
-                  </button>
-                  <span className="text-[11px] text-muted-foreground/50 font-mono">
-                    {sections.findIndex((s) => s.id === activeId) + 1} / {sections.length}
-                  </span>
-                  <button
-                    onClick={() => next && setActiveId(next.id)}
-                    disabled={!next}
-                    className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {next ? next.title : ""}
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </>
-              );
-            })()}
+            {/* Drawer Footer */}
+            <div className="shrink-0 p-3 border-t border-border bg-muted/20 text-center">
+              <p className="text-[11px] text-muted-foreground">
+                Tap any topic to navigate directly
+              </p>
+            </div>
           </div>
         </div>
-      </main>
+      )}
     </div>
   );
 }
