@@ -1,14 +1,38 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { WifiOff, Download, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+export interface PWAContextType {
+  isOffline: boolean;
+  isInstalled: boolean;
+  isInstallable: boolean;
+  isIOS: boolean;
+  installApp: () => Promise<"accepted" | "dismissed" | "ios_instructions" | "unsupported">;
+  showInstallBanner: boolean;
+  setShowInstallBanner: (show: boolean) => void;
+}
+
+const PWAContext = createContext<PWAContextType>({
+  isOffline: false,
+  isInstalled: false,
+  isInstallable: false,
+  isIOS: false,
+  installApp: async () => "unsupported",
+  showInstallBanner: false,
+  setShowInstallBanner: () => {},
+});
+
+export const usePWA = () => useContext(PWAContext);
 
 export function PWAProvider({ children }: { children: React.ReactNode }) {
   const [isOffline, setIsOffline] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
     if (
@@ -25,6 +49,24 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
         );
     }
 
+    // Check if running in standalone mode (already installed)
+    const checkStandalone = () => {
+      const isStandalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        (window.navigator as any).standalone === true ||
+        document.referrer.includes("android-app://");
+      setIsInstalled(Boolean(isStandalone));
+    };
+    checkStandalone();
+
+    // Detect iOS
+    const isIOSDevice =
+      typeof navigator !== "undefined" &&
+      (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) &&
+      !(window as any).MSStream;
+    setIsIOS(Boolean(isIOSDevice));
+
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
 
@@ -37,33 +79,67 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
     const handleInstallPrompt = (e: Event) => {
       e.preventDefault();
       setInstallPrompt(e);
-      setShowInstallBanner(true);
+      // Only show top banner if not already installed
+      if (!window.matchMedia("(display-mode: standalone)").matches) {
+        setShowInstallBanner(true);
+      }
+    };
+
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setInstallPrompt(null);
+      setShowInstallBanner(false);
     };
 
     window.addEventListener("beforeinstallprompt", handleInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
 
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
-      window.removeEventListener(
-        "beforeinstallprompt",
-        handleInstallPrompt,
-      );
+      window.removeEventListener("beforeinstallprompt", handleInstallPrompt);
+      window.removeEventListener("appinstalled", handleAppInstalled);
     };
   }, []);
 
-  const handleInstallClick = async () => {
-    if (!installPrompt) return;
-    installPrompt.prompt();
-    const { outcome } = await installPrompt.userChoice;
-    if (outcome === "accepted") {
-      setShowInstallBanner(false);
-      setInstallPrompt(null);
+  const installApp = useCallback(async (): Promise<"accepted" | "dismissed" | "ios_instructions" | "unsupported"> => {
+    if (installPrompt) {
+      installPrompt.prompt();
+      const { outcome } = await installPrompt.userChoice;
+      if (outcome === "accepted") {
+        setIsInstalled(true);
+        setInstallPrompt(null);
+        setShowInstallBanner(false);
+        return "accepted";
+      }
+      return "dismissed";
     }
+
+    if (isIOS) {
+      return "ios_instructions";
+    }
+
+    return "unsupported";
+  }, [installPrompt, isIOS]);
+
+  const handleBannerInstallClick = async () => {
+    await installApp();
   };
 
+  const isInstallable = Boolean(installPrompt) || (isIOS && !isInstalled);
+
   return (
-    <>
+    <PWAContext.Provider
+      value={{
+        isOffline,
+        isInstalled,
+        isInstallable,
+        isIOS,
+        installApp,
+        showInstallBanner,
+        setShowInstallBanner,
+      }}
+    >
       {isOffline && (
         <div
           role="alert"
@@ -82,7 +158,7 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      {showInstallBanner && (
+      {showInstallBanner && !isInstalled && (
         <div className="hidden sm:flex items-center justify-between px-4 py-2.5 bg-gradient-to-r from-emerald-950/90 to-slate-900 border-b border-emerald-500/30 text-emerald-100 text-xs z-40 sticky top-0 gap-3">
           <div className="flex items-center gap-2 min-w-0">
             <span
@@ -96,7 +172,7 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2 shrink-0">
             <Button
               size="sm"
-              onClick={handleInstallClick}
+              onClick={handleBannerInstallClick}
               className="h-7 px-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-lg gap-1.5"
               aria-label="Install Life as Progressive Web App"
             >
@@ -123,6 +199,6 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
       )}
 
       {children}
-    </>
+    </PWAContext.Provider>
   );
 }

@@ -13,6 +13,10 @@ import {
   Save,
   Shield,
   ExternalLink,
+  HelpCircle,
+  ChevronDown,
+  ChevronUp,
+  Laptop,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +24,7 @@ import {
   setVaultPin,
   exportLifeBackup,
 } from "@/lib/actions/lifeSettings.actions";
+import { usePWA } from "@/components/life/PWAProvider";
 import toast from "react-hot-toast";
 
 interface SettingsClientProps {
@@ -27,10 +32,33 @@ interface SettingsClientProps {
 }
 
 export function SettingsClient({ settings: _settings }: SettingsClientProps) {
+  const { isInstalled, isInstallable, isIOS, installApp } = usePWA();
   const [newPin, setNewPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [pinLoading, setPinLoading] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
+  const [installing, setInstalling] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
+
+  const handleInstallPWA = async () => {
+    setInstalling(true);
+    try {
+      const outcome = await installApp();
+      if (outcome === "accepted") {
+        toast.success("Life app installed successfully!");
+      } else if (outcome === "ios_instructions") {
+        setShowGuide(true);
+        toast("Follow the steps below to add Life to your Home Screen", { icon: "📱" });
+      } else if (outcome === "unsupported") {
+        setShowGuide(true);
+        toast("See installation steps for your browser below", { icon: "ℹ️" });
+      }
+    } catch {
+      setShowGuide(true);
+    } finally {
+      setInstalling(false);
+    }
+  };
 
   const handleSetPin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,47 +121,90 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
         </p>
       </div>
 
-      <section className="p-5 sm:p-6 rounded-3xl bg-card border border-border space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 shrink-0">
-            <Smartphone
-              className="w-5 h-5 shrink-0"
-              strokeWidth={2}
-              aria-hidden="true"
-            />
-          </div>
-          <div className="min-w-0">
-            <h3 className="text-sm font-bold text-foreground truncate">
-              Progressive Web App (PWA) Status
-            </h3>
-            <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
-              Life is installable as a native mobile app from your browser.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-          <div className="p-3 rounded-xl bg-muted border border-border space-y-1">
-            <span className="text-muted-foreground font-medium uppercase text-[10px] tracking-wider block">
-              Install Status
-            </span>
-            <div className="flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-300">
-              <CheckCircle2
-                className="w-3.5 h-3.5 shrink-0"
+      <section className="p-5 sm:p-6 rounded-3xl bg-card border border-border space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 shrink-0">
+              <Smartphone
+                className="w-5 h-5 shrink-0"
                 strokeWidth={2}
                 aria-hidden="true"
               />
-              <span>PWA Ready</span>
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-foreground truncate">
+                  Progressive Web App (PWA)
+                </h3>
+                {isInstalled && (
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                    Active
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
+                Install Life as a native app for fast one-tap home screen access and offline safety.
+              </p>
             </div>
           </div>
 
-          <div className="p-3 rounded-xl bg-muted border border-border space-y-1">
+          {/* Primary Install Button */}
+          <div className="shrink-0 flex items-center gap-2">
+            {isInstalled ? (
+              <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                <span>Installed on this device</span>
+              </div>
+            ) : (
+              <Button
+                onClick={handleInstallPWA}
+                disabled={installing}
+                className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-xs gap-2 transition-all active:scale-95"
+              >
+                {installing ? (
+                  <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                ) : (
+                  <Download className="w-4 h-4 shrink-0" strokeWidth={2.5} />
+                )}
+                <span>Install Life App</span>
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* 3 Status indicator cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div className="p-3 rounded-xl bg-muted/60 border border-border space-y-1">
+            <span className="text-muted-foreground font-medium uppercase text-[10px] tracking-wider block">
+              Install Status
+            </span>
+            <div className={`flex items-center gap-1.5 font-bold ${isInstalled ? "text-emerald-700 dark:text-emerald-300" : "text-emerald-600 dark:text-emerald-400"}`}>
+              {isInstalled ? (
+                <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-500" strokeWidth={2} />
+              ) : isInstallable ? (
+                <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              ) : (
+                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+              )}
+              <span>
+                {isInstalled
+                  ? "Installed (Native App)"
+                  : isInstallable
+                  ? "Ready to Install"
+                  : isIOS
+                  ? "Installable (Safari)"
+                  : "Browser Mode"}
+              </span>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-xl bg-muted/60 border border-border space-y-1">
             <span className="text-muted-foreground font-medium uppercase text-[10px] tracking-wider block">
               Service Worker
             </span>
             <div className="flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-300">
               <CheckCircle2
-                className="w-3.5 h-3.5 shrink-0"
+                className="w-3.5 h-3.5 shrink-0 text-emerald-500"
                 strokeWidth={2}
                 aria-hidden="true"
               />
@@ -141,13 +212,13 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
             </div>
           </div>
 
-          <div className="p-3 rounded-xl bg-muted border border-border space-y-1">
+          <div className="p-3 rounded-xl bg-muted/60 border border-border space-y-1">
             <span className="text-muted-foreground font-medium uppercase text-[10px] tracking-wider block">
               Offline Safe APIs
             </span>
             <div className="flex items-center gap-1.5 font-bold text-amber-700 dark:text-amber-300">
               <AlertCircle
-                className="w-3.5 h-3.5 shrink-0"
+                className="w-3.5 h-3.5 shrink-0 text-amber-500"
                 strokeWidth={2}
                 aria-hidden="true"
               />
@@ -156,22 +227,77 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
           </div>
         </div>
 
+        {/* Expandable / Toggleable step-by-step installation instructions */}
+        <div className="rounded-2xl border border-border bg-muted/30 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setShowGuide((prev) => !prev)}
+            className="w-full px-4 py-3 flex items-center justify-between text-xs font-semibold text-foreground hover:bg-muted/50 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <HelpCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+              <span>Step-by-step installation guide (iOS, Android & Desktop)</span>
+            </div>
+            {showGuide ? (
+              <ChevronUp className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            )}
+          </button>
+
+          {showGuide && (
+            <div className="px-4 pb-4 pt-1 border-t border-border/60 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+              <div className="p-3 rounded-xl bg-card border border-border/80 space-y-1.5">
+                <div className="flex items-center gap-1.5 font-bold text-foreground">
+                  <Smartphone className="w-3.5 h-3.5 text-blue-500" />
+                  <span>iOS (iPhone & iPad)</span>
+                </div>
+                <ol className="text-muted-foreground space-y-1 text-[11px] list-decimal list-inside leading-relaxed">
+                  <li>Open Life in <strong>Safari</strong></li>
+                  <li>Tap the <strong>Share</strong> button (square with arrow)</li>
+                  <li>Scroll down and tap <strong>&quot;Add to Home Screen&quot;</strong></li>
+                  <li>Tap <strong>Add</strong> in top right</li>
+                </ol>
+              </div>
+
+              <div className="p-3 rounded-xl bg-card border border-border/80 space-y-1.5">
+                <div className="flex items-center gap-1.5 font-bold text-foreground">
+                  <Smartphone className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>Android (Chrome / Edge)</span>
+                </div>
+                <ol className="text-muted-foreground space-y-1 text-[11px] list-decimal list-inside leading-relaxed">
+                  <li>Click <strong>&quot;Install Life App&quot;</strong> above</li>
+                  <li>Or tap menu (3 dots) in Chrome</li>
+                  <li>Tap <strong>&quot;Install app&quot;</strong> or &quot;Add to Home screen&quot;</li>
+                  <li>Confirm installation</li>
+                </ol>
+              </div>
+
+              <div className="p-3 rounded-xl bg-card border border-border/80 space-y-1.5">
+                <div className="flex items-center gap-1.5 font-bold text-foreground">
+                  <Laptop className="w-3.5 h-3.5 text-purple-500" />
+                  <span>Desktop (Mac / Windows)</span>
+                </div>
+                <ol className="text-muted-foreground space-y-1 text-[11px] list-decimal list-inside leading-relaxed">
+                  <li>In Chrome/Edge address bar, look for the <strong>Install</strong> icon (⊕ or computer)</li>
+                  <li>Click <strong>&quot;Install Life&quot;</strong></li>
+                  <li>Launch directly from your Dock or Start Menu</li>
+                </ol>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Security Note */}
         <div className="p-3.5 rounded-2xl bg-accent border border-border text-xs text-muted-foreground leading-relaxed space-y-1">
-          <p>
-            <strong className="text-foreground">How to install:</strong> On
-            mobile, tap the browser Share button → &quot;Add to Home
-            Screen&quot;. On desktop Chrome, click the install icon (⊕) in the
-            address bar.
-          </p>
-          <p className="text-amber-700 dark:text-amber-300 font-medium flex items-start gap-1.5 mt-1">
+          <p className="text-amber-700 dark:text-amber-300 font-medium flex items-start gap-1.5">
             <Shield
               className="w-3.5 h-3.5 mt-0.5 shrink-0"
               strokeWidth={2}
               aria-hidden="true"
             />
             <span>
-              Vault, Money, and sensitive API routes are always served fresh
-              (zero cache) to protect your data privacy.
+              Zero-Cache Policy: Vault passwords, financial logs, and encrypted notes are never saved into browser cache, ensuring full privacy even if your device is inspected.
             </span>
           </p>
         </div>
