@@ -13,6 +13,7 @@ import {
   History,
   Settings,
   X,
+  BookOpen,
 } from "lucide-react";
 import {
   Sheet,
@@ -101,6 +102,14 @@ export function LifeMoreSheet({ open, onOpenChange }: LifeMoreSheetProps) {
       icon: Settings,
       color:
         "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-slate-900 border-emerald-200 dark:border-slate-800",
+    },
+    {
+      title: "User Guide",
+      desc: "How to use every module of LIFE",
+      href: "/guide",
+      icon: BookOpen,
+      color:
+        "text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 border-teal-200 dark:border-teal-800/40",
     },
   ];
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, Command, ShieldAlert } from "lucide-react";
+import { Search, Command, ShieldAlert, BookOpen } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
@@ -117,6 +117,15 @@ export function LifeHeader({
               K
             </kbd>
           </Button>
+
+          <Link
+            href="/guide"
+            className="flex h-8.5 w-8.5 items-center justify-center rounded-xl border border-border bg-muted/80 text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+            aria-label="Open User Guide"
+            title="User Guide"
+          >
+            <BookOpen className="w-3.5 h-3.5" strokeWidth={2} aria-hidden="true" />
+          </Link>
 
           <ThemeToggle />
 

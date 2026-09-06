@@ -17,6 +17,7 @@ import {
   ShieldAlert,
   History,
   Settings,
+  BookOpen,
 } from "lucide-react";
 
 interface LifeSidebarProps {
@@ -118,6 +119,17 @@ export function LifeSidebar({ activeLoansCount = 0 }: LifeSidebarProps) {
           url: "/settings",
           icon: Settings,
           isActive: pathname.startsWith("/settings"),
+        },
+      ],
+    },
+    {
+      title: "Help",
+      items: [
+        {
+          title: "User Guide",
+          url: "/guide",
+          icon: BookOpen,
+          isActive: pathname.startsWith("/guide"),
         },
       ],
     },
