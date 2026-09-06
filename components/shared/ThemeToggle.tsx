@@ -3,7 +3,6 @@
 import * as React from "react";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -15,25 +14,24 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <Button
-        variant="outline"
-        size="icon"
-        className="h-9 w-9 rounded-xl border-border bg-muted/80 text-muted-foreground hover:bg-accent transition-all shrink-0"
+      <button
+        type="button"
+        disabled
+        className="h-9 w-9 rounded-xl border border-border bg-card/60 dark:bg-muted/40 text-muted-foreground transition-all shrink-0 flex items-center justify-center opacity-70"
         aria-label="Toggle theme"
       >
         <span className="h-4 w-4 shrink-0" aria-hidden="true" />
-      </Button>
+      </button>
     );
   }
 
   const isDark = theme === "dark";
 
   return (
-    <Button
-      variant="outline"
-      size="icon"
+    <button
+      type="button"
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="h-9 w-9 rounded-xl border-border bg-muted/80 text-muted-foreground hover:text-foreground hover:bg-accent transition-all shrink-0"
+      className="h-9 w-9 rounded-xl border border-border bg-card/60 dark:bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted/80 active:scale-95 transition-all shrink-0 flex items-center justify-center"
       title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
       aria-label={
         isDark
@@ -55,6 +53,6 @@ export function ThemeToggle() {
           aria-hidden="true"
         />
       )}
-    </Button>
+    </button>
   );
 }

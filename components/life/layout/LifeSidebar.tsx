@@ -142,12 +142,12 @@ export function LifeSidebar({ activeLoansCount = 0 }: LifeSidebarProps) {
     >
       {/* Brand Header */}
       <div className="p-4 border-b border-sidebar-border flex items-center gap-3">
-        <div className="relative w-10 h-10 rounded-2xl overflow-hidden shadow-lg shadow-emerald-950/20 ring-1 ring-emerald-500/30 shrink-0">
+        <div className="relative w-10 h-10 shrink-0">
           <Image
             src="/assets/images/logo.png"
             alt="Life Official Logo"
             fill
-            className="object-cover"
+            className="object-contain"
             priority
             sizes="40px"
           />

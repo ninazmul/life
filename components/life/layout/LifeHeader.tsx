@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Search, Command, ShieldAlert, BookOpen } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
-import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { LifeSearchDialog } from "@/components/life/shared/LifeSearchDialog";
 
@@ -51,12 +50,12 @@ export function LifeHeader({
             className="flex items-center gap-2.5 group min-w-0"
             aria-label="Go to Life Home Dashboard"
           >
-            <div className="relative w-9 h-9 rounded-xl overflow-hidden shadow-md shadow-emerald-950/20 ring-1 ring-emerald-500/30 group-hover:scale-105 transition-transform shrink-0">
+            <div className="relative w-9 h-9 group-hover:scale-105 transition-transform shrink-0">
               <Image
                 src="/assets/images/logo.png"
                 alt="Life Logo"
                 fill
-                className="object-cover"
+                className="object-contain"
                 priority
                 sizes="36px"
               />
@@ -77,16 +76,16 @@ export function LifeHeader({
           </Link>
         </div>
 
-        {/* Right: Emergency Chip + Search Button + Theme Toggle + User Avatar */}
+        {/* Right: Emergency Chip + Search Button + Guide + Theme Toggle + User Avatar */}
         <div className="flex items-center gap-2 shrink-0">
           {isEmergencyActive && (
             <Link
               href="/access"
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/15 border border-red-500/40 text-red-600 dark:text-red-400 text-xs font-bold animate-pulse"
+              className="flex h-9 items-center gap-1.5 px-3 rounded-xl bg-red-500/15 border border-red-500/40 text-red-600 dark:text-red-400 text-xs font-bold animate-pulse hover:bg-red-500/25 active:scale-95 transition-all shrink-0"
               aria-label="Emergency Access is Active — go to Emergency Protocol"
             >
               <ShieldAlert
-                className="w-3.5 h-3.5 shrink-0"
+                className="w-4 h-4 shrink-0"
                 strokeWidth={2}
                 aria-hidden="true"
               />
@@ -94,48 +93,49 @@ export function LifeHeader({
             </Link>
           )}
 
-          <Button
-            variant="outline"
+          <button
+            type="button"
             onClick={() => setSearchOpen(true)}
-            className="h-8.5 px-2.5 sm:px-3 rounded-xl border-border bg-muted/80 text-muted-foreground hover:text-foreground text-xs font-medium gap-2 transition-all shadow-none"
+            className="flex h-9 w-9 md:w-auto items-center justify-center md:justify-start px-0 md:px-3 rounded-xl border border-border bg-card/60 dark:bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted/80 active:scale-95 text-xs font-medium gap-2 transition-all shrink-0 shadow-none"
             aria-label="Open global search (⌘K)"
+            title="Quick Search (⌘K)"
           >
             <Search
-              className="w-3.5 h-3.5 text-muted-foreground shrink-0"
+              className="w-4 h-4 text-muted-foreground shrink-0"
               strokeWidth={2}
               aria-hidden="true"
             />
             <span className="hidden md:inline text-xs text-muted-foreground font-normal">
               Quick Search...
             </span>
-            <kbd className="hidden md:inline-flex items-center gap-0.5 text-[10px] font-semibold bg-background dark:bg-secondary px-1.5 py-0.5 rounded border border-border text-muted-foreground shrink-0">
+            <kbd className="hidden md:inline-flex items-center gap-0.5 text-[10px] font-semibold bg-muted dark:bg-background/80 px-1.5 py-0.5 rounded-md border border-border text-muted-foreground shrink-0 font-mono">
               <Command
                 className="w-2.5 h-2.5 shrink-0"
                 strokeWidth={2}
                 aria-hidden="true"
-              />{" "}
+              />
               K
             </kbd>
-          </Button>
+          </button>
 
           <Link
             href="/guide"
-            className="flex h-8.5 w-8.5 items-center justify-center rounded-xl border border-border bg-muted/80 text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card/60 dark:bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted/80 active:scale-95 transition-all shrink-0"
             aria-label="Open User Guide"
             title="User Guide"
           >
-            <BookOpen className="w-3.5 h-3.5" strokeWidth={2} aria-hidden="true" />
+            <BookOpen className="w-4 h-4 shrink-0" strokeWidth={2} aria-hidden="true" />
           </Link>
 
           <ThemeToggle />
 
-          <div className="pl-1 border-l border-border flex items-center shrink-0">
+          <div className="pl-1 sm:pl-1.5 border-l border-border flex items-center shrink-0">
             <UserButton
               afterSwitchSessionUrl="/"
               userProfileMode="modal"
               appearance={{
                 elements: {
-                  avatarBox: "w-9 h-9 rounded-xl",
+                  avatarBox: "w-9 h-9 rounded-xl ring-1 ring-border shadow-xs",
                 },
               }}
             />

@@ -51,12 +51,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
       <aside className="relative z-10 hidden lg:flex lg:w-[52%] xl:w-[55%] flex-col justify-between p-10 xl:p-14">
         <div className="flex items-center gap-3">
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-700 shadow-lg shadow-violet-700/30 shrink-0 overflow-hidden">
+          <div className="relative h-10 w-10 shrink-0">
             <Image
               src="/assets/images/logo.png"
               alt="Life Logo"
               fill
-              className="object-cover"
+              className="object-contain"
               priority
               sizes="40px"
             />
@@ -142,12 +142,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
       <main className="relative z-10 flex w-full flex-col items-center justify-center lg:w-[48%] xl:w-[45%] px-5 py-10 sm:px-10 text-white">
         <div className="mb-8 flex flex-col items-center gap-3 lg:hidden">
-          <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-700 shadow-lg shadow-violet-700/30 shrink-0 overflow-hidden">
+          <div className="relative h-12 w-12 shrink-0">
             <Image
               src="/assets/images/logo.png"
               alt="Life Logo"
               fill
-              className="object-cover"
+              className="object-contain"
               priority
               sizes="48px"
             />
