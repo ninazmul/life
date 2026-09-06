@@ -548,17 +548,17 @@ const sections: GuideSection[] = [
     title: "Access & Emergency",
     subtitle: "Delegate control and activate emergency protocols",
     description:
-      "The Access module is the control room for trust and crisis management. From here you designate primary and secondary trustees, manage granular per-user permissions, and trigger Emergency Mode.",
+      "The Access module is the control room for trust and crisis management. From here you designate primary and secondary emergency trustees and manage granular per-user permissions. Emergency Mode is protected by a Main User safety lock: the Main User cannot trigger Emergency Mode; only designated emergency contacts can trigger it if the Main User is no longer available, and emergency delegates can reset it at any time.",
     steps: [
       {
-        title: "Emergency Mode Switch",
+        title: "Emergency Mode Safety Lock",
         detail:
-          "The large Emergency Mode button is the master trigger. When activated: legacy letters marked Emergency Only unlock, business continuity checklists go prominent, and designated trustees receive elevated access.",
+          "The Main User (Owner) is intentionally locked out from triggering Emergency Mode. Because Emergency Mode is designed for when the Main User is no more or unavailable, it can only be activated by your designated Emergency Contacts (Primary / Secondary Admin).",
       },
       {
         title: "Designate Primary & Secondary Admins",
         detail:
-          "Set one Primary Admin (your most trusted person, e.g. spouse or senior partner) and one Secondary Admin (backup). They gain Admin-level access when Emergency Mode is active.",
+          "Set one Primary Admin (your most trusted person, e.g. spouse or senior partner) and one Secondary Admin (backup). They gain the authority to activate Emergency Mode if you are no longer available.",
       },
       {
         title: "Per-User Permissions Grid",
@@ -566,9 +566,9 @@ const sections: GuideSection[] = [
           "For each person in your directory, toggle individual permissions: View Personal Records, View Business Records, View Financial Data, View Sensitive Files, Reveal Vault Secrets, Manage Access, Access Emergency Protocols.",
       },
       {
-        title: "Deactivating Emergency Mode",
+        title: "Resetting Emergency Mode",
         detail:
-          "Emergency Mode can be deactivated by the Owner or an Admin. All emergency-gated content returns to sealed state immediately.",
+          "Emergency Mode can be reset back to Standby at any time by the designated Emergency Contacts, Admin, or returning Owner. All emergency-gated content returns to sealed state immediately.",
       },
     ],
     tips: [
@@ -578,14 +578,14 @@ const sections: GuideSection[] = [
       },
       {
         type: "security",
-        text: "Every Emergency Mode activation and deactivation is permanently logged in the Activity Audit with timestamp and actor identity.",
+        text: "Every Emergency Mode activation and reset is permanently logged in the Activity Audit with timestamp and actor identity.",
       },
       {
         type: "tip",
         text: "Review and update your trustee delegation at least once a year — life circumstances change.",
       },
     ],
-    whoCanAccess: "Owner & Admins only. The Emergency Mode switch is Owner-exclusive.",
+    whoCanAccess: "Owner configures delegates & permissions. Designated Emergency Contacts trigger and reset Emergency Mode.",
   },
   {
     id: "activity",

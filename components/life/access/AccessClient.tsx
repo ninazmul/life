@@ -31,11 +31,19 @@ import toast from "react-hot-toast";
 interface AccessClientProps {
   emergencyState: ILifeEmergencyAccess;
   people: ILifePerson[];
+  isOwner?: boolean;
+  isDesignated?: boolean;
+  canAccessEmergency?: boolean;
+  currentUserEmail?: string;
 }
 
 export function AccessClient({
   emergencyState: initialEmergency,
   people: initialPeople,
+  isOwner = false,
+  isDesignated = false,
+  canAccessEmergency = false,
+  currentUserEmail = "",
 }: AccessClientProps) {
   const [emergency, setEmergency] = useState(initialEmergency);
   const [people, setPeople] = useState(initialPeople);
@@ -53,12 +61,33 @@ export function AccessClient({
   );
   const [reason, setReason] = useState("");
 
+  const canTrigger = isDesignated || canAccessEmergency;
+  const canReset = isDesignated || canAccessEmergency || isOwner;
+
   const handleToggleEmergency = async () => {
     const nextState = !emergency.isEmergencyActive;
+
+    // Safety guard: Main user cannot trigger emergency mode
+    if (nextState && isOwner) {
+      toast.error(
+        "Main User cannot trigger Emergency Mode. It can only be activated by your designated Emergency Contacts.",
+      );
+      return;
+    }
+
     if (
       nextState &&
       !confirm(
-        "Are you sure you want to ACTIVATE Emergency Mode? This will unlock designated continuity records.",
+        "Are you sure you want to ACTIVATE Emergency Mode? This will unlock designated continuity records and emergency instructions for trustees.",
+      )
+    ) {
+      return;
+    }
+
+    if (
+      !nextState &&
+      !confirm(
+        "Are you sure you want to RESET Emergency Mode? All emergency-gated records will be resealed.",
       )
     ) {
       return;
@@ -71,7 +100,7 @@ export function AccessClient({
       toast.success(
         res.isEmergencyActive
           ? "Emergency Mode has been ACTIVATED."
-          : "Emergency Mode has been DEACTIVATED.",
+          : "Emergency Mode has been RESET to Standby.",
       );
       setReason("");
     } catch (err: any) {
@@ -209,28 +238,86 @@ export function AccessClient({
             </div>
           </div>
 
-          <Button
-            onClick={handleToggleEmergency}
-            disabled={loading}
-            className={`h-10 px-4 rounded-xl text-xs font-bold gap-2 ${
-              emergency.isEmergencyActive
-                ? "bg-secondary hover:bg-muted text-foreground"
-                : "bg-red-600 hover:bg-red-500 text-white shadow-md shadow-red-950/40"
-            }`}
-          >
-            {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : emergency.isEmergencyActive ? (
-              <>
-                <ShieldCheck className="w-4 h-4" /> Deactivate Emergency
-              </>
-            ) : (
-              <>
-                <ShieldAlert className="w-4 h-4" /> Trigger Emergency Mode
-              </>
-            )}
-          </Button>
+          {emergency.isEmergencyActive ? (
+            <Button
+              onClick={handleToggleEmergency}
+              disabled={loading || !canReset}
+              className="h-10 px-4 rounded-xl text-xs font-bold gap-2 bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-950/40 active:scale-95 transition-all"
+              title="Reset Emergency Mode to Standby"
+            >
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <ShieldCheck className="w-4 h-4" /> Reset Emergency Mode
+                </>
+              )}
+            </Button>
+          ) : isOwner ? (
+            <Button
+              disabled
+              className="h-10 px-4 rounded-xl text-xs font-semibold gap-2 bg-muted/60 text-muted-foreground border border-border cursor-not-allowed opacity-80"
+              title="Main User cannot trigger Emergency Mode. Only designated Emergency Contacts can activate this when you are no longer available."
+            >
+              <Lock className="w-4 h-4" /> Trigger Locked (Main User)
+            </Button>
+          ) : canTrigger ? (
+            <Button
+              onClick={handleToggleEmergency}
+              disabled={loading}
+              className="h-10 px-4 rounded-xl text-xs font-bold gap-2 bg-red-600 hover:bg-red-500 text-white shadow-md shadow-red-950/40 active:scale-95 transition-all"
+              title="Activate Emergency Mode"
+            >
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <ShieldAlert className="w-4 h-4" /> Trigger Emergency Mode
+                </>
+              )}
+            </Button>
+          ) : (
+            <Button
+              disabled
+              className="h-10 px-4 rounded-xl text-xs font-semibold gap-2 bg-muted/60 text-muted-foreground border border-border cursor-not-allowed opacity-80"
+              title="Only designated Emergency Contacts can trigger Emergency Mode."
+            >
+              <Lock className="w-4 h-4" /> Restricted to Emergency Contact
+            </Button>
+          )}
         </div>
+
+        {/* Informative Contextual Security Banners */}
+        {emergency.isEmergencyActive ? (
+          <div className="mt-4 p-3.5 rounded-2xl bg-red-500/10 border border-red-500/30 text-xs flex items-start gap-2.5">
+            <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="font-bold text-red-700 dark:text-red-300">
+                Emergency Protocol is currently ACTIVE
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                Continuity instructions, emergency contacts, and private directives have been unsealed for trustees.
+                {canReset
+                  ? " As an authorized emergency contact or administrator, you can click \"Reset Emergency Mode\" above to reseal all emergency records and return the system to normal Standby."
+                  : ""}
+              </p>
+            </div>
+          </div>
+        ) : isOwner ? (
+          <div className="mt-4 p-3.5 rounded-2xl bg-card/70 dark:bg-muted/30 border border-border text-xs flex items-start gap-2.5">
+            <Lock className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+            <div className="text-muted-foreground leading-relaxed">
+              <span className="font-bold text-foreground">Main User Safety Lock:</span> As the primary owner (Main User) of this Life Vault, you cannot trigger Emergency Mode. In the event that you are no longer available, your designated Emergency Contacts below (Primary / Secondary Admin) can trigger this protocol to unseal continuity directives. Designated emergency contacts can also reset the protocol at any time.
+            </div>
+          </div>
+        ) : isDesignated ? (
+          <div className="mt-4 p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-xs flex items-start gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+            <div className="text-muted-foreground leading-relaxed">
+              <span className="font-bold text-emerald-700 dark:text-emerald-300">Authorized Emergency Contact:</span> You are designated to act if the Main User is no longer available. You have full authority to activate Emergency Mode to unlock continuity instructions, and you can reset it whenever necessary.
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {/* Delegation Protocol Form */}

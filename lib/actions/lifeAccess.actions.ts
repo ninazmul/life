@@ -29,23 +29,52 @@ export async function getEmergencyAccessState(): Promise<ILifeEmergencyAccess> {
 export async function toggleEmergencyMode(isActive: boolean, reason?: string) {
   await connectToDatabase();
   const auth = await getLifeAuthContext();
-  if (!auth) throw new Error("Unauthorized");
+  if (!auth) throw new Error("Unauthorized: Please sign in.");
 
-  // Only Owner, Admin or Primary/Secondary designated emergency emails can activate
   let state = await LifeEmergencyAccess.findOne();
   if (!state) {
     state = await LifeEmergencyAccess.create({
       isEmergencyActive: false,
-      primaryAdminEmail: auth.email,
+      primaryAdminEmail: "",
+      secondaryAdminEmail: "",
     });
   }
 
-  const isDesignated =
-    auth.email.toLowerCase() === state.primaryAdminEmail.toLowerCase() ||
-    auth.email.toLowerCase() === state.secondaryAdminEmail?.toLowerCase();
+  const callerEmail = auth.email.toLowerCase().trim();
+  const primaryEmail = (state.primaryAdminEmail || "").toLowerCase().trim();
+  const secondaryEmail = (state.secondaryAdminEmail || "").toLowerCase().trim();
 
-  if (!auth.isOwner && !auth.isAdmin && !isDesignated) {
-    throw new Error("Forbidden: You are not authorized to trigger Emergency Mode.");
+  const isDesignated =
+    Boolean(primaryEmail && callerEmail === primaryEmail) ||
+    Boolean(secondaryEmail && callerEmail === secondaryEmail);
+
+  const hasEmergencyPerm = Boolean(auth.permissions?.canAccessEmergency);
+
+  // RULE 1: If attempting to ACTIVATE emergency mode:
+  // The Main User (Vault Owner) CANNOT trigger the emergency button.
+  // Emergency Mode is strictly reserved for the scenario where the main user is no more / unavailable,
+  // and must be activated exclusively by designated emergency persons.
+  if (isActive) {
+    if (auth.isOwner) {
+      throw new Error(
+        "Forbidden: The Main User cannot trigger Emergency Mode. Emergency Mode is designed to be triggered exclusively by your designated Emergency Contacts in the event you are no longer available."
+      );
+    }
+
+    if (!isDesignated && !hasEmergencyPerm && !auth.isAdmin) {
+      throw new Error(
+        "Forbidden: Only designated Emergency Contacts (or authorized emergency trustees) can trigger Emergency Mode."
+      );
+    }
+  } else {
+    // RULE 2: If attempting to DEACTIVATE / RESET emergency mode:
+    // The designated emergency person can reset it at any time.
+    // System admins and the returning owner can also reset it.
+    if (!isDesignated && !hasEmergencyPerm && !auth.isOwner && !auth.isAdmin) {
+      throw new Error(
+        "Forbidden: You are not authorized to reset Emergency Mode."
+      );
+    }
   }
 
   state.isEmergencyActive = isActive;
@@ -56,13 +85,13 @@ export async function toggleEmergencyMode(isActive: boolean, reason?: string) {
 
   // Audit log
   await logLifeActivity({
-    action: isActive ? "EMERGENCY_MODE_ACTIVATED" : "EMERGENCY_MODE_DEACTIVATED",
+    action: isActive ? "EMERGENCY_MODE_ACTIVATED" : "EMERGENCY_MODE_RESET",
     resourceType: "emergency",
     resourceId: String(state._id),
     resourceName: "Emergency Protocol",
-    details: `${isActive ? "ACTIVATED" : "DEACTIVATED"} Emergency Mode by ${auth.email}. Reason: ${
-      reason || "Owner unavailable / Protocol triggered"
-    }`,
+    details: `${isActive ? "ACTIVATED" : "RESET / DEACTIVATED"} Emergency Mode by ${auth.email} (${
+      isDesignated ? "Designated Emergency Person" : auth.role
+    }). Reason: ${reason || (isActive ? "Main user unavailable / Emergency triggered" : "Emergency protocol reset")}`,
   });
 
   revalidatePath("/access");

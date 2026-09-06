@@ -16,6 +16,8 @@ export default async function RootLayout({
   if (!userId) redirect("/sign-in");
 
   const authContext = await getLifeAuthContext();
+  if (!authContext) redirect("/access-denied");
+
   const emergencyState = await getEmergencyAccessState();
 
   return (

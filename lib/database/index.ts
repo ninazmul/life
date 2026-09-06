@@ -29,7 +29,7 @@ export const connectToDatabase = async () => {
   if (!cached.promise) {
     cached.promise = mongoose
       .connect(MONGODB_URI, {
-        dbName: "gesn-device-management",
+        dbName: process.env.MONGODB_DB_NAME || "gesn-device-management",
         bufferCommands: false,
         serverSelectionTimeoutMS: 8000,
         socketTimeoutMS: 30000,
