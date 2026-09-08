@@ -1,16 +1,24 @@
 import mongoose, { Schema, Document } from "mongoose";
-import { LifeRole, PersonStatus } from "@/types";
+import { LifeRole, PersonStatus, AccountStatus, GuardianType } from "@/types";
 
 export interface ILifePersonDoc extends Document {
   name: string;
   relation: string;
+  designation?: string;
   phone?: string;
   whatsapp?: string;
   email?: string;
+  country?: string;
+  address?: string;
   username?: string;
   avatarUrl?: string;
+  profilePhoto?: string;
   status: PersonStatus;
+  accountStatus?: AccountStatus;
   role: LifeRole;
+  userRole?: LifeRole;
+  guardianStatus?: boolean;
+  guardianType?: GuardianType;
   permissions: {
     canViewPersonal: boolean;
     canViewBusiness: boolean;
@@ -27,6 +35,9 @@ export interface ILifePersonDoc extends Document {
   responsibilities?: string[];
   businessInstructions?: string[];
   notes?: string;
+  generalNotes?: string;
+  lastLogin?: Date;
+  lastActivity?: Date;
   clerkUserId?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -36,29 +47,40 @@ const LifePersonSchema = new Schema<ILifePersonDoc>(
   {
     name: { type: String, required: true, trim: true },
     relation: { type: String, required: true, trim: true },
+    designation: { type: String, trim: true, default: "" },
     phone: { type: String, trim: true, default: "" },
     whatsapp: { type: String, trim: true, default: "" },
     email: { type: String, trim: true, lowercase: true, default: "" },
+    country: { type: String, trim: true, default: "" },
+    address: { type: String, trim: true, default: "" },
     username: { type: String, trim: true, default: "" },
     avatarUrl: { type: String, default: "" },
+    profilePhoto: { type: String, default: "" },
     status: {
       type: String,
       enum: ["active", "locked", "archived"],
       default: "active",
       index: true,
     },
+    accountStatus: {
+      type: String,
+      enum: ["invited", "active", "temporarily_locked", "disabled", "archived", "locked"],
+      default: "active",
+      index: true,
+    },
     role: {
       type: String,
-      enum: [
-        "owner",
-        "super_admin",
-        "admin",
-        "individual",
-        "business",
-        "read_only",
-        "custom",
-      ],
       default: "individual",
+    },
+    userRole: {
+      type: String,
+      default: "responsible_person",
+    },
+    guardianStatus: { type: Boolean, default: false, index: true },
+    guardianType: {
+      type: String,
+      enum: ["primary", "secondary", "independent", ""],
+      default: "",
     },
     permissions: {
       canViewPersonal: { type: Boolean, default: false },
@@ -76,6 +98,9 @@ const LifePersonSchema = new Schema<ILifePersonDoc>(
     responsibilities: [{ type: String }],
     businessInstructions: [{ type: String }],
     notes: { type: String, default: "" },
+    generalNotes: { type: String, default: "" },
+    lastLogin: { type: Date },
+    lastActivity: { type: Date },
     clerkUserId: { type: String, index: true },
   },
   { timestamps: true }
@@ -89,3 +114,4 @@ const LifePerson =
   mongoose.model<ILifePersonDoc>("LifePerson", LifePersonSchema);
 
 export default LifePerson;
+

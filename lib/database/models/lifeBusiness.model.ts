@@ -4,13 +4,23 @@ import { ILifeContinuityStep } from "@/types";
 export interface ILifeBusinessDoc extends Document {
   name: string;
   legalName?: string;
+  registrationNumber?: string;
+  businessType?: string;
+  country?: string;
   ownershipPercentage: number;
+  estimatedValue?: number;
   status: "active" | "inactive" | "pending";
   partners: Array<{
     name: string;
     personId?: mongoose.Types.ObjectId;
     ownershipPercentage: number;
     role?: string;
+    initialCapital?: number;
+    additionalInvestment?: number;
+    profitDistribution?: string;
+    lossResponsibility?: string;
+    withdrawnAmount?: number;
+    receivablePayable?: number;
   }>;
   serverInfo?: {
     hosting?: string;
@@ -40,6 +50,20 @@ export interface ILifeBusinessDoc extends Document {
     date?: string;
   }>;
   instructions?: string;
+  continuityInstructions?: {
+    first24Hours?: string;
+    first7Days?: string;
+    contactList?: string;
+    serverMaintenance?: string;
+    staffSalaryResponsible?: string;
+    supplierPaymentResponsible?: string;
+    customerSupportResponsible?: string;
+    importantAccountAccess?: string;
+    soloDecisionRestrictions?: string;
+    maxApprovedExpense?: number;
+    continuityDirection?: "operate" | "transfer" | "sell";
+  };
+  assignedResponsibilities?: mongoose.Types.ObjectId[];
   continuitySteps: ILifeContinuityStep[];
   createdAt: Date;
   updatedAt: Date;
@@ -65,7 +89,11 @@ const LifeBusinessSchema = new Schema<ILifeBusinessDoc>(
   {
     name: { type: String, required: true, trim: true, index: true },
     legalName: { type: String, trim: true, default: "" },
+    registrationNumber: { type: String, trim: true, default: "" },
+    businessType: { type: String, trim: true, default: "" },
+    country: { type: String, trim: true, default: "" },
     ownershipPercentage: { type: Number, default: 100 },
+    estimatedValue: { type: Number, default: 0 },
     status: {
       type: String,
       enum: ["active", "inactive", "pending"],
@@ -78,6 +106,12 @@ const LifeBusinessSchema = new Schema<ILifeBusinessDoc>(
         personId: { type: Schema.Types.ObjectId, ref: "LifePerson" },
         ownershipPercentage: { type: Number, default: 0 },
         role: { type: String, default: "" },
+        initialCapital: { type: Number, default: 0 },
+        additionalInvestment: { type: Number, default: 0 },
+        profitDistribution: { type: String, default: "" },
+        lossResponsibility: { type: String, default: "" },
+        withdrawnAmount: { type: Number, default: 0 },
+        receivablePayable: { type: Number, default: 0 },
       },
     ],
     serverInfo: {
@@ -110,6 +144,26 @@ const LifeBusinessSchema = new Schema<ILifeBusinessDoc>(
       },
     ],
     instructions: { type: String, default: "" },
+    continuityInstructions: {
+      first24Hours: { type: String, default: "" },
+      first7Days: { type: String, default: "" },
+      contactList: { type: String, default: "" },
+      serverMaintenance: { type: String, default: "" },
+      staffSalaryResponsible: { type: String, default: "" },
+      supplierPaymentResponsible: { type: String, default: "" },
+      customerSupportResponsible: { type: String, default: "" },
+      importantAccountAccess: { type: String, default: "" },
+      soloDecisionRestrictions: { type: String, default: "" },
+      maxApprovedExpense: { type: Number, default: 0 },
+      continuityDirection: {
+        type: String,
+        enum: ["operate", "transfer", "sell", ""],
+        default: "operate",
+      },
+    },
+    assignedResponsibilities: [
+      { type: Schema.Types.ObjectId, ref: "LifeResponsibility" },
+    ],
     continuitySteps: [ContinuityStepSchema],
   },
   { timestamps: true }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Users, Wallet, KeyRound, Grid } from "lucide-react";
+import { Home, Users, Briefcase, KeyRound, Grid } from "lucide-react";
 
 interface LifeBottomNavProps {
   onOpenMore: () => void;
@@ -15,7 +15,13 @@ export function LifeBottomNav({
 }: LifeBottomNavProps) {
   const pathname = usePathname();
 
-  const navItems = [
+  const navItems: Array<{
+    label: string;
+    href: string;
+    icon: any;
+    isActive: boolean;
+    badge?: number;
+  }> = [
     {
       label: "Home",
       href: "/",
@@ -29,11 +35,10 @@ export function LifeBottomNav({
       isActive: pathname.startsWith("/people"),
     },
     {
-      label: "Money",
-      href: "/money",
-      icon: Wallet,
-      isActive: pathname.startsWith("/money"),
-      badge: activeLoansCount > 0 ? activeLoansCount : undefined,
+      label: "Business",
+      href: "/business",
+      icon: Briefcase,
+      isActive: pathname.startsWith("/business"),
     },
     {
       label: "Vault",

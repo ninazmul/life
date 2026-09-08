@@ -9,6 +9,10 @@ export interface ILifeActivityLogDoc extends Document {
   resourceId?: string;
   resourceName?: string;
   details: string;
+  previousValue?: string;
+  newValue?: string;
+  result: "success" | "failure" | "denied";
+  isCritical: boolean;
   metadata?: Record<string, unknown>;
   ipAddress?: string;
   userAgent?: string;
@@ -25,6 +29,15 @@ const LifeActivityLogSchema = new Schema<ILifeActivityLogDoc>(
     resourceId: { type: String, default: "" },
     resourceName: { type: String, default: "" },
     details: { type: String, required: true },
+    previousValue: { type: String, default: "" },
+    newValue: { type: String, default: "" },
+    result: {
+      type: String,
+      enum: ["success", "failure", "denied"],
+      default: "success",
+      index: true,
+    },
+    isCritical: { type: Boolean, default: false, index: true },
     metadata: { type: Schema.Types.Mixed, default: {} },
     ipAddress: { type: String, default: "" },
     userAgent: { type: String, default: "" },

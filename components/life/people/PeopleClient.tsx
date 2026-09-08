@@ -101,21 +101,36 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
     }
   };
 
+function maskPhone(phone?: string) {
+  if (!phone) return "";
+  const cleaned = phone.trim();
+  if (cleaned.length <= 6) return cleaned;
+  return cleaned.slice(0, 5) + "••••" + cleaned.slice(-4);
+}
+
+function maskEmail(email?: string) {
+  if (!email) return "";
+  const [user, domain] = email.split("@");
+  if (!domain) return email;
+  const maskedUser = user.length <= 3 ? user + "•••" : user.slice(0, 3) + "••••";
+  return `${maskedUser}@${domain}`;
+}
+
   return (
     <div className="space-y-5">
-      {/* Header & Title */}
+      {/* Header & Title (§5) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-              People & Trusted Network
+              People, Roles & Access
             </h1>
             <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
               {people.length}
             </span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Designate trusted family, partners, and advisors with specific access rules.
+            Designate trusted family, partners, guardians, and advisors with specific access rules.
           </p>
         </div>
 
@@ -199,6 +214,11 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
                         <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100 truncate">
                           {person.name}
                         </h3>
+                        {person.guardianStatus && (
+                          <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-600 border border-blue-500/20">
+                            Guardian
+                          </span>
+                        )}
                         {person.emergencyPriority ? (
                           <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded bg-red-500/10 text-red-500 border border-red-500/20">
                             P{person.emergencyPriority}
@@ -206,7 +226,7 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
                         ) : null}
                       </div>
                       <span className="text-xs text-slate-400 font-medium">
-                        {person.relation}
+                        {person.designation ? `${person.designation} • ` : ""}{person.relation}
                       </span>
                     </div>
                   </div>
@@ -214,35 +234,35 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
                   {/* Status chip */}
                   <span
                     className={`text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full border shrink-0 ${
-                      person.status === "active"
+                      person.accountStatus === "active" || person.status === "active"
                         ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
-                        : person.status === "locked"
+                        : person.accountStatus === "temporarily_locked" || person.status === "locked"
                         ? "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/20"
                         : "bg-muted text-muted-foreground border-border"
                     }`}
                   >
-                    {person.status}
+                    {person.accountStatus || person.status}
                   </span>
                 </div>
 
-                {/* Role and contact preview */}
+                {/* Role and contact preview with Masking (§5) */}
                 <div className="mt-3.5 space-y-1 text-xs text-slate-400">
                   <div className="flex items-center gap-1.5">
                     <Shield className="w-3.5 h-3.5 text-slate-500" />
                     <span className="capitalize font-medium text-foreground">
-                      {person.role.replace("_", " ")}
+                      {(person.userRole || person.role).replace("_", " ")}
                     </span>
                   </div>
                   {person.phone && (
                     <div className="flex items-center gap-1.5 truncate">
                       <Phone className="w-3.5 h-3.5 text-slate-500" />
-                      <span>{person.phone}</span>
+                      <span>{maskPhone(person.phone)}</span>
                     </div>
                   )}
                   {person.email && (
                     <div className="flex items-center gap-1.5 truncate">
                       <Mail className="w-3.5 h-3.5 text-slate-500" />
-                      <span className="truncate">{person.email}</span>
+                      <span className="truncate">{maskEmail(person.email)}</span>
                     </div>
                   )}
                 </div>

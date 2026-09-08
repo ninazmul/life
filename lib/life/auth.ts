@@ -14,6 +14,8 @@ export interface LifeAuthContext {
   role: LifeRole;
   isOwner: boolean;
   isAdmin: boolean;
+  isGuardian: boolean;
+  guardianType?: "primary" | "secondary" | "independent" | "";
   personId?: string;
   permissions: LifePermission;
 }
@@ -68,9 +70,10 @@ export async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
         email,
         name: adminDoc.name || name,
         avatarUrl,
-        role: adminDoc.role === "super_admin" ? "owner" : "admin",
+        role: adminDoc.role === "super_admin" ? "owner" : "administrator",
         isOwner,
         isAdmin: true,
+        isGuardian: false,
         permissions: DEFAULT_OWNER_PERMS,
       };
     }
@@ -79,15 +82,27 @@ export async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
     const personDoc = await LifePerson.findOne({
       $or: [{ email }, { clerkUserId: userId }],
       status: { $ne: "archived" },
+      accountStatus: { $nin: ["archived", "disabled"] },
     });
 
-    if (personDoc && personDoc.status === "locked") {
+    if (
+      personDoc &&
+      (personDoc.status === "locked" ||
+        personDoc.accountStatus === "temporarily_locked" ||
+        personDoc.accountStatus === "disabled")
+    ) {
       throw new Error("Your access to Life has been locked. Please contact the Owner.");
     }
 
-    if (personDoc && !personDoc.clerkUserId) {
-      personDoc.clerkUserId = userId;
-      await personDoc.save();
+    if (personDoc) {
+      const updates: Record<string, unknown> = { lastActivity: new Date() };
+      if (!personDoc.clerkUserId) {
+        updates.clerkUserId = userId;
+      }
+      if (!personDoc.lastLogin) {
+        updates.lastLogin = new Date();
+      }
+      await LifePerson.updateOne({ _id: personDoc._id }, { $set: updates });
     }
 
     // Check Emergency Protocol state and designated emergency delegation
@@ -96,10 +111,16 @@ export async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
     const secondary = (emergencyDoc?.secondaryAdminEmail || "").toLowerCase().trim();
     const isDesignatedEmergencyAdmin = Boolean(email && (email === primary || email === secondary));
 
+    const isGuardian = Boolean(
+      personDoc?.guardianStatus ||
+      personDoc?.role === "guardian" ||
+      personDoc?.userRole === "guardian"
+    );
+    const guardianType = (personDoc?.guardianType || "") as "primary" | "secondary" | "independent" | "";
+
     // DYNAMIC ELEVATION:
     // If Emergency Mode is active AND caller is a designated emergency admin (Primary or Secondary),
-    // they automatically inherit FULL SUPER-ADMIN & CONTINUITY ACCESS (DEFAULT_OWNER_PERMS)!
-    // The Primary Emergency Admin automatically steps into the Super Admin / Owner role.
+    // they inherit full continuity access!
     if (emergencyDoc?.isEmergencyActive && isDesignatedEmergencyAdmin) {
       const isPrimary = email === primary;
       return {
@@ -107,32 +128,34 @@ export async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
         email,
         name: personDoc?.name || name,
         avatarUrl: personDoc?.avatarUrl || avatarUrl,
-        role: isPrimary ? "super_admin" : "admin",
+        role: isPrimary ? "owner" : "administrator",
         isOwner: isPrimary,
         isAdmin: true,
+        isGuardian,
+        guardianType,
         personId: personDoc ? String(personDoc._id) : undefined,
         permissions: DEFAULT_OWNER_PERMS,
       };
     }
 
     if (personDoc) {
-      const role = (personDoc.role || "individual") as LifeRole;
+      const role = (personDoc.userRole || personDoc.role || "responsible_person") as LifeRole;
       const isOwner = role === "owner";
-      const isAdmin = isOwner || role === "super_admin" || role === "admin";
+      const isAdmin = isOwner || role === "super_admin" || role === "admin" || role === "administrator";
 
       const perms: LifePermission = isOwner
         ? DEFAULT_OWNER_PERMS
         : {
             ...(personDoc.permissions || {
               canViewPersonal: false,
-              canViewBusiness: role === "business",
+              canViewBusiness: role === "business" || role === "business_partner",
               canViewFinancial: false,
               canViewSensitive: false,
               canRevealVault: false,
               canManageAccess: false,
-              canAccessEmergency: false,
+              canAccessEmergency: isGuardian,
             }),
-            ...(isDesignatedEmergencyAdmin ? { canAccessEmergency: true } : {}),
+            ...(isDesignatedEmergencyAdmin || isGuardian ? { canAccessEmergency: true } : {}),
           };
 
       return {
@@ -143,6 +166,8 @@ export async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
         role,
         isOwner,
         isAdmin,
+        isGuardian,
+        guardianType,
         personId: String(personDoc._id),
         permissions: perms,
       };
@@ -158,6 +183,7 @@ export async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
         role: "individual",
         isOwner: false,
         isAdmin: false,
+        isGuardian: false,
         permissions: {
           canViewPersonal: false,
           canViewBusiness: false,
@@ -179,6 +205,7 @@ export async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
       role: "read_only",
       isOwner: false,
       isAdmin: false,
+      isGuardian: false,
       permissions: {
         canViewPersonal: false,
         canViewBusiness: false,
@@ -218,6 +245,10 @@ export async function logLifeActivity({
   resourceId,
   resourceName,
   details,
+  previousValue,
+  newValue,
+  result = "success",
+  isCritical = false,
   metadata,
 }: {
   action: string;
@@ -225,6 +256,10 @@ export async function logLifeActivity({
   resourceId?: string;
   resourceName?: string;
   details: string;
+  previousValue?: string;
+  newValue?: string;
+  result?: "success" | "failure" | "denied";
+  isCritical?: boolean;
   metadata?: Record<string, unknown>;
 }) {
   try {
@@ -241,6 +276,10 @@ export async function logLifeActivity({
       resourceId: resourceId || "",
       resourceName: resourceName || "",
       details,
+      previousValue: previousValue || "",
+      newValue: newValue || "",
+      result,
+      isCritical,
       metadata: metadata || {},
     });
   } catch (error) {

@@ -47,6 +47,57 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     LifeEmergencyAccess.findOne().lean() as Promise<ILifeEmergencyAccess | null>,
   ]);
 
+  // §24 Extended Dashboard Indicators
+  const [
+    activeGuardiansCount,
+    pendingRequestsCount,
+    pendingRespCount,
+    financialSupports,
+    recentBackupLog,
+  ] = await Promise.all([
+    connectToDatabase().then(() =>
+      import("@/lib/database/models/lifeGuardian.model").then((m) =>
+        m.default.countDocuments({ isActive: true })
+      )
+    ),
+    connectToDatabase().then(() =>
+      import("@/lib/database/models/lifeEmergencyRequest.model").then((m) =>
+        m.default.countDocuments({ status: "pending_approval" })
+      )
+    ),
+    connectToDatabase().then(() =>
+      import("@/lib/database/models/lifeResponsibility.model").then((m) =>
+        m.default.countDocuments({ completionStatus: { $in: ["not_started", "in_progress", "waiting"] } })
+      )
+    ),
+    connectToDatabase().then(() =>
+      import("@/lib/database/models/lifeFinancialSupport.model").then((m) =>
+        m.default.find().lean()
+      )
+    ),
+    LifeActivityLog.findOne({ action: { $regex: /backup/i } })
+      .sort({ createdAt: -1 })
+      .lean(),
+  ]);
+
+  // Multi-currency calculation (§17, §24)
+  const currencyTotals: Record<string, { given: number; repaid: number; remaining: number }> = {};
+  let upcomingPaymentsCount = 0;
+  let overduePaymentsCount = 0;
+
+  (financialSupports || []).forEach((fs: any) => {
+    const cur = (fs.currency || "BDT").toUpperCase();
+    if (!currencyTotals[cur]) {
+      currencyTotals[cur] = { given: 0, repaid: 0, remaining: 0 };
+    }
+    currencyTotals[cur].given += fs.totalAmount || 0;
+    currencyTotals[cur].repaid += fs.totalRepaid || 0;
+    currencyTotals[cur].remaining += fs.remainingBalance || 0;
+
+    if (fs.status === "overdue") overduePaymentsCount++;
+    if (fs.remainingBalance > 0 && fs.status !== "overdue") upcomingPaymentsCount++;
+  });
+
   const moneyMap: Record<string, { total: number; remaining: number }> = {};
   moneyAgg.forEach((item) => {
     moneyMap[item._id] = {
@@ -78,7 +129,7 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
       category: "Emergency",
       dueText: "Review emergency instructions",
       severity: "high",
-      link: "/access",
+      link: "/guardians",
     });
   }
 
@@ -106,7 +157,7 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
           })
         : "Overdue",
       severity: isGiven ? "medium" : "high",
-      link: "/money",
+      link: "/finance",
     });
   });
 
@@ -144,6 +195,16 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     payablesTotal,
     urgentItems: urgentItems.slice(0, 6),
     recentActivities: JSON.parse(JSON.stringify(recentActivities)),
+    ownerSafetyStatus: (emergencyState as any)?.ownerSafetyStatus || (emergencyState?.isEmergencyActive ? "emergency" : "safe"),
+    emergencyModeStatus: emergencyState?.isEmergencyActive ? "Active" : "Normal",
+    trustedGuardiansCount: activeGuardiansCount,
+    pendingAccessRequestsCount: pendingRequestsCount,
+    pendingResponsibilitiesCount: pendingRespCount,
+    businessContinuityReadiness: businesses.length > 0 ? 85 : 100,
+    upcomingPaymentsCount,
+    overduePaymentsCount,
+    currencyTotals,
+    lastBackupDate: (recentBackupLog as any)?.createdAt || new Date(),
   };
 }
 

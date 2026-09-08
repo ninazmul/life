@@ -11,6 +11,12 @@ export interface ILifeVaultItemDoc extends Document {
   secretAuthTag: string;
   recoveryInfo?: string;
   category: VaultCategory;
+  visibilityMode?: string;
+  relatedBusinessId?: mongoose.Types.ObjectId;
+  reVerificationRequired: boolean;
+  revealPermission: boolean;
+  copyPermission: boolean;
+  lastVerifiedDate?: Date;
   ownerPersonId?: mongoose.Types.ObjectId;
   assignedToPersonIds: mongoose.Types.ObjectId[];
   notes?: string;
@@ -45,6 +51,20 @@ const LifeVaultItemSchema = new Schema<ILifeVaultItemDoc>(
       default: "website",
       index: true,
     },
+    visibilityMode: {
+      type: String,
+      default: "available_now",
+      index: true,
+    },
+    relatedBusinessId: {
+      type: Schema.Types.ObjectId,
+      ref: "LifeBusiness",
+      index: true,
+    },
+    reVerificationRequired: { type: Boolean, default: true },
+    revealPermission: { type: Boolean, default: true },
+    copyPermission: { type: Boolean, default: true },
+    lastVerifiedDate: { type: Date },
     ownerPersonId: {
       type: Schema.Types.ObjectId,
       ref: "LifePerson",

@@ -177,116 +177,189 @@ export function PersonDetailClient({ personData }: PersonDetailClientProps) {
         </div>
       </div>
 
-      {/* Tabs Layout (Scrollable on mobile) */}
+      {/* Tabs Layout (13 Sections per §5) */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="bg-slate-100 dark:bg-slate-900 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 flex overflow-x-auto scrollbar-none max-w-full justify-start h-auto">
+        <TabsList className="bg-slate-100 dark:bg-slate-900 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 flex overflow-x-auto scrollbar-none max-w-full justify-start h-auto gap-1">
           <TabsTrigger
             value="overview"
-            className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
+            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap"
           >
-            Overview
+            1. Overview
           </TabsTrigger>
           <TabsTrigger
-            value="message"
-            className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
+            value="responsibilities"
+            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap"
           >
-            Personal Message
+            2. Current Responsibilities
+          </TabsTrigger>
+          <TabsTrigger
+            value="business"
+            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap"
+          >
+            3. Business Access
           </TabsTrigger>
           <TabsTrigger
             value="financial"
-            className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
+            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap"
           >
-            Financial ({personData.moneyRecords.length})
+            4. Financial Support ({personData.moneyRecords.length})
           </TabsTrigger>
           <TabsTrigger
-            value="documents"
-            className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
+            value="payments"
+            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap"
           >
-            Documents ({personData.documents.length})
+            5. Payment Schedule & History
+          </TabsTrigger>
+          <TabsTrigger
+            value="messages"
+            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap"
+          >
+            6. Current Messages
+          </TabsTrigger>
+          <TabsTrigger
+            value="emergency_resp"
+            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-red-600 data-[state=active]:text-white whitespace-nowrap"
+          >
+            7. Emergency Responsibilities 🔒
+          </TabsTrigger>
+          <TabsTrigger
+            value="legacy_instructions"
+            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-purple-600 data-[state=active]:text-white whitespace-nowrap"
+          >
+            8. Legacy & Instructions 🔒
           </TabsTrigger>
           <TabsTrigger
             value="contacts"
-            className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
+            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap"
           >
-            Contacts ({personData.contacts.length})
+            9. Contacts ({personData.contacts.length})
           </TabsTrigger>
           <TabsTrigger
-            value="access"
-            className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
+            value="documents"
+            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap"
           >
-            Access Rules
+            10. Documents ({personData.documents.length})
+          </TabsTrigger>
+          <TabsTrigger
+            value="vault"
+            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-amber-600 data-[state=active]:text-white whitespace-nowrap"
+          >
+            11. Vault Access 🔒
+          </TabsTrigger>
+          <TabsTrigger
+            value="permissions"
+            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap"
+          >
+            12. Permissions
+          </TabsTrigger>
+          <TabsTrigger
+            value="activity"
+            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap"
+          >
+            13. Activity
           </TabsTrigger>
         </TabsList>
 
-        {/* Tab: Overview */}
+        {/* 1. Overview */}
         <TabsContent value="overview" className="space-y-4 outline-none">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Responsibilities */}
             <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-300" />
-                <span>Responsibilities</span>
+                <span>Profile Details</span>
               </h3>
-              {person.responsibilities && person.responsibilities.length > 0 ? (
-                <ul className="space-y-1.5 text-xs text-foreground">
-                  {person.responsibilities.map((r: string, idx: number) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
-                      <span>{r}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-xs text-slate-500 italic">No specific responsibilities assigned yet.</p>
-              )}
+              <div className="space-y-2 text-xs">
+                <p className="flex justify-between border-b border-border/50 pb-1.5">
+                  <span className="text-muted-foreground">Full Name:</span>
+                  <span className="font-bold">{person.name}</span>
+                </p>
+                <p className="flex justify-between border-b border-border/50 pb-1.5">
+                  <span className="text-muted-foreground">Relation:</span>
+                  <span className="font-semibold">{person.relation}</span>
+                </p>
+                <p className="flex justify-between border-b border-border/50 pb-1.5">
+                  <span className="text-muted-foreground">User Role:</span>
+                  <span className="font-bold capitalize">{person.role}</span>
+                </p>
+                <p className="flex justify-between border-b border-border/50 pb-1.5">
+                  <span className="text-muted-foreground">Account Status:</span>
+                  <span className="font-bold text-emerald-600">{person.accountStatus || person.status}</span>
+                </p>
+                {person.guardianStatus && (
+                  <p className="flex justify-between border-b border-border/50 pb-1.5">
+                    <span className="text-muted-foreground">Guardian Status:</span>
+                    <span className="font-bold text-blue-600">{person.guardianType || "Primary"} Guardian</span>
+                  </p>
+                )}
+              </div>
             </div>
 
-            {/* Business Instructions */}
             <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-amber-700 dark:text-amber-300" />
-                <span>Business Instructions</span>
+                <Shield className="w-3.5 h-3.5 text-blue-600" />
+                <span>Quick Summary</span>
               </h3>
-              {person.businessInstructions && person.businessInstructions.length > 0 ? (
-                <ul className="space-y-1.5 text-xs text-foreground">
-                  {person.businessInstructions.map((b: string, idx: number) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
-                      <span>{b}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-xs text-slate-500 italic">No business instructions recorded for this person.</p>
-              )}
+              <div className="space-y-2 text-xs">
+                <p className="flex justify-between border-b border-border/50 pb-1.5">
+                  <span className="text-muted-foreground">Assigned Documents:</span>
+                  <span className="font-bold">{personData.documents.length}</span>
+                </p>
+                <p className="flex justify-between border-b border-border/50 pb-1.5">
+                  <span className="text-muted-foreground">Financial Records:</span>
+                  <span className="font-bold">{personData.moneyRecords.length}</span>
+                </p>
+                <p className="flex justify-between border-b border-border/50 pb-1.5">
+                  <span className="text-muted-foreground">Emergency Contacts:</span>
+                  <span className="font-bold">{personData.contacts.length}</span>
+                </p>
+              </div>
             </div>
           </div>
         </TabsContent>
 
-        {/* Tab: Personal Message */}
-        <TabsContent value="message" className="outline-none">
-          <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-3">
-            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <MessageCircle className="w-4 h-4 text-emerald-700 dark:text-emerald-300" />
-              <span>Personal Letter / Note for {person.name}</span>
-            </h3>
-            {person.personalMessage ? (
-              <div className="p-4 rounded-2xl bg-muted border border-border text-sm text-foreground leading-relaxed whitespace-pre-wrap font-serif">
-                {person.personalMessage}
-              </div>
+        {/* 2. Current Responsibilities */}
+        <TabsContent value="responsibilities" className="space-y-4 outline-none">
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-border space-y-3">
+            <h3 className="text-sm font-bold text-foreground">Current Active Responsibilities</h3>
+            {person.responsibilities && person.responsibilities.length > 0 ? (
+              <ul className="space-y-2 text-xs">
+                {person.responsibilities.map((r, idx) => (
+                  <li key={idx} className="p-3 rounded-xl bg-muted/40 border border-border flex items-start gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 mt-1 shrink-0" />
+                    <span>{r}</span>
+                  </li>
+                ))}
+              </ul>
             ) : (
-              <p className="text-xs text-slate-500 italic">
-                No personal message has been written yet for this profile.
-              </p>
+              <p className="text-xs text-muted-foreground italic">No current responsibilities assigned.</p>
             )}
           </div>
         </TabsContent>
 
-        {/* Tab: Financial */}
+        {/* 3. Business Access */}
+        <TabsContent value="business" className="space-y-4 outline-none">
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-border space-y-3">
+            <h3 className="text-sm font-bold text-foreground">Assigned Business Entities</h3>
+            {person.businessInstructions && person.businessInstructions.length > 0 ? (
+              <ul className="space-y-2 text-xs">
+                {person.businessInstructions.map((b, idx) => (
+                  <li key={idx} className="p-3 rounded-xl bg-muted/40 border border-border flex items-start gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-500 mt-1 shrink-0" />
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-xs text-muted-foreground italic">No specific business instructions recorded.</p>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* 4. Financial Support */}
         <TabsContent value="financial" className="outline-none space-y-3">
           {personData.moneyRecords.length === 0 ? (
             <div className="p-8 text-center rounded-2xl border border-dashed border-border text-xs text-muted-foreground">
-              No financial records (money given, taken, or investments) associated with {person.name}.
+              No financial records associated with {person.name}.
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -321,7 +394,99 @@ export function PersonDetailClient({ personData }: PersonDetailClientProps) {
           )}
         </TabsContent>
 
-        {/* Tab: Documents */}
+        {/* 5. Payment Schedule & History */}
+        <TabsContent value="payments" className="space-y-4 outline-none">
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-border space-y-2">
+            <h3 className="text-sm font-bold text-foreground">Repayment Schedules & Settlement Timeline</h3>
+            <p className="text-xs text-muted-foreground">
+              Detailed breakdown of scheduled installments, verified payments, and waivers for {person.name}.
+            </p>
+            <Link
+              href="/finance"
+              className="inline-flex items-center text-xs font-semibold text-emerald-600 hover:underline pt-2"
+            >
+              View in Finance & Transactions →
+            </Link>
+          </div>
+        </TabsContent>
+
+        {/* 6. Current Messages */}
+        <TabsContent value="messages" className="outline-none">
+          <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-3">
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <MessageCircle className="w-4 h-4 text-emerald-700 dark:text-emerald-300" />
+              <span>Current Personal Message for {person.name}</span>
+            </h3>
+            {person.personalMessage ? (
+              <div className="p-4 rounded-2xl bg-muted border border-border text-sm text-foreground leading-relaxed whitespace-pre-wrap font-serif">
+                {person.personalMessage}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500 italic">
+                No active personal message has been written yet for this profile.
+              </p>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* 7. Emergency Responsibilities (Protected) (§1, §3) */}
+        <TabsContent value="emergency_resp" className="outline-none">
+          <div className="p-8 rounded-3xl border-2 border-red-500/20 bg-red-500/5 text-center space-y-3">
+            <Shield className="w-10 h-10 text-red-500 mx-auto" />
+            <h3 className="text-base font-bold text-foreground">Protected Emergency Responsibilities</h3>
+            <p className="text-xs sm:text-sm text-foreground/80 max-w-lg mx-auto leading-relaxed">
+              «আপনার জন্য কিছু সুরক্ষিত তথ্য ও নির্দেশনা সংরক্ষিত রয়েছে। নির্ধারিত Emergency অথবা Legacy Verification সম্পন্ন হওয়ার পরে এগুলো দেখা যাবে।»
+            </p>
+            <div className="text-[11px] text-muted-foreground pt-1">
+              Requires Guardian Emergency Verification & Re-authentication (§3).
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* 8. Legacy & Personal Instructions (Protected) (§1, §3) */}
+        <TabsContent value="legacy_instructions" className="outline-none">
+          <div className="p-8 rounded-3xl border-2 border-purple-500/20 bg-purple-500/5 text-center space-y-3">
+            <FolderLock className="w-10 h-10 text-purple-500 mx-auto" />
+            <h3 className="text-base font-bold text-foreground">Protected Legacy & Personal Instructions</h3>
+            <p className="text-xs sm:text-sm text-foreground/80 max-w-lg mx-auto leading-relaxed">
+              «আপনার জন্য কিছু সুরক্ষিত তথ্য ও নির্দেশনা সংরক্ষিত রয়েছে। নির্ধারিত Emergency অথবা Legacy Verification সম্পন্ন হওয়ার পরে এগুলো দেখা যাবে।»
+            </p>
+            <div className="text-[11px] text-muted-foreground pt-1">
+              Protected by Owner Security Protocol. Accessible after designated release event.
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* 9. Contacts */}
+        <TabsContent value="contacts" className="outline-none space-y-3">
+          {personData.contacts.length === 0 ? (
+            <div className="p-8 text-center rounded-2xl border border-dashed border-border text-xs text-muted-foreground">
+              No emergency contacts associated with {person.name}.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {personData.contacts.map((c: any) => (
+                <div
+                  key={c._id}
+                  className="p-3.5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between"
+                >
+                  <div>
+                    <h4 className="text-xs font-bold text-foreground">{c.name}</h4>
+                    <p className="text-[11px] text-muted-foreground">{c.phone}</p>
+                  </div>
+                  <a
+                    href={`tel:${c.phone}`}
+                    className="p-2 rounded-xl bg-muted text-muted-foreground hover:text-emerald-700 dark:hover:text-emerald-300"
+                  >
+                    <Phone className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* 10. Documents */}
         <TabsContent value="documents" className="outline-none space-y-3">
           {personData.documents.length === 0 ? (
             <div className="p-8 text-center rounded-2xl border border-dashed border-border text-xs text-muted-foreground">
@@ -352,37 +517,19 @@ export function PersonDetailClient({ personData }: PersonDetailClientProps) {
           )}
         </TabsContent>
 
-        {/* Tab: Contacts */}
-        <TabsContent value="contacts" className="outline-none space-y-3">
-          {personData.contacts.length === 0 ? (
-            <div className="p-8 text-center rounded-2xl border border-dashed border-border text-xs text-muted-foreground">
-              No emergency contacts associated with {person.name}.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {personData.contacts.map((c: any) => (
-                <div
-                  key={c._id}
-                  className="p-3.5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between"
-                >
-                  <div>
-                    <h4 className="text-xs font-bold text-foreground">{c.name}</h4>
-                    <p className="text-[11px] text-muted-foreground">{c.phone}</p>
-                  </div>
-                  <a
-                    href={`tel:${c.phone}`}
-                    className="p-2 rounded-xl bg-muted text-muted-foreground hover:text-emerald-700 dark:hover:text-emerald-300"
-                  >
-                    <Phone className="w-3.5 h-3.5" />
-                  </a>
-                </div>
-              ))}
-            </div>
-          )}
+        {/* 11. Vault Access */}
+        <TabsContent value="vault" className="outline-none">
+          <div className="p-8 rounded-3xl border-2 border-amber-500/20 bg-amber-500/5 text-center space-y-3">
+            <Lock className="w-10 h-10 text-amber-500 mx-auto" />
+            <h3 className="text-base font-bold text-foreground">Encrypted Vault Credentials</h3>
+            <p className="text-xs sm:text-sm text-foreground/80 max-w-lg mx-auto leading-relaxed">
+              Assigned recovery keys and passwords require interactive MFA Re-authentication and Guardian authorization.
+            </p>
+          </div>
         </TabsContent>
 
-        {/* Tab: Access Rules */}
-        <TabsContent value="access" className="outline-none">
+        {/* 12. Permissions */}
+        <TabsContent value="permissions" className="outline-none">
           <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-4 text-xs">
             <h3 className="font-bold text-foreground flex items-center gap-2">
               <Shield className="w-4 h-4 text-emerald-700 dark:text-emerald-300" />
@@ -416,6 +563,19 @@ export function PersonDetailClient({ personData }: PersonDetailClientProps) {
             </div>
             <p className="text-[11px] text-muted-foreground italic">
               Access permissions are enforced strictly server-side by the Life RBAC engine.
+            </p>
+          </div>
+        </TabsContent>
+
+        {/* 13. Activity */}
+        <TabsContent value="activity" className="outline-none">
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-border text-xs space-y-2">
+            <h3 className="font-bold text-foreground">Session & Activity Log</h3>
+            <p className="text-muted-foreground">
+              Last Login: {person.lastLogin ? new Date(person.lastLogin).toLocaleString() : "Never"}
+            </p>
+            <p className="text-muted-foreground">
+              Last Activity: {person.lastActivity ? new Date(person.lastActivity).toLocaleString() : "None"}
             </p>
           </div>
         </TabsContent>

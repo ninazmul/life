@@ -14,6 +14,10 @@ import {
   Settings,
   X,
   BookOpen,
+  Wallet,
+  CheckSquare,
+  Gift,
+  ShieldCheck,
 } from "lucide-react";
 import {
   Sheet,
@@ -32,23 +36,23 @@ export function LifeMoreSheet({ open, onOpenChange }: LifeMoreSheetProps) {
 
   const moreItems = [
     {
-      title: "Information & Notes",
-      desc: "Personal, instructions & emergency data",
-      href: "/information",
-      icon: FileText,
-      color:
-        "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800/40",
-    },
-    {
-      title: "Business & Continuity",
-      desc: '"If I Am Not Available" checklist',
+      title: "1. Businesses & Partnerships",
+      desc: "Companies, shares, partner equity & continuity",
       href: "/business",
       icon: Briefcase,
       color:
         "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-800/40",
     },
     {
-      title: "Assets Portfolio",
+      title: "2. Finance & Transactions",
+      desc: "Financial support, repayment, installments & gifts",
+      href: "/finance",
+      icon: Wallet,
+      color:
+        "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800/40",
+    },
+    {
+      title: "3. Assets & Properties",
       desc: "Bank balances, property & valuations",
       href: "/assets",
       icon: Layers,
@@ -56,7 +60,15 @@ export function LifeMoreSheet({ open, onOpenChange }: LifeMoreSheetProps) {
         "text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/60 border-cyan-200 dark:border-cyan-800/40",
     },
     {
-      title: "Contact Directory",
+      title: "4. Instructions & Responsibilities",
+      desc: "Directives, task assignments & emergency actions",
+      href: "/instructions",
+      icon: CheckSquare,
+      color:
+        "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-800/40",
+    },
+    {
+      title: "5. Contact Directory",
       desc: "Emergency & key advisors (1-tap call)",
       href: "/contacts",
       icon: Contact,
@@ -64,7 +76,7 @@ export function LifeMoreSheet({ open, onOpenChange }: LifeMoreSheetProps) {
         "text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 border-sky-200 dark:border-sky-800/40",
     },
     {
-      title: "Documents Library",
+      title: "6. Documents Library",
       desc: "Private deeds, contracts & receipts",
       href: "/documents",
       icon: FolderLock,
@@ -72,44 +84,60 @@ export function LifeMoreSheet({ open, onOpenChange }: LifeMoreSheetProps) {
         "text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 border-indigo-200 dark:border-indigo-800/40",
     },
     {
-      title: "Legacy Messages",
-      desc: "Private letters for designated people",
+      title: "7. Personal & Legacy Messages",
+      desc: "Private letters & instructions for designated people",
       href: "/legacy",
       icon: HeartHandshake,
       color:
         "text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800/40",
     },
     {
-      title: "Access & Emergency",
-      desc: "Delegate admin & Emergency protocol",
-      href: "/access",
-      icon: ShieldAlert,
+      title: "8. Beneficiaries",
+      desc: "Designated recipients of legacy allocations",
+      href: "/beneficiaries",
+      icon: Gift,
+      color:
+        "text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 border-purple-200 dark:border-purple-800/40",
+    },
+    {
+      title: "9. Guardians & Emergency Access",
+      desc: "Trusted guardians, release approvals & safety state",
+      href: "/guardians",
+      icon: ShieldCheck,
       color:
         "text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/60 border-red-200 dark:border-red-800/40",
     },
     {
-      title: "Activity & Audit Trail",
-      desc: "Vault reveals & system log",
+      title: "10. Activity & Audit Log",
+      desc: "Immutable logs of all sensitive actions",
       href: "/activity",
       icon: History,
       color:
         "text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800",
     },
     {
-      title: "Settings & Backup",
-      desc: "Security PIN, PWA & offline backup",
+      title: "11. Security & Backup",
+      desc: "Database exports, restore test & security policy",
       href: "/settings",
-      icon: Settings,
+      icon: ShieldAlert,
       color:
-        "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-slate-900 border-emerald-200 dark:border-slate-800",
+        "text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-950/60 border-orange-200 dark:border-orange-800/40",
     },
     {
-      title: "User Guide",
-      desc: "How to use every module of LIFE",
+      title: "12. User Guide",
+      desc: "How to use every module of LIFE Vault",
       href: "/guide",
       icon: BookOpen,
       color:
         "text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 border-teal-200 dark:border-teal-800/40",
+    },
+    {
+      title: "13. Settings",
+      desc: "System preferences, roles & configuration",
+      href: "/settings",
+      icon: Settings,
+      color:
+        "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-slate-900 border-emerald-200 dark:border-slate-800",
     },
   ];
 

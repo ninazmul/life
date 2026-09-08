@@ -55,13 +55,13 @@ export function LifeDashboardClient({ stats }: LifeDashboardClientProps) {
               size="sm"
               className="h-9 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs gap-1.5 shadow-md shadow-emerald-950/40"
             >
-              <Link href="/money" aria-label="Add new money record">
+              <Link href="/finance" aria-label="Add new financial record">
                 <Plus
                   className="w-3.5 h-3.5 shrink-0"
                   strokeWidth={2}
                   aria-hidden="true"
                 />
-                Add Money Record
+                Financial Support
               </Link>
             </Button>
             <Button
@@ -82,6 +82,117 @@ export function LifeDashboardClient({ stats }: LifeDashboardClientProps) {
           </div>
         </div>
       </div>
+
+      {/* §24 Top Section: Owner Safety, Emergency Mode, Guardians, and Continuity Readiness */}
+      <section className="space-y-2.5" aria-label="Continuity & Safety Readiness">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span>Continuity & Safety State (§24)</span>
+          </h2>
+          <span className="text-[11px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+            System Operational
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {/* Owner Safety Status */}
+          <div className="p-3.5 rounded-2xl bg-card border border-border shadow-sm flex flex-col justify-between">
+            <span className="text-[11px] font-medium text-muted-foreground">Owner Safety</span>
+            <div className="my-1 flex items-center gap-1.5">
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  stats.ownerSafetyStatus === "emergency" ? "bg-red-500 animate-pulse" : "bg-emerald-500"
+                }`}
+              />
+              <span className="text-sm font-extrabold capitalize text-foreground">
+                {stats.ownerSafetyStatus || "Safe"}
+              </span>
+            </div>
+            <span className="text-[10px] text-muted-foreground">Check-in Active</span>
+          </div>
+
+          {/* Emergency Mode Status */}
+          <Link
+            href="/guardians"
+            className="p-3.5 rounded-2xl bg-card border border-border hover:border-red-500/30 transition-all shadow-sm flex flex-col justify-between"
+          >
+            <span className="text-[11px] font-medium text-muted-foreground">Emergency Mode</span>
+            <div className="my-1">
+              <span
+                className={`text-sm font-extrabold ${
+                  stats.emergencyModeStatus === "Active" ? "text-red-600" : "text-foreground"
+                }`}
+              >
+                {stats.emergencyModeStatus || "Normal"}
+              </span>
+            </div>
+            <span className="text-[10px] text-muted-foreground">Protocol Ready</span>
+          </Link>
+
+          {/* Trusted Guardians */}
+          <Link
+            href="/guardians"
+            className="p-3.5 rounded-2xl bg-card border border-border hover:border-emerald-500/30 transition-all shadow-sm flex flex-col justify-between"
+          >
+            <span className="text-[11px] font-medium text-muted-foreground">Guardians</span>
+            <div className="my-1">
+              <span className="text-lg font-extrabold text-blue-600 dark:text-blue-400 font-mono">
+                {stats.trustedGuardiansCount || 0}
+              </span>
+            </div>
+            <span className="text-[10px] text-muted-foreground">Multi-Party Trust</span>
+          </Link>
+
+          {/* Pending Responsibilities */}
+          <Link
+            href="/instructions"
+            className="p-3.5 rounded-2xl bg-card border border-border hover:border-emerald-500/30 transition-all shadow-sm flex flex-col justify-between"
+          >
+            <span className="text-[11px] font-medium text-muted-foreground">Responsibilities</span>
+            <div className="my-1">
+              <span className="text-lg font-extrabold text-foreground font-mono">
+                {stats.pendingResponsibilitiesCount || 0}
+              </span>
+            </div>
+            <span className="text-[10px] text-amber-600 font-medium">In Progress</span>
+          </Link>
+
+          {/* Business Continuity Readiness */}
+          <Link
+            href="/business"
+            className="p-3.5 rounded-2xl bg-card border border-border hover:border-emerald-500/30 transition-all shadow-sm flex flex-col justify-between"
+          >
+            <span className="text-[11px] font-medium text-muted-foreground">Continuity Ready</span>
+            <div className="my-1">
+              <span className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
+                {stats.businessContinuityReadiness || 100}%
+              </span>
+            </div>
+            <span className="text-[10px] text-muted-foreground">If Not Available</span>
+          </Link>
+
+          {/* Upcoming / Overdue Payments */}
+          <Link
+            href="/finance"
+            className="p-3.5 rounded-2xl bg-card border border-border hover:border-emerald-500/30 transition-all shadow-sm flex flex-col justify-between"
+          >
+            <span className="text-[11px] font-medium text-muted-foreground">Financial Support</span>
+            <div className="my-1">
+              <span className="text-sm font-extrabold text-foreground">
+                {stats.upcomingPaymentsCount || 0} Active
+              </span>
+            </div>
+            <span
+              className={`text-[10px] font-medium ${
+                (stats.overduePaymentsCount || 0) > 0 ? "text-red-500" : "text-muted-foreground"
+              }`}
+            >
+              {stats.overduePaymentsCount || 0} Overdue
+            </span>
+          </Link>
+        </div>
+      </section>
 
       {stats.urgentItems.length > 0 && (
         <section className="space-y-2.5" aria-label="Items requiring attention">

@@ -4,11 +4,17 @@
 
 export type LifeRole =
   | "owner"
+  | "guardian"
+  | "administrator"
+  | "business_partner"
+  | "responsible_person"
+  | "beneficiary"
+  | "read_only"
+  // Legacy compatibility:
   | "super_admin"
   | "admin"
   | "individual"
   | "business"
-  | "read_only"
   | "custom";
 
 export interface LifePermission {
@@ -25,23 +31,66 @@ export interface LifePermission {
 
 export type PersonStatus = "active" | "locked" | "archived";
 
+export type AccountStatus =
+  | "invited"
+  | "active"
+  | "temporarily_locked"
+  | "disabled"
+  | "archived"
+  | "locked";
+
+export type GuardianType = "primary" | "secondary" | "independent";
+
+export type ApprovalRule =
+  | "one_guardian"
+  | "two_guardians"
+  | "any_two_of_three"
+  | "owner_manual"
+  | "guardian_with_waiting";
+
+export type VisibilityMode =
+  | "owner_only"
+  | "available_now"
+  | "emergency_only"
+  | "after_death_only"
+  | "emergency_or_after_death"
+  | "manual_release"
+  | "scheduled_release"
+  | "hidden_draft"
+  | "revoked_archived"
+  // Legacy compatibility:
+  | "visible_now"
+  | "hidden"
+  | "admin_can_release";
+
 export interface ILifePerson {
   _id: string;
   name: string;
   relation: string; // e.g., Wife, Brother, Parents, Sabbir, Sana, Business Partner, Engineer, Staff, Other
+  designation?: string;
   phone?: string;
   whatsapp?: string;
   email?: string;
+  country?: string;
+  address?: string;
   username?: string;
   avatarUrl?: string;
+  profilePhoto?: string;
   status: PersonStatus;
+  accountStatus?: AccountStatus;
   role: LifeRole;
+  userRole?: LifeRole;
+  guardianStatus?: boolean;
+  guardianType?: GuardianType;
   permissions: LifePermission;
   emergencyPriority?: number;
   personalMessage?: string;
   responsibilities?: string[];
   businessInstructions?: string[];
   notes?: string;
+  generalNotes?: string;
+  lastLogin?: Date | string;
+  lastActivity?: Date | string;
   clerkUserId?: string;
   createdAt: Date | string;
   updatedAt: Date | string;
@@ -399,6 +448,18 @@ export interface LifeDashboardStats {
     link: string;
   }>;
   recentActivities: ILifeActivityLog[];
+  ownerSafetyStatus?: "safe" | "emergency" | "check_in_overdue";
+  emergencyModeStatus?: string;
+  trustedGuardiansCount?: number;
+  pendingAccessRequestsCount?: number;
+  pendingResponsibilitiesCount?: number;
+  businessContinuityReadiness?: number;
+  upcomingPaymentsCount?: number;
+  overduePaymentsCount?: number;
+  expiringDocumentsCount?: number;
+  securityAlertsCount?: number;
+  lastBackupDate?: Date | string;
+  currencyTotals?: Record<string, { given: number; repaid: number; remaining: number }>;
 }
 
 // ------------------------------------------------------------
@@ -444,3 +505,384 @@ export interface IAdminUser {
 }
 
 export type Admin = IAdminUser;
+
+// ============================================================
+// Life Vault — Enhanced Modules & Security Types
+// ============================================================
+
+export type EmergencyReason =
+  | "owner_seriously_ill"
+  | "owner_hospitalized"
+  | "owner_unreachable"
+  | "owner_missing"
+  | "owner_unable_to_decide"
+  | "owner_deceased"
+  | "other";
+
+export type EmergencyStatus =
+  | "draft"
+  | "pending_approval"
+  | "partially_approved"
+  | "waiting_period"
+  | "activated"
+  | "rejected"
+  | "cancelled"
+  | "expired"
+  | "closed";
+
+export interface ILifeGuardianConfig {
+  _id?: string;
+  approvalRule: ApprovalRule;
+  defaultWaitingPeriodHours: number;
+  ownerAlertChannels: ("email" | "sms")[];
+  isActive: boolean;
+}
+
+export interface ILifeGuardian {
+  _id: string;
+  personId: string | ILifePerson;
+  guardianType: GuardianType;
+  isActive: boolean;
+  assignedDate: Date | string;
+  notes?: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface ILifeEmergencyApproval {
+  guardianPersonId: string;
+  guardianName?: string;
+  guardianEmail?: string;
+  action: "approve" | "reject";
+  date: Date | string;
+  note?: string;
+}
+
+export interface ILifeEmergencyRequest {
+  _id: string;
+  requestedByPersonId: string;
+  requestedByName: string;
+  requestedByEmail: string;
+  reason: EmergencyReason;
+  reasonDetails: string;
+  supportingDocuments?: string[];
+  status: EmergencyStatus;
+  approvals: ILifeEmergencyApproval[];
+  waitingPeriodStart?: Date | string;
+  waitingPeriodEnd?: Date | string;
+  ownerAlertSent: boolean;
+  ownerCancelledAt?: Date | string;
+  releasedRecordIds?: string[];
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export type RecordType =
+  | "financial_support"
+  | "business"
+  | "responsibility"
+  | "document"
+  | "vault_item"
+  | "legacy_message"
+  | "instruction"
+  | "contact"
+  | "asset";
+
+export interface ILifeRecordPermission {
+  _id?: string;
+  recordId: string;
+  recordType: RecordType;
+  assignedPersonId: string;
+  visibilityMode: VisibilityMode;
+  releaseCondition?: string;
+  guardianApprovalRequired: boolean;
+  requiredApprovals: number;
+  waitingPeriodHours: number;
+  effectiveDate?: Date | string;
+  expiryDate?: Date | string;
+  canView: boolean;
+  canDownload: boolean;
+  canEdit: boolean;
+  canShare: boolean;
+  reVerificationRequired: boolean;
+  isReleased: boolean;
+  releasedAt?: Date | string;
+  releasedBy?: string;
+}
+
+// Responsibilities (§6)
+export type ResponsibilityPriority = "low" | "medium" | "high" | "critical";
+export type ResponsibilityStatus =
+  | "not_started"
+  | "in_progress"
+  | "waiting"
+  | "completed"
+  | "unable_to_complete";
+
+export type UserResponsibilityResponse =
+  | "read"
+  | "understand"
+  | "accept"
+  | "need_clarification"
+  | "cannot_perform";
+
+export interface ILifeResponsibility {
+  _id: string;
+  title: string;
+  detailedInstruction: string;
+  relatedBusinessId?: string | ILifeBusiness;
+  assignedPersonId: string | ILifePerson;
+  backupPersonId?: string | ILifePerson;
+  priority: ResponsibilityPriority;
+  startDate?: Date | string;
+  deadline?: Date | string;
+  relatedContactId?: string | ILifeContact;
+  relatedDocumentId?: string | ILifeDocument;
+  relatedVaultItemId?: string | ILifeVaultItem;
+  completionStatus: ResponsibilityStatus;
+  ownerNote?: string;
+  userResponse?: UserResponsibilityResponse;
+  userResponseNote?: string;
+  responseDate?: Date | string;
+  responseDevice?: string;
+  visibilityMode: VisibilityMode;
+  releaseCondition?: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+// Financial Support (§9 - §16)
+export type FinancialSupportType =
+  | "repayable_support"
+  | "personal_loan"
+  | "salary_advance"
+  | "business_advance"
+  | "emergency_support"
+  | "medical_support"
+  | "family_support"
+  | "gift"
+  | "conditional_gift"
+  | "investment"
+  | "other";
+
+export type FinancialSupportStatus =
+  | "active"
+  | "repayment_not_started"
+  | "partially_repaid"
+  | "fully_repaid"
+  | "overdue"
+  | "paused"
+  | "extended"
+  | "waived"
+  | "converted_to_gift"
+  | "gift"
+  | "closed"
+  | "disputed"
+  | "cancelled";
+
+export type InstallmentFrequency =
+  | "monthly"
+  | "weekly"
+  | "yearly"
+  | "one_time"
+  | "custom";
+
+export type InstallmentStatus =
+  | "upcoming"
+  | "due"
+  | "partially_paid"
+  | "paid"
+  | "overdue"
+  | "waived"
+  | "rescheduled";
+
+export type PaymentConfirmationStatus =
+  | "submitted"
+  | "pending_confirmation"
+  | "approved"
+  | "rejected"
+  | "correction_required";
+
+export interface ILifeGiftConversion {
+  amount: number;
+  conversionType: "partial" | "full";
+  previousRemaining: number;
+  newRemaining: number;
+  conversionDate: Date | string;
+  ownerNote?: string;
+  supportingDocument?: string;
+  createdAt: Date | string;
+}
+
+export interface ILifeFinancialSupport {
+  _id: string;
+  title: string;
+  recipientPersonId: string | ILifePerson;
+  supportType: FinancialSupportType;
+  relatedBusinessId?: string | ILifeBusiness;
+  totalAmount: number;
+  currency: string;
+  givenDate: Date | string;
+  paymentMethod: string;
+  transactionReference?: string;
+  purpose?: string;
+  repayableOrNot: boolean;
+  repaymentStartDate?: Date | string;
+  installmentFrequency?: InstallmentFrequency;
+  installmentAmount?: number;
+  numberOfInstallments?: number;
+  dueDate?: Date | string;
+  gracePeriod?: number; // in days
+  totalRepaid: number;
+  remainingBalance: number;
+  nextPaymentDate?: Date | string;
+  status: FinancialSupportStatus;
+  supportingDocument?: string;
+  ownerPrivateNote?: string;
+  recipientVisibleNote?: string;
+  visibilityMode: VisibilityMode;
+  createdBy: string;
+  giftConversions?: ILifeGiftConversion[];
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface ILifeInstallment {
+  _id: string;
+  financialSupportId: string;
+  installmentNumber: number;
+  dueDate: Date | string;
+  expectedAmount: number;
+  paidAmount: number;
+  remainingAmount: number;
+  paymentDate?: Date | string;
+  paymentMethod?: string;
+  transactionReference?: string;
+  receiptUrl?: string;
+  status: InstallmentStatus;
+  note?: string;
+  previousVersions?: Array<{
+    expectedAmount: number;
+    dueDate: Date | string;
+    changedAt: Date | string;
+    reason?: string;
+  }>;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface ILifePaymentConfirmation {
+  _id: string;
+  financialSupportId: string;
+  installmentId?: string;
+  submittedByPersonId: string;
+  submittedByName: string;
+  amount: number;
+  currency: string;
+  paymentDate: Date | string;
+  paymentMethod: string;
+  transactionReference?: string;
+  receiptUrl?: string;
+  status: PaymentConfirmationStatus;
+  reviewedBy?: string;
+  reviewedAt?: Date | string;
+  reviewNote?: string;
+  createdAt: Date | string;
+}
+
+export interface ILifeFinancialHistory {
+  _id: string;
+  financialSupportId: string;
+  eventType:
+    | "support_created"
+    | "amount_received"
+    | "schedule_added"
+    | "installment_paid"
+    | "due_date_changed"
+    | "payment_paused"
+    | "amount_waived"
+    | "converted_to_gift"
+    | "fully_repaid"
+    | "record_closed"
+    | "correction";
+  description: string;
+  amount?: number;
+  previousValue?: string | number;
+  newValue?: string | number;
+  performedBy: string;
+  performedByName?: string;
+  createdAt: Date | string;
+}
+
+// Business & Partnership (§18, §19)
+export interface ILifeShareHistory {
+  _id: string;
+  businessId: string;
+  personId: string | ILifePerson;
+  personName?: string;
+  previousShare: number;
+  newShare: number;
+  effectiveDate: Date | string;
+  reason: string;
+  supportingAgreement?: string;
+  approvedBy: string;
+  witnessVerifier?: string;
+  previousVersionSnapshot?: string;
+  createdAt: Date | string;
+}
+
+export interface ILifeBusinessContinuity {
+  first24Hours?: string;
+  first7Days?: string;
+  contactListInstructions?: string;
+  serverMaintenanceInstructions?: string;
+  staffSalaryResponsiblePersonId?: string;
+  supplierPaymentResponsiblePersonId?: string;
+  customerSupportResponsiblePersonId?: string;
+  importantAccountAccessInstructions?: string;
+  soloDecisionRestrictions?: string;
+  maxApprovedExpense?: number;
+  continuityDirection?: "operate" | "transfer" | "sell";
+  notes?: string;
+}
+
+// Instructions (§20)
+export type InstructionType =
+  | "personal"
+  | "family"
+  | "business"
+  | "financial"
+  | "emergency"
+  | "medical"
+  | "property"
+  | "digital_accounts"
+  | "employee_salary"
+  | "religious_funeral"
+  | "final_wishes"
+  | "other";
+
+export interface ILifeInstruction {
+  _id: string;
+  title: string;
+  detailedInstruction: string;
+  instructionType: InstructionType;
+  assignedPersonId?: string | ILifePerson;
+  backupPersonId?: string | ILifePerson;
+  priority: ResponsibilityPriority;
+  relatedBusinessId?: string | ILifeBusiness;
+  relatedContactId?: string | ILifeContact;
+  relatedDocumentId?: string | ILifeDocument;
+  visibilityMode: VisibilityMode;
+  releaseCondition?: string;
+  effectiveDate?: Date | string;
+  reviewDate?: Date | string;
+  status: "active" | "draft" | "archived";
+  versionHistory?: Array<{
+    version: number;
+    content: string;
+    updatedAt: Date | string;
+    updatedBy: string;
+  }>;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
