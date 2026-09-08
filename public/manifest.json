@@ -4,40 +4,14 @@
   "description": "Private personal information, money management, legacy and business continuity system. AES-256 secured vault.",
   "start_url": "/",
   "scope": "/",
+  "id": "/",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui", "browser"],
   "background_color": "#070a12",
   "theme_color": "#070a12",
   "orientation": "portrait-primary",
-  "orientation_lock": "portrait-primary",
   "dir": "ltr",
   "lang": "en-US",
   "categories": ["productivity", "finance", "lifestyle", "security"],
-  "id": "/",
-  "launch_handler": {
-    "client_mode": "navigate-existing"
-  },
-  "edge_side_panel": {
-    "preferred_width": 400
-  },
-  "file_handlers": [
-    {
-      "action": "/documents",
-      "accept": {
-        "application/pdf": [".pdf"],
-        "image/*": [".png", ".jpg", ".jpeg", ".webp"],
-        "text/*": [".txt", ".md"]
-      },
-      "icons": [
-        {
-          "src": "/assets/images/logo.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ],
-      "launch_type": "single-client"
-    }
-  ],
   "icons": [
     {
       "src": "/assets/images/logo.png",
@@ -79,25 +53,37 @@
       "src": "/assets/images/logo.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/images/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/assets/images/logo.png",
       "sizes": "256x256",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/assets/images/logo.png",
       "sizes": "384x384",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/assets/images/logo.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/images/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
@@ -106,35 +92,29 @@
       "short_name": "Home",
       "description": "Open Life dashboard",
       "url": "/",
-      "icons": [{ "src": "/assets/images/logo.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/assets/images/logo.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Secure Vault",
       "short_name": "Vault",
       "description": "Access encrypted vault items",
       "url": "/vault",
-      "icons": [{ "src": "/assets/images/logo.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/assets/images/logo.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Money",
       "short_name": "Money",
       "description": "Financial records & settlements",
       "url": "/money",
-      "icons": [{ "src": "/assets/images/logo.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/assets/images/logo.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "People",
       "short_name": "People",
       "description": "People directory & delegations",
       "url": "/people",
-      "icons": [{ "src": "/assets/images/logo.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/assets/images/logo.png", "sizes": "192x192", "type": "image/png" }]
     }
   ],
-  "prefer_related_applications": false,
-  "protocol_handlers": [
-    {
-      "protocol": "web+life",
-      "url": "/?q=%s"
-    }
-  ]
+  "prefer_related_applications": false
 }

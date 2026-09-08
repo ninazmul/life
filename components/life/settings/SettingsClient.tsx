@@ -45,7 +45,11 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
     try {
       const outcome = await installApp();
       if (outcome === "accepted") {
-        toast.success("Life app installed successfully!");
+        toast.success(
+          "Installation accepted! Your phone is adding Life to your home screen or app drawer.",
+          { duration: 6000 }
+        );
+        setShowGuide(true);
       } else if (outcome === "ios_instructions") {
         setShowGuide(true);
         toast("Follow the steps below to add Life to your Home Screen", { icon: "📱" });
@@ -283,6 +287,32 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
                   <li>Click <strong>&quot;Install Life&quot;</strong></li>
                   <li>Launch directly from your Dock or Start Menu</li>
                 </ol>
+              </div>
+
+              {/* Troubleshooting Card */}
+              <div className="md:col-span-3 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs space-y-2">
+                <div className="flex items-center gap-2 font-bold text-amber-900 dark:text-amber-200">
+                  <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                  <span>Don&apos;t see the icon on your phone after installing? Check these 4 places:</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-muted-foreground">
+                  <div className="p-2.5 rounded-lg bg-card/70 border border-border space-y-1">
+                    <p className="font-semibold text-foreground">1. Swipe Up to Open App Drawer</p>
+                    <p>Most modern phones (Samsung, Xiaomi, Pixel) place new apps into the <strong>All Apps drawer</strong> by default, not on the desktop. Swipe up from your home screen and search for &quot;Life&quot;.</p>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-card/70 border border-border space-y-1">
+                    <p className="font-semibold text-foreground">2. Check Notification Shade</p>
+                    <p>Pull down your notification bar. Chrome often shows a notification saying <em>&quot;Adding Life...&quot;</em> that needs a few seconds to complete.</p>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-card/70 border border-border space-y-1">
+                    <p className="font-semibold text-foreground">3. Check Launcher Permission</p>
+                    <p>On Xiaomi/MIUI, Vivo, or Oppo: Open phone <strong>Settings → Apps → Chrome → Other permissions</strong> and turn on <strong>&quot;Home screen shortcuts&quot;</strong>.</p>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-card/70 border border-border space-y-1">
+                    <p className="font-semibold text-foreground">4. Manual Browser Menu (Always Works)</p>
+                    <p>In Chrome or Edge, tap the <strong>3 dots menu (⋮)</strong> in the top right, then tap <strong>&quot;Install app&quot;</strong> or <strong>&quot;Add to Home screen&quot;</strong>.</p>
+                  </div>
+                </div>
               </div>
             </div>
           )}

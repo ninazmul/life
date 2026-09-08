@@ -35,21 +35,19 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
   const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
-    if (
-      "serviceWorker" in navigator &&
-      process.env.NODE_ENV === "production"
-    ) {
+    // Register Service Worker in all environments (local IP / dev / prod)
+    if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("/sw.js")
-        .then((reg) =>
-          console.log("Life PWA SW registered:", reg.scope),
-        )
-        .catch((err) =>
-          console.log("Life PWA SW registration failed:", err),
-        );
+        .then((reg) => {
+          console.log("Life PWA SW registered successfully:", reg.scope);
+        })
+        .catch((err) => {
+          console.warn("Life PWA SW registration note:", err?.message || err);
+        });
     }
 
-    // Check if running in standalone mode (already installed)
+    // Check if running in standalone mode (already installed and launched as PWA)
     const checkStandalone = () => {
       const isStandalone =
         window.matchMedia("(display-mode: standalone)").matches ||
@@ -59,7 +57,7 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
     };
     checkStandalone();
 
-    // Detect iOS
+    // Detect iOS devices
     const isIOSDevice =
       typeof navigator !== "undefined" &&
       (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
@@ -79,12 +77,13 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
     const handleInstallPrompt = (e: Event) => {
       e.preventDefault();
       setInstallPrompt(e);
-      // Only show top banner if not already installed
+      // Only show top banner if not already in standalone mode
       if (!window.matchMedia("(display-mode: standalone)").matches) {
         setShowInstallBanner(true);
       }
     };
 
+    // Actual OS installation confirmation event
     const handleAppInstalled = () => {
       setIsInstalled(true);
       setInstallPrompt(null);
@@ -104,15 +103,20 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
 
   const installApp = useCallback(async (): Promise<"accepted" | "dismissed" | "ios_instructions" | "unsupported"> => {
     if (installPrompt) {
-      installPrompt.prompt();
-      const { outcome } = await installPrompt.userChoice;
-      if (outcome === "accepted") {
-        setIsInstalled(true);
-        setInstallPrompt(null);
-        setShowInstallBanner(false);
-        return "accepted";
+      try {
+        await installPrompt.prompt();
+        const choiceResult = await installPrompt.userChoice;
+        if (choiceResult && choiceResult.outcome === "accepted") {
+          // User approved installation prompt; OS will now download/place the WebAPK or shortcut
+          setInstallPrompt(null);
+          setShowInstallBanner(false);
+          return "accepted";
+        }
+        return "dismissed";
+      } catch (err) {
+        console.warn("installPrompt execution error:", err);
+        return "unsupported";
       }
-      return "dismissed";
     }
 
     if (isIOS) {
