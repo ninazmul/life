@@ -81,8 +81,8 @@ export async function setVaultPin(pin: string) {
 export async function exportLifeBackup() {
   await connectToDatabase();
   const auth = await getLifeAuthContext();
-  if (!auth || !auth.isOwner) {
-    throw new Error("Forbidden: Only the primary Owner can export complete database backups.");
+  if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+    throw new Error("Forbidden: Only Administrators can export complete database backups.");
   }
 
   const [

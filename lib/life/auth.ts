@@ -3,6 +3,7 @@ import { connectToDatabase } from "@/lib/database";
 import Admin from "@/lib/database/models/admin.model";
 import LifePerson from "@/lib/database/models/lifePerson.model";
 import LifeActivityLog from "@/lib/database/models/lifeActivityLog.model";
+import LifeEmergencyAccess from "@/lib/database/models/lifeEmergencyAccess.model";
 import { LifeRole, LifePermission } from "@/types";
 
 export interface LifeAuthContext {
@@ -40,7 +41,7 @@ export async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
 
     await connectToDatabase();
 
-    const email = clerkUser.emailAddresses[0]?.emailAddress?.toLowerCase() || "";
+    const email = clerkUser.emailAddresses[0]?.emailAddress?.toLowerCase().trim() || "";
     const name =
       `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() ||
       email.split("@")[0] ||
@@ -80,20 +81,59 @@ export async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
       status: { $ne: "archived" },
     });
 
+    if (personDoc && personDoc.status === "locked") {
+      throw new Error("Your access to Life has been locked. Please contact the Owner.");
+    }
+
+    if (personDoc && !personDoc.clerkUserId) {
+      personDoc.clerkUserId = userId;
+      await personDoc.save();
+    }
+
+    // Check Emergency Protocol state and designated emergency delegation
+    const emergencyDoc = await LifeEmergencyAccess.findOne();
+    const primary = (emergencyDoc?.primaryAdminEmail || "").toLowerCase().trim();
+    const secondary = (emergencyDoc?.secondaryAdminEmail || "").toLowerCase().trim();
+    const isDesignatedEmergencyAdmin = Boolean(email && (email === primary || email === secondary));
+
+    // DYNAMIC ELEVATION:
+    // If Emergency Mode is active AND caller is a designated emergency admin (Primary or Secondary),
+    // they automatically inherit FULL SUPER-ADMIN & CONTINUITY ACCESS (DEFAULT_OWNER_PERMS)!
+    // The Primary Emergency Admin automatically steps into the Super Admin / Owner role.
+    if (emergencyDoc?.isEmergencyActive && isDesignatedEmergencyAdmin) {
+      const isPrimary = email === primary;
+      return {
+        userId,
+        email,
+        name: personDoc?.name || name,
+        avatarUrl: personDoc?.avatarUrl || avatarUrl,
+        role: isPrimary ? "super_admin" : "admin",
+        isOwner: isPrimary,
+        isAdmin: true,
+        personId: personDoc ? String(personDoc._id) : undefined,
+        permissions: DEFAULT_OWNER_PERMS,
+      };
+    }
+
     if (personDoc) {
-      if (personDoc.status === "locked") {
-        throw new Error("Your access to Life has been locked. Please contact the Owner.");
-      }
-
-      // Sync clerkUserId if missing
-      if (!personDoc.clerkUserId) {
-        personDoc.clerkUserId = userId;
-        await personDoc.save();
-      }
-
       const role = (personDoc.role || "individual") as LifeRole;
       const isOwner = role === "owner";
       const isAdmin = isOwner || role === "super_admin" || role === "admin";
+
+      const perms: LifePermission = isOwner
+        ? DEFAULT_OWNER_PERMS
+        : {
+            ...(personDoc.permissions || {
+              canViewPersonal: false,
+              canViewBusiness: role === "business",
+              canViewFinancial: false,
+              canViewSensitive: false,
+              canRevealVault: false,
+              canManageAccess: false,
+              canAccessEmergency: false,
+            }),
+            ...(isDesignatedEmergencyAdmin ? { canAccessEmergency: true } : {}),
+          };
 
       return {
         userId,
@@ -104,17 +144,29 @@ export async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
         isOwner,
         isAdmin,
         personId: String(personDoc._id),
-        permissions: isOwner
-          ? DEFAULT_OWNER_PERMS
-          : personDoc.permissions || {
-              canViewPersonal: false,
-              canViewBusiness: role === "business",
-              canViewFinancial: false,
-              canViewSensitive: false,
-              canRevealVault: false,
-              canManageAccess: false,
-              canAccessEmergency: false,
-            },
+        permissions: perms,
+      };
+    }
+
+    // If designated emergency delegate but not yet created in LifePerson directory
+    if (isDesignatedEmergencyAdmin) {
+      return {
+        userId,
+        email,
+        name,
+        avatarUrl,
+        role: "individual",
+        isOwner: false,
+        isAdmin: false,
+        permissions: {
+          canViewPersonal: false,
+          canViewBusiness: false,
+          canViewFinancial: false,
+          canViewSensitive: false,
+          canRevealVault: false,
+          canManageAccess: false,
+          canAccessEmergency: true,
+        },
       };
     }
 
