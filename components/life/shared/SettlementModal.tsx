@@ -77,14 +77,14 @@ export function SettlementModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="life-dialog sm:max-w-md rounded-2xl border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100">
+      <DialogContent className="life-dialog sm:max-w-md rounded-3xl border border-border/80 dark:border-slate-800 bg-white dark:bg-slate-950 text-foreground shadow-2xl">
         <DialogHeader>
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 shrink-0">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/20 shrink-0">
               <DollarSign className="w-5 h-5" />
             </div>
             <div>
-              <DialogTitle className="text-base font-bold text-slate-100">
+              <DialogTitle className="text-base font-bold text-foreground">
                 Record Settlement Repayment
               </DialogTitle>
               <p className="text-xs text-slate-400 truncate max-w-[280px]">

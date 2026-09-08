@@ -103,28 +103,62 @@ body {
 }
 
 @layer components {
+  /* Comprehensive Dialog & Modal Backgrounds */
   body .life-dialog,
-  body .life-drawer {
-    background-color: hsl(var(--card) / 0.98);
-    border-color: hsl(var(--border));
-    color: hsl(var(--card-foreground));
+  body .life-drawer,
+  body [role="dialog"],
+  div[role="dialog"] {
+    background-color: hsl(var(--card)) !important;
+    border-color: hsl(var(--border)) !important;
+    color: hsl(var(--foreground)) !important;
   }
 
-  .life-dialog input,
-  .life-dialog select,
-  .life-dialog textarea,
-  .life-drawer input,
-  .life-drawer select,
-  .life-drawer textarea {
-    background-color: hsl(var(--background));
-    border-color: hsl(var(--input));
-    color: hsl(var(--foreground));
+  html:not(.dark) body .life-dialog,
+  html:not(.dark) body .life-drawer,
+  html:not(.dark) div[role="dialog"] {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    color: #0f172a !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  }
+
+  html.dark body .life-dialog,
+  html.dark body .life-drawer,
+  html.dark div[role="dialog"] {
+    background-color: #030712 !important; /* slate-950 */
+    border-color: #1e293b !important; /* slate-800 */
+    color: #f8fafc !important; /* slate-50 */
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75) !important;
+  }
+
+  html:not(.dark) .life-dialog input,
+  html:not(.dark) .life-dialog select,
+  html:not(.dark) .life-dialog textarea,
+  html:not(.dark) [role="dialog"] input,
+  html:not(.dark) [role="dialog"] select,
+  html:not(.dark) [role="dialog"] textarea {
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+  }
+
+  html.dark .life-dialog input,
+  html.dark .life-dialog select,
+  html.dark .life-dialog textarea,
+  html.dark [role="dialog"] input,
+  html.dark [role="dialog"] select,
+  html.dark [role="dialog"] textarea {
+    background-color: #0f172a !important;
+    border-color: #1e293b !important;
+    color: #f8fafc !important;
   }
 
   .life-dialog input::placeholder,
   .life-dialog textarea::placeholder,
   .life-drawer input::placeholder,
-  .life-drawer textarea::placeholder {
+  .life-drawer textarea::placeholder,
+  [role="dialog"] input::placeholder,
+  [role="dialog"] textarea::placeholder {
     color: hsl(var(--muted-foreground));
   }
 

@@ -154,7 +154,7 @@ export function LifeMoreSheet({ open, onOpenChange, userAccess }: LifeMoreSheetP
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="life-drawer max-h-[85vh] rounded-t-3xl border-t backdrop-blur-2xl p-0 overflow-hidden shadow-2xl"
+        className="life-drawer max-h-[85vh] rounded-t-3xl border-t border-border/80 dark:border-slate-800 bg-white dark:bg-slate-950 text-foreground p-0 overflow-hidden shadow-2xl"
       >
         <div
           className="w-12 h-1.5 bg-muted-foreground/30 rounded-full mx-auto mt-3 mb-1"

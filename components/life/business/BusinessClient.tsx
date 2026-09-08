@@ -478,9 +478,9 @@ export function BusinessClient({
 
       {/* Add Business Modal */}
       <Dialog open={addBizModalOpen} onOpenChange={setAddBizModalOpen}>
-        <DialogContent className="life-dialog sm:max-w-lg rounded-2xl border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100 max-h-[90vh] overflow-y-auto">
+        <DialogContent className="life-dialog sm:max-w-lg rounded-3xl border border-border/80 dark:border-slate-800 bg-white dark:bg-slate-950 text-foreground max-h-[90vh] overflow-y-auto shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-slate-100 flex items-center gap-2">
+            <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
               <Briefcase className="w-5 h-5 text-cyan-300" />
               <span>Add Business Entity</span>
             </DialogTitle>
@@ -613,9 +613,9 @@ export function BusinessClient({
 
       {/* Add Continuity Step Modal */}
       <Dialog open={addStepModalOpen} onOpenChange={setAddStepModalOpen}>
-        <DialogContent className="life-dialog sm:max-w-md rounded-2xl border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100">
+        <DialogContent className="life-dialog sm:max-w-md rounded-3xl border border-border/80 dark:border-slate-800 bg-white dark:bg-slate-950 text-foreground shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-slate-100 flex items-center gap-2">
+            <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-cyan-300" />
               <span>Add &quot;If I Am Not Available&quot; Instruction</span>
             </DialogTitle>

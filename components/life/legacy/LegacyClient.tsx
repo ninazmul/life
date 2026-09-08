@@ -262,17 +262,17 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
           open={Boolean(selectedLetter)}
           onOpenChange={(open) => !open && setSelectedLetter(null)}
         >
-          <DialogContent className="life-dialog sm:max-w-xl rounded-3xl border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100 max-h-[85vh] overflow-y-auto">
+          <DialogContent className="life-dialog sm:max-w-xl rounded-3xl border border-border/80 dark:border-slate-800 bg-white dark:bg-slate-950 text-foreground max-h-[85vh] overflow-y-auto shadow-2xl">
             <DialogHeader>
               <div className="flex items-center justify-between pr-4">
-                <span className="text-xs uppercase font-bold text-rose-300">
+                <span className="text-xs uppercase font-bold text-rose-600 dark:text-rose-400">
                   Private Legacy Letter
                 </span>
-                <span className="text-[10px] text-slate-500 font-mono">
+                <span className="text-[10px] text-muted-foreground font-mono">
                   {new Date(selectedLetter.createdAt).toLocaleDateString()}
                 </span>
               </div>
-              <DialogTitle className="text-xl font-serif font-bold text-slate-100 pt-1">
+              <DialogTitle className="text-xl font-serif font-bold text-foreground pt-1">
                 {selectedLetter.title}
               </DialogTitle>
               <p className="text-xs text-slate-400 font-sans">
@@ -302,9 +302,9 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
 
       {/* Write Legacy Letter Modal */}
       <Dialog open={addModalOpen} onOpenChange={setAddModalOpen}>
-        <DialogContent className="life-dialog sm:max-w-lg rounded-2xl border border-slate-800 bg-slate-950/98 backdrop-blur-2xl text-slate-100 max-h-[90vh] overflow-y-auto">
+        <DialogContent className="life-dialog sm:max-w-lg rounded-3xl border border-border/80 dark:border-slate-800 bg-white dark:bg-slate-950 text-foreground max-h-[90vh] overflow-y-auto shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-slate-100 flex items-center gap-2">
+            <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
               <HeartHandshake className="w-5 h-5 text-rose-300" />
               <span>Compose Legacy Letter</span>
             </DialogTitle>
