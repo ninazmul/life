@@ -3,19 +3,24 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Users, Briefcase, KeyRound, Grid } from "lucide-react";
+import { canAccessModule, UserModuleAccess } from "@/lib/life/module-access";
 
 interface LifeBottomNavProps {
   onOpenMore: () => void;
   activeLoansCount?: number;
+  userAccess: UserModuleAccess;
 }
 
 export function LifeBottomNav({
   onOpenMore,
   activeLoansCount = 0,
+  userAccess,
 }: LifeBottomNavProps) {
   const pathname = usePathname();
+  const { isOwner, isAdmin, permissions } = userAccess;
+  const isSuperUser = isOwner || isAdmin;
 
-  const navItems: Array<{
+  const allNavItems: Array<{
     label: string;
     href: string;
     icon: any;
@@ -47,6 +52,11 @@ export function LifeBottomNav({
       isActive: pathname.startsWith("/vault"),
     },
   ];
+
+  // Filter nav items by user permissions
+  const navItems = allNavItems.filter((item) =>
+    canAccessModule(item.href, permissions, isSuperUser)
+  );
 
   const isMoreActive =
     pathname.startsWith("/information") ||

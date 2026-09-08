@@ -1,10 +1,12 @@
 import { UserGuideClient } from "@/components/life/guide/UserGuideClient";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
-  title: "User Guide | LIFE",
+  title: "User Guide & Manual | LIFE Vault",
   description:
-    "Learn how to use all LIFE modules — People, Money, Vault, Business Continuity, Legacy Messages, and more.",
+    "Comprehensive guide on using LIFE Vault — Businesses, Financial Support, Money Ledger, Assets, AES-256 Vault, Personal Info, People Directory, Important Contacts, Documents, Responsibilities & Instructions, Beneficiaries, Legacy Messages, Trusted Guardians & Access Permissions.",
 };
 
 export default function UserGuidePage() {

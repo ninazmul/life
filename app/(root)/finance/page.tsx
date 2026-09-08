@@ -5,8 +5,8 @@ import {
 } from "@/lib/actions/lifeFinancialSupport.actions";
 import { getPeople } from "@/lib/actions/lifePeople.actions";
 import { getBusinesses } from "@/lib/actions/lifeBusiness.actions";
-import { getLifeAuthContext } from "@/lib/life/auth";
 import { FinancialSupportList } from "@/components/life/finance/FinancialSupportList";
+import { requireModuleAccess } from "@/lib/life/module-access.server";
 
 export const dynamic = "force-dynamic";
 
@@ -16,8 +16,9 @@ export const metadata = {
 };
 
 export default async function FinancePage() {
-  const [authContext, records, people, businesses] = await Promise.all([
-    getLifeAuthContext(),
+  const authContext = await requireModuleAccess("/finance");
+
+  const [records, people, businesses] = await Promise.all([
     getFinancialSupports(),
     getPeople({ status: "active" }),
     getBusinesses(),

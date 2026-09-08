@@ -1,15 +1,15 @@
 import { getEmergencyAccessState } from "@/lib/actions/lifeAccess.actions";
 import { getPeople } from "@/lib/actions/lifePeople.actions";
-import { getLifeAuthContext } from "@/lib/life/auth";
 import { AccessClient } from "@/components/life/access/AccessClient";
+import { requireModuleAccess } from "@/lib/life/module-access.server";
 
 export const dynamic = "force-dynamic";
 
 export default async function AccessPage() {
-  const [emergencyState, people, authContext] = await Promise.all([
+  const [authContext, emergencyState, people] = await Promise.all([
+    requireModuleAccess("/access"),
     getEmergencyAccessState(),
     getPeople({ status: "active" }),
-    getLifeAuthContext(),
   ]);
 
   const userEmail = authContext?.email?.toLowerCase().trim() || "";

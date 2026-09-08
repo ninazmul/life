@@ -17,15 +17,160 @@ import {
   ShieldCheck,
   Clock,
   Sparkles,
+  HeartHandshake,
+  ShieldAlert,
+  Contact,
+  FolderLock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LifeDashboardStats } from "@/types";
+import { canAccessModule, UserModuleAccess } from "@/lib/life/module-access";
 
 interface LifeDashboardClientProps {
   stats: LifeDashboardStats;
+  userAccess?: UserModuleAccess;
 }
 
-export function LifeDashboardClient({ stats }: LifeDashboardClientProps) {
+export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientProps) {
+  const isSuperUser = userAccess ? userAccess.isOwner || userAccess.isAdmin : true;
+  const permissions = userAccess?.permissions || {
+    canViewPersonal: true,
+    canViewBusiness: true,
+    canViewFinancial: true,
+    canViewSensitive: true,
+    canRevealVault: true,
+    canManageAccess: true,
+    canAccessEmergency: true,
+  };
+
+  // Module access checks
+  const hasFinanceAccess = canAccessModule("/finance", permissions, isSuperUser);
+  const hasMoneyAccess = canAccessModule("/money", permissions, isSuperUser);
+  const hasPeopleAccess = canAccessModule("/people", permissions, isSuperUser);
+  const hasVaultAccess = canAccessModule("/vault", permissions, isSuperUser);
+  const hasBusinessAccess = canAccessModule("/business", permissions, isSuperUser);
+  const hasAssetsAccess = canAccessModule("/assets", permissions, isSuperUser);
+  const hasGuardiansAccess = canAccessModule("/guardians", permissions, isSuperUser);
+  const hasInstructionsAccess = canAccessModule("/instructions", permissions, isSuperUser);
+  const hasActivityAccess = canAccessModule("/activity", permissions, isSuperUser);
+  const hasDocumentsAccess = canAccessModule("/documents", permissions, isSuperUser);
+  const hasLegacyAccess = canAccessModule("/legacy", permissions, isSuperUser);
+  const hasBeneficiariesAccess = canAccessModule("/beneficiaries", permissions, isSuperUser);
+  const hasContactsAccess = canAccessModule("/contacts", permissions, isSuperUser);
+  const hasInfoAccess = canAccessModule("/information", permissions, isSuperUser);
+
+  // Filter urgent items by module permissions
+  const filteredUrgentItems = stats.urgentItems.filter((item) =>
+    canAccessModule(item.link, permissions, isSuperUser)
+  );
+
+  // Define all possible directory cards with permissions
+  const allDirectoryCards = [
+    {
+      title: "People & Roles",
+      href: "/people",
+      desc: "Wife, Brother, Sabbir, Sana & trusted contacts",
+      icon: Users,
+      badge: `${stats.peopleCount} entries`,
+      badgeValue: stats.peopleCount,
+      color: "emerald",
+      hasAccess: hasPeopleAccess,
+    },
+    {
+      title: "Secure Vault",
+      href: "/vault",
+      desc: "Web credentials, server keys & master PINs",
+      icon: KeyRound,
+      badge: "AES-256",
+      badgeValue: "AES-256",
+      color: "amber",
+      hasAccess: hasVaultAccess,
+    },
+    {
+      title: "Business Continuity",
+      href: "/business",
+      desc: "\"If I Am Not Available\" checklist & equity",
+      icon: Briefcase,
+      badge: `${stats.businessCount} plans`,
+      badgeValue: stats.businessCount,
+      color: "cyan",
+      hasAccess: hasBusinessAccess,
+    },
+    {
+      title: "Assets & Holdings",
+      href: "/assets",
+      desc: "Bank balances, properties & valuable equipment",
+      icon: Layers,
+      badge: `৳${stats.assetsTotalValue.toLocaleString()}`,
+      badgeValue: `৳${stats.assetsTotalValue.toLocaleString()}`,
+      color: "indigo",
+      hasAccess: hasAssetsAccess,
+    },
+    {
+      title: "Financial Support",
+      href: "/finance",
+      desc: "Loans, monthly commitments & family support",
+      icon: Wallet,
+      badge: `${stats.upcomingPaymentsCount} active`,
+      badgeValue: stats.upcomingPaymentsCount,
+      color: "emerald",
+      hasAccess: hasFinanceAccess && !isSuperUser,
+    },
+    {
+      title: "Responsibilities & Instructions",
+      href: "/instructions",
+      desc: "Assigned tasks & critical handovers",
+      icon: FileText,
+      badge: `${stats.pendingResponsibilitiesCount} tasks`,
+      badgeValue: stats.pendingResponsibilitiesCount,
+      color: "sky",
+      hasAccess: hasInstructionsAccess && !isSuperUser,
+    },
+    {
+      title: "Emergency & Guardians",
+      href: "/guardians",
+      desc: "Multi-party consensus & emergency protocol",
+      icon: ShieldAlert,
+      badge: `${stats.trustedGuardiansCount} guardians`,
+      badgeValue: stats.trustedGuardiansCount,
+      color: "rose",
+      hasAccess: hasGuardiansAccess && !isSuperUser,
+    },
+    {
+      title: "Documents & Files",
+      href: "/documents",
+      desc: "Passports, deeds, certificates & contracts",
+      icon: FolderLock,
+      badge: "Encrypted",
+      badgeValue: "Encrypted",
+      color: "purple",
+      hasAccess: hasDocumentsAccess && !isSuperUser,
+    },
+    {
+      title: "Beneficiaries & Nominees",
+      href: "/beneficiaries",
+      desc: "Asset allocations & nominee designations",
+      icon: HeartHandshake,
+      badge: "Designated",
+      badgeValue: "Designated",
+      color: "rose",
+      hasAccess: hasBeneficiariesAccess && !isSuperUser,
+    },
+    {
+      title: "Emergency Contacts",
+      href: "/contacts",
+      desc: "Lawyers, doctors, accountants & trusted people",
+      icon: Contact,
+      badge: "Emergency",
+      badgeValue: "Emergency",
+      color: "amber",
+      hasAccess: hasContactsAccess && !isSuperUser,
+    },
+  ];
+
+  // Filter cards to only those the user can access
+  const visibleCards = allDirectoryCards.filter((card) => card.hasAccess);
+
   return (
     <div className="space-y-6">
       <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-5 shadow-sm ring-1 ring-emerald-500/10 dark:bg-slate-950/70 sm:p-7">
@@ -38,57 +183,98 @@ export function LifeDashboardClient({ stats }: LifeDashboardClientProps) {
                 strokeWidth={2}
                 aria-hidden="true"
               />
-              <span>Personal Legacy & Continuity Active</span>
+              <span>
+                {isSuperUser
+                  ? "Personal Legacy & Continuity Active"
+                  : "Authorized Access Portal"}
+              </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
-              Life Command Center
+              {isSuperUser ? "Life Command Center" : "Your Life Vault Portal"}
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground max-w-xl mt-1 leading-relaxed">
-              Your private wealth, business continuity, emergency instructions,
-              and legacy messages organized securely in one place.
+              {isSuperUser
+                ? "Your private wealth, business continuity, emergency instructions, and legacy messages organized securely in one place."
+                : "Secure access to your assigned modules, instructions, and business continuity protocols."}
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <Button
-              asChild
-              size="sm"
-              className="h-9 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs gap-1.5 shadow-md shadow-emerald-950/40"
-            >
-              <Link href="/finance" aria-label="Add new financial record">
-                <Plus
-                  className="w-3.5 h-3.5 shrink-0"
-                  strokeWidth={2}
-                  aria-hidden="true"
-                />
-                Financial Support
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="h-9 px-3.5 rounded-xl border-border bg-background hover:bg-accent text-foreground text-xs font-medium gap-1.5 shadow-sm"
-            >
-              <Link href="/people" aria-label="Add a new person">
-                <Users
-                  className="w-3.5 h-3.5 shrink-0"
-                  strokeWidth={2}
-                  aria-hidden="true"
-                />
-                Add Person
-              </Link>
-            </Button>
+            {hasFinanceAccess && (
+              <Button
+                asChild
+                size="sm"
+                className="h-9 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs gap-1.5 shadow-md shadow-emerald-950/40"
+              >
+                <Link href="/finance" aria-label="Financial Support">
+                  <Plus
+                    className="w-3.5 h-3.5 shrink-0"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
+                  Financial Support
+                </Link>
+              </Button>
+            )}
+            {hasPeopleAccess && (
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="h-9 px-3.5 rounded-xl border-border bg-background hover:bg-accent text-foreground text-xs font-medium gap-1.5 shadow-sm"
+              >
+                <Link href="/people" aria-label="People Directory">
+                  <Users
+                    className="w-3.5 h-3.5 shrink-0"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
+                  People Directory
+                </Link>
+              </Button>
+            )}
+            {!hasFinanceAccess && !hasPeopleAccess && hasBusinessAccess && (
+              <Button
+                asChild
+                size="sm"
+                className="h-9 px-3.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs gap-1.5 shadow-md shadow-cyan-950/40"
+              >
+                <Link href="/business" aria-label="Business Continuity">
+                  <Briefcase
+                    className="w-3.5 h-3.5 shrink-0"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
+                  Business Continuity
+                </Link>
+              </Button>
+            )}
+            {!hasFinanceAccess && !hasPeopleAccess && !hasBusinessAccess && hasInstructionsAccess && (
+              <Button
+                asChild
+                size="sm"
+                className="h-9 px-3.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs gap-1.5 shadow-md shadow-sky-950/40"
+              >
+                <Link href="/instructions" aria-label="My Instructions">
+                  <FileText
+                    className="w-3.5 h-3.5 shrink-0"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
+                  My Instructions
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
       </div>
 
-      {/* §24 Top Section: Owner Safety, Emergency Mode, Guardians, and Continuity Readiness */}
+      {/* §24 Continuity & Safety State */}
       <section className="space-y-2.5" aria-label="Continuity & Safety Readiness">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-            <span>Continuity & Safety State (§24)</span>
+            <span>Continuity & Safety State</span>
           </h2>
           <span className="text-[11px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
             System Operational
@@ -113,88 +299,109 @@ export function LifeDashboardClient({ stats }: LifeDashboardClientProps) {
           </div>
 
           {/* Emergency Mode Status */}
-          <Link
-            href="/guardians"
-            className="p-3.5 rounded-2xl bg-card border border-border hover:border-red-500/30 transition-all shadow-sm flex flex-col justify-between"
-          >
-            <span className="text-[11px] font-medium text-muted-foreground">Emergency Mode</span>
-            <div className="my-1">
+          {hasGuardiansAccess ? (
+            <Link
+              href="/guardians"
+              className="p-3.5 rounded-2xl bg-card border border-border hover:border-red-500/30 transition-all shadow-sm flex flex-col justify-between"
+            >
+              <span className="text-[11px] font-medium text-muted-foreground">Emergency Mode</span>
+              <div className="my-1">
+                <span
+                  className={`text-sm font-extrabold ${
+                    stats.emergencyModeStatus === "Active" ? "text-red-600" : "text-foreground"
+                  }`}
+                >
+                  {stats.emergencyModeStatus || "Normal"}
+                </span>
+              </div>
+              <span className="text-[10px] text-muted-foreground">Protocol Ready</span>
+            </Link>
+          ) : (
+            <div className="p-3.5 rounded-2xl bg-card border border-border shadow-sm flex flex-col justify-between">
+              <span className="text-[11px] font-medium text-muted-foreground">Emergency Mode</span>
+              <div className="my-1">
+                <span className="text-sm font-extrabold text-foreground">
+                  {stats.emergencyModeStatus || "Normal"}
+                </span>
+              </div>
+              <span className="text-[10px] text-muted-foreground">Protocol Ready</span>
+            </div>
+          )}
+
+          {/* Trusted Guardians - Only if has Guardians access */}
+          {hasGuardiansAccess && (
+            <Link
+              href="/guardians"
+              className="p-3.5 rounded-2xl bg-card border border-border hover:border-emerald-500/30 transition-all shadow-sm flex flex-col justify-between"
+            >
+              <span className="text-[11px] font-medium text-muted-foreground">Guardians</span>
+              <div className="my-1">
+                <span className="text-lg font-extrabold text-blue-600 dark:text-blue-400 font-mono">
+                  {stats.trustedGuardiansCount || 0}
+                </span>
+              </div>
+              <span className="text-[10px] text-muted-foreground">Multi-Party Trust</span>
+            </Link>
+          )}
+
+          {/* Pending Responsibilities - Only if has Instructions access */}
+          {hasInstructionsAccess && (
+            <Link
+              href="/instructions"
+              className="p-3.5 rounded-2xl bg-card border border-border hover:border-emerald-500/30 transition-all shadow-sm flex flex-col justify-between"
+            >
+              <span className="text-[11px] font-medium text-muted-foreground">Responsibilities</span>
+              <div className="my-1">
+                <span className="text-lg font-extrabold text-foreground font-mono">
+                  {stats.pendingResponsibilitiesCount || 0}
+                </span>
+              </div>
+              <span className="text-[10px] text-amber-600 font-medium">In Progress</span>
+            </Link>
+          )}
+
+          {/* Business Continuity Readiness - Only if has Business access */}
+          {hasBusinessAccess && (
+            <Link
+              href="/business"
+              className="p-3.5 rounded-2xl bg-card border border-border hover:border-emerald-500/30 transition-all shadow-sm flex flex-col justify-between"
+            >
+              <span className="text-[11px] font-medium text-muted-foreground">Continuity Ready</span>
+              <div className="my-1">
+                <span className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
+                  {stats.businessContinuityReadiness || 100}%
+                </span>
+              </div>
+              <span className="text-[10px] text-muted-foreground">If Not Available</span>
+            </Link>
+          )}
+
+          {/* Upcoming / Overdue Payments - Only if has Finance access */}
+          {hasFinanceAccess && (
+            <Link
+              href="/finance"
+              className="p-3.5 rounded-2xl bg-card border border-border hover:border-emerald-500/30 transition-all shadow-sm flex flex-col justify-between"
+            >
+              <span className="text-[11px] font-medium text-muted-foreground">Financial Support</span>
+              <div className="my-1">
+                <span className="text-sm font-extrabold text-foreground">
+                  {stats.upcomingPaymentsCount || 0} Active
+                </span>
+              </div>
               <span
-                className={`text-sm font-extrabold ${
-                  stats.emergencyModeStatus === "Active" ? "text-red-600" : "text-foreground"
+                className={`text-[10px] font-medium ${
+                  (stats.overduePaymentsCount || 0) > 0 ? "text-red-500" : "text-muted-foreground"
                 }`}
               >
-                {stats.emergencyModeStatus || "Normal"}
+                {stats.overduePaymentsCount || 0} Overdue
               </span>
-            </div>
-            <span className="text-[10px] text-muted-foreground">Protocol Ready</span>
-          </Link>
-
-          {/* Trusted Guardians */}
-          <Link
-            href="/guardians"
-            className="p-3.5 rounded-2xl bg-card border border-border hover:border-emerald-500/30 transition-all shadow-sm flex flex-col justify-between"
-          >
-            <span className="text-[11px] font-medium text-muted-foreground">Guardians</span>
-            <div className="my-1">
-              <span className="text-lg font-extrabold text-blue-600 dark:text-blue-400 font-mono">
-                {stats.trustedGuardiansCount || 0}
-              </span>
-            </div>
-            <span className="text-[10px] text-muted-foreground">Multi-Party Trust</span>
-          </Link>
-
-          {/* Pending Responsibilities */}
-          <Link
-            href="/instructions"
-            className="p-3.5 rounded-2xl bg-card border border-border hover:border-emerald-500/30 transition-all shadow-sm flex flex-col justify-between"
-          >
-            <span className="text-[11px] font-medium text-muted-foreground">Responsibilities</span>
-            <div className="my-1">
-              <span className="text-lg font-extrabold text-foreground font-mono">
-                {stats.pendingResponsibilitiesCount || 0}
-              </span>
-            </div>
-            <span className="text-[10px] text-amber-600 font-medium">In Progress</span>
-          </Link>
-
-          {/* Business Continuity Readiness */}
-          <Link
-            href="/business"
-            className="p-3.5 rounded-2xl bg-card border border-border hover:border-emerald-500/30 transition-all shadow-sm flex flex-col justify-between"
-          >
-            <span className="text-[11px] font-medium text-muted-foreground">Continuity Ready</span>
-            <div className="my-1">
-              <span className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
-                {stats.businessContinuityReadiness || 100}%
-              </span>
-            </div>
-            <span className="text-[10px] text-muted-foreground">If Not Available</span>
-          </Link>
-
-          {/* Upcoming / Overdue Payments */}
-          <Link
-            href="/finance"
-            className="p-3.5 rounded-2xl bg-card border border-border hover:border-emerald-500/30 transition-all shadow-sm flex flex-col justify-between"
-          >
-            <span className="text-[11px] font-medium text-muted-foreground">Financial Support</span>
-            <div className="my-1">
-              <span className="text-sm font-extrabold text-foreground">
-                {stats.upcomingPaymentsCount || 0} Active
-              </span>
-            </div>
-            <span
-              className={`text-[10px] font-medium ${
-                (stats.overduePaymentsCount || 0) > 0 ? "text-red-500" : "text-muted-foreground"
-              }`}
-            >
-              {stats.overduePaymentsCount || 0} Overdue
-            </span>
-          </Link>
+            </Link>
+          )}
         </div>
       </section>
 
-      {stats.urgentItems.length > 0 && (
+      {/* Requires Attention - Filtered by module permissions */}
+      {filteredUrgentItems.length > 0 && (
         <section className="space-y-2.5" aria-label="Items requiring attention">
           <div className="flex items-center justify-between px-1">
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
@@ -206,12 +413,12 @@ export function LifeDashboardClient({ stats }: LifeDashboardClientProps) {
               <span>Requires Attention</span>
             </h2>
             <span className="text-[11px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 shrink-0">
-              {stats.urgentItems.length} Urgent
+              {filteredUrgentItems.length} Urgent
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {stats.urgentItems.map((item) => (
+            {filteredUrgentItems.map((item) => (
               <Link
                 key={item.id}
                 href={item.link}
@@ -257,235 +464,184 @@ export function LifeDashboardClient({ stats }: LifeDashboardClientProps) {
         </section>
       )}
 
-      <section className="space-y-3" aria-label="Money and wealth overview">
-        <div className="flex items-center justify-between px-1 gap-2">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 min-w-0">
-            <Wallet
-              className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0"
-              strokeWidth={2}
-              aria-hidden="true"
-            />
-            <span className="truncate">Money & Wealth Overview</span>
-          </h2>
-          <Link
-            href="/money"
-            className="text-xs font-semibold text-emerald-700 hover:text-emerald-600 dark:text-emerald-300 dark:hover:text-emerald-200 flex items-center gap-1 shrink-0 whitespace-nowrap"
-          >
-            Detailed Financials{" "}
-            <ArrowRight
-              className="w-3 h-3 shrink-0"
-              strokeWidth={2}
-              aria-hidden="true"
-            />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <div className="p-3.5 rounded-2xl bg-card border border-border shadow-sm flex flex-col justify-between min-h-[104px]">
-            <span className="text-[11px] font-medium text-muted-foreground">
-              Money Given
-            </span>
-            <div className="my-1">
-              <span className="text-lg sm:text-xl font-extrabold text-foreground font-mono">
-                ৳{stats.moneyGivenTotal.toLocaleString()}
-              </span>
-            </div>
-            <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-medium truncate">
-              Remaining: ৳{stats.moneyGivenRemaining.toLocaleString()}
-            </span>
-          </div>
-
-          <div className="p-3.5 rounded-2xl bg-card border border-border shadow-sm flex flex-col justify-between min-h-[104px]">
-            <span className="text-[11px] font-medium text-muted-foreground">
-              Money Taken
-            </span>
-            <div className="my-1">
-              <span className="text-lg sm:text-xl font-extrabold text-amber-700 dark:text-amber-300 font-mono">
-                ৳{stats.moneyTakenTotal.toLocaleString()}
-              </span>
-            </div>
-            <span className="text-[10px] text-muted-foreground font-medium truncate">
-              Owed: ৳{stats.moneyTakenRemaining.toLocaleString()}
-            </span>
-          </div>
-
-          <div className="p-3.5 rounded-2xl bg-card border border-border shadow-sm flex flex-col justify-between min-h-[104px]">
-            <span className="text-[11px] font-medium text-muted-foreground">
-              Invested Made
-            </span>
-            <div className="my-1">
-              <span className="text-lg sm:text-xl font-extrabold text-cyan-700 dark:text-cyan-300 font-mono">
-                ৳{stats.investedTotal.toLocaleString()}
-              </span>
-            </div>
-            <span className="text-[10px] text-muted-foreground font-medium truncate">
-              Active ventures
-            </span>
-          </div>
-
-          <div className="p-3.5 rounded-2xl bg-card border border-border shadow-sm flex flex-col justify-between min-h-[104px]">
-            <span className="text-[11px] font-medium text-muted-foreground">
-              Invest Received
-            </span>
-            <div className="my-1">
-              <span className="text-lg sm:text-xl font-extrabold text-indigo-700 dark:text-indigo-300 font-mono">
-                ৳{stats.investmentReceivedTotal.toLocaleString()}
-              </span>
-            </div>
-            <span className="text-[10px] text-muted-foreground font-medium truncate">
-              External equity
-            </span>
-          </div>
-
-          <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 shadow-sm flex flex-col justify-between min-h-[104px]">
-            <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
-              <ArrowDownLeft
-                className="w-3 h-3 text-emerald-600 dark:text-emerald-300 shrink-0"
+      {/* Money & Wealth Overview - Only shown to users with Financial or Super Admin access */}
+      {(hasMoneyAccess || hasFinanceAccess) && (
+        <section className="space-y-3" aria-label="Money and wealth overview">
+          <div className="flex items-center justify-between px-1 gap-2">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 min-w-0">
+              <Wallet
+                className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0"
                 strokeWidth={2}
                 aria-hidden="true"
               />
-              To Receive
-            </span>
-            <div className="my-1">
-              <span className="text-lg sm:text-xl font-extrabold text-emerald-800 dark:text-emerald-200 font-mono break-all">
-                ৳{stats.receivablesTotal.toLocaleString()}
-              </span>
-            </div>
-            <span className="text-[10px] text-emerald-700/80 dark:text-emerald-300/80 font-medium truncate">
-              Due to me
-            </span>
+              <span className="truncate">Money & Wealth Overview</span>
+            </h2>
+            {hasMoneyAccess && (
+              <Link
+                href="/money"
+                className="text-xs font-semibold text-emerald-700 hover:text-emerald-600 dark:text-emerald-300 dark:hover:text-emerald-200 flex items-center gap-1 shrink-0 whitespace-nowrap"
+              >
+                Detailed Financials{" "}
+                <ArrowRight
+                  className="w-3 h-3 shrink-0"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
+              </Link>
+            )}
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/25 shadow-sm flex flex-col justify-between min-h-[104px]">
-            <span className="text-[11px] font-medium text-rose-700 dark:text-rose-300 flex items-center gap-1">
-              <ArrowUpRight
-                className="w-3 h-3 text-rose-600 dark:text-rose-300 shrink-0"
-                strokeWidth={2}
-                aria-hidden="true"
-              />
-              To Pay
-            </span>
-            <div className="my-1">
-              <span className="text-lg sm:text-xl font-extrabold text-rose-800 dark:text-rose-200 font-mono break-all">
-                ৳{stats.payablesTotal.toLocaleString()}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="p-3.5 rounded-2xl bg-card border border-border shadow-sm flex flex-col justify-between min-h-[104px]">
+              <span className="text-[11px] font-medium text-muted-foreground">
+                Money Given
+              </span>
+              <div className="my-1">
+                <span className="text-lg sm:text-xl font-extrabold text-foreground font-mono">
+                  ৳{stats.moneyGivenTotal.toLocaleString()}
+                </span>
+              </div>
+              <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-medium truncate">
+                Remaining: ৳{stats.moneyGivenRemaining.toLocaleString()}
               </span>
             </div>
-            <span className="text-[10px] text-rose-700/80 dark:text-rose-300/80 font-medium truncate">
-              I need to return
-            </span>
-          </div>
-        </div>
-      </section>
 
-      <section className="space-y-3" aria-label="Life core directory modules">
+            <div className="p-3.5 rounded-2xl bg-card border border-border shadow-sm flex flex-col justify-between min-h-[104px]">
+              <span className="text-[11px] font-medium text-muted-foreground">
+                Money Taken
+              </span>
+              <div className="my-1">
+                <span className="text-lg sm:text-xl font-extrabold text-amber-700 dark:text-amber-300 font-mono">
+                  ৳{stats.moneyTakenTotal.toLocaleString()}
+                </span>
+              </div>
+              <span className="text-[10px] text-muted-foreground font-medium truncate">
+                Owed: ৳{stats.moneyTakenRemaining.toLocaleString()}
+              </span>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-card border border-border shadow-sm flex flex-col justify-between min-h-[104px]">
+              <span className="text-[11px] font-medium text-muted-foreground">
+                Invested Made
+              </span>
+              <div className="my-1">
+                <span className="text-lg sm:text-xl font-extrabold text-cyan-700 dark:text-cyan-300 font-mono">
+                  ৳{stats.investedTotal.toLocaleString()}
+                </span>
+              </div>
+              <span className="text-[10px] text-muted-foreground font-medium truncate">
+                Active ventures
+              </span>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-card border border-border shadow-sm flex flex-col justify-between min-h-[104px]">
+              <span className="text-[11px] font-medium text-muted-foreground">
+                Invest Received
+              </span>
+              <div className="my-1">
+                <span className="text-lg sm:text-xl font-extrabold text-indigo-700 dark:text-indigo-300 font-mono">
+                  ৳{stats.investmentReceivedTotal.toLocaleString()}
+                </span>
+              </div>
+              <span className="text-[10px] text-muted-foreground font-medium truncate">
+                External equity
+              </span>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 shadow-sm flex flex-col justify-between min-h-[104px]">
+              <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
+                <ArrowDownLeft
+                  className="w-3 h-3 text-emerald-600 dark:text-emerald-300 shrink-0"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
+                To Receive
+              </span>
+              <div className="my-1">
+                <span className="text-lg sm:text-xl font-extrabold text-emerald-800 dark:text-emerald-200 font-mono break-all">
+                  ৳{stats.receivablesTotal.toLocaleString()}
+                </span>
+              </div>
+              <span className="text-[10px] text-emerald-700/80 dark:text-emerald-300/80 font-medium truncate">
+                Due to me
+              </span>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/25 shadow-sm flex flex-col justify-between min-h-[104px]">
+              <span className="text-[11px] font-medium text-rose-700 dark:text-rose-300 flex items-center gap-1">
+                <ArrowUpRight
+                  className="w-3 h-3 text-rose-600 dark:text-rose-300 shrink-0"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
+                To Pay
+              </span>
+              <div className="my-1">
+                <span className="text-lg sm:text-xl font-extrabold text-rose-800 dark:text-rose-200 font-mono break-all">
+                  ৳{stats.payablesTotal.toLocaleString()}
+                </span>
+              </div>
+              <span className="text-[10px] text-rose-700/80 dark:text-rose-300/80 font-medium truncate">
+                I need to return
+              </span>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Life Directory / Assigned Modules Section */}
+      <section className="space-y-3" aria-label="Life modules directory">
         <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground px-1">
-          Life Core Directory
+          {isSuperUser ? "Life Core Directory" : "Your Permitted Modules"}
         </h2>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          <Link
-            href="/people"
-            className="p-4 rounded-2xl bg-card border border-border shadow-sm hover:border-emerald-500/50 hover:bg-accent transition-all group min-h-[120px] flex flex-col"
-            aria-label={`People & Roles — ${stats.peopleCount} entries`}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 shrink-0">
-                <Users
-                  className="w-5 h-5 shrink-0"
-                  strokeWidth={2}
-                  aria-hidden="true"
-                />
-              </div>
-              <span className="text-xs font-bold text-emerald-500 font-mono shrink-0">
-                {stats.peopleCount}
-              </span>
-            </div>
-            <h3 className="text-sm font-bold text-foreground group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
-              People & Roles
-            </h3>
-            <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
-              Wife, Brother, Sabbir, Sana & trusted contacts
+        {visibleCards.length === 0 ? (
+          <div className="p-8 rounded-3xl bg-card border border-border text-center">
+            <p className="text-sm font-semibold text-foreground">
+              আপনার জন্য কোনো মডিউল নির্ধারিত হয়নি।
             </p>
-          </Link>
-
-          <Link
-            href="/vault"
-            className="p-4 rounded-2xl bg-card border border-border shadow-sm hover:border-amber-500/50 hover:bg-accent transition-all group min-h-[120px] flex flex-col"
-            aria-label="Secure Vault — AES-256 encrypted secrets"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 shrink-0">
-                <KeyRound
-                  className="w-5 h-5 shrink-0"
-                  strokeWidth={2}
-                  aria-hidden="true"
-                />
-              </div>
-              <span className="text-[10px] uppercase font-extrabold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 shrink-0">
-                AES-256
-              </span>
-            </div>
-            <h3 className="text-sm font-bold text-foreground group-hover:text-amber-700 dark:group-hover:text-amber-300 transition-colors">
-              Secure Vault
-            </h3>
-            <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
-              Web credentials, server keys & master PINs
+            <p className="text-xs text-muted-foreground mt-1">
+              Please contact the Owner to assign permissions for your account.
             </p>
-          </Link>
-
-          <Link
-            href="/business"
-            className="p-4 rounded-2xl bg-card border border-border shadow-sm hover:border-cyan-500/50 hover:bg-accent transition-all group min-h-[120px] flex flex-col"
-            aria-label={`Business Continuity — ${stats.businessCount} plans`}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20 shrink-0">
-                <Briefcase
-                  className="w-5 h-5 shrink-0"
-                  strokeWidth={2}
-                  aria-hidden="true"
-                />
-              </div>
-              <span className="text-xs font-bold text-cyan-700 dark:text-cyan-300 font-mono shrink-0">
-                {stats.businessCount}
-              </span>
-            </div>
-            <h3 className="text-sm font-bold text-foreground group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition-colors">
-              Business Continuity
-            </h3>
-            <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
-              &quot;If I Am Not Available&quot; checklist
-            </p>
-          </Link>
-
-          <Link
-            href="/assets"
-            className="p-4 rounded-2xl bg-card border border-border shadow-sm hover:border-indigo-500/50 hover:bg-accent transition-all group min-h-[120px] flex flex-col"
-            aria-label={`Assets & Holdings — total value ৳${stats.assetsTotalValue.toLocaleString()}`}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20 shrink-0">
-                <Layers
-                  className="w-5 h-5 shrink-0"
-                  strokeWidth={2}
-                  aria-hidden="true"
-                />
-              </div>
-              <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300 font-mono shrink-0 truncate max-w-[60%]">
-                ৳{stats.assetsTotalValue.toLocaleString()}
-              </span>
-            </div>
-            <h3 className="text-sm font-bold text-foreground group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors">
-              Assets & Holdings
-            </h3>
-            <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
-              Bank balances, properties & valuable equipment
-            </p>
-          </Link>
-        </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {visibleCards.map((card) => {
+              const Icon = card.icon;
+              return (
+                <Link
+                  key={card.href}
+                  href={card.href}
+                  className="p-4 rounded-2xl bg-card border border-border shadow-sm hover:border-emerald-500/50 hover:bg-accent transition-all group min-h-[120px] flex flex-col"
+                  aria-label={`${card.title} — ${card.badge}`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 shrink-0">
+                      <Icon
+                        className="w-5 h-5 shrink-0"
+                        strokeWidth={2}
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono shrink-0 truncate max-w-[60%]">
+                      {card.badge}
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-bold text-foreground group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
+                    {card.title}
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-snug line-clamp-2">
+                    {card.desc}
+                  </p>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </section>
 
-      {stats.recentActivities.length > 0 && (
+      {/* Recent Activity & Audit - Only shown if user has activity access */}
+      {hasActivityAccess && stats.recentActivities.length > 0 && (
         <section
           className="space-y-3"
           aria-label="Recent activity and audit log"

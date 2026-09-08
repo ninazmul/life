@@ -25,16 +25,20 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { canAccessModule, UserModuleAccess } from "@/lib/life/module-access";
 
 interface LifeMoreSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  userAccess: UserModuleAccess;
 }
 
-export function LifeMoreSheet({ open, onOpenChange }: LifeMoreSheetProps) {
+export function LifeMoreSheet({ open, onOpenChange, userAccess }: LifeMoreSheetProps) {
   const pathname = usePathname();
+  const { isOwner, isAdmin, permissions } = userAccess;
+  const isSuperUser = isOwner || isAdmin;
 
-  const moreItems = [
+  const allMoreItems = [
     {
       title: "1. Businesses & Partnerships",
       desc: "Companies, shares, partner equity & continuity",
@@ -141,6 +145,11 @@ export function LifeMoreSheet({ open, onOpenChange }: LifeMoreSheetProps) {
     },
   ];
 
+  // Filter modules by user permissions
+  const moreItems = allMoreItems.filter((item) =>
+    canAccessModule(item.href, permissions, isSuperUser)
+  );
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
@@ -154,10 +163,12 @@ export function LifeMoreSheet({ open, onOpenChange }: LifeMoreSheetProps) {
         <SheetHeader className="px-6 py-3 flex flex-row items-center justify-between border-b border-border">
           <div className="min-w-0 pr-2">
             <SheetTitle className="text-base font-bold text-foreground flex items-center gap-2">
-              <span>All Life Modules</span>
+              <span>{isSuperUser ? "All Life Modules" : "Your Modules"}</span>
             </SheetTitle>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Personal Continuity & Legacy Command Center
+              {isSuperUser
+                ? "Personal Continuity & Legacy Command Center"
+                : "Modules you have access to"}
             </p>
           </div>
         </SheetHeader>
@@ -167,13 +178,23 @@ export function LifeMoreSheet({ open, onOpenChange }: LifeMoreSheetProps) {
           role="list"
           aria-label="Life modules list"
         >
-          {moreItems.map((item) => {
+          {moreItems.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-sm text-muted-foreground">
+                আপনার জন্য কোনো মডিউল নির্ধারিত হয়নি।
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Please contact the Owner for module access.
+              </p>
+            </div>
+          )}
+          {moreItems.map((item, idx) => {
             const Icon = item.icon;
             const isActive = pathname.startsWith(item.href);
 
             return (
               <Link
-                key={item.href}
+                key={`${item.href}-${idx}`}
                 href={item.href}
                 onClick={() => onOpenChange(false)}
                 className={`flex items-center gap-3.5 p-3 rounded-2xl border transition-all duration-150 ${

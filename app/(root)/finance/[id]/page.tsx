@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getFinancialSupportById } from "@/lib/actions/lifeFinancialSupport.actions";
-import { getLifeAuthContext } from "@/lib/life/auth";
 import { FinancialSupportDetail } from "@/components/life/finance/FinancialSupportDetail";
+import { requireModuleAccess } from "@/lib/life/module-access.server";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +17,7 @@ export default async function FinancialSupportDetailPage({
   const { id } = await params;
   const [data, authContext] = await Promise.all([
     getFinancialSupportById(id),
-    getLifeAuthContext(),
+    requireModuleAccess("/finance"),
   ]);
 
   if (!data) notFound();

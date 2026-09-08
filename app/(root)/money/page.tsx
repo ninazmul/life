@@ -6,10 +6,13 @@ import {
 import { getPeople } from "@/lib/actions/lifePeople.actions";
 import { getBusinesses } from "@/lib/actions/lifeBusiness.actions";
 import { MoneyClient } from "@/components/life/money/MoneyClient";
+import { requireModuleAccess } from "@/lib/life/module-access.server";
 
 export const dynamic = "force-dynamic";
 
 export default async function MoneyPage() {
+  await requireModuleAccess("/money");
+
   const [overview, records, transactions, people, businesses] =
     await Promise.all([
       getMoneyOverview(),

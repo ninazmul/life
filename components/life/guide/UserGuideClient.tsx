@@ -26,6 +26,9 @@ import {
   Zap,
   Shield,
   UserCheck,
+  Coins,
+  ShieldCheck,
+  Lock,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -61,613 +64,789 @@ const sections: GuideSection[] = [
     color: "text-emerald-600 dark:text-emerald-400",
     bg: "bg-emerald-50 dark:bg-emerald-950/50",
     border: "border-emerald-200 dark:border-emerald-800/40",
-    title: "Home Dashboard",
-    subtitle: "Your command center overview",
+    title: "Home Dashboard & Command Center",
+    subtitle: "Real-time command center & continuity readiness",
     description:
-      "The Dashboard is the first screen you see after signing in. It gives you an instant financial snapshot, alerts you to anything needing your attention, and provides quick-action shortcuts to the most common tasks.",
+      "The Dashboard serves as the central command console. It provides instantaneous visibility into your continuity readiness, owner safety check-ins, financial snapshot, urgent deadlines, and direct access to your permitted modules.",
     steps: [
       {
-        title: "Financial Summary Cards",
+        title: "Continuity & Safety State",
         detail:
-          "The top row shows Total Given (money you lent), Total Taken (money you borrowed), and your Net Balance. These numbers update live from your Money records.",
+          "Monitors owner safety check-in status, emergency protocol readiness, number of trusted guardians configured, pending responsibilities, and overall business continuity readiness.",
       },
       {
-        title: "Continuity Status",
+        title: "Urgent Attention Alerts",
         detail:
-          "A prominent indicator shows whether Emergency Mode is Active or Standby. If active, a red badge appears throughout the app. Tap it to go to the Access & Emergency page.",
+          "Automatically highlights overdue financial support installments, upcoming payments, pending tasks, and critical security items requiring prompt action.",
       },
       {
-        title: "Attention Items",
+        title: "Money & Wealth Snapshot",
         detail:
-          "Cards highlighting overdue repayments, high-priority emergency notes, and incomplete continuity steps that need your action.",
+          "Displays aggregate totals for Money Given, Money Taken, Investments Made, External Investments Received, Receivables (Due to me), and Payables (To return). (Visible only to authorized users).",
       },
       {
-        title: "Quick Actions",
+        title: "Permitted Modules Directory",
         detail:
-          "Floating shortcut buttons let you immediately: Add a Person, Record Money, Save a Vault Secret, or Write a Note — without navigating away.",
+          "Displays quick-access cards to all your active modules with live counts and status badges. Non-admin users only see the modules they have permission to access.",
+      },
+      {
+        title: "Quick Action Shortcuts",
+        detail:
+          "Use header action buttons to quickly create new financial records, register people, update continuity plans, or review instructions with a single tap.",
       },
     ],
     tips: [
       {
         type: "tip",
-        text: "Use the Dashboard as your daily 30-second health check — if everything looks green, you're covered.",
-      },
-      {
-        type: "info",
-        text: "Numbers are computed on the server each load, so they always reflect the latest database state.",
-      },
-    ],
-    whoCanAccess: "Owner & Admins — full view. Others see delegated summaries.",
-  },
-  {
-    id: "people",
-    icon: Users,
-    color: "text-blue-600 dark:text-blue-400",
-    bg: "bg-blue-50 dark:bg-blue-950/50",
-    border: "border-blue-200 dark:border-blue-800/40",
-    title: "People Directory",
-    subtitle: "Relationship profiles and dossiers",
-    description:
-      "The People module is the heart of LIFE. Every important person in your life — family, business partners, advisors, engineers — gets a detailed profile linked to your financial, business, and legacy records.",
-    steps: [
-      {
-        title: "Browse & Filter",
-        detail:
-          "View all people at a glance. Filter by relation (Wife, Brother, Partner, Engineer…) or status (Active, Locked, Archived). Use global search (⌘K) to find anyone instantly.",
-      },
-      {
-        title: "Create a Person Profile",
-        detail:
-          "Tap + Add Person and fill in: Name, Relation, Phone, WhatsApp, Email, and Role. The Role determines what they can see if they ever sign in.",
-      },
-      {
-        title: "Open the 8-Tab Dossier",
-        detail:
-          "Click any person card to open their full profile with 8 tabs: Overview · Personal Message · Financial · Documents · Contacts · Responsibilities · Business Instructions · Access Rules.",
-      },
-      {
-        title: "Personal Message Tab",
-        detail:
-          "Write a private letter or memo dedicated exclusively to this person — things you want them to know but only you can see unless you choose to share.",
-      },
-      {
-        title: "Responsibilities Tab",
-        detail:
-          "List the specific tasks this person must handle if you are unavailable (e.g. 'Pay the server bills', 'Contact the lawyer', 'Manage the shop').",
-      },
-      {
-        title: "Access Rules Tab",
-        detail:
-          "Control exactly what this person sees if they authenticate: toggle Personal Records, Business Records, Financial Data, Sensitive Files, Vault Reveals, and Emergency Access independently.",
-      },
-      {
-        title: "Lock or Archive",
-        detail:
-          "Set status to Locked to immediately block their access without deleting their profile. Set Archived to hide them from normal views.",
-      },
-    ],
-    tips: [
-      {
-        type: "tip",
-        text: "Add every key person — even if they never sign in. Their profile links to money records, legacy messages, and continuity steps.",
-      },
-      {
-        type: "warning",
-        text: "Setting a person's status to Locked immediately blocks their login the next time they try to authenticate.",
+        text: "Make it a routine to check the Dashboard daily. If all indicators are green and operational, your legacy protocols are fully protected.",
       },
       {
         type: "security",
-        text: "Roles are enforced server-side. Changing the Access Rules tab for a person takes effect on their next page load.",
+        text: "The Dashboard dynamically adjusts its interface according to user permissions. Non-admin users will never see confidential financial figures or unauthorized modules.",
       },
     ],
-    whoCanAccess: "Owner & Admins — full control. Individuals see only their own profile.",
+    whoCanAccess: "Super Admin & Owner see all modules. Other users see only their permitted modules.",
   },
-  {
-    id: "money",
-    icon: Wallet,
-    color: "text-amber-600 dark:text-amber-400",
-    bg: "bg-amber-50 dark:bg-amber-950/50",
-    border: "border-amber-200 dark:border-amber-800/40",
-    title: "Money & Debt Ledger",
-    subtitle: "Track every receivable, payable, and investment",
-    description:
-      "The Money module is a structured personal ledger that tracks every financial relationship — money you gave, money you took, investments you made, and capital partners invested in you. It also handles full and partial settlements.",
-    steps: [
-      {
-        title: "Choose a Record Type",
-        detail:
-          "There are 4 types: Given (you lent money — receivable), Taken (you borrowed — payable), Invest Made (you invested in someone), Invest Received (someone invested in you).",
-      },
-      {
-        title: "Add a Money Record",
-        detail:
-          "Tap + Record Money, choose the type, link to a Person, enter amount, date, due date, and any notes on terms or interest. Hit Save.",
-      },
-      {
-        title: "Track Status",
-        detail:
-          "Each record shows status: Active (still owed), Partially Returned, Returned (fully settled), Written Off. The status updates automatically as you log settlements.",
-      },
-      {
-        title: "Log a Settlement",
-        detail:
-          "Tap Settle on any active record. Enter the payment amount, date, payment method (Bank, Cash, bKash, Cheque), and a reference number. The returned amount and status update instantly.",
-      },
-      {
-        title: "View Summary Cards",
-        detail:
-          "The header shows your total Receivables (money owed to you), Payables (money you owe), Active Investments, and your Net Cashflow Balance.",
-      },
-    ],
-    tips: [
-      {
-        type: "tip",
-        text: "Always link a record to a Person profile so your financial data appears in their 8-tab dossier automatically.",
-      },
-      {
-        type: "info",
-        text: "Partial settlements are logged in a separate history — you can see every installment payment individually.",
-      },
-      {
-        type: "warning",
-        text: "Written Off records are excluded from balance calculations but kept for historical reference.",
-      },
-    ],
-    whoCanAccess: "Owner & Admins — full ledger. Others see only delegated records.",
-  },
-  {
-    id: "vault",
-    icon: KeyRound,
-    color: "text-violet-600 dark:text-violet-400",
-    bg: "bg-violet-50 dark:bg-violet-950/50",
-    border: "border-violet-200 dark:border-violet-800/40",
-    title: "Encrypted Secrets Vault",
-    subtitle: "AES-256-GCM encrypted credentials storage",
-    description:
-      "The Vault stores your most sensitive secrets — passwords, server keys, bank PINs, WiFi passwords, seed phrases — encrypted with military-grade AES-256-GCM. Secrets are never visible in list views. Decrypting requires entering your Master Security PIN.",
-    steps: [
-      {
-        title: "Browse Vault Items",
-        detail:
-          "All items show title, category, and username — but the actual secret is masked as ••••••••. Filter by category: Credentials, Infrastructure, Financial, Personal, Emergency.",
-      },
-      {
-        title: "Add a Vault Item",
-        detail:
-          "Tap + Add Secret, choose category, enter title, username/email, the secret value, and an optional URL and notes. The secret is encrypted before it leaves your browser.",
-      },
-      {
-        title: "Reveal a Secret",
-        detail:
-          "Tap Reveal on any item. A modal appears asking for your Master Security PIN. Enter it correctly and the decrypted secret appears.",
-      },
-      {
-        title: "30-Second Auto-Conceal",
-        detail:
-          "Once revealed, a countdown timer shows 30 seconds. When it reaches zero, the secret is automatically wiped from the screen. You must re-enter your PIN to reveal again.",
-      },
-      {
-        title: "Copy & Use",
-        detail:
-          "While revealed, tap the Copy icon to copy the secret to your clipboard. The clipboard entry is not cleared automatically — close the tab after use on shared devices.",
-      },
-    ],
-    tips: [
-      {
-        type: "security",
-        text: "Every single secret reveal is permanently logged in the Activity Audit with your identity and timestamp. There is no silent access.",
-      },
-      {
-        type: "security",
-        text: "Secrets are encrypted with a unique IV per item. Even if the database were compromised, individual secrets remain cryptographically protected.",
-      },
-      {
-        type: "warning",
-        text: "If you forget your Master PIN, there is no recovery path — encrypted secrets cannot be decrypted without it. Store your PIN safely.",
-      },
-      {
-        type: "tip",
-        text: "Mark critical credentials (hosting root, domain registrar) as Emergency type so they surface first during a crisis.",
-      },
-    ],
-    whoCanAccess: "Owner & Admins with canRevealVault permission only.",
-  },
-  {
-    id: "information",
-    icon: FileText,
-    color: "text-teal-600 dark:text-teal-400",
-    bg: "bg-teal-50 dark:bg-teal-950/50",
-    border: "border-teal-200 dark:border-teal-800/40",
-    title: "Information & Notes",
-    subtitle: "Categorized notes, instructions, and emergency data",
-    description:
-      "Information & Notes is your structured knowledge base. Write personal memos, critical operational instructions, emergency protocols, and business notes — each with a priority level and visibility state.",
-    steps: [
-      {
-        title: "Categories",
-        detail:
-          "Notes belong to one of 5 categories: Personal, Business, Instruction, Emergency, Other. Filter the list by category to focus on what you need.",
-      },
-      {
-        title: "Priority Levels",
-        detail:
-          "Set Low, Medium, High, or Critical priority. Critical notes appear at the top and are highlighted with a red chip.",
-      },
-      {
-        title: "Visibility States",
-        detail:
-          "Control who can see a note: Visible Now (everyone with access), Hidden (only you), Admin Can Release (only visible when an admin unlocks), Emergency Only (visible only during Emergency Mode), Scheduled Release (visible after a date).",
-      },
-      {
-        title: "Create a Note",
-        detail:
-          "Tap + Add Note, choose category and priority, write title and content, set visibility, and optionally link to a Person or Business. Save.",
-      },
-    ],
-    tips: [
-      {
-        type: "tip",
-        text: "Use Emergency category + Emergency Only visibility for notes your family should only read in a crisis — e.g. bank account locations, safe combinations.",
-      },
-      {
-        type: "info",
-        text: "Notes marked Instruction are ideal for step-by-step procedures like 'How to renew the domain' or 'Monthly supplier payment process'.",
-      },
-    ],
-    whoCanAccess: "Owner & Admins — full view. Others see notes based on visibility settings.",
-  },
+
   {
     id: "business",
     icon: Briefcase,
-    color: "text-orange-600 dark:text-orange-400",
-    bg: "bg-orange-50 dark:bg-orange-950/50",
-    border: "border-orange-200 dark:border-orange-800/40",
-    title: "Business & Continuity",
-    subtitle: '"If I Am Not Available" engine',
+    color: "text-cyan-600 dark:text-cyan-400",
+    bg: "bg-cyan-50 dark:bg-cyan-950/50",
+    border: "border-cyan-200 dark:border-cyan-800/40",
+    title: "1. Businesses & Partnerships",
+    subtitle: "Enterprise equity, partner continuity & operational handover",
     description:
-      'The Business module catalogs your ventures and — critically — defines what happens to each one if you are suddenly unavailable. The "If I Am Not Available" checklist is the operational continuity playbook for your partners and family.',
+      "Manage all corporate entities, partnership equity percentages, corporate bank credentials, operating licenses, and the critical 'If I Am Not Available' business continuity protocol.",
     steps: [
       {
-        title: "Add a Business Venture",
+        title: "Register Enterprise & Ownership Equity",
         detail:
-          "Tap + Add Business, enter name, legal name, your ownership %, status, and partner details. Each partner can be linked to a Person profile.",
+          "Record company name, registration number, trade license, total valuation, your exact shareholding percentage, and capital invested.",
       },
       {
-        title: "Server & Infrastructure Info",
+        title: "Map Business Partners & Co-Founders",
         detail:
-          "Record hosting provider, server IP, control panel URL, server type, and the primary System Engineer contact (name, phone, email). This ensures someone can keep servers running without you.",
+          "Link partners from your People directory, specify their equity stake, designated roles, profit-sharing terms, and signed partnership deed copies.",
       },
       {
-        title: "Build the Continuity Checklist",
+        title: "Document Corporate Banking & Signatories",
         detail:
-          "Under each business, add ordered continuity steps. Each step has: a title, description, responsible person, their contact phone, and specific instructions. Example: Step 1 — 'Call Rafiq (engineer) to keep servers online. Phone: 017XXXXXXXX'.",
+          "Record corporate bank accounts, branch details, routing numbers, and authorized signatories required for emergency payroll and operational continuity.",
       },
       {
-        title: "Mark Steps Complete",
+        title: "Fill 'If I Am Not Available' Checklist",
         detail:
-          "During an emergency, trustees can mark each step as complete directly in the app, giving a live progress view of the continuity process.",
+          "Step-by-step operating instructions detailing who assumes managerial control, where backup accounts reside, key vendor contacts, client commitments, and handover priorities.",
+      },
+      {
+        title: "Attach Official Registration Documents",
+        detail:
+          "Upload or reference certificates of incorporation, memorandum of association, tax registration (TIN/BIN), and board resolutions.",
+      },
+    ],
+    tips: [
+      {
+        type: "tip",
+        text: "Regularly update partner equity and bank signatories whenever corporate restructuring or share dilution takes place.",
+      },
+      {
+        type: "security",
+        text: "The 'If I Am Not Available' checklist is one of the most important continuity documents. Ensure your designated partners or managers know where to locate it.",
+      },
+    ],
+    whoCanAccess: "Super Admin, Owner, and users with the canViewBusiness permission.",
+  },
+
+  {
+    id: "finance",
+    icon: Wallet,
+    color: "text-emerald-600 dark:text-emerald-400",
+    bg: "bg-emerald-50 dark:bg-emerald-950/50",
+    border: "border-emerald-200 dark:border-emerald-800/40",
+    title: "2. Financial Support & Repayments",
+    subtitle: "Loans, monthly support, installment schedules & settlements",
+    description:
+      "A dedicated module for tracking personal loans given to relatives/friends, money borrowed, monthly family commitments, installment repayment calendars, and signed settlement agreements.",
+    steps: [
+      {
+        title: "Create Financial Support Record",
+        detail:
+          "Choose record type: Support Given (lent/family allowance) or Support Taken (borrowed). Specify beneficiary person, total principal amount, and purpose.",
+      },
+      {
+        title: "Configure Repayment & Installment Schedule",
+        detail:
+          "Define payment terms: Lump sum or Monthly installments. Specify start date, installment amount, expected settlement date, and payment method (bKash, Bank, Cash).",
+      },
+      {
+        title: "Log Installment Payments",
+        detail:
+          "Each time an installment is paid or received, record the date, amount, transaction reference, and optional receipt attachment. The remaining balance recalculates automatically.",
+      },
+      {
+        title: "Monitor Overdue & Upcoming Alerts",
+        detail:
+          "The system automatically tracks due dates and tags overdue payments with prominent warning badges on your Dashboard and Finance lists.",
+      },
+      {
+        title: "Attach Proof of Agreement",
+        detail:
+          "Upload promissory notes, cheques, signed stamps, or transfer receipts to ensure complete legal transparency.",
+      },
+    ],
+    tips: [
+      {
+        type: "tip",
+        text: "For recurrent monthly family support (e.g., parents or dependents), enable recurring status to track monthly disbursement history accurately.",
+      },
+      {
+        type: "info",
+        text: "Non-owner users who are granted financial access see a personalized summary showing their own obligations and transactions.",
+      },
+    ],
+    whoCanAccess: "Super Admin, Owner, and users with the canViewFinancial permission.",
+  },
+
+  {
+    id: "money",
+    icon: Coins,
+    color: "text-amber-600 dark:text-amber-400",
+    bg: "bg-amber-50 dark:bg-amber-950/50",
+    border: "border-amber-200 dark:border-amber-800/40",
+    title: "3. Money Overview & Ledger",
+    subtitle: "Receivables, payables, investments & net financial standing",
+    description:
+      "A consolidated double-entry ledger detailing all financial obligations: Money Given, Money Taken, Investments Made in ventures, External Capital Received, To Receive (due to you), and To Pay (owed to others).",
+    steps: [
+      {
+        title: "Inspect Aggregate Financial Balances",
+        detail:
+          "Review the top stat cards: Total Given, Total Taken, Invested, Investment Received, Receivables, and Payables to see your live net liquidity standing.",
+      },
+      {
+        title: "Filter by Transaction Category",
+        detail:
+          "Toggle between Given, Taken, Investment Made, and Investment Received tabs to inspect counterparties, original amounts, repayments, and remaining balances.",
+      },
+      {
+        title: "Record Direct Ledger Transactions",
+        detail:
+          "Log lump-sum settlements, interest-free personal borrowings, or venture investments with dates, counterparties, and settlement terms.",
+      },
+      {
+        title: "Cross-Reference With People & Businesses",
+        detail:
+          "Every money record links directly to a person profile or business entity so you can see complete transaction history per counterparty.",
       },
     ],
     tips: [
       {
         type: "warning",
-        text: "Without a continuity plan, your business can fail within days of an emergency. Fill this in as a priority.",
+        text: "Keep every entry backed by a linked person in the People directory to prevent ambiguity regarding who owes or is owed money.",
       },
       {
         type: "tip",
-        text: "Link each continuity step to a Person profile — so the responsible person's phone is pre-filled and reachable in 1 tap.",
-      },
-      {
-        type: "info",
-        text: "Expense and receivables fields on the business card give trustees an instant picture of the financial health of the venture.",
+        text: "Use the 'Detailed Financials' breakdown when reviewing estate net worth or planning debt settlements.",
       },
     ],
-    whoCanAccess: "Owner & Admins — full control. Business role sees assigned ventures only.",
+    whoCanAccess: "Super Admin, Owner, and users with the canViewFinancial permission.",
   },
+
   {
     id: "assets",
     icon: Layers,
-    color: "text-cyan-600 dark:text-cyan-400",
-    bg: "bg-cyan-50 dark:bg-cyan-950/50",
-    border: "border-cyan-200 dark:border-cyan-800/40",
-    title: "Assets Portfolio",
-    subtitle: "Real estate, bank deposits, valuables and equity",
-    description:
-      "Document everything you own — properties, bank balances, vehicles, gold, and business equity — with ownership percentages and valuations so trustees have an accurate picture of the estate.",
-    steps: [
-      {
-        title: "Asset Categories",
-        detail:
-          "Real Estate, Financial / Bank, Vehicle, Valuables / Gold, Business Equity, Other. Filter by category to focus on specific asset classes.",
-      },
-      {
-        title: "Add an Asset",
-        detail:
-          "Enter name, category, current estimated value, your ownership % (e.g. 50% if jointly owned), physical location or bank branch, and an account/registration number.",
-      },
-      {
-        title: "Total Portfolio View",
-        detail:
-          "The header shows total estimated portfolio value, weighted by your ownership percentage across all assets.",
-      },
-    ],
-    tips: [
-      {
-        type: "tip",
-        text: "Link title deeds and ownership documents in the Documents module, then cross-reference here for a complete asset record.",
-      },
-      {
-        type: "info",
-        text: "For jointly owned property, record your % ownership accurately — this helps trustees and lawyers during inheritance proceedings.",
-      },
-    ],
-    whoCanAccess: "Owner & Admins. Others see only during active Emergency Mode (if granted).",
-  },
-  {
-    id: "contacts",
-    icon: Contact,
-    color: "text-sky-600 dark:text-sky-400",
-    bg: "bg-sky-50 dark:bg-sky-950/50",
-    border: "border-sky-200 dark:border-sky-800/40",
-    title: "Contact Directory",
-    subtitle: "Emergency contacts with 1-tap direct action",
-    description:
-      "A fast-access directory of every critical contact — family, lawyers, doctors, engineers, suppliers — with 1-tap calling, WhatsApp, and email buttons. Built for emergencies when every second matters.",
-    steps: [
-      {
-        title: "Contact Categories",
-        detail:
-          "Family, Legal (lawyers), Medical (doctors), Technical (engineers), Financial (accountants), Suppliers, Emergency Services, Other.",
-      },
-      {
-        title: "Emergency Priority Ranking",
-        detail:
-          "Set Priority 1, 2, 3 on each contact. Priority 1 contacts appear at the top and are the first people to call in a crisis.",
-      },
-      {
-        title: "1-Tap Actions",
-        detail:
-          "Each card shows: Call (opens tel: dialer), WhatsApp (opens wa.me chat), Email (opens mailto:), and Copy Phone. No need to memorize or navigate away.",
-      },
-      {
-        title: "Add a Contact",
-        detail:
-          "Tap + Add Contact, enter name, category, role/relation, phone numbers, email, priority ranking, and notes. Optionally link to a Person profile.",
-      },
-    ],
-    tips: [
-      {
-        type: "tip",
-        text: "Add your lawyer, doctor, and primary engineer as Priority 1 — these are the people who must be reached first in any emergency.",
-      },
-      {
-        type: "info",
-        text: "Emergency contacts are visible to all authenticated users regardless of their permission level, since they may need to call during a crisis.",
-      },
-    ],
-    whoCanAccess: "All authenticated users can view emergency contacts. Full management requires Admin.",
-  },
-  {
-    id: "documents",
-    icon: FolderLock,
     color: "text-indigo-600 dark:text-indigo-400",
     bg: "bg-indigo-50 dark:bg-indigo-950/50",
     border: "border-indigo-200 dark:border-indigo-800/40",
-    title: "Documents Library",
-    subtitle: "Private deeds, contracts, and certificates",
+    title: "4. Assets & Properties",
+    subtitle: "Real estate, bank accounts, vehicles, gold & valuables",
     description:
-      "Store references and links to your most critical documents — title deeds, wills, company incorporation papers, insurance policies, tax certificates, and agreements — organized by category and access tier.",
+      "Catalog all real estate properties, plots, residential apartments, vehicle registrations, bank deposits, fixed deposits (FDR), gold/jewelry, and physical document storage locations.",
     steps: [
       {
-        title: "Document Categories",
+        title: "Select Asset Category",
         detail:
-          "Legal, Property, Financial, Identity, Insurance, Business, Medical, Personal, Other.",
+          "Choose from Real Estate, Bank Account/FDR, Vehicle, Gold & Valuables, Digital Holdings, or Other Asset types.",
       },
       {
-        title: "Access Tiers",
+        title: "Record Ownership & Financial Valuation",
         detail:
-          "Standard (visible to all authorized users), Confidential (Admin-only), Emergency Only (only visible when Emergency Mode is active).",
+          "Enter purchase value, estimated current market value, purchase date, ownership share percentage, and whether the asset generates monthly rental income.",
       },
       {
-        title: "Add a Document",
+        title: "Specify Physical Document Locations",
         detail:
-          "Enter title, category, access tier, a file URL (cloud storage link), description, and optionally link to a Person or Business. The app stores references — actual files should be in secure cloud storage.",
+          "Clearly document where the original deeds, registration blue books, tax receipts, or keys are physically located (e.g., 'Almirah #2, Bank Safe Locker 4B').",
       },
       {
-        title: "Link to People & Businesses",
+        title: "Designate Primary Nominees",
         detail:
-          "Documents linked to a Person appear in their 8-tab dossier automatically, giving trustees a complete per-person document view.",
+          "Link designated beneficiaries from your People directory to define intended inheritance or custody upon emergency activation.",
+      },
+    ],
+    tips: [
+      {
+        type: "tip",
+        text: "Updating estimated market values once or twice a year keeps your overall estate valuation realistic for succession planning.",
+      },
+      {
+        type: "security",
+        text: "Never write bank account PINs or locker master passwords in asset description fields — store all secrets strictly in the Secure Vault.",
+      },
+    ],
+    whoCanAccess: "Super Admin, Owner, and users with canViewFinancial or canViewBusiness permissions.",
+  },
+
+  {
+    id: "vault",
+    icon: KeyRound,
+    color: "text-amber-600 dark:text-amber-400",
+    bg: "bg-amber-50 dark:bg-amber-950/50",
+    border: "border-amber-200 dark:border-amber-800/40",
+    title: "5. Secure Vault (AES-256)",
+    subtitle: "Encrypted passwords, server keys, seed phrases & master PIN",
+    description:
+      "The most sensitive module in LIFE. Secrets are encrypted using military-grade AES-256 encryption. Plaintext is never stored on disk. Revealing any secret requires entering your Master PIN and is permanently logged in the audit trail.",
+    steps: [
+      {
+        title: "Create a Vault Item",
+        detail:
+          "Choose secret type: Web Account, Server Key / SSH, Recovery Phrase / Crypto, Financial PIN, Document Secret, or General Password.",
+      },
+      {
+        title: "Enter Secret Data & URL",
+        detail:
+          "Provide account username/email, login URL, and the secret password or private key. Data is encrypted before saving to the database.",
+      },
+      {
+        title: "Reveal Secret with Master PIN",
+        detail:
+          "To view or copy a secret, click the eye icon. Enter your 4-to-6 digit Master PIN. The secret unlocks temporarily with a live self-clearing countdown.",
+      },
+      {
+        title: "Audit Trail Logging",
+        detail:
+          "Every reveal operation creates an immutable security log entry with timestamp, actor email, IP address, and item title.",
       },
     ],
     tips: [
       {
         type: "security",
-        text: "LIFE stores document metadata and links — not raw files. Keep actual files in an encrypted cloud vault (iCloud, encrypted Google Drive, etc.).",
+        text: "If you forget your Master PIN, vault secrets cannot be decrypted without administrative reset. Store your Master PIN securely in a physical offline location.",
+      },
+      {
+        type: "warning",
+        text: "Never share your Master PIN via WhatsApp, SMS, or unencrypted messaging channels.",
+      },
+    ],
+    whoCanAccess: "Super Admin, Owner, and users with explicit canRevealVault permission.",
+  },
+
+  {
+    id: "information",
+    icon: FileText,
+    color: "text-sky-600 dark:text-sky-400",
+    bg: "bg-sky-50 dark:bg-sky-950/50",
+    border: "border-sky-200 dark:border-sky-800/40",
+    title: "6. Personal Information & Identity",
+    subtitle: "National ID, passports, blood group, medical data & policies",
+    description:
+      "A centralized repository for identity records, official government IDs, health and medical directions, insurance policy numbers, and personal emergency directives.",
+    steps: [
+      {
+        title: "National Identity & Passport Data",
+        detail:
+          "Record NID number, Smart Card ID, Passport number, expiry date, issuing authority, and birth certificate registration number.",
+      },
+      {
+        title: "Health, Blood Group & Medical Directives",
+        detail:
+          "Save blood group, chronic conditions, ongoing medications, known severe allergies, and preferred emergency hospital/doctor.",
+      },
+      {
+        title: "Life & Health Insurance Policies",
+        detail:
+          "Record insurance policy numbers, insurer company, sum assured, premium renewal dates, and emergency claim contact numbers.",
+      },
+      {
+        title: "Personal Credentials & Tax Information",
+        detail:
+          "Keep e-TIN number, tax circle, driving license number, and utility account registration IDs readily accessible.",
+      },
+    ],
+    tips: [
+      {
+        type: "tip",
+        text: "Keep digital photo copies of your NID and passport attached in the Critical Documents module for immediate access when traveling.",
+      },
+      {
+        type: "info",
+        text: "Medical emergency info can save precious time during unexpected hospitalizations.",
+      },
+    ],
+    whoCanAccess: "Super Admin, Owner, and users with the canViewPersonal permission.",
+  },
+
+  {
+    id: "people",
+    icon: Users,
+    color: "text-emerald-600 dark:text-emerald-400",
+    bg: "bg-emerald-50 dark:bg-emerald-950/50",
+    border: "border-emerald-200 dark:border-emerald-800/40",
+    title: "7. People Directory & Team",
+    subtitle: "Family, partners, key employees (Sabbir, Sana) & access roles",
+    description:
+      "Maintain the core directory of trusted people: Wife, Brother, Children, Parents, Business Partners, Key Employees (e.g., Sabbir, Sana), and Nominees. Assign granular module permissions and emergency delegation status.",
+    steps: [
+      {
+        title: "Add Person Profile",
+        detail:
+          "Enter full name, relationship (Wife, Brother, Partner, Employee), phone number, email address, physical address, and emergency priority rank.",
+      },
+      {
+        title: "Assign User Role & Account Type",
+        detail:
+          "Set role: Family Member, Business Partner, Responsible Person, Beneficiary, Trusted Guardian, or Administrator.",
+      },
+      {
+        title: "Configure Granular Module Permissions",
+        detail:
+          "Grant specific checkboxes: canViewPersonal, canViewBusiness, canViewFinancial, canViewSensitive, canRevealVault, canManageAccess, canAccessEmergency.",
+      },
+      {
+        title: "Set Guardian Status",
+        detail:
+          "Designate whether the person serves as an Emergency Guardian (Primary, Secondary, or Independent) for multi-party consensus unlocking.",
+      },
+      {
+        title: "Manage Account Status",
+        detail:
+          "Easily set person status to Active, Temporarily Locked, or Archived to instantly revoke system access when roles change.",
+      },
+    ],
+    tips: [
+      {
+        type: "security",
+        text: "Only grant canRevealVault or canManageAccess to individuals with absolute trust. For employees like Sabbir or Sana, grant strictly the modules they need for business continuity.",
       },
       {
         type: "tip",
-        text: "Mark your Will and Insurance policy as Emergency Only — they surface immediately when Emergency Mode is activated.",
+        text: "Linking a person's registered Clerk email allows them to sign into LIFE Vault and see their personalized portal view.",
       },
     ],
-    whoCanAccess: "Owner & Admins — full access. Others see documents matching their tier.",
+    whoCanAccess: "Super Admin, Owner, and users with canManageAccess or canViewPersonal permissions.",
   },
+
   {
-    id: "legacy",
+    id: "contacts",
+    icon: Contact,
+    color: "text-amber-600 dark:text-amber-400",
+    bg: "bg-amber-50 dark:bg-amber-950/50",
+    border: "border-amber-200 dark:border-amber-800/40",
+    title: "8. Important Contacts Directory",
+    subtitle: "Lawyers, doctors, accountants, bankers & emergency advisors",
+    description:
+      "A curated directory of your essential professional support network. Categorized by function with one-touch phone call, WhatsApp, and email shortcuts for rapid emergency response.",
+    steps: [
+      {
+        title: "Add Professional Contact",
+        detail:
+          "Select category: Legal / Lawyer, Medical / Doctor, Financial / Accountant, Banking Officer, IT & Systems, Insurance Agent, or Personal Emergency.",
+      },
+      {
+        title: "Fill Contact Information",
+        detail:
+          "Enter name, company/firm, primary phone, secondary phone, email, chamber/office address, and working hours.",
+      },
+      {
+        title: "Specify Special Instructions",
+        detail:
+          "Add context notes such as 'Handles land registration documents', 'Primary cardiologist', or 'Auditor for company tax filing'.",
+      },
+      {
+        title: "One-Touch Emergency Actions",
+        detail:
+          "Use the direct Call, Message, or Email action buttons directly from mobile or desktop without copying numbers.",
+      },
+    ],
+    tips: [
+      {
+        type: "tip",
+        text: "Ensure your family knows to refer to this list first if they ever need legal counsel, tax filings, or banking assistance on your behalf.",
+      },
+    ],
+    whoCanAccess: "Super Admin, Owner, and users with the canViewPersonal permission.",
+  },
+
+  {
+    id: "documents",
+    icon: FolderLock,
+    color: "text-purple-600 dark:text-purple-400",
+    bg: "bg-purple-50 dark:bg-purple-950/50",
+    border: "border-purple-200 dark:border-purple-800/40",
+    title: "9. Critical Documents Repository",
+    subtitle: "Deeds, contracts, trade licenses, agreements & physical file tags",
+    description:
+      "Secure digital archive and physical indexing for critical paperwork: property title deeds, trade licenses, partnership agreements, lease contracts, power of attorney, and bank certificates.",
+    steps: [
+      {
+        title: "Catalog Document Entry",
+        detail:
+          "Provide document title, category (Legal, Property, Business, Financial, Identity), issue date, expiry date, and issuing authority.",
+      },
+      {
+        title: "Record Physical File Location Tag",
+        detail:
+          "Document the exact physical location where the original hardcopy is kept (e.g. 'Blue File Folder, Office Almirah Top Shelf').",
+      },
+      {
+        title: "Upload Secure Digital Scan / Attachment",
+        detail:
+          "Attach PDF scans or high-resolution photos of the document for instant online preview and emergency verification.",
+      },
+      {
+        title: "Link to Related People or Businesses",
+        detail:
+          "Associate the document with specific businesses, properties, or partners for contextual lookup across modules.",
+      },
+    ],
+    tips: [
+      {
+        type: "tip",
+        text: "Physical location tags prevent frantic searches during urgent situations when original stamped deeds are needed immediately.",
+      },
+      {
+        type: "security",
+        text: "Encrypted file attachments are protected so only authorized family and administrators can download them.",
+      },
+    ],
+    whoCanAccess: "Super Admin, Owner, and users with canViewPersonal or canViewSensitive permissions.",
+  },
+
+  {
+    id: "instructions",
+    icon: FileText,
+    color: "text-sky-600 dark:text-sky-400",
+    bg: "bg-sky-50 dark:bg-sky-950/50",
+    border: "border-sky-200 dark:border-sky-800/40",
+    title: "10. Responsibilities & Instructions",
+    subtitle: "Directives, ongoing commitments, tasks & emergency handovers",
+    description:
+      "Clear, actionable instructions for your family, business partners, and employees. Outlines 'What to do', 'Who should do it', step-by-step priority sequences, and ongoing personal obligations.",
+    steps: [
+      {
+        title: "Create Directive or Responsibility",
+        detail:
+          "Give the instruction a clear title, category (Family Welfare, Business Duty, Financial Handover, Religious Directive), and priority level (High, Medium, Normal).",
+      },
+      {
+        title: "Assign to Designated Person",
+        detail:
+          "Select the responsible individual from your People directory (e.g., Wife, Brother, Sabbir, Sana) so the instruction appears on their portal.",
+      },
+      {
+        title: "Detail Step-by-Step Procedure",
+        detail:
+          "Write comprehensive, unambiguous instructions. Include specific account numbers, contacts to call, deadlines, and execution orders.",
+      },
+      {
+        title: "Track Execution & Status",
+        detail:
+          "Monitor status: Active, In Progress, Completed, or On Hold. Assignees can view their responsibilities and update progress.",
+      },
+    ],
+    tips: [
+      {
+        type: "tip",
+        text: "Be as specific as possible in your handover instructions. Step-by-step guides prevent confusion and disagreements during stressful transitions.",
+      },
+      {
+        type: "info",
+        text: "Non-owner assignees who sign in see their assigned instructions under 'Responsibilities' on their dashboard.",
+      },
+    ],
+    whoCanAccess: "Super Admin, Owner, and assigned users with the canViewPersonal permission.",
+  },
+
+  {
+    id: "beneficiaries",
     icon: HeartHandshake,
     color: "text-rose-600 dark:text-rose-400",
     bg: "bg-rose-50 dark:bg-rose-950/50",
     border: "border-rose-200 dark:border-rose-800/40",
-    title: "Legacy Messages",
-    subtitle: "Sealed farewell letters and last instructions",
+    title: "11. Beneficiaries & Heirs",
+    subtitle: "Asset allocations, nominee mapping & legacy distributions",
     description:
-      "Legacy Messages are private letters, voice memos (linked), or detailed instructions you write for specific loved ones or partners — sealed and only unlocked under the conditions you define.",
+      "A structured overview of designated heirs and beneficiaries (Wife, Son, Daughter, Parents, Siblings) with asset allocations, inheritance percentages, and nominee designations.",
     steps: [
       {
-        title: "Write a Legacy Message",
+        title: "Define Beneficiary List",
         detail:
-          "Tap + New Message, choose the recipient (from your People directory), write the title and full content, and set a release condition.",
+          "Select family members and loved ones from the People directory with relationship details, National IDs, and contact numbers.",
       },
       {
-        title: "Release Conditions",
+        title: "Map Asset Distributions & Percentages",
         detail:
-          "Emergency Only: Unlocked when Emergency Mode is activated. Admin Can Release: An Admin manually unseals it. Scheduled Release: Unlocks after a specific future date. Released: Already open for the recipient.",
+          "Assign specific assets (Properties, Bank Accounts, Shares) and allocate percentage shares for each beneficiary according to your wishes.",
       },
       {
-        title: "Read a Released Letter",
+        title: "Attach Nominee Declarations",
         detail:
-          "When a letter is released and the recipient is authenticated, they see it in an immersive distraction-free reader with your name, date, and full message.",
+          "Document official bank nominee forms, company share transfer declarations, or notarized gift deeds.",
       },
       {
-        title: "Seal and Unseal",
+        title: "Link Legacy Letters",
         detail:
-          "As the Owner or Admin, you can manually release any message at any time from the Legacy list — or re-seal it if needed.",
+          "Connect personalized legacy letters and audio messages directly to the intended beneficiary for private delivery.",
       },
     ],
     tips: [
       {
         type: "tip",
-        text: "Write at least one message for each key family member — even if it's a short note saying where important things are.",
+        text: "Ensure allocation percentages across each asset or company total 100% to avoid estate ambiguity.",
       },
       {
-        type: "warning",
-        text: "Messages marked Emergency Only are automatically visible to recipients the moment Emergency Mode is activated — no additional action required.",
-      },
-      {
-        type: "info",
-        text: "You can write business instruction letters too — e.g. to your business partner explaining what to do if you can no longer manage the venture.",
+        type: "security",
+        text: "Beneficiary details are confidential and accessible only to the Owner and authorized legal delegates.",
       },
     ],
-    whoCanAccess: "Owner & Admins write. Recipients see only their own released messages.",
+    whoCanAccess: "Super Admin, Owner, and users with canViewFinancial or canViewPersonal permissions.",
   },
+
   {
-    id: "access",
+    id: "legacy",
+    icon: BookOpen,
+    color: "text-pink-600 dark:text-pink-400",
+    bg: "bg-pink-50 dark:bg-pink-950/50",
+    border: "border-pink-200 dark:border-pink-800/40",
+    title: "12. Legacy Messages & Final Wishes",
+    subtitle: "Private letters, video messages & emergency release triggers",
+    description:
+      "Leave personal, emotional messages, advice, video links, or confidential instructions for your wife, children, siblings, or lifelong friends. Messages remain sealed until designated trigger conditions are met.",
+    steps: [
+      {
+        title: "Compose Legacy Message",
+        detail:
+          "Specify the recipient from your People directory. Write your letter using the rich text editor or attach secure media links.",
+      },
+      {
+        title: "Select Release Trigger Condition",
+        detail:
+          "Choose delivery trigger: On Emergency Protocol Activation, On Specified Future Date, or Manual Release by Primary Guardian.",
+      },
+      {
+        title: "Define Confidentiality & Privacy Level",
+        detail:
+          "Mark message as Strictly Private (only the recipient can decrypt upon release) or Family Shared.",
+      },
+      {
+        title: "Test & Seal Message",
+        detail:
+          "Review the message preview, save, and seal. The system securely encrypts the content until the release protocol fires.",
+      },
+    ],
+    tips: [
+      {
+        type: "tip",
+        text: "Write from the heart. Share life values, advice for your children's future milestones, and reassuring words for your family.",
+      },
+      {
+        type: "security",
+        text: "Messages are securely locked. No one — not even administrators — can prematurely decrypt private legacy letters before release triggers fire.",
+      },
+    ],
+    whoCanAccess: "Owner creates and manages all messages. Designated recipients receive access upon verified release.",
+  },
+
+  {
+    id: "guardians",
     icon: ShieldAlert,
     color: "text-red-600 dark:text-red-400",
     bg: "bg-red-50 dark:bg-red-950/50",
     border: "border-red-200 dark:border-red-800/40",
-    title: "Access & Emergency",
-    subtitle: "Delegate control and activate emergency protocols",
+    title: "13. Trusted Guardians & Emergency Protocol",
+    subtitle: "Multi-party consensus, countdown grace period & emergency unlocking",
     description:
-      "The Access module is the control room for trust and crisis management. From here you designate primary and secondary emergency trustees and manage granular per-user permissions. Emergency Mode is protected by a Main User safety lock: the Main User cannot trigger Emergency Mode; only designated emergency contacts can trigger it if the Main User is no longer available, and emergency delegates can reset it at any time.",
+      "The fail-safe emergency access engine. Designed to prevent unauthorized access while guaranteeing family continuity if the owner is incapacitated or unreachable. Requires multi-guardian consensus and an owner cancellation grace period.",
     steps: [
       {
-        title: "Emergency Mode Safety Lock",
+        title: "Designate Trusted Guardians",
         detail:
-          "The Main User (Owner) is intentionally locked out from triggering Emergency Mode. Because Emergency Mode is designed for when the Main User is no more or unavailable, it can only be activated by your designated Emergency Contacts (Primary / Secondary Admin).",
+          "Appoint 2 to 5 trusted individuals (e.g., Wife as Primary, Brother as Secondary, Trusted Partner as Independent) from the People directory.",
       },
       {
-        title: "Designate Primary & Secondary Admins",
+        title: "Configure Multi-Party Consensus Threshold",
         detail:
-          "Set one Primary Admin (your most trusted person, e.g. spouse or senior partner) and one Secondary Admin (backup). They gain the authority to activate Emergency Mode if you are no longer available.",
+          "Set the approval threshold (e.g., 2 of 3 guardians must confirm). A single rogue guardian cannot trigger emergency mode unilaterally.",
       },
       {
-        title: "Per-User Permissions Grid",
+        title: "Set Countdown Grace Period",
         detail:
-          "For each person in your directory, toggle individual permissions: View Personal Records, View Business Records, View Financial Data, View Sensitive Files, Reveal Vault Secrets, Manage Access, Access Emergency Protocols.",
+          "Specify the safety cancellation window (e.g. 24, 48, or 72 hours). When guardians initiate an emergency request, the Owner receives instant alerts and can cancel with a single tap if it was a false alarm.",
       },
       {
-        title: "Resetting Emergency Mode",
+        title: "Emergency Activation & Dynamic Elevation",
         detail:
-          "Emergency Mode can be reset back to Standby at any time by the designated Emergency Contacts, Admin, or returning Owner. All emergency-gated content returns to sealed state immediately.",
+          "If the countdown expires without owner cancellation, Emergency Mode activates. Permitted continuity instructions, designated vault secrets, and emergency directives unlock for designated delegates.",
+      },
+      {
+        title: "Owner One-Tap Normalization",
+        detail:
+          "The Owner can deactivate Emergency Mode at any time, instantly locking emergency access and restoring normal operation.",
       },
     ],
     tips: [
+      {
+        type: "security",
+        text: "Multi-party consensus (e.g., requiring both Wife AND Brother to approve) prevents unilateral hostile takeover or accidental unlocking.",
+      },
       {
         type: "warning",
-        text: "Activating Emergency Mode is a significant action — it immediately exposes sealed legacy letters and continuity plans to your designated trustees.",
-      },
-      {
-        type: "security",
-        text: "Every Emergency Mode activation and reset is permanently logged in the Activity Audit with timestamp and actor identity.",
-      },
-      {
-        type: "tip",
-        text: "Review and update your trustee delegation at least once a year — life circumstances change.",
+        text: "Always inform your appointed guardians about their role and verify that their phone numbers and emails are kept updated.",
       },
     ],
-    whoCanAccess: "Owner configures delegates & permissions. Designated Emergency Contacts trigger and reset Emergency Mode.",
+    whoCanAccess: "Super Admin, Owner, and appointed Guardians (canAccessEmergency).",
   },
+
   {
-    id: "activity",
-    icon: History,
-    color: "text-slate-600 dark:text-slate-400",
-    bg: "bg-slate-100 dark:bg-slate-900/50",
-    border: "border-slate-200 dark:border-slate-700/40",
-    title: "Activity & Audit Trail",
-    subtitle: "Tamper-evident security timeline",
-    description:
-      "Every critical action in LIFE — vault reveals, emergency activations, money creations, access changes — is permanently recorded in the Activity Audit with actor identity, timestamp, and action details. It cannot be edited or deleted.",
-    steps: [
-      {
-        title: "Timeline View",
-        detail:
-          "Scroll through a reverse-chronological feed of all system events. Each entry shows: who did it, what they did, which resource was affected, and when.",
-      },
-      {
-        title: "Filter by Action Type",
-        detail:
-          "Filter the timeline by event type: Vault Reveal, Emergency, Money, Access Changed, Person Modified, Settings, or All.",
-      },
-      {
-        title: "What Gets Logged",
-        detail:
-          "Vault secret revealed (with viewer identity), Emergency Mode on/off, Money record created/settled, Person locked/unlocked, Access permissions changed, Master PIN changed, Settings updated.",
-      },
-    ],
-    tips: [
-      {
-        type: "security",
-        text: "The audit log is append-only and cannot be modified by anyone, including the Owner. This is by design — it ensures accountability.",
-      },
-      {
-        type: "info",
-        text: "Review the audit log periodically to verify no unauthorized vault reveals or access changes have occurred.",
-      },
-    ],
-    whoCanAccess: "Owner & Admins see all logs. Others see only their own actions.",
-  },
-  {
-    id: "settings",
-    icon: Settings,
+    id: "permissions",
+    icon: ShieldCheck,
     color: "text-emerald-600 dark:text-emerald-400",
     bg: "bg-emerald-50 dark:bg-emerald-950/50",
     border: "border-emerald-200 dark:border-emerald-800/40",
-    title: "Settings & Backup",
-    subtitle: "Master PIN, PWA status, and encrypted backup",
+    title: "14. Access Control & Permission Rules",
+    subtitle: "Super admin privileges, user module filtering & route protection",
     description:
-      "Settings lets you configure your Master Security PIN (required for all vault reveals), check your PWA installation health, and export a full encrypted backup of your entire LIFE database.",
+      "LIFE enforces strict role-based access control (RBAC). The core principle is: Only Super Admin / Owner sees all modules. Other users only see and access the modules they have been explicitly granted permission to view.",
     steps: [
       {
-        title: "Set or Change Master PIN",
+        title: "Super Admin & Owner Role",
         detail:
-          "Your Master Security PIN protects all vault secret reveals. It must be 4–6 digits. Go to Settings → Master PIN → Set PIN. You will need to enter your current PIN to change it.",
+          "The Owner / Super Admin has unrestricted access to all 13 modules, full system settings, security logs, financial balances, and user permission management.",
       },
       {
-        title: "PWA Installation Status",
+        title: "Module Permission Flags",
         detail:
-          "A panel shows whether LIFE is installed as a standalone PWA on this device, and whether the Service Worker (zero-cache security) is active. If the SW is not registered, sensitive routes may not be protected from caching.",
+          "Assign specific permission flags to people: canViewPersonal, canViewBusiness, canViewFinancial, canViewSensitive, canRevealVault, canManageAccess, and canAccessEmergency.",
       },
       {
-        title: "Export Encrypted Backup",
+        title: "Automatic UI Navigation Filtering",
         detail:
-          "Tap Export System Backup to download a complete JSON snapshot of your LIFE data — all people, money, assets, businesses, vault ciphertexts, and legacy messages. Store this file in an encrypted offline location.",
+          "The desktop Sidebar, mobile Bottom Navigation bar, and 'More' drawer automatically filter out all modules the user lacks permission for. Empty sections are completely hidden.",
+      },
+      {
+        title: "Personalized Dashboard Views",
+        detail:
+          "Non-admin users see an 'Authorized Access Portal' displaying only their permitted directory cards, action buttons, and assigned responsibilities. Financial figures and secrets are hidden.",
+      },
+      {
+        title: "Server-Side Route Protection",
+        detail:
+          "Direct browser URL navigation is enforced on the server. If an unauthorized user attempts to open a restricted route (e.g. /vault or /finance), they are automatically redirected to the home screen.",
+      },
+    ],
+    tips: [
+      {
+        type: "security",
+        text: "Follow the principle of least privilege: assign employees and external partners only the exact modules they need for business continuity.",
+      },
+      {
+        type: "tip",
+        text: "You can modify or revoke a person's permissions instantly from the People directory or Access management screen.",
+      },
+    ],
+    whoCanAccess: "Super Admin and Owner exclusively manage permissions for all other users.",
+  },
+
+  {
+    id: "activity",
+    icon: History,
+    color: "text-violet-600 dark:text-violet-400",
+    bg: "bg-violet-50 dark:bg-violet-950/50",
+    border: "border-violet-200 dark:border-violet-800/40",
+    title: "15. Security Audit & Activity Log",
+    subtitle: "Real-time security logs, secret reveal tracking & tamper evidence",
+    description:
+      "A complete, tamper-evident audit log of every meaningful action inside LIFE Vault. Logs cannot be modified or deleted. Provides full transparency into who accessed what and when.",
+    steps: [
+      {
+        title: "Automatic System Logging",
+        detail:
+          "Every user sign-in, vault secret reveal, financial update, document download, permission change, and emergency mode event is automatically recorded.",
+      },
+      {
+        title: "Detailed Event Metadata",
+        detail:
+          "Each log entry includes timestamp, actor email, actor name, action category, affected item/entity, and status.",
+      },
+      {
+        title: "Filter by Activity Type",
+        detail:
+          "Filter by categories: Vault Reveals, Authentication, Financial Records, Continuity Changes, Emergency State, and Access Edits.",
+      },
+      {
+        title: "Security Incident Review",
+        detail:
+          "If unexpected behavior or an unauthorized sign-in attempt occurs, review the audit log immediately to identify the actor and timestamp.",
+      },
+    ],
+    tips: [
+      {
+        type: "security",
+        text: "Review the Activity Log periodically to verify that vault secret reveals correspond only to authorized operations.",
+      },
+      {
+        type: "info",
+        text: "Log entries are stored permanently in the database and cannot be cleared by standard users.",
+      },
+    ],
+    whoCanAccess: "Super Admin, Owner, and administrators with canManageAccess permission.",
+  },
+
+  {
+    id: "settings",
+    icon: Settings,
+    color: "text-slate-600 dark:text-slate-400",
+    bg: "bg-slate-50 dark:bg-slate-900/50",
+    border: "border-slate-200 dark:border-slate-800/40",
+    title: "16. System Settings, Master PIN & PWA",
+    subtitle: "Master PIN configuration, encrypted backup & mobile installation",
+    description:
+      "Manage security parameters, configure your Master PIN for vault reveals, export encrypted offline backups, and install LIFE Vault as a native Progressive Web App (PWA) on iPhone and Android.",
+    steps: [
+      {
+        title: "Configure / Change Master PIN",
+        detail:
+          "Set a strong 4-to-6 digit Master PIN. The PIN is required whenever revealing encrypted vault secrets or modifying high-security emergency settings.",
+      },
+      {
+        title: "Export Complete Encrypted Backup",
+        detail:
+          "Download a full JSON snapshot of your entire database — people, businesses, financial records, assets, encrypted vault ciphertexts, and legacy messages — for cold offline storage.",
+      },
+      {
+        title: "Install as Mobile PWA",
+        detail:
+          "On iPhone: open Safari, tap the Share icon, and select 'Add to Home Screen'. On Android: tap the browser menu and select 'Install App'. Enjoys fullscreen native mobile experience.",
+      },
+      {
+        title: "Emergency Notification Webhooks",
+        detail:
+          "Configure emergency alert SMS/email webhooks so appointed delegates and family receive instant notifications during emergency protocol activation.",
       },
     ],
     tips: [
       {
         type: "warning",
-        text: "If you forget your Master PIN, vault secrets CANNOT be recovered. There is no bypass. Store your PIN in a physical safe or a trusted offline location.",
+        text: "Never store your backup file on public cloud storage without additional encryption. Keep backups on an encrypted USB drive in a fireproof safe.",
       },
       {
         type: "tip",
-        text: "Run an encrypted backup at least monthly, or after any major update to your data.",
-      },
-      {
-        type: "security",
-        text: "The backup file contains vault ciphertext (not plaintext) — it is only useful with the original LIFE_VAULT_ENCRYPTION_KEY environment variable.",
+        text: "Installing LIFE Vault as a PWA gives you fast one-tap access from your phone's home screen with biometric unlocking.",
       },
     ],
-    whoCanAccess: "Owner only for PIN changes. Admin for read-only settings view.",
+    whoCanAccess: "Owner only for Master PIN and backup exports. Admins for general settings.",
   },
 ];
 
@@ -767,7 +946,7 @@ export function UserGuideClient() {
                 User Guide
               </h2>
               <p className="text-[11px] text-muted-foreground mt-0.5">
-                {sections.length} topic guides
+                {sections.length} module guides
               </p>
             </div>
           </div>
@@ -819,9 +998,9 @@ export function UserGuideClient() {
 
         {/* Bottom Hint */}
         <div className="shrink-0 p-3 m-2 rounded-xl bg-muted/40 border border-border/80 text-[11px] text-muted-foreground">
-          <p className="font-semibold text-foreground/80 mb-0.5">Quick Reference</p>
+          <p className="font-semibold text-foreground/80 mb-0.5">Permission Notice</p>
           <p className="leading-relaxed text-[10px]">
-            Switch topics anytime to see workflows, access rules, and security tips.
+            Super Admin sees all modules. Other users only see modules granted in their access profile.
           </p>
         </div>
       </aside>
@@ -904,7 +1083,7 @@ export function UserGuideClient() {
               <div className="mt-4 pt-3 border-t border-border/40 flex items-center gap-2 text-xs text-muted-foreground bg-background/50 rounded-xl px-3 py-2 border border-border/50">
                 <UserCheck className="w-4 h-4 shrink-0 text-emerald-500" strokeWidth={2} />
                 <span className="truncate">
-                  <strong className="text-foreground/90 font-semibold">Access:</strong>{" "}
+                  <strong className="text-foreground/90 font-semibold">Who Can Access:</strong>{" "}
                   {active.whoCanAccess}
                 </span>
               </div>
@@ -918,7 +1097,7 @@ export function UserGuideClient() {
                   className="text-xs sm:text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2"
                 >
                   <CheckCircle2 className="w-4 h-4 text-emerald-500" strokeWidth={2} />
-                  How It Works & Steps
+                  How It Works & Step-by-Step Guide
                 </h2>
                 <span className="text-[11px] text-muted-foreground font-medium">
                   {active.steps.length} steps
@@ -954,7 +1133,7 @@ export function UserGuideClient() {
                 className="text-xs sm:text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2"
               >
                 <Zap className="w-4 h-4 text-amber-500" strokeWidth={2} />
-                Tips & Important Notes
+                Security Rules & Important Tips
               </h2>
 
               <div className="space-y-3">
@@ -1049,25 +1228,27 @@ export function UserGuideClient() {
             aria-hidden="true"
           />
 
-          {/* Slide-in Panel */}
-          <div className="relative z-10 w-80 max-w-[85vw] h-full bg-card border-r border-border shadow-2xl flex flex-col animate-in slide-in-from-left duration-200">
+          {/* Slide-in drawer sheet from left */}
+          <div className="relative w-4/5 max-w-xs bg-card border-r border-border h-full flex flex-col shadow-2xl z-10 animate-in slide-in-from-left duration-200">
             {/* Drawer Header */}
-            <div className="shrink-0 px-4 py-3 border-b border-border bg-card/90 flex items-center justify-between">
+            <div className="shrink-0 px-4 py-3.5 border-b border-border flex items-center justify-between bg-card/90">
               <div className="flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-emerald-500" strokeWidth={2.5} />
-                <h3 className="font-bold text-sm text-foreground">User Guide Topics</h3>
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                  <BookOpen className="w-3.5 h-3.5" strokeWidth={2.5} />
+                </div>
+                <span className="font-bold text-sm text-foreground">Topics</span>
               </div>
               <button
                 onClick={() => setDrawerOpen(false)}
-                className="p-1 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Close menu"
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                aria-label="Close guide menu"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Topics List */}
-            <nav className="flex-1 overflow-y-auto p-2 space-y-1" aria-label="Mobile guide sections">
+            {/* Topic List */}
+            <nav className="flex-1 overflow-y-auto p-2 space-y-1" aria-label="Mobile guide topics">
               {sections.map((section, idx) => {
                 const Icon = section.icon;
                 const isActive = section.id === activeId;
@@ -1075,27 +1256,23 @@ export function UserGuideClient() {
                   <button
                     key={section.id}
                     onClick={() => selectSection(section.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs font-medium transition-all
+                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all text-xs font-medium
                       ${
                         isActive
-                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold border border-emerald-500/30"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                       }`}
                   >
                     <Icon
                       className={`w-4 h-4 shrink-0 ${
                         isActive
                           ? "text-emerald-600 dark:text-emerald-400"
-                          : "text-muted-foreground"
+                          : "text-muted-foreground/70"
                       }`}
                       strokeWidth={isActive ? 2.5 : 2}
                     />
                     <span className="truncate flex-1">{section.title}</span>
-                    <span
-                      className={`text-[10px] font-mono ${
-                        isActive ? "text-emerald-500 font-bold" : "text-muted-foreground/50"
-                      }`}
-                    >
+                    <span className="text-[10px] font-mono text-muted-foreground/50 shrink-0">
                       {String(idx + 1).padStart(2, "0")}
                     </span>
                   </button>
@@ -1103,11 +1280,9 @@ export function UserGuideClient() {
               })}
             </nav>
 
-            {/* Drawer Footer */}
-            <div className="shrink-0 p-3 border-t border-border bg-muted/20 text-center">
-              <p className="text-[11px] text-muted-foreground">
-                Tap any topic to navigate directly
-              </p>
+            {/* Drawer Footer Notice */}
+            <div className="shrink-0 p-3 border-t border-border bg-muted/20 text-[10px] text-muted-foreground leading-relaxed">
+              Super Admin sees all modules. Others see only granted modules.
             </div>
           </div>
         </div>

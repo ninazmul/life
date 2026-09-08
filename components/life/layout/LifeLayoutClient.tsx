@@ -6,17 +6,20 @@ import { LifeHeader } from "./LifeHeader";
 import { LifeBottomNav } from "./LifeBottomNav";
 import { LifeMoreSheet } from "./LifeMoreSheet";
 import { PWAProvider } from "../PWAProvider";
+import { UserModuleAccess } from "@/lib/life/module-access";
 
 interface LifeLayoutClientProps {
   children: React.ReactNode;
   userName?: string;
   isEmergencyActive?: boolean;
+  userAccess: UserModuleAccess;
 }
 
 export function LifeLayoutClient({
   children,
   userName = "Owner",
   isEmergencyActive = false,
+  userAccess,
 }: LifeLayoutClientProps) {
   const [moreSheetOpen, setMoreSheetOpen] = useState(false);
 
@@ -24,7 +27,7 @@ export function LifeLayoutClient({
     <PWAProvider>
       <div className="life-shell flex min-h-screen bg-background text-foreground transition-colors">
         {/* Desktop Responsive Sidebar */}
-        <LifeSidebar />
+        <LifeSidebar userAccess={userAccess} />
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-h-screen min-w-0 overflow-x-hidden">
@@ -40,12 +43,16 @@ export function LifeLayoutClient({
           </main>
 
           {/* Mobile Native Bottom Navigation */}
-          <LifeBottomNav onOpenMore={() => setMoreSheetOpen(true)} />
+          <LifeBottomNav
+            onOpenMore={() => setMoreSheetOpen(true)}
+            userAccess={userAccess}
+          />
 
           {/* Mobile Native "More" Sheet */}
           <LifeMoreSheet
             open={moreSheetOpen}
             onOpenChange={setMoreSheetOpen}
+            userAccess={userAccess}
           />
         </div>
       </div>

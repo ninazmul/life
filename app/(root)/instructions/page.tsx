@@ -2,8 +2,8 @@ import { getResponsibilities } from "@/lib/actions/lifeResponsibility.actions";
 import { getInstructions } from "@/lib/actions/lifeInstruction.actions";
 import { getPeople } from "@/lib/actions/lifePeople.actions";
 import { getBusinesses } from "@/lib/actions/lifeBusiness.actions";
-import { getLifeAuthContext } from "@/lib/life/auth";
 import { InstructionsClient } from "@/components/life/instructions/InstructionsClient";
+import { requireModuleAccess } from "@/lib/life/module-access.server";
 
 export const dynamic = "force-dynamic";
 
@@ -13,13 +13,14 @@ export const metadata = {
 };
 
 export default async function InstructionsPage() {
-  const [responsibilities, instructions, people, businesses, authContext] =
+  const authContext = await requireModuleAccess("/instructions");
+
+  const [responsibilities, instructions, people, businesses] =
     await Promise.all([
       getResponsibilities(),
       getInstructions(),
       getPeople({ status: "active" }),
       getBusinesses(),
-      getLifeAuthContext(),
     ]);
 
   return (

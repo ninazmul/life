@@ -32,6 +32,11 @@ export default async function RootLayout({
       <LifeLayoutClient
         userName={authContext?.name || "Owner"}
         isEmergencyActive={emergencyState?.isEmergencyActive || false}
+        userAccess={{
+          isOwner: authContext.isOwner,
+          isAdmin: authContext.isAdmin,
+          permissions: authContext.permissions,
+        }}
       >
         {children}
       </LifeLayoutClient>

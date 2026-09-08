@@ -1,8 +1,8 @@
 import { getPeople } from "@/lib/actions/lifePeople.actions";
 import { getLegacyMessages } from "@/lib/actions/lifeLegacy.actions";
 import { getAssets } from "@/lib/actions/lifeAsset.actions";
-import { getLifeAuthContext } from "@/lib/life/auth";
 import { BeneficiariesClient } from "@/components/life/beneficiaries/BeneficiariesClient";
+import { requireModuleAccess } from "@/lib/life/module-access.server";
 
 export const dynamic = "force-dynamic";
 
@@ -12,11 +12,11 @@ export const metadata = {
 };
 
 export default async function BeneficiariesPage() {
-  const [people, messages, assets, authContext] = await Promise.all([
+  const [authContext, people, messages, assets] = await Promise.all([
+    requireModuleAccess("/beneficiaries"),
     getPeople({ status: "active" }),
     getLegacyMessages(),
     getAssets(),
-    getLifeAuthContext(),
   ]);
 
   const beneficiaries = people.filter(

@@ -19,13 +19,17 @@ import {
   Settings,
   BookOpen,
 } from "lucide-react";
+import { canAccessModule, UserModuleAccess } from "@/lib/life/module-access";
 
 interface LifeSidebarProps {
   activeLoansCount?: number;
+  userAccess: UserModuleAccess;
 }
 
-export function LifeSidebar({ activeLoansCount = 0 }: LifeSidebarProps) {
+export function LifeSidebar({ activeLoansCount = 0, userAccess }: LifeSidebarProps) {
   const pathname = usePathname();
+  const { isOwner, isAdmin, permissions } = userAccess;
+  const isSuperUser = isOwner || isAdmin;
 
   const sections = [
     {
@@ -135,6 +139,16 @@ export function LifeSidebar({ activeLoansCount = 0 }: LifeSidebarProps) {
     },
   ];
 
+  // Filter each section's items by user permissions, then remove empty sections
+  const filteredSections = sections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) =>
+        canAccessModule(item.url, permissions, isSuperUser)
+      ),
+    }))
+    .filter((section) => section.items.length > 0);
+
   return (
     <aside
       className="hidden md:flex flex-col w-64 border-r border-sidebar-border bg-sidebar-background shrink-0 h-screen sticky top-0 overflow-y-auto"
@@ -169,7 +183,7 @@ export function LifeSidebar({ activeLoansCount = 0 }: LifeSidebarProps) {
 
       {/* Navigation Sections */}
       <div className="flex-1 py-4 px-3 space-y-6">
-        {sections.map((section) => (
+        {filteredSections.map((section) => (
           <nav
             key={section.title}
             className="space-y-1"
@@ -210,12 +224,12 @@ export function LifeSidebar({ activeLoansCount = 0 }: LifeSidebarProps) {
                       <span className="truncate">{item.title}</span>
                     </div>
 
-                    {item.badge !== undefined && (
+                    {(item as any).badge !== undefined && (
                       <span
                         className="flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-amber-500 text-slate-950 text-[10px] font-extrabold shrink-0"
-                        aria-label={`${item.badge} active items`}
+                        aria-label={`${(item as any).badge} active items`}
                       >
-                        {item.badge}
+                        {(item as any).badge}
                       </span>
                     )}
 

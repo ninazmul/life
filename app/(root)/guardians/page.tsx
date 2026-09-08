@@ -1,8 +1,8 @@
 import { getGuardians, getGuardianConfig } from "@/lib/actions/lifeGuardian.actions";
 import { getEmergencyHistory } from "@/lib/actions/lifeEmergencyRequest.actions";
 import { getPeople } from "@/lib/actions/lifePeople.actions";
-import { getLifeAuthContext } from "@/lib/life/auth";
 import { GuardiansClient } from "@/components/life/access/GuardiansClient";
+import { requireModuleAccess } from "@/lib/life/module-access.server";
 
 export const dynamic = "force-dynamic";
 
@@ -12,13 +12,13 @@ export const metadata = {
 };
 
 export default async function GuardiansPage() {
-  const [guardians, emergencyConfig, emergencyHistory, people, authContext] =
+  const [authContext, guardians, emergencyConfig, emergencyHistory, people] =
     await Promise.all([
+      requireModuleAccess("/guardians"),
       getGuardians(),
       getGuardianConfig(),
       getEmergencyHistory(),
       getPeople({ status: "active" }),
-      getLifeAuthContext(),
     ]);
 
   return (
