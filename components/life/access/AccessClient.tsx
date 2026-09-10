@@ -28,6 +28,16 @@ import {
 } from "@/lib/actions/lifeAccess.actions";
 import toast from "react-hot-toast";
 
+const DEFAULT_OWNER_PERMS: LifePermission = {
+  canViewPersonal: true,
+  canViewBusiness: true,
+  canViewFinancial: true,
+  canViewSensitive: true,
+  canRevealVault: true,
+  canManageAccess: true,
+  canAccessEmergency: true,
+};
+
 interface AccessClientProps {
   emergencyState: ILifeEmergencyAccess;
   people: ILifePerson[];
@@ -166,14 +176,19 @@ export function AccessClient({
     const person = people.find((p) => p._id === personId);
     if (!person) return;
 
+    const isSuper = newRole === "super_admin" || newRole === "owner";
+    const newPerms: LifePermission = isSuper ? DEFAULT_OWNER_PERMS : person.permissions;
+
     try {
       await updatePersonRoleAndPermissions(
         personId,
         newRole,
-        person.permissions,
+        newPerms,
       );
       setPeople(
-        people.map((p) => (p._id === personId ? { ...p, role: newRole } : p)),
+        people.map((p) =>
+          p._id === personId ? { ...p, role: newRole, permissions: newPerms } : p
+        ),
       );
       toast.success(
         `Role updated to ${newRole.toUpperCase()} for ${person.name}`,

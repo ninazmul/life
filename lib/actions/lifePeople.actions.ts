@@ -7,7 +7,8 @@ import LifeMoneyRecord from "@/lib/database/models/lifeMoneyRecord.model";
 import LifeDocument from "@/lib/database/models/lifeDocument.model";
 import LifeContact from "@/lib/database/models/lifeContact.model";
 import LifeInformation from "@/lib/database/models/lifeInformation.model";
-import { getLifeAuthContext, logLifeActivity } from "@/lib/life/auth";
+import Admin from "@/lib/database/models/admin.model";
+import { getLifeAuthContext, logLifeActivity, DEFAULT_OWNER_PERMS } from "@/lib/life/auth";
 import { ILifePerson, PersonStatus, LifeRole } from "@/types";
 
 export async function getPeople(params?: {
@@ -105,29 +106,52 @@ export async function createPerson(data: {
     throw new Error("Forbidden: Only Owners/Admins can add new People profiles.");
   }
 
+  const isSuper = data.role === "super_admin" || data.role === "owner";
+  const finalRole = data.role || "individual";
+  const finalPerms = isSuper
+    ? DEFAULT_OWNER_PERMS
+    : data.permissions || {
+        canViewPersonal: false,
+        canViewBusiness: false,
+        canViewFinancial: false,
+        canViewSensitive: false,
+        canRevealVault: false,
+        canManageAccess: false,
+        canAccessEmergency: false,
+      };
+
   const person = await LifePerson.create({
     name: data.name,
     relation: data.relation,
     phone: data.phone || "",
     whatsapp: data.whatsapp || data.phone || "",
-    email: data.email?.toLowerCase() || "",
-    role: data.role || "individual",
+    email: data.email?.toLowerCase().trim() || "",
+    role: finalRole,
+    userRole: finalRole,
     status: data.status || "active",
     personalMessage: data.personalMessage || "",
     responsibilities: data.responsibilities || [],
     businessInstructions: data.businessInstructions || [],
     notes: data.notes || "",
     emergencyPriority: data.emergencyPriority || 0,
-    permissions: data.permissions || {
-      canViewPersonal: false,
-      canViewBusiness: false,
-      canViewFinancial: false,
-      canViewSensitive: false,
-      canRevealVault: false,
-      canManageAccess: false,
-      canAccessEmergency: false,
-    },
+    permissions: finalPerms,
   });
+
+  if (isSuper && person.email) {
+    const targetEmail = person.email.toLowerCase().trim();
+    await Admin.findOneAndUpdate(
+      { email: new RegExp(`^${targetEmail}$`, "i") },
+      {
+        $set: {
+          email: targetEmail,
+          name: person.name,
+          role: "super_admin",
+          isActive: true,
+        },
+      },
+      { upsert: true }
+    ).catch(() => {});
+  }
 
   await logLifeActivity({
     action: "CREATE_PERSON",
@@ -166,8 +190,40 @@ export async function updatePerson(
     throw new Error("Forbidden: Only Owners/Admins can modify People profiles.");
   }
 
-  const updated = (await LifePerson.findByIdAndUpdate(id, { $set: data }, { new: true }).lean()) as (ILifePerson & { _id: unknown }) | null;
+  const isSuper = data.role === "super_admin" || data.role === "owner";
+  const updateData: Record<string, unknown> = { ...data };
+  if (data.role) {
+    updateData.userRole = data.role;
+    if (isSuper) {
+      updateData.permissions = DEFAULT_OWNER_PERMS;
+    }
+  }
+
+  const updated = (await LifePerson.findByIdAndUpdate(id, { $set: updateData }, { new: true }).lean()) as (ILifePerson & { _id: unknown }) | null;
   if (!updated) throw new Error("Person not found.");
+
+  if (updated.email) {
+    const targetEmail = updated.email.toLowerCase().trim();
+    if (updated.role === "super_admin" || updated.role === "admin") {
+      await Admin.findOneAndUpdate(
+        { email: new RegExp(`^${targetEmail}$`, "i") },
+        {
+          $set: {
+            email: targetEmail,
+            name: updated.name,
+            role: updated.role === "super_admin" ? "super_admin" : "admin",
+            isActive: true,
+          },
+        },
+        { upsert: true }
+      ).catch(() => {});
+    } else if (data.role && data.role !== "super_admin" && data.role !== "admin") {
+      await Admin.findOneAndUpdate(
+        { email: new RegExp(`^${targetEmail}$`, "i") },
+        { $set: { isActive: false } }
+      ).catch(() => {});
+    }
+  }
 
   await logLifeActivity({
     action: "UPDATE_PERSON",

@@ -5,7 +5,7 @@ import { connectToDatabase } from "@/lib/database";
 import LifeEmergencyAccess from "@/lib/database/models/lifeEmergencyAccess.model";
 import LifePerson from "@/lib/database/models/lifePerson.model";
 import Admin from "@/lib/database/models/admin.model";
-import { getLifeAuthContext, logLifeActivity } from "@/lib/life/auth";
+import { getLifeAuthContext, logLifeActivity, DEFAULT_OWNER_PERMS } from "@/lib/life/auth";
 import { ILifeEmergencyAccess, ILifePerson, LifeRole, LifePermission } from "@/types";
 
 export async function getEmergencyAccessState(): Promise<ILifeEmergencyAccess> {
@@ -144,26 +144,39 @@ export async function updatePersonRoleAndPermissions(
     throw new Error("Forbidden: Only Owners can change roles and permissions.");
   }
 
+  const isSuper = role === "super_admin" || role === "owner";
+  const finalPerms: LifePermission = isSuper ? DEFAULT_OWNER_PERMS : permissions;
+
   const person = (await LifePerson.findByIdAndUpdate(
     personId,
-    { $set: { role, permissions } },
+    { $set: { role, userRole: role, permissions: finalPerms } },
     { new: true }
   ).lean()) as (ILifePerson & { _id: unknown }) | null;
 
   if (person) {
-    // Also sync with Admin collection if role is elevated to admin/super_admin
-    if ((role === "super_admin" || role === "admin") && person.email) {
-      await Admin.findOneAndUpdate(
-        { email: person.email.toLowerCase() },
-        {
-          $set: {
-            name: person.name,
-            role: role === "super_admin" ? "super_admin" : "admin",
-            isActive: true,
+    // Also sync with Admin collection
+    if (person.email) {
+      const targetEmail = person.email.toLowerCase().trim();
+      if (role === "super_admin" || role === "admin") {
+        await Admin.findOneAndUpdate(
+          { email: new RegExp(`^${targetEmail}$`, "i") },
+          {
+            $set: {
+              email: targetEmail,
+              name: person.name,
+              role: role === "super_admin" ? "super_admin" : "admin",
+              isActive: true,
+            },
           },
-        },
-        { upsert: true }
-      );
+          { upsert: true }
+        );
+      } else {
+        // If demoted from super_admin / admin, deactivate Admin record
+        await Admin.findOneAndUpdate(
+          { email: new RegExp(`^${targetEmail}$`, "i") },
+          { $set: { isActive: false } }
+        );
+      }
     }
 
     await logLifeActivity({

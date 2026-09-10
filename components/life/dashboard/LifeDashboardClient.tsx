@@ -21,6 +21,9 @@ import {
   ShieldAlert,
   Contact,
   FolderLock,
+  History,
+  Settings,
+  Coins,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LifeDashboardStats } from "@/types";
@@ -58,6 +61,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
   const hasBeneficiariesAccess = canAccessModule("/beneficiaries", permissions, isSuperUser);
   const hasContactsAccess = canAccessModule("/contacts", permissions, isSuperUser);
   const hasInfoAccess = canAccessModule("/information", permissions, isSuperUser);
+
+  const hasAccessControlAccess = canAccessModule("/access", permissions, isSuperUser);
+  const hasSettingsAccess = canAccessModule("/settings", permissions, isSuperUser);
 
   // Filter urgent items by module permissions
   const filteredUrgentItems = stats.urgentItems.filter((item) =>
@@ -97,6 +103,16 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       hasAccess: hasBusinessAccess,
     },
     {
+      title: "Money Management",
+      href: "/money",
+      desc: "Loans given, money taken, investments & tracking",
+      icon: Coins,
+      badge: "Tracking",
+      badgeValue: "Tracking",
+      color: "emerald",
+      hasAccess: hasMoneyAccess,
+    },
+    {
       title: "Assets & Holdings",
       href: "/assets",
       desc: "Bank balances, properties & valuable equipment",
@@ -114,7 +130,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       badge: `${stats.upcomingPaymentsCount} active`,
       badgeValue: stats.upcomingPaymentsCount,
       color: "emerald",
-      hasAccess: hasFinanceAccess && !isSuperUser,
+      hasAccess: hasFinanceAccess,
     },
     {
       title: "Responsibilities & Instructions",
@@ -124,7 +140,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       badge: `${stats.pendingResponsibilitiesCount} tasks`,
       badgeValue: stats.pendingResponsibilitiesCount,
       color: "sky",
-      hasAccess: hasInstructionsAccess && !isSuperUser,
+      hasAccess: hasInstructionsAccess,
     },
     {
       title: "Emergency & Guardians",
@@ -134,7 +150,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       badge: `${stats.trustedGuardiansCount} guardians`,
       badgeValue: stats.trustedGuardiansCount,
       color: "rose",
-      hasAccess: hasGuardiansAccess && !isSuperUser,
+      hasAccess: hasGuardiansAccess,
     },
     {
       title: "Documents & Files",
@@ -144,7 +160,17 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       badge: "Encrypted",
       badgeValue: "Encrypted",
       color: "purple",
-      hasAccess: hasDocumentsAccess && !isSuperUser,
+      hasAccess: hasDocumentsAccess,
+    },
+    {
+      title: "Information & Notes",
+      href: "/information",
+      desc: "Critical bank details, server info & guidelines",
+      icon: FileText,
+      badge: "Encrypted",
+      badgeValue: "Encrypted",
+      color: "sky",
+      hasAccess: hasInfoAccess,
     },
     {
       title: "Beneficiaries & Nominees",
@@ -154,7 +180,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       badge: "Designated",
       badgeValue: "Designated",
       color: "rose",
-      hasAccess: hasBeneficiariesAccess && !isSuperUser,
+      hasAccess: hasBeneficiariesAccess,
     },
     {
       title: "Emergency Contacts",
@@ -164,7 +190,47 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       badge: "Emergency",
       badgeValue: "Emergency",
       color: "amber",
-      hasAccess: hasContactsAccess && !isSuperUser,
+      hasAccess: hasContactsAccess,
+    },
+    {
+      title: "Legacy Messages",
+      href: "/legacy",
+      desc: "Personal letters, voice notes & posthumous release",
+      icon: HeartHandshake,
+      badge: "Sealed",
+      badgeValue: "Sealed",
+      color: "purple",
+      hasAccess: hasLegacyAccess,
+    },
+    {
+      title: "Access Control & Emergency",
+      href: "/access",
+      desc: "Emergency trigger, user roles & module permissions",
+      icon: ShieldAlert,
+      badge: "Security",
+      badgeValue: "Security",
+      color: "red",
+      hasAccess: hasAccessControlAccess,
+    },
+    {
+      title: "Activity & Audit Log",
+      href: "/activity",
+      desc: "Immutable logs of all sensitive actions & changes",
+      icon: History,
+      badge: "Audit",
+      badgeValue: "Audit",
+      color: "slate",
+      hasAccess: hasActivityAccess,
+    },
+    {
+      title: "System Settings",
+      href: "/settings",
+      desc: "Vault security, database exports & preferences",
+      icon: Settings,
+      badge: "System",
+      badgeValue: "System",
+      color: "teal",
+      hasAccess: hasSettingsAccess,
     },
   ];
 

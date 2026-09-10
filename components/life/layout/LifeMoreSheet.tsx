@@ -40,7 +40,7 @@ export function LifeMoreSheet({ open, onOpenChange, userAccess }: LifeMoreSheetP
 
   const allMoreItems = [
     {
-      title: "1. Businesses & Partnerships",
+      title: "Businesses & Partnerships",
       desc: "Companies, shares, partner equity & continuity",
       href: "/business",
       icon: Briefcase,
@@ -48,7 +48,7 @@ export function LifeMoreSheet({ open, onOpenChange, userAccess }: LifeMoreSheetP
         "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-800/40",
     },
     {
-      title: "2. Finance & Transactions",
+      title: "Finance & Transactions",
       desc: "Financial support, repayment, installments & gifts",
       href: "/finance",
       icon: Wallet,
@@ -56,7 +56,7 @@ export function LifeMoreSheet({ open, onOpenChange, userAccess }: LifeMoreSheetP
         "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800/40",
     },
     {
-      title: "3. Assets & Properties",
+      title: "Assets & Properties",
       desc: "Bank balances, property & valuations",
       href: "/assets",
       icon: Layers,
@@ -64,7 +64,7 @@ export function LifeMoreSheet({ open, onOpenChange, userAccess }: LifeMoreSheetP
         "text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/60 border-cyan-200 dark:border-cyan-800/40",
     },
     {
-      title: "4. Instructions & Responsibilities",
+      title: "Instructions & Responsibilities",
       desc: "Directives, task assignments & emergency actions",
       href: "/instructions",
       icon: CheckSquare,
@@ -72,7 +72,7 @@ export function LifeMoreSheet({ open, onOpenChange, userAccess }: LifeMoreSheetP
         "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-800/40",
     },
     {
-      title: "5. Contact Directory",
+      title: "Contact Directory",
       desc: "Emergency & key advisors (1-tap call)",
       href: "/contacts",
       icon: Contact,
@@ -80,7 +80,7 @@ export function LifeMoreSheet({ open, onOpenChange, userAccess }: LifeMoreSheetP
         "text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 border-sky-200 dark:border-sky-800/40",
     },
     {
-      title: "6. Documents Library",
+      title: "Documents Library",
       desc: "Private deeds, contracts & receipts",
       href: "/documents",
       icon: FolderLock,
@@ -88,7 +88,7 @@ export function LifeMoreSheet({ open, onOpenChange, userAccess }: LifeMoreSheetP
         "text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 border-indigo-200 dark:border-indigo-800/40",
     },
     {
-      title: "7. Personal & Legacy Messages",
+      title: "Personal & Legacy Messages",
       desc: "Private letters & instructions for designated people",
       href: "/legacy",
       icon: HeartHandshake,
@@ -96,7 +96,7 @@ export function LifeMoreSheet({ open, onOpenChange, userAccess }: LifeMoreSheetP
         "text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800/40",
     },
     {
-      title: "8. Beneficiaries",
+      title: "Beneficiaries",
       desc: "Designated recipients of legacy allocations",
       href: "/beneficiaries",
       icon: Gift,
@@ -104,7 +104,7 @@ export function LifeMoreSheet({ open, onOpenChange, userAccess }: LifeMoreSheetP
         "text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 border-purple-200 dark:border-purple-800/40",
     },
     {
-      title: "9. Guardians & Emergency Access",
+      title: "Guardians & Emergency Access",
       desc: "Trusted guardians, release approvals & safety state",
       href: "/guardians",
       icon: ShieldCheck,
@@ -112,7 +112,7 @@ export function LifeMoreSheet({ open, onOpenChange, userAccess }: LifeMoreSheetP
         "text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/60 border-red-200 dark:border-red-800/40",
     },
     {
-      title: "10. Activity & Audit Log",
+      title: "Activity & Audit Log",
       desc: "Immutable logs of all sensitive actions",
       href: "/activity",
       icon: History,
@@ -120,28 +120,28 @@ export function LifeMoreSheet({ open, onOpenChange, userAccess }: LifeMoreSheetP
         "text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800",
     },
     {
-      title: "11. Security & Backup",
-      desc: "Database exports, restore test & security policy",
-      href: "/settings",
+      title: "Access Control & Protocols",
+      desc: "Emergency trigger, user roles & module permissions",
+      href: "/access",
       icon: ShieldAlert,
       color:
         "text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-950/60 border-orange-200 dark:border-orange-800/40",
     },
     {
-      title: "12. User Guide",
+      title: "Settings & Backup",
+      desc: "System preferences, security & database export",
+      href: "/settings",
+      icon: Settings,
+      color:
+        "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-slate-900 border-emerald-200 dark:border-slate-800",
+    },
+    {
+      title: "User Guide",
       desc: "How to use every module of LIFE Vault",
       href: "/guide",
       icon: BookOpen,
       color:
         "text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 border-teal-200 dark:border-teal-800/40",
-    },
-    {
-      title: "13. Settings",
-      desc: "System preferences, roles & configuration",
-      href: "/settings",
-      icon: Settings,
-      color:
-        "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-slate-900 border-emerald-200 dark:border-slate-800",
     },
   ];
 

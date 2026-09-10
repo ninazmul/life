@@ -18,6 +18,7 @@ import {
   History,
   Settings,
   BookOpen,
+  Coins,
 } from "lucide-react";
 import { canAccessModule, UserModuleAccess } from "@/lib/life/module-access";
 
@@ -50,9 +51,15 @@ export function LifeSidebar({ activeLoansCount = 0, userAccess }: LifeSidebarPro
         {
           title: "Money Management",
           url: "/money",
-          icon: Wallet,
+          icon: Coins,
           isActive: pathname.startsWith("/money"),
           badge: activeLoansCount > 0 ? activeLoansCount : undefined,
+        },
+        {
+          title: "Financial Support",
+          url: "/finance",
+          icon: Wallet,
+          isActive: pathname.startsWith("/finance"),
         },
         {
           title: "Secure Vault",
@@ -65,6 +72,12 @@ export function LifeSidebar({ activeLoansCount = 0, userAccess }: LifeSidebarPro
     {
       title: "Records & Continuity",
       items: [
+        {
+          title: "Responsibilities & Instructions",
+          url: "/instructions",
+          icon: FileText,
+          isActive: pathname.startsWith("/instructions"),
+        },
         {
           title: "Information & Notes",
           url: "/information",
@@ -95,6 +108,12 @@ export function LifeSidebar({ activeLoansCount = 0, userAccess }: LifeSidebarPro
           icon: FolderLock,
           isActive: pathname.startsWith("/documents"),
         },
+        {
+          title: "Beneficiaries & Nominees",
+          url: "/beneficiaries",
+          icon: HeartHandshake,
+          isActive: pathname.startsWith("/beneficiaries"),
+        },
       ],
     },
     {
@@ -105,6 +124,12 @@ export function LifeSidebar({ activeLoansCount = 0, userAccess }: LifeSidebarPro
           url: "/legacy",
           icon: HeartHandshake,
           isActive: pathname.startsWith("/legacy"),
+        },
+        {
+          title: "Emergency & Guardians",
+          url: "/guardians",
+          icon: ShieldAlert,
+          isActive: pathname.startsWith("/guardians"),
         },
         {
           title: "Access & Emergency",

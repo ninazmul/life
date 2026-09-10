@@ -20,7 +20,7 @@ export interface LifeAuthContext {
   permissions: LifePermission;
 }
 
-const DEFAULT_OWNER_PERMS: LifePermission = {
+export const DEFAULT_OWNER_PERMS: LifePermission = {
   canViewPersonal: true,
   canViewBusiness: true,
   canViewFinancial: true,
@@ -43,16 +43,23 @@ export async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
 
     await connectToDatabase();
 
-    const email = clerkUser.emailAddresses[0]?.emailAddress?.toLowerCase().trim() || "";
+    const emails = (clerkUser.emailAddresses || [])
+      .map((e) => e.emailAddress?.toLowerCase().trim())
+      .filter(Boolean);
+    const email = emails[0] || "";
     const name =
       `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() ||
       email.split("@")[0] ||
       "User";
     const avatarUrl = clerkUser.imageUrl;
 
+    const emailRegexes = emails.map((e) => new RegExp(`^${e}$`, "i"));
+
     // Check if any admin exists in system; if 0, auto-promote first user as Owner / super_admin
     const totalAdmins = await Admin.countDocuments();
-    let adminDoc = await Admin.findOne({ email });
+    let adminDoc = await Admin.findOne({
+      email: { $in: emailRegexes.length > 0 ? emailRegexes : [email] },
+    });
 
     if (!adminDoc && totalAdmins === 0 && email) {
       adminDoc = await Admin.create({
@@ -64,14 +71,14 @@ export async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
     }
 
     if (adminDoc && adminDoc.isActive) {
-      const isOwner = adminDoc.role === "super_admin" || adminDoc.role === "admin";
+      const isSuper = adminDoc.role === "super_admin";
       return {
         userId,
         email,
         name: adminDoc.name || name,
         avatarUrl,
-        role: adminDoc.role === "super_admin" ? "owner" : "administrator",
-        isOwner,
+        role: isSuper ? "super_admin" : "administrator",
+        isOwner: true,
         isAdmin: true,
         isGuardian: false,
         permissions: DEFAULT_OWNER_PERMS,
@@ -80,7 +87,10 @@ export async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
 
     // Check if this user is linked as a designated LifePerson
     const personDoc = await LifePerson.findOne({
-      $or: [{ email }, { clerkUserId: userId }],
+      $or: [
+        ...(emailRegexes.length > 0 ? [{ email: { $in: emailRegexes } }] : email ? [{ email: new RegExp(`^${email}$`, "i") }] : []),
+        { clerkUserId: userId },
+      ],
       status: { $ne: "archived" },
       accountStatus: { $nin: ["archived", "disabled"] },
     });
@@ -109,7 +119,9 @@ export async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
     const emergencyDoc = await LifeEmergencyAccess.findOne();
     const primary = (emergencyDoc?.primaryAdminEmail || "").toLowerCase().trim();
     const secondary = (emergencyDoc?.secondaryAdminEmail || "").toLowerCase().trim();
-    const isDesignatedEmergencyAdmin = Boolean(email && (email === primary || email === secondary));
+    const isDesignatedEmergencyAdmin = Boolean(
+      emails.some((e) => e === primary || e === secondary)
+    );
 
     const isGuardian = Boolean(
       personDoc?.guardianStatus ||
@@ -122,7 +134,7 @@ export async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
     // If Emergency Mode is active AND caller is a designated emergency admin (Primary or Secondary),
     // they inherit full continuity access!
     if (emergencyDoc?.isEmergencyActive && isDesignatedEmergencyAdmin) {
-      const isPrimary = email === primary;
+      const isPrimary = emails.includes(primary);
       return {
         userId,
         email,
@@ -139,11 +151,42 @@ export async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
     }
 
     if (personDoc) {
-      const role = (personDoc.userRole || personDoc.role || "responsible_person") as LifeRole;
-      const isOwner = role === "owner";
-      const isAdmin = isOwner || role === "super_admin" || role === "admin" || role === "administrator";
+      const rawRole = personDoc.role || "";
+      const rawUserRole = personDoc.userRole || "";
+      const isSuperAdmin = rawRole === "super_admin" || rawUserRole === "super_admin";
+      const isOwnerRole = rawRole === "owner" || rawUserRole === "owner";
+      const isSuperUser = isSuperAdmin || isOwnerRole;
 
-      const perms: LifePermission = isOwner
+      // Sync role & userRole if one was super_admin but the other wasn't
+      if (isSuperAdmin && (rawRole !== "super_admin" || rawUserRole !== "super_admin")) {
+        await LifePerson.updateOne(
+          { _id: personDoc._id },
+          { $set: { role: "super_admin", userRole: "super_admin", permissions: DEFAULT_OWNER_PERMS } }
+        ).catch(() => {});
+      }
+
+      // Also ensure Admin collection has this super_admin active
+      if (isSuperAdmin && (personDoc.email || email)) {
+        const targetEmail = (personDoc.email || email).toLowerCase().trim();
+        await Admin.findOneAndUpdate(
+          { email: new RegExp(`^${targetEmail}$`, "i") },
+          {
+            $set: {
+              email: targetEmail,
+              name: personDoc.name || name,
+              role: "super_admin",
+              isActive: true,
+            },
+          },
+          { upsert: true }
+        ).catch(() => {});
+      }
+
+      const role = (isSuperAdmin ? "super_admin" : isOwnerRole ? "owner" : (personDoc.userRole || personDoc.role || "responsible_person")) as LifeRole;
+      const isOwner = isSuperUser;
+      const isAdmin = isSuperUser || role === "admin" || role === "administrator";
+
+      const perms: LifePermission = isSuperUser
         ? DEFAULT_OWNER_PERMS
         : {
             ...(personDoc.permissions || {

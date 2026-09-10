@@ -14,7 +14,11 @@ export async function requireModuleAccess(modulePath: string) {
     redirect("/sign-in");
   }
 
-  const isSuperUser = authContext.isOwner || authContext.isAdmin;
+  const isSuperUser =
+    authContext.isOwner ||
+    authContext.isAdmin ||
+    authContext.role === "super_admin" ||
+    authContext.role === "owner";
   const hasAccess = canAccessModule(modulePath, authContext.permissions, isSuperUser);
 
   if (!hasAccess) {
