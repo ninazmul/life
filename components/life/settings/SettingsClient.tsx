@@ -47,12 +47,14 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
       if (outcome === "accepted") {
         toast.success(
           "Installation accepted! Your phone is adding Life to your home screen or app drawer.",
-          { duration: 6000 }
+          { duration: 6000 },
         );
         setShowGuide(true);
       } else if (outcome === "ios_instructions") {
         setShowGuide(true);
-        toast("Follow the steps below to add Life to your Home Screen", { icon: "📱" });
+        toast("Follow the steps below to add Life to your Home Screen", {
+          icon: "📱",
+        });
       } else if (outcome === "unsupported") {
         setShowGuide(true);
         toast("See installation steps for your browser below", { icon: "ℹ️" });
@@ -147,7 +149,8 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
                 )}
               </div>
               <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
-                Install Life as a native app for fast one-tap home screen access and offline safety.
+                Install Life as a native app for fast one-tap home screen access
+                and offline safety.
               </p>
             </div>
           </div>
@@ -182,22 +185,30 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
             <span className="text-muted-foreground font-medium uppercase text-[10px] tracking-wider block">
               Install Status
             </span>
-            <div className={`flex items-center gap-1.5 font-bold ${isInstalled ? "text-emerald-700 dark:text-emerald-300" : "text-emerald-600 dark:text-emerald-400"}`}>
+            <div
+              className={`flex items-center gap-1.5 font-bold ${isInstalled ? "text-emerald-700 dark:text-emerald-300" : "text-emerald-600 dark:text-emerald-400"}`}
+            >
               {isInstalled ? (
-                <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-500" strokeWidth={2} />
+                <CheckCircle2
+                  className="w-3.5 h-3.5 shrink-0 text-emerald-500"
+                  strokeWidth={2}
+                />
               ) : isInstallable ? (
                 <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
               ) : (
-                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+                <CheckCircle2
+                  className="w-3.5 h-3.5 shrink-0"
+                  strokeWidth={2}
+                />
               )}
               <span>
                 {isInstalled
                   ? "Installed (Native App)"
                   : isInstallable
-                  ? "Ready to Install"
-                  : isIOS
-                  ? "Installable (Safari)"
-                  : "Browser Mode"}
+                    ? "Ready to Install"
+                    : isIOS
+                      ? "Installable (Safari)"
+                      : "Browser Mode"}
               </span>
             </div>
           </div>
@@ -240,7 +251,9 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
           >
             <div className="flex items-center gap-2">
               <HelpCircle className="w-4 h-4 text-emerald-500 shrink-0" />
-              <span>Step-by-step installation guide (iOS, Android & Desktop)</span>
+              <span>
+                Step-by-step installation guide (iOS, Android & Desktop)
+              </span>
             </div>
             {showGuide ? (
               <ChevronUp className="w-4 h-4 text-muted-foreground" />
@@ -257,10 +270,19 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
                   <span>iOS (iPhone & iPad)</span>
                 </div>
                 <ol className="text-muted-foreground space-y-1 text-[11px] list-decimal list-inside leading-relaxed">
-                  <li>Open Life in <strong>Safari</strong></li>
-                  <li>Tap the <strong>Share</strong> button (square with arrow)</li>
-                  <li>Scroll down and tap <strong>&quot;Add to Home Screen&quot;</strong></li>
-                  <li>Tap <strong>Add</strong> in top right</li>
+                  <li>
+                    Open Life in <strong>Safari</strong>
+                  </li>
+                  <li>
+                    Tap the <strong>Share</strong> button (square with arrow)
+                  </li>
+                  <li>
+                    Scroll down and tap{" "}
+                    <strong>&quot;Add to Home Screen&quot;</strong>
+                  </li>
+                  <li>
+                    Tap <strong>Add</strong> in top right
+                  </li>
                 </ol>
               </div>
 
@@ -270,9 +292,14 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
                   <span>Android (Chrome / Edge)</span>
                 </div>
                 <ol className="text-muted-foreground space-y-1 text-[11px] list-decimal list-inside leading-relaxed">
-                  <li>Click <strong>&quot;Install Life App&quot;</strong> above</li>
+                  <li>
+                    Click <strong>&quot;Install Life App&quot;</strong> above
+                  </li>
                   <li>Or tap menu (3 dots) in Chrome</li>
-                  <li>Tap <strong>&quot;Install app&quot;</strong> or &quot;Add to Home screen&quot;</li>
+                  <li>
+                    Tap <strong>&quot;Install app&quot;</strong> or &quot;Add to
+                    Home screen&quot;
+                  </li>
                   <li>Confirm installation</li>
                 </ol>
               </div>
@@ -283,8 +310,13 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
                   <span>Desktop (Mac / Windows)</span>
                 </div>
                 <ol className="text-muted-foreground space-y-1 text-[11px] list-decimal list-inside leading-relaxed">
-                  <li>In Chrome/Edge address bar, look for the <strong>Install</strong> icon (⊕ or computer)</li>
-                  <li>Click <strong>&quot;Install Life&quot;</strong></li>
+                  <li>
+                    In Chrome/Edge address bar, look for the{" "}
+                    <strong>Install</strong> icon (⊕ or computer)
+                  </li>
+                  <li>
+                    Click <strong>&quot;Install Life&quot;</strong>
+                  </li>
                   <li>Launch directly from your Dock or Start Menu</li>
                 </ol>
               </div>
@@ -293,24 +325,56 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
               <div className="md:col-span-3 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs space-y-2">
                 <div className="flex items-center gap-2 font-bold text-amber-900 dark:text-amber-200">
                   <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
-                  <span>Don&apos;t see the icon on your phone after installing? Check these 4 places:</span>
+                  <span>
+                    Don&apos;t see the icon on your phone after installing?
+                    Check these 4 places:
+                  </span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-muted-foreground">
                   <div className="p-2.5 rounded-lg bg-card/70 border border-border space-y-1">
-                    <p className="font-semibold text-foreground">1. Swipe Up to Open App Drawer</p>
-                    <p>Most modern phones (Samsung, Xiaomi, Pixel) place new apps into the <strong>All Apps drawer</strong> by default, not on the desktop. Swipe up from your home screen and search for &quot;Life&quot;.</p>
+                    <p className="font-semibold text-foreground">
+                      1. Swipe Up to Open App Drawer
+                    </p>
+                    <p>
+                      Most modern phones (Samsung, Xiaomi, Pixel) place new apps
+                      into the <strong>All Apps drawer</strong> by default, not
+                      on the desktop. Swipe up from your home screen and search
+                      for &quot;Life&quot;.
+                    </p>
                   </div>
                   <div className="p-2.5 rounded-lg bg-card/70 border border-border space-y-1">
-                    <p className="font-semibold text-foreground">2. Check Notification Shade</p>
-                    <p>Pull down your notification bar. Chrome often shows a notification saying <em>&quot;Adding Life...&quot;</em> that needs a few seconds to complete.</p>
+                    <p className="font-semibold text-foreground">
+                      2. Check Notification Shade
+                    </p>
+                    <p>
+                      Pull down your notification bar. Chrome often shows a
+                      notification saying <em>&quot;Adding Life...&quot;</em>{" "}
+                      that needs a few seconds to complete.
+                    </p>
                   </div>
                   <div className="p-2.5 rounded-lg bg-card/70 border border-border space-y-1">
-                    <p className="font-semibold text-foreground">3. Check Launcher Permission</p>
-                    <p>On Xiaomi/MIUI, Vivo, or Oppo: Open phone <strong>Settings → Apps → Chrome → Other permissions</strong> and turn on <strong>&quot;Home screen shortcuts&quot;</strong>.</p>
+                    <p className="font-semibold text-foreground">
+                      3. Check Launcher Permission
+                    </p>
+                    <p>
+                      On Xiaomi/MIUI, Vivo, or Oppo: Open phone{" "}
+                      <strong>
+                        Settings → Apps → Chrome → Other permissions
+                      </strong>{" "}
+                      and turn on{" "}
+                      <strong>&quot;Home screen shortcuts&quot;</strong>.
+                    </p>
                   </div>
                   <div className="p-2.5 rounded-lg bg-card/70 border border-border space-y-1">
-                    <p className="font-semibold text-foreground">4. Manual Browser Menu (Always Works)</p>
-                    <p>In Chrome or Edge, tap the <strong>3 dots menu (⋮)</strong> in the top right, then tap <strong>&quot;Install app&quot;</strong> or <strong>&quot;Add to Home screen&quot;</strong>.</p>
+                    <p className="font-semibold text-foreground">
+                      4. Manual Browser Menu (Always Works)
+                    </p>
+                    <p>
+                      In Chrome or Edge, tap the{" "}
+                      <strong>3 dots menu (⋮)</strong> in the top right, then
+                      tap <strong>&quot;Install app&quot;</strong> or{" "}
+                      <strong>&quot;Add to Home screen&quot;</strong>.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -327,7 +391,9 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
               aria-hidden="true"
             />
             <span>
-              Zero-Cache Policy: Vault passwords, financial logs, and encrypted notes are never saved into browser cache, ensuring full privacy even if your device is inspected.
+              Zero-Cache Policy: Vault passwords, financial logs, and encrypted
+              notes are never saved into browser cache, ensuring full privacy
+              even if your device is inspected.
             </span>
           </p>
         </div>
@@ -503,7 +569,7 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
             ["Auth Provider", "Clerk.dev", "text-foreground"],
             ["Database", "MongoDB Atlas", "text-foreground"],
             ["Framework", "Next.js App Router", "text-foreground"],
-            ["Developer", "ArtistyCode Studio", "text-foreground"],
+            ["Developer", "RIZMEC", "text-foreground"],
             [
               "Cache Policy",
               "Zero Cache (Sensitive)",
@@ -522,7 +588,7 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
               <span className="text-muted-foreground shrink-0">{label}</span>
               {label === "Developer" ? (
                 <a
-                  href="https://www.artistycode.studio/"
+                  href="https://www.rizmec.com/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`inline-flex min-w-0 items-center gap-1.5 font-bold truncate hover:text-primary ${color}`}
