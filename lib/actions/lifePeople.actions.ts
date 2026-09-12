@@ -209,21 +209,45 @@ export async function updatePerson(
     notes: string;
     emergencyPriority: number;
     permissions: Record<string, boolean>;
+    socialLinks: {
+      facebook?: string;
+      messenger?: string;
+      instagram?: string;
+      tiktok?: string;
+      telegram?: string;
+      linkedin?: string;
+      youtube?: string;
+      website?: string;
+    };
   }>
 ) {
   await connectToDatabase();
   const auth = await getLifeAuthContext();
-  if (!auth || (!auth.isOwner && !auth.isAdmin)) {
-    throw new Error("Forbidden: Only Owners/Admins can modify People profiles.");
+  if (!auth) throw new Error("Unauthorized");
+
+  const isOwnerOrAdmin = auth.isOwner || auth.isAdmin;
+  const isSelf = auth.personId && String(auth.personId) === String(id);
+
+  if (!isOwnerOrAdmin && !isSelf) {
+    throw new Error("Forbidden: You are not authorized to modify this profile.");
   }
 
-  const isSuper = data.role === "super_admin" || data.role === "owner";
-  const updateData: Record<string, unknown> = { ...data };
-  if (data.role) {
-    updateData.userRole = data.role;
-    if (isSuper) {
-      updateData.permissions = DEFAULT_OWNER_PERMS;
+  // If self-user (non-owner/admin), only allow updating contact and social links
+  const updateData: Record<string, unknown> = {};
+  if (isOwnerOrAdmin) {
+    Object.assign(updateData, data);
+    const isSuper = data.role === "super_admin" || data.role === "owner";
+    if (data.role) {
+      updateData.userRole = data.role;
+      if (isSuper) {
+        updateData.permissions = DEFAULT_OWNER_PERMS;
+      }
     }
+  } else {
+    // Only permit safe contact and social fields for self
+    if (data.phone !== undefined) updateData.phone = data.phone;
+    if (data.whatsapp !== undefined) updateData.whatsapp = data.whatsapp;
+    if (data.socialLinks !== undefined) updateData.socialLinks = data.socialLinks;
   }
 
   const updated = (await LifePerson.findByIdAndUpdate(id, { $set: updateData }, { new: true }).lean()) as (ILifePerson & { _id: unknown }) | null;

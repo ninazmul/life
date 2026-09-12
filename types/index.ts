@@ -92,7 +92,16 @@ export interface ILifePerson {
   lastLogin?: Date | string;
   lastActivity?: Date | string;
   isLoginEnabled?: boolean;
-  clerkUserId?: string;
+  socialLinks?: {
+    facebook?: string;
+    messenger?: string;
+    instagram?: string;
+    tiktok?: string;
+    telegram?: string;
+    linkedin?: string;
+    youtube?: string;
+    website?: string;
+  };
   createdAt: Date | string;
   updatedAt: Date | string;
 }

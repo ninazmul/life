@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
 import { LifeRole, PersonStatus, AccountStatus, GuardianType } from "@/types";
+import { softDeletePlugin } from "../plugins/softDelete";
 
 export interface ILifePersonDoc extends Document {
   name: string;
@@ -40,6 +41,16 @@ export interface ILifePersonDoc extends Document {
   lastActivity?: Date;
   isLoginEnabled?: boolean;
   clerkUserId?: string;
+  socialLinks?: {
+    facebook?: string;
+    messenger?: string;
+    instagram?: string;
+    tiktok?: string;
+    telegram?: string;
+    linkedin?: string;
+    youtube?: string;
+    website?: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -108,11 +119,19 @@ const LifePersonSchema = new Schema<ILifePersonDoc>(
     lastLogin: { type: Date },
     lastActivity: { type: Date },
     clerkUserId: { type: String, index: true },
+    socialLinks: {
+      facebook: { type: String, trim: true, default: "" },
+      messenger: { type: String, trim: true, default: "" },
+      instagram: { type: String, trim: true, default: "" },
+      tiktok: { type: String, trim: true, default: "" },
+      telegram: { type: String, trim: true, default: "" },
+      linkedin: { type: String, trim: true, default: "" },
+      youtube: { type: String, trim: true, default: "" },
+      website: { type: String, trim: true, default: "" },
+    },
   },
   { timestamps: true }
 );
-
-import { softDeletePlugin } from "../plugins/softDelete";
 
 LifePersonSchema.plugin(softDeletePlugin);
 LifePersonSchema.index({ email: 1 });

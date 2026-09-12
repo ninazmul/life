@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
 import { VaultCategory } from "@/types";
+import { softDeletePlugin } from "../plugins/softDelete";
 
 export interface ILifeVaultItemDoc extends Document {
   title: string;
@@ -82,8 +83,6 @@ const LifeVaultItemSchema = new Schema<ILifeVaultItemDoc>(
   },
   { timestamps: true }
 );
-
-import { softDeletePlugin } from "../plugins/softDelete";
 
 LifeVaultItemSchema.plugin(softDeletePlugin);
 LifeVaultItemSchema.index({ category: 1, title: 1 });

@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
 import { DocumentCategory, LifeVisibility } from "@/types";
+import { softDeletePlugin } from "../plugins/softDelete";
 
 export interface ILifeDocumentDoc extends Document {
   title: string;
@@ -71,8 +72,6 @@ const LifeDocumentSchema = new Schema<ILifeDocumentDoc>(
   },
   { timestamps: true }
 );
-
-import { softDeletePlugin } from "../plugins/softDelete";
 
 LifeDocumentSchema.plugin(softDeletePlugin);
 LifeDocumentSchema.index({ title: "text", category: 1 });
