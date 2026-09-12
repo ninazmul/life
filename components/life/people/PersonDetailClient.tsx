@@ -819,7 +819,7 @@ export function PersonDetailClient({
               {person.email ? (
                 <div className="p-3.5 sm:p-4 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-border flex items-center justify-center shrink-0">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40 flex items-center justify-center shrink-0">
                       <Mail className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
@@ -834,7 +834,7 @@ export function PersonDetailClient({
 
                   <a
                     href={`mailto:${person.email}`}
-                    className="h-8 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-border text-xs font-bold flex items-center gap-1.5 transition-colors shrink-0"
+                    className="h-8 px-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 text-xs font-bold flex items-center gap-1.5 transition-colors shrink-0"
                   >
                     <Mail className="w-3.5 h-3.5" />
                     <span>Email</span>

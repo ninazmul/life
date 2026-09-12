@@ -16,6 +16,7 @@ import {
   UserX,
   Lock,
   Loader2,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -101,20 +102,20 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
     }
   };
 
-function maskPhone(phone?: string) {
-  if (!phone) return "";
-  const cleaned = phone.trim();
-  if (cleaned.length <= 6) return cleaned;
-  return cleaned.slice(0, 5) + "••••" + cleaned.slice(-4);
-}
+  function maskPhone(phone?: string) {
+    if (!phone) return "";
+    const cleaned = phone.trim();
+    if (cleaned.length <= 6) return cleaned;
+    return cleaned.slice(0, 5) + "••••" + cleaned.slice(-4);
+  }
 
-function maskEmail(email?: string) {
-  if (!email) return "";
-  const [user, domain] = email.split("@");
-  if (!domain) return email;
-  const maskedUser = user.length <= 3 ? user + "•••" : user.slice(0, 3) + "••••";
-  return `${maskedUser}@${domain}`;
-}
+  function maskEmail(email?: string) {
+    if (!email) return "";
+    const [user, domain] = email.split("@");
+    if (!domain) return email;
+    const maskedUser = user.length <= 3 ? user + "•••" : user.slice(0, 3) + "••••";
+    return `${maskedUser}@${domain}`;
+  }
 
   return (
     <div className="space-y-5">
@@ -161,11 +162,10 @@ function maskEmail(email?: string) {
             <button
               key={rel}
               onClick={() => setRelationFilter(rel)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${
-                relationFilter === rel
-                  ? "bg-emerald-600 text-white font-semibold shadow-xs"
-                  : "bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-              }`}
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${relationFilter === rel
+                ? "bg-emerald-600 text-white font-semibold shadow-xs"
+                : "bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                }`}
             >
               {rel === "all" ? "All Relations" : rel}
             </button>
@@ -233,13 +233,12 @@ function maskEmail(email?: string) {
 
                   {/* Status chip */}
                   <span
-                    className={`text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full border shrink-0 ${
-                      person.accountStatus === "active" || person.status === "active"
-                        ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
-                        : person.accountStatus === "temporarily_locked" || person.status === "locked"
+                    className={`text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full border shrink-0 ${person.accountStatus === "active" || person.status === "active"
+                      ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
+                      : person.accountStatus === "temporarily_locked" || person.status === "locked"
                         ? "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/20"
                         : "bg-muted text-muted-foreground border-border"
-                    }`}
+                      }`}
                   >
                     {person.accountStatus || person.status}
                   </span>
@@ -269,40 +268,40 @@ function maskEmail(email?: string) {
               </div>
 
               {/* Bottom Quick Actions: Call, WhatsApp, View Profile */}
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  {person.phone && (
+              <div className="mt-4 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-1.5 w-full">
+                {person.phone && (
+                  <>
                     <a
                       href={`tel:${person.phone}`}
-                      className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
+                      className="rounded-xl bg-slate-100 dark:bg-slate-800/80 text-emerald-600 font-bold dark:text-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors flex items-center gap-1"
                       title="Call Phone"
                     >
-                      <Phone className="w-3.5 h-3.5" />
+                      <Phone className="w-5 h-5" /><span>Call</span>
                     </a>
-                  )}
-                  {(person.whatsapp || person.phone) && (
+                    <span className="w-px h-5 bg-slate-200 dark:bg-slate-700" />
+                  </>
+                )}
+                {(person.whatsapp || person.phone) && (
+                  <>
                     <a
                       href={`https://wa.me/${(person.whatsapp || person.phone || "").replace(/[^0-9]/g, "")}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
+                      className="rounded-xl bg-slate-100 dark:bg-slate-800/80 text-emerald-600 font-bold dark:text-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors flex items-center gap-1"
                       title="WhatsApp Chat"
                     >
-                      <MessageCircle className="w-3.5 h-3.5" />
+                      <MessageCircle className="w-5 h-5" /><span>WhatsApp</span>
                     </a>
-                  )}
-                </div>
-
-                <Button
-                  asChild
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 text-xs font-semibold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 gap-1 rounded-xl"
+                    <span className="w-px h-5 bg-slate-200 dark:bg-slate-700" />
+                  </>
+                )}
+                <a
+                  href={`/people/${person._id}`}
+                  className="rounded-xl bg-slate-100 dark:bg-slate-800/80 text-emerald-600 font-bold dark:text-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors flex items-center gap-1"
+                  title="View Profile"
                 >
-                  <Link href={`/people/${person._id}`}>
-                    Profile <ArrowRight className="w-3 h-3" />
-                  </Link>
-                </Button>
+                  <User className="w-5 h-5" /> <span>Profile</span> <ArrowRight className="w-3 h-3" />
+                </a>
               </div>
             </div>
           ))}
