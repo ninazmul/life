@@ -83,6 +83,9 @@ const LifeVaultItemSchema = new Schema<ILifeVaultItemDoc>(
   { timestamps: true }
 );
 
+import { softDeletePlugin } from "../plugins/softDelete";
+
+LifeVaultItemSchema.plugin(softDeletePlugin);
 LifeVaultItemSchema.index({ category: 1, title: 1 });
 
 const LifeVaultItem =

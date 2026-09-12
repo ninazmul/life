@@ -140,7 +140,7 @@ export function DocumentsClient({
             </span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Encrypted metadata and access-gated storage for contracts, title deeds, loan agreements, and receipts.
+            Encrypted metadata and access-gated storage for contracts, title deeds, financial care records, and receipts.
           </p>
         </div>
 
@@ -188,7 +188,7 @@ export function DocumentsClient({
           <FolderLock className="w-8 h-8 text-slate-500 mx-auto" />
           <h3 className="text-sm font-bold text-foreground">No Documents Uploaded</h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Store scanned copies of passport/NID, property registrations, loan agreements, and company trade licenses.
+            Store scanned copies of passport/NID, property registrations, financial care agreements, and company trade licenses.
           </p>
         </div>
       ) : (
@@ -235,8 +235,8 @@ export function DocumentsClient({
                   variant="outline"
                   className="h-8 px-3 text-xs border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-xl gap-1.5 font-medium"
                 >
-                  <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="w-3.5 h-3.5" /> View File
+                  <a href={`/api/documents/${doc._id}/download`} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="w-3.5 h-3.5" /> View / Download
                   </a>
                 </Button>
 
@@ -292,7 +292,7 @@ export function DocumentsClient({
                 <option value="business">Business License / Trade Document</option>
                 <option value="property">Property Registration / Deed</option>
                 <option value="bank">Bank Statement / Cheque</option>
-                <option value="loan">Loan Promissory Note</option>
+                <option value="loan">Financial Care Agreement</option>
                 <option value="identity">Passport / NID</option>
                 <option value="medical">Medical Record</option>
                 <option value="other">Other</option>

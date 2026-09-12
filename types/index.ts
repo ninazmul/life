@@ -91,6 +91,7 @@ export interface ILifePerson {
   generalNotes?: string;
   lastLogin?: Date | string;
   lastActivity?: Date | string;
+  isLoginEnabled?: boolean;
   clerkUserId?: string;
   createdAt: Date | string;
   updatedAt: Date | string;

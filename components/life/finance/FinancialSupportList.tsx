@@ -428,7 +428,7 @@ export function FinancialSupportList({
                   className="w-full p-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="repayable_support">Repayable Support</option>
-                  <option value="personal_loan">Personal Loan</option>
+                  <option value="personal_loan">Personal Care</option>
                   <option value="salary_advance">Salary Advance</option>
                   <option value="business_advance">Business Advance</option>
                   <option value="emergency_support">Emergency Support</option>

@@ -595,3 +595,28 @@ body {
   pointer-events: none;
   z-index: 3;
 }
+
+/* ============================================================ */
+/* Mobile Safe Area & Touch Usability Utilities                 */
+/* ============================================================ */
+
+.pb-safe {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+}
+
+.pt-safe {
+  padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+}
+
+.min-tap-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+@media (max-width: 640px) {
+  /* Prevent horizontal text clipping and maintain smooth scrolling */
+  body {
+    overflow-x: hidden;
+  }
+}
+

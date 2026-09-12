@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Settings,
   Download,
@@ -17,6 +18,8 @@ import {
   ChevronDown,
   ChevronUp,
   Laptop,
+  Trash2,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -547,6 +550,28 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
             Includes People, Information, Business, Money, Assets, Contacts,
             Documents, Legacy (no vault secrets).
           </p>
+        </div>
+      </section>
+
+      {/* Trash & Recovery System */}
+      <section className="p-5 sm:p-6 rounded-3xl bg-card border border-border">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center border border-rose-500/20 shrink-0">
+              <Trash2 className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-foreground">Trash & Recovery System</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Recover accidentally deleted documents, vault records, profiles, or legacy messages.
+              </p>
+            </div>
+          </div>
+          <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold gap-1.5 border-border shrink-0 self-start sm:self-auto">
+            <Link href="/settings/trash">
+              Open Trash <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </Button>
         </div>
       </section>
 

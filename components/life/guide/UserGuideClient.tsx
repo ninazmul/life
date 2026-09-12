@@ -164,10 +164,10 @@ const sections: GuideSection[] = [
     color: "text-emerald-600 dark:text-emerald-400",
     bg: "bg-emerald-50 dark:bg-emerald-950/50",
     border: "border-emerald-200 dark:border-emerald-800/40",
-    title: "2. Financial Support & Repayments",
-    subtitle: "Loans, monthly support, installment schedules & settlements",
+    title: "2. Financial Care & Repayments",
+    subtitle: "Financial care, monthly support, installment schedules & settlements",
     description:
-      "A dedicated module for tracking personal loans given to relatives/friends, money borrowed, monthly family commitments, installment repayment calendars, and signed settlement agreements.",
+      "A dedicated module for tracking financial care provided to relatives/friends, care received, monthly family commitments, installment repayment calendars, and signed settlement agreements.",
     steps: [
       {
         title: "Create Financial Support Record",

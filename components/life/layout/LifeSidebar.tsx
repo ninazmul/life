@@ -23,11 +23,11 @@ import {
 import { canAccessModule, UserModuleAccess } from "@/lib/life/module-access";
 
 interface LifeSidebarProps {
-  activeLoansCount?: number;
+  activeCareCount?: number;
   userAccess: UserModuleAccess;
 }
 
-export function LifeSidebar({ activeLoansCount = 0, userAccess }: LifeSidebarProps) {
+export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProps) {
   const pathname = usePathname();
   const { isOwner, isAdmin, permissions } = userAccess;
   const isSuperUser = isOwner || isAdmin;
@@ -43,23 +43,17 @@ export function LifeSidebar({ activeLoansCount = 0, userAccess }: LifeSidebarPro
           isActive: pathname === "/",
         },
         {
-          title: "People Directory",
+          title: "People & Access",
           url: "/people",
           icon: Users,
           isActive: pathname.startsWith("/people"),
         },
         {
-          title: "Money Management",
-          url: "/money",
-          icon: Coins,
-          isActive: pathname.startsWith("/money"),
-          badge: activeLoansCount > 0 ? activeLoansCount : undefined,
-        },
-        {
-          title: "Financial Support",
+          title: "Financial Care",
           url: "/finance",
           icon: Wallet,
-          isActive: pathname.startsWith("/finance"),
+          isActive: pathname.startsWith("/finance") || pathname.startsWith("/money"),
+          badge: activeCareCount > 0 ? activeCareCount : undefined,
         },
         {
           title: "Secure Vault",
@@ -73,13 +67,13 @@ export function LifeSidebar({ activeLoansCount = 0, userAccess }: LifeSidebarPro
       title: "Records & Continuity",
       items: [
         {
-          title: "Responsibilities & Instructions",
+          title: "Instructions & Responsibilities",
           url: "/instructions",
           icon: FileText,
           isActive: pathname.startsWith("/instructions"),
         },
         {
-          title: "Information & Notes",
+          title: "Important Information",
           url: "/information",
           icon: FileText,
           isActive: pathname.startsWith("/information"),
@@ -91,7 +85,7 @@ export function LifeSidebar({ activeLoansCount = 0, userAccess }: LifeSidebarPro
           isActive: pathname.startsWith("/business"),
         },
         {
-          title: "Assets Portfolio",
+          title: "Assets & Properties",
           url: "/assets",
           icon: Layers,
           isActive: pathname.startsWith("/assets"),
@@ -109,7 +103,7 @@ export function LifeSidebar({ activeLoansCount = 0, userAccess }: LifeSidebarPro
           isActive: pathname.startsWith("/documents"),
         },
         {
-          title: "Beneficiaries & Nominees",
+          title: "Beneficiaries",
           url: "/beneficiaries",
           icon: HeartHandshake,
           isActive: pathname.startsWith("/beneficiaries"),
@@ -132,7 +126,7 @@ export function LifeSidebar({ activeLoansCount = 0, userAccess }: LifeSidebarPro
           isActive: pathname.startsWith("/guardians"),
         },
         {
-          title: "Access & Emergency",
+          title: "Access & Emergency Control",
           url: "/access",
           icon: ShieldAlert,
           isActive: pathname.startsWith("/access"),
@@ -144,7 +138,7 @@ export function LifeSidebar({ activeLoansCount = 0, userAccess }: LifeSidebarPro
           isActive: pathname.startsWith("/activity"),
         },
         {
-          title: "Settings & Backup",
+          title: "Security & Settings",
           url: "/settings",
           icon: Settings,
           isActive: pathname.startsWith("/settings"),

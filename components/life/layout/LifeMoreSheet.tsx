@@ -48,8 +48,8 @@ export function LifeMoreSheet({ open, onOpenChange, userAccess }: LifeMoreSheetP
         "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-800/40",
     },
     {
-      title: "Finance & Transactions",
-      desc: "Financial support, repayment, installments & gifts",
+      title: "Financial Care",
+      desc: "Financial care provided, received, installments & tracking",
       href: "/finance",
       icon: Wallet,
       color:
@@ -120,7 +120,7 @@ export function LifeMoreSheet({ open, onOpenChange, userAccess }: LifeMoreSheetP
         "text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800",
     },
     {
-      title: "Access Control & Protocols",
+      title: "Access & Emergency Control",
       desc: "Emergency trigger, user roles & module permissions",
       href: "/access",
       icon: ShieldAlert,
@@ -128,8 +128,8 @@ export function LifeMoreSheet({ open, onOpenChange, userAccess }: LifeMoreSheetP
         "text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-950/60 border-orange-200 dark:border-orange-800/40",
     },
     {
-      title: "Settings & Backup",
-      desc: "System preferences, security & database export",
+      title: "Security & Settings",
+      desc: "Security PIN, database backup, restore & preferences",
       href: "/settings",
       icon: Settings,
       color:

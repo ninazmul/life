@@ -11,6 +11,7 @@ import LifeVaultItem from "@/lib/database/models/lifeVaultItem.model";
 import LifeLegacyMessage from "@/lib/database/models/lifeLegacyMessage.model";
 import LifeActivityLog from "@/lib/database/models/lifeActivityLog.model";
 import LifeEmergencyAccess from "@/lib/database/models/lifeEmergencyAccess.model";
+import LifeSettings from "@/lib/database/models/lifeSettings.model";
 import { getLifeAuthContext } from "@/lib/life/auth";
 import { LifeDashboardStats, ILifeEmergencyAccess } from "@/types";
 
@@ -54,6 +55,7 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     pendingRespCount,
     financialSupports,
     recentBackupLog,
+    settingsDoc,
   ] = await Promise.all([
     connectToDatabase().then(() =>
       import("@/lib/database/models/lifeGuardian.model").then((m) =>
@@ -78,6 +80,7 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     LifeActivityLog.findOne({ action: { $regex: /backup/i } })
       .sort({ createdAt: -1 })
       .lean(),
+    LifeSettings.findOne().select("vaultPinHash").lean() as Promise<{ vaultPinHash?: string } | null>,
   ]);
 
   // Multi-currency calculation (§17, §24)
@@ -180,6 +183,36 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     }
   });
 
+  // Calculate actual readiness based on real configuration (§1, §24)
+  // 1. Guardian consensus: at least 2 guardians = 25 pts, 1 guardian = 12 pts
+  let continuityScore = 0;
+  if (activeGuardiansCount >= 2) continuityScore += 25;
+  else if (activeGuardiansCount === 1) continuityScore += 12;
+
+  // 2. Emergency delegate configured = 25 pts
+  if (emergencyState?.primaryAdminEmail && emergencyState.primaryAdminEmail.trim().length > 0) {
+    continuityScore += 25;
+  }
+
+  // 3. Master PIN configured = 25 pts
+  if (settingsDoc?.vaultPinHash && settingsDoc.vaultPinHash.trim().length > 0) {
+    continuityScore += 25;
+  }
+
+  // 4. Business continuity checklist completion = 25 pts
+  let totalSteps = 0;
+  let completedSteps = 0;
+  businesses.forEach((b) => {
+    const steps = (b.continuitySteps || []) as Array<{ isCompleted?: boolean }>;
+    totalSteps += steps.length;
+    completedSteps += steps.filter((s) => s.isCompleted).length;
+  });
+  if (totalSteps > 0) {
+    continuityScore += Math.round((completedSteps / totalSteps) * 25);
+  } else if (businesses.length === 0) {
+    continuityScore += 25;
+  }
+
   return {
     peopleCount,
     infoCount,
@@ -200,7 +233,7 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     trustedGuardiansCount: activeGuardiansCount,
     pendingAccessRequestsCount: pendingRequestsCount,
     pendingResponsibilitiesCount: pendingRespCount,
-    businessContinuityReadiness: businesses.length > 0 ? 85 : 100,
+    businessContinuityReadiness: continuityScore,
     upcomingPaymentsCount,
     overduePaymentsCount,
     currencyTotals,

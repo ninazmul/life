@@ -24,7 +24,7 @@ export async function getMoneyOverview() {
     return null;
   }
 
-  const [aggregations, recentTransactions, activeLoansCount] = await Promise.all([
+  const [aggregations, recentTransactions, activeCareCount] = await Promise.all([
     LifeMoneyRecord.aggregate([
       {
         $group: {
@@ -72,7 +72,7 @@ export async function getMoneyOverview() {
     investReceived: stats.invest_received,
     receivables: stats.given.remaining,
     payables: stats.taken.remaining,
-    activeLoansCount,
+    activeCareCount,
     recentTransactions: JSON.parse(JSON.stringify(recentTransactions)),
   };
 }

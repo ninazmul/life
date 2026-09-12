@@ -72,6 +72,9 @@ const LifeDocumentSchema = new Schema<ILifeDocumentDoc>(
   { timestamps: true }
 );
 
+import { softDeletePlugin } from "../plugins/softDelete";
+
+LifeDocumentSchema.plugin(softDeletePlugin);
 LifeDocumentSchema.index({ title: "text", category: 1 });
 
 const LifeDocument =

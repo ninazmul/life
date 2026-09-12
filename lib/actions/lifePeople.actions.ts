@@ -3,13 +3,17 @@
 import { revalidatePath } from "next/cache";
 import { connectToDatabase } from "@/lib/database";
 import LifePerson from "@/lib/database/models/lifePerson.model";
+import LifeFinancialSupport from "@/lib/database/models/lifeFinancialSupport.model";
 import LifeMoneyRecord from "@/lib/database/models/lifeMoneyRecord.model";
 import LifeDocument from "@/lib/database/models/lifeDocument.model";
 import LifeContact from "@/lib/database/models/lifeContact.model";
 import LifeInformation from "@/lib/database/models/lifeInformation.model";
+import LifeInstruction from "@/lib/database/models/lifeInstruction.model";
+import LifeResponsibility from "@/lib/database/models/lifeResponsibility.model";
+import LifeLegacyMessage from "@/lib/database/models/lifeLegacyMessage.model";
 import Admin from "@/lib/database/models/admin.model";
 import { getLifeAuthContext, logLifeActivity, DEFAULT_OWNER_PERMS } from "@/lib/life/auth";
-import { ILifePerson, PersonStatus, LifeRole } from "@/types";
+import { ILifePerson, PersonStatus, LifeRole, AccountStatus } from "@/types";
 
 export async function getPeople(params?: {
   search?: string;
@@ -37,11 +41,10 @@ export async function getPeople(params?: {
     query.$or = [{ name: regex }, { relation: regex }, { phone: regex }, { email: regex }];
   }
 
-  // If user is an individual (e.g. Sabbir), only return their own profile unless granted personal view
-  if (!auth.isOwner && !auth.isAdmin && auth.personId) {
-    if (!auth.permissions.canViewPersonal) {
-      query._id = auth.personId;
-    }
+  // Strict tenant scoping: If caller is not Owner or Admin, they can ONLY retrieve their own profile
+  if (!auth.isOwner && !auth.isAdmin) {
+    if (!auth.personId) return [];
+    query._id = auth.personId;
   }
 
   const people = await LifePerson.find(query)
@@ -54,34 +57,52 @@ export async function getPeople(params?: {
 export async function getPersonById(id: string) {
   await connectToDatabase();
   const auth = await getLifeAuthContext();
-  if (!auth) return null;
+  if (!auth) throw new Error("Unauthorized");
 
-  // Individual privacy check
-  if (!auth.isOwner && !auth.isAdmin && auth.personId && auth.personId !== id) {
-    if (!auth.permissions.canViewPersonal) {
-      throw new Error("Forbidden: You are not authorized to view this person's private profile.");
+  // Strict IDOR mitigation: Individual user can NEVER inspect another person's private profile
+  if (!auth.isOwner && !auth.isAdmin) {
+    if (!auth.personId || String(auth.personId) !== String(id)) {
+      throw new Error("Forbidden: You are only authorized to access your own private profile.");
     }
   }
 
   const person = await LifePerson.findById(id).lean();
   if (!person) return null;
 
-  // Fetch related records linked to this person
-  const [moneyRecords, documents, contacts, notes] = await Promise.all([
-    LifeMoneyRecord.find({ personId: id }).sort({ date: -1 }).lean(),
-    LifeDocument.find({
-      $or: [{ relatedPersonId: id }, { assignedToPersonIds: id }],
-    }).lean(),
-    LifeContact.find({ relatedPersonId: id }).lean(),
-    LifeInformation.find({ relatedPersonId: id }).lean(),
-  ]);
+  // Fetch related records linked strictly to this person
+  const [financialCare, moneyRecords, documents, contacts, notes, instructions, responsibilities, messages] =
+    await Promise.all([
+      LifeFinancialSupport.find({ recipientPersonId: id }).sort({ givenDate: -1 }).lean(),
+      LifeMoneyRecord.find({ personId: id }).sort({ date: -1 }).lean(),
+      LifeDocument.find({
+        $or: [{ relatedPersonId: id }, { assignedToPersonIds: id }],
+      }).lean(),
+      LifeContact.find({ relatedPersonId: id }).lean(),
+      LifeInformation.find({ relatedPersonId: id }).lean(),
+      LifeInstruction.find({
+        $or: [{ assignedPersonId: id }, { backupPersonId: id }],
+      }).lean(),
+      LifeResponsibility.find({
+        $or: [{ assignedPersonId: id }, { backupPersonId: id }],
+      }).lean(),
+      LifeLegacyMessage.find({ recipientPersonId: id }).lean(),
+    ]);
+
+  // If caller is an individual, filter unreleased legacy messages
+  const filteredMessages = (!auth.isOwner && !auth.isAdmin)
+    ? messages.filter((m: any) => m.isReleased || m.visibility === "visible_now")
+    : messages;
 
   return {
     person: JSON.parse(JSON.stringify(person)),
+    financialCare: JSON.parse(JSON.stringify(financialCare)),
     moneyRecords: JSON.parse(JSON.stringify(moneyRecords)),
     documents: JSON.parse(JSON.stringify(documents)),
     contacts: JSON.parse(JSON.stringify(contacts)),
     notes: JSON.parse(JSON.stringify(notes)),
+    instructions: JSON.parse(JSON.stringify(instructions)),
+    responsibilities: JSON.parse(JSON.stringify(responsibilities)),
+    messages: JSON.parse(JSON.stringify(filteredMessages)),
   };
 }
 
@@ -93,6 +114,8 @@ export async function createPerson(data: {
   email?: string;
   role?: LifeRole;
   status?: PersonStatus;
+  accountStatus?: AccountStatus;
+  isLoginEnabled?: boolean;
   personalMessage?: string;
   responsibilities?: string[];
   businessInstructions?: string[];
@@ -129,6 +152,8 @@ export async function createPerson(data: {
     role: finalRole,
     userRole: finalRole,
     status: data.status || "active",
+    accountStatus: data.accountStatus || "active",
+    isLoginEnabled: data.isLoginEnabled ?? true,
     personalMessage: data.personalMessage || "",
     responsibilities: data.responsibilities || [],
     businessInstructions: data.businessInstructions || [],
@@ -176,6 +201,8 @@ export async function updatePerson(
     email: string;
     role: LifeRole;
     status: PersonStatus;
+    accountStatus: AccountStatus;
+    isLoginEnabled: boolean;
     personalMessage: string;
     responsibilities: string[];
     businessInstructions: string[];
@@ -212,7 +239,7 @@ export async function updatePerson(
             email: targetEmail,
             name: updated.name,
             role: updated.role === "super_admin" ? "super_admin" : "admin",
-            isActive: true,
+            isActive: updated.status === "active",
           },
         },
         { upsert: true }
@@ -248,7 +275,7 @@ export async function archivePerson(id: string) {
 
   const archived = (await LifePerson.findByIdAndUpdate(
     id,
-    { status: "archived" },
+    { status: "archived", accountStatus: "archived", isLoginEnabled: false },
     { new: true }
   ).lean()) as (ILifePerson & { _id: unknown }) | null;
 
@@ -265,4 +292,53 @@ export async function archivePerson(id: string) {
   revalidatePath("/people");
   revalidatePath("/");
   return { success: true };
+}
+
+export async function setPersonAccountStatus(
+  id: string,
+  newStatus: AccountStatus
+) {
+  await connectToDatabase();
+  const auth = await getLifeAuthContext();
+  if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+    throw new Error("Forbidden: Only Owners/Admins can change account status.");
+  }
+
+  const validStatuses: AccountStatus[] = [
+    "active",
+    "locked",
+    "temporarily_locked",
+    "disabled",
+    "archived",
+  ];
+  if (!validStatuses.includes(newStatus)) {
+    throw new Error(`Invalid account status: ${newStatus}`);
+  }
+
+  const isLoginEnabled = newStatus === "active";
+
+  const updated = (await LifePerson.findByIdAndUpdate(
+    id,
+    {
+      accountStatus: newStatus,
+      ...(newStatus === "archived" ? { status: "archived" } : {}),
+      isLoginEnabled,
+    },
+    { new: true }
+  ).lean()) as (ILifePerson & { _id: unknown }) | null;
+
+  if (!updated) throw new Error("Person not found.");
+
+  await logLifeActivity({
+    action: "ACCOUNT_STATUS_CHANGE",
+    resourceType: "people",
+    resourceId: id,
+    resourceName: updated.name,
+    details: `Changed account status for "${updated.name}" to "${newStatus}" (login ${isLoginEnabled ? "enabled" : "disabled"})`,
+    isCritical: newStatus !== "active",
+  });
+
+  revalidatePath("/people");
+  revalidatePath(`/people/${id}`);
+  return { success: true, accountStatus: newStatus };
 }

@@ -139,11 +139,11 @@ export function MoneyClient({
               Money Management
             </h1>
             <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-              Loans & Equity
+              Financial Care & Equity
             </span>
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Transparent tracking of where money went, who owes me, whom I owe,
+            Transparent tracking of financial care provided, received,
             and active investments.
           </p>
         </div>
@@ -161,7 +161,7 @@ export function MoneyClient({
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <div className="p-3.5 rounded-2xl bg-card border border-border">
           <span className="text-[11px] font-medium text-muted-foreground">
-            Money Given
+            Care Provided
           </span>
           <div className="text-lg sm:text-xl font-extrabold text-foreground font-mono mt-1">
             ৳{overview?.given?.total?.toLocaleString() || 0}
@@ -173,7 +173,7 @@ export function MoneyClient({
 
         <div className="p-3.5 rounded-2xl bg-card border border-border">
           <span className="text-[11px] font-medium text-muted-foreground">
-            Money Taken
+            Care Received
           </span>
           <div className="text-lg sm:text-xl font-extrabold text-amber-500 font-mono mt-1">
             ৳{overview?.taken?.total?.toLocaleString() || 0}
@@ -185,7 +185,7 @@ export function MoneyClient({
 
         <div className="p-3.5 rounded-2xl bg-card border border-border">
           <span className="text-[11px] font-medium text-muted-foreground">
-            Invested Made
+            Investment Made
           </span>
           <div className="text-lg sm:text-xl font-extrabold text-cyan-700 dark:text-cyan-300 font-mono mt-1">
             ৳{overview?.investMade?.total?.toLocaleString() || 0}
@@ -197,7 +197,7 @@ export function MoneyClient({
 
         <div className="p-3.5 rounded-2xl bg-card border border-border">
           <span className="text-[11px] font-medium text-muted-foreground">
-            Invest Received
+            Investment Received
           </span>
           <div className="text-lg sm:text-xl font-extrabold text-indigo-700 dark:text-indigo-300 font-mono mt-1">
             ৳{overview?.investReceived?.total?.toLocaleString() || 0}
@@ -210,7 +210,7 @@ export function MoneyClient({
         <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-500/30">
           <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
             <ArrowDownLeft className="w-3 h-3" />
-            To Receive
+            Receivable
           </span>
           <div className="text-lg sm:text-xl font-extrabold text-emerald-700 dark:text-emerald-300 font-mono mt-1">
             ৳{overview?.receivables?.toLocaleString() || 0}
@@ -223,7 +223,7 @@ export function MoneyClient({
         <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-500/30">
           <span className="text-[11px] font-medium text-rose-700 dark:text-rose-300 flex items-center gap-1">
             <ArrowUpRight className="w-3 h-3" />
-            To Pay
+            Payable
           </span>
           <div className="text-lg sm:text-xl font-extrabold text-rose-700 dark:text-rose-300 font-mono mt-1">
             ৳{overview?.payables?.toLocaleString() || 0}
@@ -249,13 +249,13 @@ export function MoneyClient({
             value="given"
             className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
           >
-            Money Given ({givenRecords.length})
+            Care Provided ({givenRecords.length})
           </TabsTrigger>
           <TabsTrigger
             value="taken"
             className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
           >
-            Money Taken ({takenRecords.length})
+            Care Received ({takenRecords.length})
           </TabsTrigger>
           <TabsTrigger
             value="investments"
@@ -493,8 +493,8 @@ export function MoneyClient({
                   onChange={(e) => setType(e.target.value as LifeMoneyType)}
                   className="w-full h-10 px-3 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-emerald-500 focus:outline-none"
                 >
-                  <option value="given">Money Given (Loan I lent)</option>
-                  <option value="taken">Money Taken (Loan I borrowed)</option>
+                  <option value="given">Financial Care Provided</option>
+                  <option value="taken">Financial Care Received</option>
                   <option value="invest_made">
                     Investment Made (My equity/capital)
                   </option>
@@ -557,7 +557,7 @@ export function MoneyClient({
                   Purpose / Description
                 </label>
                 <Input
-                  placeholder="e.g. Business expansion, Personal loan"
+                  placeholder="e.g. Business expansion, Family support"
                   value={purpose}
                   onChange={(e) => setPurpose(e.target.value)}
                   className="h-10 border-slate-800 bg-slate-900/90 text-slate-100 text-xs"

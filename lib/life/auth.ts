@@ -1,4 +1,5 @@
 import { currentUser, auth } from "@clerk/nextjs/server";
+import { headers } from "next/headers";
 import { connectToDatabase } from "@/lib/database";
 import Admin from "@/lib/database/models/admin.model";
 import LifePerson from "@/lib/database/models/lifePerson.model";
@@ -310,6 +311,19 @@ export async function logLifeActivity({
     const context = await getLifeAuthContext();
     if (!context) return;
 
+    let ipAddress = "";
+    let userAgent = "";
+    try {
+      const headerList = await headers();
+      ipAddress =
+        headerList.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+        headerList.get("x-real-ip") ||
+        "";
+      userAgent = headerList.get("user-agent") || "";
+    } catch {
+      // headers() may not be available outside HTTP request context
+    }
+
     await LifeActivityLog.create({
       actorEmail: context.email,
       actorName: context.name,
@@ -324,6 +338,8 @@ export async function logLifeActivity({
       result,
       isCritical,
       metadata: metadata || {},
+      ipAddress,
+      userAgent,
     });
   } catch (error) {
     console.error("Failed to write LifeActivityLog:", error);

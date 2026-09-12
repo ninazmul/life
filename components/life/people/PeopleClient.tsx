@@ -122,10 +122,10 @@ function maskEmail(email?: string) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-              People, Roles & Access
+            <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
+              People & Access
             </h1>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
               {people.length}
             </span>
           </div>

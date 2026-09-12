@@ -7,13 +7,13 @@ import { canAccessModule, UserModuleAccess } from "@/lib/life/module-access";
 
 interface LifeBottomNavProps {
   onOpenMore: () => void;
-  activeLoansCount?: number;
+  activeCareCount?: number;
   userAccess: UserModuleAccess;
 }
 
 export function LifeBottomNav({
   onOpenMore,
-  activeLoansCount = 0,
+  activeCareCount = 0,
   userAccess,
 }: LifeBottomNavProps) {
   const pathname = usePathname();
@@ -58,16 +58,10 @@ export function LifeBottomNav({
     canAccessModule(item.href, permissions, isSuperUser)
   );
 
-  const isMoreActive =
-    pathname.startsWith("/information") ||
-    pathname.startsWith("/business") ||
-    pathname.startsWith("/assets") ||
-    pathname.startsWith("/contacts") ||
-    pathname.startsWith("/documents") ||
-    pathname.startsWith("/legacy") ||
-    pathname.startsWith("/access") ||
-    pathname.startsWith("/activity") ||
-    pathname.startsWith("/settings");
+  // Ensure strictly one active menu item at a time:
+  // "More" is only active if the current route is NOT one of the primary tabs.
+  const isAnyPrimaryActive = navItems.some((item) => item.isActive);
+  const isMoreActive = !isAnyPrimaryActive && pathname !== "/";
 
   return (
     <nav

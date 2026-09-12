@@ -71,11 +71,12 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
   );
 
   // Define all possible directory cards with permissions
+  // Define all possible directory cards with permissions
   const allDirectoryCards = [
     {
-      title: "People & Roles",
+      title: "People & Access",
       href: "/people",
-      desc: "Wife, Brother, Sabbir, Sana & trusted contacts",
+      desc: "Family, trusted contacts, roles & access permissions",
       icon: Users,
       badge: `${stats.peopleCount} entries`,
       badgeValue: stats.peopleCount,
@@ -103,19 +104,19 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       hasAccess: hasBusinessAccess,
     },
     {
-      title: "Money Management",
-      href: "/money",
-      desc: "Loans given, money taken, investments & tracking",
-      icon: Coins,
-      badge: "Tracking",
-      badgeValue: "Tracking",
+      title: "Financial Care",
+      href: "/finance",
+      desc: "Financial care provided, received, installments & tracking",
+      icon: Wallet,
+      badge: `${stats.upcomingPaymentsCount} active`,
+      badgeValue: stats.upcomingPaymentsCount,
       color: "emerald",
-      hasAccess: hasMoneyAccess,
+      hasAccess: hasFinanceAccess || hasMoneyAccess,
     },
     {
-      title: "Assets & Holdings",
+      title: "Assets & Properties",
       href: "/assets",
-      desc: "Bank balances, properties & valuable equipment",
+      desc: "Bank balances, properties & valuable holdings",
       icon: Layers,
       badge: `৳${stats.assetsTotalValue.toLocaleString()}`,
       badgeValue: `৳${stats.assetsTotalValue.toLocaleString()}`,
@@ -123,17 +124,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       hasAccess: hasAssetsAccess,
     },
     {
-      title: "Financial Support",
-      href: "/finance",
-      desc: "Loans, monthly commitments & family support",
-      icon: Wallet,
-      badge: `${stats.upcomingPaymentsCount} active`,
-      badgeValue: stats.upcomingPaymentsCount,
-      color: "emerald",
-      hasAccess: hasFinanceAccess,
-    },
-    {
-      title: "Responsibilities & Instructions",
+      title: "Instructions & Responsibilities",
       href: "/instructions",
       desc: "Assigned tasks & critical handovers",
       icon: FileText,
@@ -163,7 +154,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       hasAccess: hasDocumentsAccess,
     },
     {
-      title: "Information & Notes",
+      title: "Important Information",
       href: "/information",
       desc: "Critical bank details, server info & guidelines",
       icon: FileText,
@@ -173,7 +164,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       hasAccess: hasInfoAccess,
     },
     {
-      title: "Beneficiaries & Nominees",
+      title: "Beneficiaries",
       href: "/beneficiaries",
       desc: "Asset allocations & nominee designations",
       icon: HeartHandshake,
@@ -203,7 +194,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       hasAccess: hasLegacyAccess,
     },
     {
-      title: "Access Control & Emergency",
+      title: "Access & Emergency Control",
       href: "/access",
       desc: "Emergency trigger, user roles & module permissions",
       icon: ShieldAlert,
@@ -223,9 +214,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       hasAccess: hasActivityAccess,
     },
     {
-      title: "System Settings",
+      title: "Security & Settings",
       href: "/settings",
-      desc: "Vault security, database exports & preferences",
+      desc: "Master PIN, database backup, restore & preferences",
       icon: Settings,
       badge: "System",
       badgeValue: "System",
@@ -272,13 +263,13 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                 size="sm"
                 className="h-9 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs gap-1.5 shadow-md shadow-emerald-950/40"
               >
-                <Link href="/finance" aria-label="Financial Support">
+                <Link href="/finance" aria-label="Financial Care">
                   <Plus
                     className="w-3.5 h-3.5 shrink-0"
                     strokeWidth={2}
                     aria-hidden="true"
                   />
-                  Financial Support
+                  Financial Care
                 </Link>
               </Button>
             )}
@@ -435,7 +426,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               <span className="text-[11px] font-medium text-muted-foreground">Continuity Ready</span>
               <div className="my-1">
                 <span className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
-                  {stats.businessContinuityReadiness || 100}%
+                  {stats.businessContinuityReadiness}%
                 </span>
               </div>
               <span className="text-[10px] text-muted-foreground">If Not Available</span>
@@ -448,7 +439,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               href="/finance"
               className="p-3.5 rounded-2xl bg-card border border-border hover:border-emerald-500/30 transition-all shadow-sm flex flex-col justify-between"
             >
-              <span className="text-[11px] font-medium text-muted-foreground">Financial Support</span>
+              <span className="text-[11px] font-medium text-muted-foreground">Financial Care</span>
               <div className="my-1">
                 <span className="text-sm font-extrabold text-foreground">
                   {stats.upcomingPaymentsCount || 0} Active
@@ -530,9 +521,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
         </section>
       )}
 
-      {/* Money & Wealth Overview - Only shown to users with Financial or Super Admin access */}
+      {/* Financial Care Overview - Only shown to users with Financial or Super Admin access */}
       {(hasMoneyAccess || hasFinanceAccess) && (
-        <section className="space-y-3" aria-label="Money and wealth overview">
+        <section className="space-y-3" aria-label="Financial Care overview">
           <div className="flex items-center justify-between px-1 gap-2">
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 min-w-0">
               <Wallet
@@ -540,27 +531,25 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                 strokeWidth={2}
                 aria-hidden="true"
               />
-              <span className="truncate">Money & Wealth Overview</span>
+              <span className="truncate">Financial Care Overview</span>
             </h2>
-            {hasMoneyAccess && (
-              <Link
-                href="/money"
-                className="text-xs font-semibold text-emerald-700 hover:text-emerald-600 dark:text-emerald-300 dark:hover:text-emerald-200 flex items-center gap-1 shrink-0 whitespace-nowrap"
-              >
-                Detailed Financials{" "}
-                <ArrowRight
-                  className="w-3 h-3 shrink-0"
-                  strokeWidth={2}
-                  aria-hidden="true"
-                />
-              </Link>
-            )}
+            <Link
+              href="/finance"
+              className="text-xs font-semibold text-emerald-700 hover:text-emerald-600 dark:text-emerald-300 dark:hover:text-emerald-200 flex items-center gap-1 shrink-0 whitespace-nowrap"
+            >
+              Detailed Financial Care{" "}
+              <ArrowRight
+                className="w-3 h-3 shrink-0"
+                strokeWidth={2}
+                aria-hidden="true"
+              />
+            </Link>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             <div className="p-3.5 rounded-2xl bg-card border border-border shadow-sm flex flex-col justify-between min-h-[104px]">
               <span className="text-[11px] font-medium text-muted-foreground">
-                Money Given
+                Financial Care Provided
               </span>
               <div className="my-1">
                 <span className="text-lg sm:text-xl font-extrabold text-foreground font-mono">
@@ -574,7 +563,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
 
             <div className="p-3.5 rounded-2xl bg-card border border-border shadow-sm flex flex-col justify-between min-h-[104px]">
               <span className="text-[11px] font-medium text-muted-foreground">
-                Money Taken
+                Financial Care Received
               </span>
               <div className="my-1">
                 <span className="text-lg sm:text-xl font-extrabold text-amber-700 dark:text-amber-300 font-mono">
@@ -582,13 +571,13 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                 </span>
               </div>
               <span className="text-[10px] text-muted-foreground font-medium truncate">
-                Owed: ৳{stats.moneyTakenRemaining.toLocaleString()}
+                Outstanding: ৳{stats.moneyTakenRemaining.toLocaleString()}
               </span>
             </div>
 
             <div className="p-3.5 rounded-2xl bg-card border border-border shadow-sm flex flex-col justify-between min-h-[104px]">
               <span className="text-[11px] font-medium text-muted-foreground">
-                Invested Made
+                Investment Made
               </span>
               <div className="my-1">
                 <span className="text-lg sm:text-xl font-extrabold text-cyan-700 dark:text-cyan-300 font-mono">
@@ -602,7 +591,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
 
             <div className="p-3.5 rounded-2xl bg-card border border-border shadow-sm flex flex-col justify-between min-h-[104px]">
               <span className="text-[11px] font-medium text-muted-foreground">
-                Invest Received
+                Investment Received
               </span>
               <div className="my-1">
                 <span className="text-lg sm:text-xl font-extrabold text-indigo-700 dark:text-indigo-300 font-mono">
@@ -621,7 +610,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                   strokeWidth={2}
                   aria-hidden="true"
                 />
-                To Receive
+                Receivable
               </span>
               <div className="my-1">
                 <span className="text-lg sm:text-xl font-extrabold text-emerald-800 dark:text-emerald-200 font-mono break-all">
@@ -640,7 +629,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                   strokeWidth={2}
                   aria-hidden="true"
                 />
-                To Pay
+                Payable
               </span>
               <div className="my-1">
                 <span className="text-lg sm:text-xl font-extrabold text-rose-800 dark:text-rose-200 font-mono break-all">

@@ -64,3 +64,34 @@ export function decryptVaultSecret(
     return "Error decrypting secret";
   }
 }
+
+/**
+ * Hashes a PIN using crypto.scrypt with a unique random salt.
+ */
+export function hashPin(pin: string): string {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const derivedKey = crypto.scryptSync(pin.trim(), salt, 64);
+  return `${salt}:${derivedKey.toString("hex")}`;
+}
+
+/**
+ * Verifies a PIN against a stored salted scrypt hash (with legacy plaintext fallback).
+ */
+export function verifyPin(pin: string, storedHash: string): boolean {
+  if (!storedHash || !pin) return false;
+  if (!storedHash.includes(":")) {
+    return pin.trim() === storedHash.trim();
+  }
+  try {
+    const [salt, key] = storedHash.split(":");
+    if (!salt || !key) return false;
+    const keyBuf = Buffer.from(key, "hex");
+    const derivedKey = crypto.scryptSync(pin.trim(), salt, 64);
+    if (keyBuf.length !== derivedKey.length) return false;
+    return crypto.timingSafeEqual(keyBuf, derivedKey);
+  } catch (err) {
+    console.error("Error verifying PIN:", err);
+    return false;
+  }
+}
+

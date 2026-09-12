@@ -12,22 +12,48 @@ export async function getLegacyMessages(): Promise<ILifeLegacyMessage[]> {
   const auth = await getLifeAuthContext();
   if (!auth) return [];
 
-  const query: Record<string, unknown> = {};
+  let messages;
 
-  // If normal user (not owner/admin), they can ONLY see letters intended specifically for them and released
-  if (!auth.isOwner && !auth.isAdmin) {
-    if (auth.personId) {
-      query.recipientPersonId = auth.personId;
-      query.$or = [{ isReleased: true }, { visibility: "visible_now" }];
-    } else {
-      return [];
+  if (auth.isOwner || auth.isAdmin) {
+    // Owners/Admins see all messages
+    messages = await LifeLegacyMessage.find()
+      .populate("recipientPersonId", "name relation avatarUrl")
+      .sort({ createdAt: -1 })
+      .lean();
+  } else {
+    // Individual users: strict visibility enforcement
+    if (!auth.personId) return [];
+
+    const now = new Date();
+
+    // Check emergency state for emergency_only messages
+    const LifeEmergencyAccess = (await import("@/lib/database/models/lifeEmergencyAccess.model")).default;
+    const emergencyState = await LifeEmergencyAccess.findOne().lean() as { isEmergencyActive?: boolean } | null;
+    const isEmergencyActive = emergencyState?.isEmergencyActive === true;
+
+    // Build visibility conditions
+    const visibilityConditions: Record<string, unknown>[] = [
+      { visibility: "visible_now" },
+      { isReleased: true },
+      // scheduled_release: only if scheduledDate <= now
+      { visibility: "scheduled_release", scheduledDate: { $lte: now } },
+    ];
+
+    // emergency_only: only if emergency is currently active
+    if (isEmergencyActive) {
+      visibilityConditions.push({ visibility: "emergency_only" });
     }
-  }
 
-  const messages = await LifeLegacyMessage.find(query)
-    .populate("recipientPersonId", "name relation avatarUrl")
-    .sort({ createdAt: -1 })
-    .lean();
+    messages = await LifeLegacyMessage.find({
+      recipientPersonId: auth.personId,
+      $or: visibilityConditions,
+      // hidden messages are NEVER visible to non-owners
+      visibility: { $ne: "hidden" },
+    })
+      .populate("recipientPersonId", "name relation avatarUrl")
+      .sort({ createdAt: -1 })
+      .lean();
+  }
 
   return JSON.parse(JSON.stringify(messages));
 }

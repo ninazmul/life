@@ -38,6 +38,7 @@ export interface ILifePersonDoc extends Document {
   generalNotes?: string;
   lastLogin?: Date;
   lastActivity?: Date;
+  isLoginEnabled?: boolean;
   clerkUserId?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -58,14 +59,19 @@ const LifePersonSchema = new Schema<ILifePersonDoc>(
     profilePhoto: { type: String, default: "" },
     status: {
       type: String,
-      enum: ["active", "locked", "archived"],
+      enum: ["active", "locked", "disabled", "archived"],
       default: "active",
       index: true,
     },
     accountStatus: {
       type: String,
-      enum: ["invited", "active", "temporarily_locked", "disabled", "archived", "locked"],
+      enum: ["active", "locked", "disabled", "archived", "invited", "temporarily_locked"],
       default: "active",
+      index: true,
+    },
+    isLoginEnabled: {
+      type: Boolean,
+      default: true,
       index: true,
     },
     role: {
@@ -106,6 +112,9 @@ const LifePersonSchema = new Schema<ILifePersonDoc>(
   { timestamps: true }
 );
 
+import { softDeletePlugin } from "../plugins/softDelete";
+
+LifePersonSchema.plugin(softDeletePlugin);
 LifePersonSchema.index({ email: 1 });
 LifePersonSchema.index({ name: 1, relation: 1 });
 
