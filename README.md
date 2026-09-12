@@ -71,83 +71,150 @@ It is an ultra-private **personal legacy, secure information, money management, 
 
 ---
 
+## 🚀 Full Admin Lifecycle: End-to-End Flow (Day 1 to Production Readiness)
+
+For system administrators and owners, follow this chronological start-to-end setup roadmap to achieve full operational security and business continuity:
+
+```mermaid
+flowchart TD
+    A[Step 1: Sign Up & First Login] --> B[Step 2: Set Master Security PIN]
+    B --> C[Step 3: Register People & Family Directory]
+    C --> D[Step 4: Configure Granular Access Permissions]
+    D --> E[Step 5: Record Personal & Medical Information]
+    E --> F[Step 6: Catalog Businesses & Handover Checklists]
+    F --> G[Step 7: Set Up Financial Care & Money Ledger]
+    G --> H[Step 8: Document Physical & Digital Assets]
+    H --> I[Step 9: Encrypt Credentials in Vault]
+    I --> J[Step 10: Upload Contracts & Legal Documents]
+    J --> K[Step 11: Draft Operational Instructions & Directives]
+    K --> L[Step 12: Add Professional Advisory Contacts]
+    L --> M[Step 13: Define Beneficiaries & Asset Allocations]
+    M --> N[Step 14: Compose Sealed Legacy Letters]
+    N --> O[Step 15: Appoint Guardians & Consensus Protocol]
+    O --> P[Step 16: Verify Dashboard & Health Check]
+```
+
+### Complete Chronological Setup Checklist:
+1. **Sign Up & First Login**: Create account via Clerk. The initial authenticated user is automatically provisioned as `Super Admin / Owner` with unrestricted system privileges.
+2. **Configure Master Security PIN (`/settings`)**: Establish a 4–6 digit Master PIN. This PIN is mandatory to reveal AES-256-GCM vault secrets, alter emergency settings, or execute administrative overrides.
+3. **Register People Directory (`/people`)**: Add immediate family (spouse, children, parents, siblings), key business partners, engineering leads, and trusted friends. Include direct contact numbers, WhatsApp, and social profiles (Facebook, Messenger, Instagram, TikTok, Telegram, LinkedIn, YouTube, Website).
+4. **Assign Granular Permissions (`/access` or per-person dossier)**: Enforce the principle of least privilege:
+   - `canViewPersonal`: Family & medical memos
+   - `canViewBusiness`: Corporate notes & server registers
+   - `canViewFinancial`: Balances, loans & support ledgers
+   - `canViewSensitive`: Confidential deeds & contracts
+   - `canRevealVault`: Authority to decrypt vault passwords
+   - `canManageAccess`: Permission assignment delegation
+   - `canAccessEmergency`: Automatic unlocking upon emergency activation
+5. **Record Personal Information (`/information`)**: Enter emergency medical details (blood group, allergies, chronic conditions, regular prescriptions, preferred hospital), identity cards (NID, Passport, Driving License), and tax credentials (e-TIN, Tax Circle).
+6. **Catalog Businesses & Handover Checklists (`/business`)**: Record company entities, trade licenses, partner equity percentages, bank signers, and server infrastructure. Fill out the **"If I Am Not Available"** protocol for every venture.
+7. **Set Up Financial Tracking (`/finance` & `/money`)**: Record monthly family commitments, loans given, debts payable, capital invested, and incoming partner funds. Log partial/full settlements with receipts.
+8. **Catalog Assets & Properties (`/assets`)**: Document real estate, bank deposits, vehicles, gold/valuables, and private equity. Specify percentage ownership and exact physical document storage locations (e.g., *Safe Locker #4B*).
+9. **Populate the Encrypted Vault (`/vault`)**: Store high-sensitivity passwords, server root keys, SSH credentials, router logins, recovery seed phrases, and banking PINs under AES-256-GCM encryption.
+10. **Archive Critical Documents (`/documents`)**: Upload scanned deeds, incorporation papers, insurance policies, and wills. Tag with physical file locations and access classification tiers.
+11. **Write Operational Instructions & Directives (`/instructions`)**: Create clear, step-by-step handover workflows ("What to do", "Who should do it", "In what priority"). Link each directive to assigned persons.
+12. **Add Emergency & Professional Contacts (`/contacts`)**: Record family lawyers, primary physicians, tax accountants, bank relationship managers, and system administrators with 1-tap Call, WhatsApp, and Email triggers.
+13. **Map Beneficiaries & Inheritance (`/beneficiaries`)**: Allocate assets and percentages to heirs. Attach nominee declarations, share transfer documents, and notarized deeds.
+14. **Compose Sealed Legacy Messages (`/legacy`)**: Write private letters, audio/video links, or life advice. Choose triggers: *Emergency Mode Activation*, *Scheduled Future Date*, or *Guardian Release*.
+15. **Appoint Trusted Guardians (`/guardians`)**: Designate 2–5 primary and secondary guardians. Configure multi-party consensus thresholds (e.g., 2 of 3 must confirm) and grace period countdown timers (24h/48h/72h).
+16. **Review Dashboard & Routine Health Check (`/`)**: Verify continuity indicators, overdue payment notices, guardian statuses, and audit activity.
+
+---
+
 ## ✨ Core Modules
 
 ### 1. Dashboard & Status Center (`/`)
-- **Financial Snapshot**: Real-time aggregation of Money Given, Money Taken, Investments, and Net Outstanding Balance.
-- **Continuity Status**: Active / Standby indicator with direct emergency trigger access.
+- **Financial Snapshot**: Real-time aggregation of Money Given, Money Taken, Investments Made, Investments Received, Receivables, and Payables.
+- **Continuity Status**: Active / Standby indicator with emergency protocol readiness.
 - **Attention Items**: Dynamic alerts for overdue repayments, high-priority emergency instructions, and pending continuity steps.
 - **Quick Action Hub**: 1-tap shortcuts to record money, add a contact, log a secret, or create an instruction.
 
-### 2. People Directory & Personal Dossiers (`/people`, `/people/[id]`)
-- **Relationship Matrix**: Track family members, business partners, engineers, staff, advisors, and trusted friends.
-- **Status & Lock Controls**: Active, Locked, or Archived status. A locked person is immediately rejected by auth middleware.
-- **Comprehensive 8-Tab Dossier**:
-  - **Overview**: Core profile, avatar, relation, and contact actions.
-  - **Personal Message**: Private, intimate message intended specifically for this individual.
-  - **Financial**: Linked money records (given/taken/invested) with outstanding balances.
-  - **Documents**: Sensitive contracts, agreements, and IDs linked to this person.
-  - **Contacts**: Emergency and advisory contacts relevant to this relationship.
-  - **Responsibilities**: Bulleted task lists and delegations assigned to them.
-  - **Business Instructions**: Operational steps and protocols they need to follow.
-  - **Access Rules**: Per-person granular permission toggles.
+### 2. Businesses & Partnerships (`/business`)
+- **Ventures Catalog**: Ownership %, registration numbers, trade licenses, capital invested, and partner stakes.
+- **Infrastructure Registry**: Hosting providers, server IPs, control panel URLs, and primary engineering contacts.
+- **"If I Am Not Available" Checklist**: Pre-scripted step-by-step operational handover protocols for each venture.
 
-### 3. Money & Debt Ledger (`/money`)
-- **Complete Four-Way Tracking**:
-  - `Given`: Money you lent to others (Receivables).
-  - `Taken`: Money you borrowed from others (Payables).
-  - `Invested Made`: Capital you invested in ventures or partnerships.
-  - `Invested Received`: Capital partners invested in your ventures.
-- **Settlement Engine**: Record partial or full return payments with automated balance updates and timestamped settlement logs.
-- **Debt Tracking**: Interest notes, repayment due dates, and linked person lookups.
+### 3. Personal Information & Identity (`/information`)
+- **Emergency Medical Dossier**: Blood group, allergies, chronic ailments, emergency medications, primary physician, and preferred hospital.
+- **Identity & Legal Records**: NID, Passport, Birth Certificate, Driving License, e-TIN, and Tax Circle.
+- **Emergency Notes & Instructions**: Categorized memos, security directives, and family guidelines.
 
-### 4. Encrypted Secrets Vault (`/vault`)
-- **AES-256-GCM Encrypted Storage**: Passwords, server root keys, recovery seed phrases, bank credentials, and router logins are encrypted at rest with unique Initialization Vectors (IV) and authentication tags.
-- **Plaintext Never Leaves the Server in Bulk**: Vault list queries return masked fingerprints (`••••••••`).
-- **Master PIN Verification**: Decrypting a secret requires entering the Master PIN.
-- **Auto-Concealing Timer**: Revealed secrets display an animated 30-second countdown before automatically vanishing from memory.
-- **Tamper-Evident Logging**: Every secret reveal is permanently logged with the viewer's identity and timestamp.
+### 4. Financial Care & Support Ledger (`/finance`, `/finance/[id]`)
+- **Family & Dependent Support**: Recurring living allowances, educational expenses, and medical care commitments.
+- **Installment Schedules**: Track scheduled payments, due dates, paid amounts, and overdue warnings.
+- **Recipient Dossier**: Dedicated financial profile for every dependent with complete historical transaction timeline.
 
-### 5. Business Continuity Engine (`/business`)
-- **Ventures Catalog**: Maintain detailed ownership %, legal entities, and active partner stakes.
-- **Infrastructure Registry**: Record hosting providers, server IPs, control panel URLs, and primary server engineer contacts.
-- **"If I Am Not Available" Contingency Checklist**: Pre-scripted step-by-step instructions (e.g., who to pay for domain renewal, who to contact to keep servers online, how to handle client inquiries).
+### 5. Money & Debt Ledger (`/money`)
+- **Four-Way Tracking**:
+  - `Given`: Money lent to others (Receivables).
+  - `Taken`: Money borrowed from others (Payables).
+  - `Invested Made`: Capital invested in ventures or third parties.
+  - `Invested Received`: Capital partners invested into your ventures.
+- **Settlement Engine**: Partial or full repayments with automated balance recalculation and timestamped audit receipts.
+- **Debt Alerts**: Due date tracking, overdue flags, and direct links to person dossiers.
 
-### 6. Asset Portfolio (`/assets`)
-- **Multi-Asset Registry**: Properties, real estate, bank deposits, vehicles, gold/valuables, and private equity.
-- **Ownership Breakdown**: Record personal percentage ownership vs. partner or family stakes.
-- **Document Association**: Link title deeds, registration certificates, and purchase receipts.
+### 6. People Directory & Personal Dossiers (`/people`, `/people/[id]`)
+- **Relationship Matrix**: Track family, business partners, employees, advisors, and trusted friends.
+- **Direct Communication & Social Media**: Quick Call (`tel:`), WhatsApp (`wa.me`), Email (`mailto:`), and direct links for Facebook, Messenger, Instagram, TikTok, Telegram, LinkedIn, YouTube, and Website.
+- **Lock Controls**: Instantly lock/archive accounts with immediate auth middleware enforcement.
+- **8-Tab Comprehensive Dossier**: Overview, Personal Message, Financial History, Documents, Contacts, Responsibilities, Business Directives, and Access Permissions.
 
-### 7. Emergency & Key Contacts (`/contacts`)
+### 7. Instructions & Operational Directives (`/instructions`)
+- **Handover Directives**: Structured operational instructions with priority weighting (Critical, High, Medium, Low).
+- **Assignee Delegation**: Link directives directly to specific individuals from the People Directory.
+- **Execution Workflow**: Status tracking (Pending, In Progress, Completed) with verification notes.
+
+### 8. Asset Portfolio & Valuations (`/assets`)
+- **Multi-Category Asset Registry**: Real estate, bank deposits/FDRs, vehicles, gold/valuables, and equity.
+- **Ownership Breakdown**: Record percentage ownership vs. partner or family stakes.
+- **Physical Locations**: Specific storage notation (e.g. *Bank Safe Locker 4B, Almirah 2 Shelf 3*).
+- **Document Linking**: Attach title deeds, registration certificates, and purchase invoices.
+
+### 9. Emergency & Professional Contacts (`/contacts`)
 - **Categorized Directory**: Immediate Family, Lawyers, Doctors, Accountants, System Engineers, and Key Suppliers.
-- **1-Tap Direct Action**: Direct Call (`tel:`), direct WhatsApp (`https://wa.me/`), direct Email (`mailto:`), and 1-tap phone copy.
-- **Emergency Priority**: Ranked calling order for crisis situations.
+- **1-Tap Direct Actions**: Phone Call, WhatsApp message, Email compose, and 1-tap clipboard copy.
+- **Priority Ranking**: Ordered emergency calling hierarchy for rapid crisis response.
 
-### 8. Critical Documents Library (`/documents`)
-- **Private Repository**: Store wills, title deeds, insurance policies, company incorporation papers, and tax files.
-- **Access Gating**: Mark documents as Standard, Confidential, or Emergency-Only.
+### 10. Critical Documents Library (`/documents`)
+- **Secure File Registry**: Digital repository for wills, property deeds, incorporation papers, insurance policies, and tax clearances.
+- **Access Tiers**: Standard, Confidential, or Emergency-Only classification.
+- **Physical Cross-Referencing**: Notes documenting where the original hardcopy is physically archived.
 
-### 9. Legacy Messages & Last Instructions (`/legacy`)
-- **Condition-Based Release**: Write sealed letters and video/file instructions for specific people.
-- **Release Conditions**:
-  - `Emergency Only`: Unlocked exclusively when Emergency Mode is active.
-  - `Admin Can Release`: Manually unlocked by designated administrators.
-  - `Scheduled Release`: Unlocked after a specific future calendar date.
-- **Interactive Reader**: Immersive, distraction-free letter reader interface.
+### 11. Beneficiaries & Asset Allocation (`/beneficiaries`)
+- **Inheritance Distribution**: Map heirs to specific assets with percentage allocations.
+- **Legal Compliance**: Attach nominee declarations, share transfer forms, and notarized wills.
+- **Private Legacy Association**: Link private letters to be delivered upon asset distribution.
 
-### 10. Access Delegation & Emergency Mode (`/access`)
-- **Emergency Mode Master Switch**: A single button activates Emergency Mode across the entire platform, opening continuity protocols and legacy letters to designated trustees.
-- **Primary & Secondary Admin Delegation**: Appoint trusted executors who gain administrative rights in emergencies.
-- **Granular Permissions Grid**: Enable/disable access to personal notes, business records, financial balances, sensitive files, and vault reveals on a per-user basis.
+### 12. Legacy Messages & Last Instructions (`/legacy`)
+- **Condition-Based Sealed Letters**: Intimate farewell messages, life guidance, or private video/audio links.
+- **Release Triggers**:
+  - `Emergency Only`: Unlocked exclusively when Emergency Mode is triggered.
+  - `Admin Can Release`: Manually unlocked by designated executors.
+  - `Scheduled Release`: Automatically revealed on or after a specific future date.
+- **Distraction-Free Reader**: Immersive, dignified letter reading interface.
 
-### 11. Tamper-Evident Activity Audit (`/activity`)
-- **Immutable Security Timeline**: Records every critical event—Vault item decrypted, Emergency Mode activated, Money record settled, or Access permissions modified.
-- **Audit Metadata**: Captures Actor Name, Actor Email, Role, IP context, Resource Name, and exact timestamp.
+### 13. Encrypted Secrets Vault (`/vault`)
+- **AES-256-GCM Hardware Encryption**: Passwords, SSH keys, recovery seed phrases, bank credentials, and server logins encrypted at rest with unique IV and authentication tags.
+- **Zero Plaintext in Bulk**: Vault list queries return masked fingerprints (`••••••••`).
+- **Master PIN Gate**: Decrypting any secret requires entering the Master PIN.
+- **30-Second Auto-Conceal**: Revealed secrets count down 30 seconds before automatically purging from browser memory.
+- **Tamper-Evident Audit**: Every secret reveal logs actor, IP, timestamp, and target secret name.
 
-### 12. Settings & Encrypted Backup (`/settings`)
-- **Master Security PIN Setup**: Set or change the 4-to-6 digit Master Security PIN protecting vault items and sensitive actions.
-- **Encrypted JSON Export**: Generate a complete system snapshot backup for offline cold-storage.
-- **PWA Health & Cache Diagnostics**: Monitor service worker registration and local storage integrity.
+### 14. Access Delegation & Emergency Protocol (`/access`, `/guardians`)
+- **Emergency Mode Master Switch**: Single-click protocol activation that opens continuity records and legacy directives to designated trustees.
+- **Multi-Party Guardian Consensus**: Require $M$-of-$N$ guardians to confirm before emergency mode unlocks.
+- **Grace Period Countdown**: Configurable 24h, 48h, or 72h window allowing the owner to cancel accidental or premature emergency triggers.
+- **Granular Permissions Grid**: Enable/disable personal, business, financial, sensitive, and vault access per person.
+
+### 15. Activity Audit Trail (`/activity`)
+- **Immutable Security Timeline**: Permanent audit trail of all vault reveals, permission edits, emergency activations, and financial settlements.
+- **Audit Context**: Captures actor identity, email, role, IP address, resource affected, and precise timestamp.
+
+### 16. Settings, Backup & Trash (`/settings`, `/settings/trash`)
+- **Master Security PIN**: Set or update the 4–6 digit Master Security PIN.
+- **Encrypted Snapshot Export**: Download complete encrypted JSON backups for offline cold storage.
+- **Trash & Soft-Delete Recovery**: Restore accidentally deleted records or permanently erase items.
+- **PWA Diagnostics**: Monitor Service Worker registration and local cache state.
 
 ---
 
@@ -327,18 +394,26 @@ All entities are modeled with Mongoose under `lib/database/models/`:
 | Route | Purpose | Owner / Admin | Trustee / Individual | Business Partner |
 | :--- | :--- | :---: | :---: | :---: |
 | `/` | Dashboard & Quick Actions | Full View | Delegated Summary | Venture Summary |
+| `/guide` | Interactive User Guide & Flow | Full Access | Full Access | Full Access |
+| `/business` | Business Continuity & Steps | Full Access | Emergency View | Assigned Ventures |
+| `/information` | Personal Info & Medical Records | Full Access | Family View | Hidden |
+| `/finance` | Financial Care & Support Ledger | Full Access | View Own Support | Hidden |
+| `/finance/[id]` | Dependent Support Dossier | Full Access | View Own Profile | Hidden |
+| `/money` | Financial & Debt Ledger | Full Access | View Own Records | View Venture Debts |
 | `/people` | People Directory & Profiles | Full Access | View Self / Family | View Team |
 | `/people/[id]` | 8-Tab Individual Dossier | Full Access | View Assigned | View Assigned |
-| `/money` | Financial & Debt Ledger | Full Access | View Own Records | View Venture Debts |
-| `/vault` | Encrypted Passwords & Secrets | PIN-Gated Reveal | Hidden (unless granted) | Hidden (unless granted) |
-| `/business` | Business Continuity & Steps | Full Access | Emergency View | Assigned Ventures |
+| `/instructions`| Operational Handover Directives| Full Access | View Assigned Directives | View Operational Steps |
 | `/assets` | Asset Portfolio & Valuation | Full Access | Emergency View | Hidden |
 | `/contacts` | Emergency Contacts Directory | Full Access | Full Access | Relevant Contacts |
 | `/documents` | Private Documents Library | Full Access | Assigned Docs | Venture Docs |
+| `/beneficiaries`| Inheritance & Asset Allocation | Full Access | View Own Allocations | Hidden |
 | `/legacy` | Sealed Legacy Letters | Full Access | Condition-Gated | Hidden |
+| `/vault` | Encrypted Passwords & Secrets | PIN-Gated Reveal | Hidden (unless granted) | Hidden (unless granted) |
+| `/guardians` | Trusted Guardians & Protocol | Full Access | Guardian Status View | Hidden |
 | `/access` | Permissions & Emergency Mode | Full Access | View Status | View Status |
 | `/activity` | Tamper-Evident Security Log | Full Access | Own Actions Only | Hidden |
 | `/settings` | Master PIN & System Backup | Full Access | Read-Only Profile | Read-Only Profile |
+| `/settings/trash` | Soft Delete & Trash Recovery | Full Access | Hidden | Hidden |
 
 ---
 
