@@ -431,9 +431,22 @@ flowchart TD
 ### 4.16 Access Delegation & Emergency Mode (`/access`)
 - **Route**: `app/(root)/access/page.tsx`
 - **Component**: `components/life/access/AccessClient.tsx`
-- **Actions**: `lib/actions/lifeAccess.actions.ts`
+- **Actions**: `lib/actions/lifeAccess.actions.ts`, `lib/actions/lifeEmergencyRecovery.actions.ts`
 - **Capabilities**:
-  - **Emergency Mode Master Switch**: Single-click protocol activation that opens continuity records and legacy directives to designated trustees.
+  - **48-Hour Emergency Recovery Protocol**: When an authorized Emergency Contact or Guardian activates the Emergency Button, a server-side 48-hour cancellation countdown begins. If not cancelled by a Super Admin (with Master PIN re-verification), the predefined Emergency Continuity Access Policy activates automatically.
+  - **Emergency Button Activation**: Records trigger metadata (who, date/time, device/session, IP address, reason). Dispatches immediate email alerts to all Super Admin/Owner accounts. Emails NEVER contain passwords, vault secrets, or PIN codes.
+  - **Live Countdown Timer**: Real-time `HH:MM:SS` countdown displayed on the Access Control dashboard. Timer is server-enforced (`countdownEndsAt`) — cannot be manipulated by client clock.
+  - **Super Admin Cancellation**: During the 48-hour window, any Super Admin can cancel the event with Master Security PIN re-verification. Cancellation reseals all access, resets vault lockouts, sends confirmation emails, and logs the event in the Audit Trail.
+  - **Predefined Continuity Access Policy**: After 48 hours without cancellation, designated trustees receive temporary, scoped emergency access to ONLY emergency-marked records. Owner-only records, private notes, and hidden drafts remain strictly concealed. All views and downloads are fully audited.
+  - **Access Expiration**: Emergency access automatically revokes after the configured access window (`accessExpiresAt`). No permanent Super Admin escalation occurs.
+  - **Vault 15-Failed-PIN Lockout**: 15 consecutive incorrect Vault PIN attempts triggers an automatic vault lockout (`isVaultLocked = true`), creates a `VAULT_LOCKED_PENDING` recovery event with its own 48-hour countdown, and dispatches email alerts to Super Admins.
+  - **Test Simulation**: `[Test Mode: Advance +48h]` button allows fast-forwarding the server simulation clock for immediate testing without waiting 2 real days.
+  - **Recovery Audit Trail**: Complete history table of all emergency recovery events with status badges (`PENDING_48H`, `ACTIVATED`, `CANCELLED`, `EXPIRED`), trigger details, and cancellation records.
+  - **State Machine**:
+    - Emergency: `NORMAL` → `EMERGENCY_PENDING` → `CANCELLED` | `EMERGENCY_ACTIVATED` → `EXPIRED`
+    - Vault: `VAULT_NORMAL` → `VAULT_LOCKED_PENDING` → `CANCELLED` | `VAULT_RECOVERY_ACTIVATED`
+  - **Owner Safety Lock**: The Owner cannot trigger Emergency Mode on themselves (prevents social engineering). Only designated Emergency Contacts and Guardians can initiate.
+  - **Zero Secrets Policy**: Passwords, vault secrets, and PIN codes are NEVER emailed, never decrypted into audit logs, never included in API responses to unauthorized users.
   - **Delegated Trustees**: Appoint Primary and Secondary Admin trustees.
   - **Granular Permissions Grid**: Enable/disable personal, business, financial, sensitive, and vault access per person.
 
@@ -692,6 +705,34 @@ All schemas reside in `lib/database/models/`:
 | `emergencyBroadcast`| `String` | Broadcast message shown during emergency |
 | `primaryAdminId` | `ObjectId` (Ref) | Delegated primary trustee |
 | `secondaryAdminId`| `ObjectId` (Ref) | Delegated secondary trustee |
+| `recoveryState` | `String` | Emergency state machine: `NORMAL`, `EMERGENCY_PENDING`, `CANCELLED`, `EMERGENCY_ACTIVATED`, `EXPIRED` |
+| `vaultRecoveryState`| `String` | Vault state machine: `VAULT_NORMAL`, `VAULT_LOCKED_PENDING`, `CANCELLED`, `VAULT_RECOVERY_ACTIVATED` |
+| `consecutiveVaultFailures`| `Number` | Running count of failed vault PIN attempts (resets on success) |
+| `isVaultLocked` | `Boolean` | Whether vault authentication path is locked after 15 failures |
+| `vaultLockedAt` | `Date` | Timestamp when vault was locked |
+| `activeRecoveryEventId` | `ObjectId` (Ref) | Currently active `LifeEmergencyRecoveryEvent` |
+
+### 6.15 `LifeEmergencyRecoveryEvent` (`lifeEmergencyRecoveryEvent.model.ts`)
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `admin` | `ObjectId` (Ref) | Owning Admin document |
+| `eventType` | `String` | `EMERGENCY_BUTTON` or `VAULT_15_FAILED_ATTEMPTS` |
+| `status` | `String` | `PENDING_48H`, `ACTIVATED`, `CANCELLED`, `EXPIRED` |
+| `triggeredBy` | `ObjectId` (Ref) | User who triggered the event |
+| `triggeredByEmail` | `String` | Email of the triggering user |
+| `triggeredByName` | `String` | Display name of the triggering user |
+| `triggeredAt` | `Date` | Server timestamp when event was created |
+| `reason` | `String` | Stated reason for emergency activation |
+| `deviceSession` | `String` | User-Agent / device information |
+| `ipAddress` | `String` | IP address of the triggering request |
+| `countdownEndsAt` | `Date` | Server-enforced 48-hour deadline |
+| `cancelledBy` | `ObjectId` (Ref) | Super Admin who cancelled the event |
+| `cancelledByName` | `String` | Display name of cancelling admin |
+| `cancelledAt` | `Date` | Timestamp of cancellation |
+| `activatedAt` | `Date` | Timestamp when continuity policy activated |
+| `accessExpiresAt` | `Date` | Timestamp when emergency access window expires |
+| `expiredAt` | `Date` | Timestamp when access was revoked |
+| `simulationFastForwardHours` | `Number` | Hours added to effective server time for testing |
 
 ---
 
@@ -705,11 +746,12 @@ All database mutations and queries are implemented as Next.js Server Actions wit
 | `lifePeople.actions.ts` | `getPeople()`, `getPersonById()`, `createPerson()`, `updatePerson()`, `deletePerson()` | Manages directory and 8-tab personal dossiers |
 | `lifeFinancialSupport.actions.ts` | `getFinancialSupports()`, `createFinancialSupport()`, `updateFinancialSupport()`, `deleteFinancialSupport()`, `recordInstallmentPayment()` | Manages dependent living allowances, installment schedules & payments |
 | `lifeMoney.actions.ts` | `getMoneyRecords()`, `createMoneyRecord()`, `updateMoneyRecord()`, `deleteMoneyRecord()`, `recordSettlement()` | Financial ledger, debt records, and settlement installments |
-| `lifeVault.actions.ts` | `getVaultItems()`, `createVaultItem()`, `updateVaultItem()`, `deleteVaultItem()`, `revealVaultSecret()` | AES-256-GCM encrypted secrets CRUD and PIN verification |
+| `lifeVault.actions.ts` | `getVaultItems()`, `createVaultItem()`, `updateVaultItem()`, `deleteVaultItem()`, `revealVaultSecret()` | AES-256-GCM encrypted secrets CRUD, PIN verification, and 15-failure vault lockout |
 | `lifeBusiness.actions.ts` | `getBusinesses()`, `getBusinessById()`, `createBusiness()`, `updateBusiness()`, `addContinuityStep()`, `toggleContinuityStep()` | Ventures, hosting records, and contingency checklists |
 | `lifeInstruction.actions.ts`| `getInstructions()`, `createInstruction()`, `updateInstruction()`, `deleteInstruction()` | Operational directives and task delegations |
 | `lifeGuardian.actions.ts` | `getGuardians()`, `createGuardian()`, `updateGuardian()`, `deleteGuardian()` | Guardian appointments and consensus settings |
 | `lifeEmergencyRequest.actions.ts` | `initiateEmergencyRequest()`, `approveEmergencyRequest()`, `cancelEmergencyRequest()` | Multi-party guardian consensus and grace period countdown |
+| `lifeEmergencyRecovery.actions.ts` | `triggerEmergencyRecoveryButton()`, `cancelEmergencyRecovery()`, `checkAndProcessRecoveryEvents()`, `fastForwardRecoverySimulation()`, `getActiveRecoveryEvent()`, `getRecoveryEventsHistory()` | 48-hour recovery countdown, Master PIN cancellation, vault lockout recovery, and test simulation |
 | `lifeAsset.actions.ts` | `getAssets()`, `createAsset()`, `updateAsset()`, `deleteAsset()` | Asset portfolio registry and valuations |
 | `lifeContact.actions.ts` | `getContacts()`, `createContact()`, `updateContact()`, `deleteContact()` | Emergency contacts with priority ranking |
 | `lifeDocument.actions.ts` | `getDocuments()`, `createDocument()`, `updateDocument()`, `deleteDocument()` | Critical document repository |

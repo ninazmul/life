@@ -32,6 +32,7 @@ import {
   Rocket,
   Trash2,
   UserCircle,
+  Clock,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -1005,6 +1006,74 @@ const sections: GuideSection[] = [
     ],
     whoCanAccess:
       "Super Admin, Owner, and appointed Guardians (canAccessEmergency).",
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 13B. 48-HOUR EMERGENCY RECOVERY & CONTINUITY SYSTEM
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    id: "emergency-recovery",
+    icon: Clock,
+    color: "text-red-600 dark:text-red-400",
+    bg: "bg-red-50 dark:bg-red-950/50",
+    border: "border-red-200 dark:border-red-800/40",
+    title: "13B. 48-Hour Emergency Recovery & Continuity System",
+    subtitle:
+      "Server-side countdown, Master PIN cancellation, vault lockout protection & predefined continuity policy",
+    description:
+      "When an authorized Emergency Contact or Guardian activates the Emergency Button, a server-side 48-hour cancellation countdown begins. During this period, the Owner or any Super Admin can cancel the event using their Master Security PIN. If not cancelled within 48 hours, the predefined Emergency Continuity Access Policy activates automatically — granting temporary, scoped emergency access to designated trustees without permanently elevating any privileges.",
+    steps: [
+      {
+        title: "Step 1: Emergency Button Activation",
+        detail:
+          "An authorized Emergency Contact, Guardian, or Trustee (NOT the Owner themselves) clicks the 'Activate Emergency (48h Protocol)' button on the Access Control page. They must provide a reason and confirm that the Owner is unavailable. The system records: who triggered it, date/time, device/session, IP address, and the stated reason.",
+      },
+      {
+        title: "Step 2: Immediate Email Notification",
+        detail:
+          "Instant email alerts are dispatched to all configured Super Admin and Owner accounts. The notification clearly states: 'Emergency Recovery Activated — 48 Hours Remaining'. Emails NEVER contain passwords, vault secrets, or PIN codes.",
+      },
+      {
+        title: "Step 3: 48-Hour Server-Side Countdown",
+        detail:
+          "A server-side countdown timer ('countdownEndsAt') starts. The remaining time is displayed live in the Access Control dashboard with a real-time HH:MM:SS countdown badge. This timer cannot be manipulated by the client clock — it is enforced entirely on the server.",
+      },
+      {
+        title: "Step 4: Owner / Super Admin Cancellation",
+        detail:
+          "During the 48-hour window, any authorized Super Admin can cancel the recovery event. Cancellation requires re-verification using the Master Security PIN. On cancellation: the system returns to Standby, vault lockouts are cleared, access is resealed, cancellation emails are sent, and the event is logged in the Audit Trail.",
+      },
+      {
+        title: "Step 5: After 48 Hours — Predefined Continuity Policy Activates",
+        detail:
+          "If not cancelled, the Emergency Continuity Access Policy activates automatically. Designated trustees receive temporary, scoped emergency access to ONLY emergency-marked records. Owner-only records, private notes, and hidden drafts remain strictly concealed. All views and downloads are audited. No permanent Super Admin escalation occurs — access expires after the configured access window.",
+      },
+      {
+        title: "Step 6: Access Expiration & Automatic Revocation",
+        detail:
+          "After the emergency access window expires ('accessExpiresAt'), all temporary emergency permissions are automatically revoked and the system returns to normal operation. No manual intervention is required.",
+      },
+    ],
+    tips: [
+      {
+        type: "security",
+        text: "The Owner cannot trigger Emergency Mode on themselves. This prevents social engineering attacks where someone forces the owner to activate emergency access. Only designated Emergency Contacts and Guardians can initiate the 48-hour sequence.",
+      },
+      {
+        type: "warning",
+        text: "Master Vault passwords and secrets are NEVER included in email notifications, audit logs, or API responses to unauthorized users. The system enforces zero-knowledge secret handling at every level.",
+      },
+      {
+        type: "tip",
+        text: "Use the '[Test Simulation] Advance +48h' button in the Access Control page to instantly simulate the 48-hour countdown expiring. This allows you to verify the full flow without waiting 2 real days.",
+      },
+      {
+        type: "security",
+        text: "15 consecutive failed Vault PIN attempts will trigger an automatic vault lockout with its own 48-hour recovery sequence. Super Admins are immediately notified by email and can resolve the lockout from Access Control.",
+      },
+    ],
+    whoCanAccess:
+      "Emergency trigger: Designated Emergency Contacts & Guardians only. Cancellation: Super Admin / Owner with Master PIN. Dashboard view: Super Admin / Owner.",
   },
 
   // ─────────────────────────────────────────────────────────────────────────────

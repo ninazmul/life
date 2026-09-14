@@ -643,13 +643,47 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
 
       {/* §24 Continuity & Safety State */}
       <section className="space-y-2.5" aria-label="Continuity & Safety Readiness">
+        {stats.activeRecoveryPending && (
+          <div className="p-4 rounded-3xl bg-red-500/15 border-2 border-red-500/60 shadow-lg shadow-red-950/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/40 flex items-center justify-center shrink-0 animate-pulse">
+                <Clock className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-red-600 text-white">
+                    {stats.isVaultLocked ? "Vault Locked (48h)" : "Emergency 48h Countdown"}
+                  </span>
+                  <span className="text-xs font-bold text-red-700 dark:text-red-300">
+                    Active Recovery Protocol
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  An emergency continuity event is currently in its 48-hour cancellation period. Super Admins can manage or cancel with Master PIN.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/access"
+              className="inline-flex items-center justify-center h-9 px-4 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-500 text-white gap-1.5 shadow-sm shrink-0"
+            >
+              <span>Manage in Access Control</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        )}
+
         <div className="flex items-center justify-between px-1">
           <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span>Continuity & Safety State</span>
           </h2>
-          <span className="text-[11px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-            System Operational
+          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+            stats.activeRecoveryPending
+              ? "text-red-600 bg-red-500/10 border-red-500/20 animate-pulse"
+              : "text-emerald-600 bg-emerald-500/10 border-emerald-500/20"
+          }`}>
+            {stats.activeRecoveryPending ? "Recovery Active (48h)" : "System Operational"}
           </span>
         </div>
 

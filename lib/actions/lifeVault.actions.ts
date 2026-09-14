@@ -1,11 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { connectToDatabase } from "@/lib/database";
 import LifeVaultItem from "@/lib/database/models/lifeVaultItem.model";
 import LifeSettings from "@/lib/database/models/lifeSettings.model";
+import LifeEmergencyAccess from "@/lib/database/models/lifeEmergencyAccess.model";
+import LifeEmergencyRecoveryEvent from "@/lib/database/models/lifeEmergencyRecoveryEvent.model";
 import { getLifeAuthContext, logLifeActivity } from "@/lib/life/auth";
 import { encryptVaultSecret, decryptVaultSecret, verifyPin } from "@/lib/life/crypto";
+import { notifyVaultLockTriggered } from "@/lib/life/notifications";
 import { ILifeVaultItem, VaultCategory } from "@/types";
 
 export interface VaultListItem {
@@ -165,16 +169,118 @@ export async function revealVaultSecret(
     throw new Error("Forbidden: You are not authorized to reveal Vault secrets.");
   }
 
-  // Check Master PIN verification if configured
-  const settings = (await LifeSettings.findOne().lean()) as { vaultPinHash?: string } | null;
-  if (settings?.vaultPinHash && settings.vaultPinHash.trim() !== "") {
-    if (!verificationCode || !verifyPin(verificationCode, settings.vaultPinHash)) {
-      throw new Error("Invalid Security PIN. Access denied.");
-    }
+  let emergencyConfig = await LifeEmergencyAccess.findOne();
+  if (emergencyConfig?.isVaultLocked) {
+    throw new Error(
+      "Master Vault is temporarily LOCKED due to 15 consecutive failed authentication attempts. Emergency Recovery protocol is pending (48-hour window)."
+    );
   }
 
   const vaultDoc = (await LifeVaultItem.findById(id).lean()) as (ILifeVaultItem & { _id: unknown }) | null;
   if (!vaultDoc) throw new Error("Vault item not found.");
+
+  // Check Master PIN verification if configured
+  const settings = (await LifeSettings.findOne().lean()) as { vaultPinHash?: string } | null;
+  if (settings?.vaultPinHash && settings.vaultPinHash.trim() !== "") {
+    if (!verificationCode || !verifyPin(verificationCode, settings.vaultPinHash)) {
+      const currentFailures = (emergencyConfig?.consecutiveVaultFailures || 0) + 1;
+      await LifeEmergencyAccess.findOneAndUpdate({}, { consecutiveVaultFailures: currentFailures });
+
+      // After 15 consecutive incorrect attempts:
+      // 1. Trigger Emergency Recovery process
+      // 2. Temporarily lock affected Vault authentication path
+      // 3. Create Emergency Recovery Event
+      // 4. Notify configured Super Admin/Owner accounts by Email
+      // 5. Start 48-hour cancellation period
+      // 6. Record event in Audit Log
+      if (currentFailures >= 15) {
+        const now = new Date();
+        const countdownEndsAt = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+        let userAgent = "Unknown Browser";
+        let ip = "127.0.0.1";
+        try {
+          const headersList = await headers();
+          userAgent = headersList.get("user-agent") || "Browser";
+          ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
+        } catch {}
+
+        const recoveryEvent = await LifeEmergencyRecoveryEvent.create({
+          eventType: "vault_failed_attempts",
+          status: "VAULT_LOCKED_PENDING",
+          triggeredBy: {
+            personId: auth.personId || undefined,
+            name: auth.name || "User",
+            email: auth.email,
+            role: auth.role || "user",
+          },
+          triggeredAt: now,
+          reason: "15 consecutive incorrect Master Vault PIN attempts detected",
+          deviceInfo: { userAgent, ip },
+          countdownEndsAt,
+          simulationFastForwardHours: 0,
+          vaultFailureMetadata: {
+            consecutiveFailures: currentFailures,
+            lockedAt: now,
+            targetVaultItemTitle: vaultDoc.title,
+          },
+        });
+
+        await LifeEmergencyAccess.findOneAndUpdate(
+          {},
+          {
+            isVaultLocked: true,
+            vaultLockedAt: now,
+            vaultRecoveryState: "VAULT_LOCKED_PENDING",
+            activeRecoveryEventId: recoveryEvent._id,
+          }
+        );
+
+        await notifyVaultLockTriggered({
+          eventId: String(recoveryEvent._id),
+          eventType: "vault_failed_attempts",
+          triggeredByName: auth.name || "User",
+          triggeredByEmail: auth.email,
+          triggeredAt: now,
+          countdownEndsAt,
+          hoursRemaining: 48,
+          vaultConsecutiveFailures: currentFailures,
+          deviceInfo: { userAgent, ip },
+        });
+
+        await logLifeActivity({
+          action: "VAULT_LOCK_TRIGGERED",
+          resourceType: "vault",
+          resourceId: id,
+          resourceName: vaultDoc.title,
+          details: `15 consecutive failed Master Vault attempts. Vault locked. 48-Hour recovery countdown initiated.`,
+          isCritical: true,
+          metadata: { ip, userAgent },
+        });
+
+        revalidatePath("/vault");
+        revalidatePath("/access");
+        throw new Error(
+          "Master Vault has been locked due to 15 consecutive failed attempts. Emergency recovery protocol initiated with a 48-hour notification window."
+        );
+      }
+
+      await logLifeActivity({
+        action: "VAULT_FAILED_ATTEMPT",
+        resourceType: "vault",
+        resourceId: id,
+        resourceName: vaultDoc.title,
+        details: `Incorrect PIN verification attempt (${currentFailures}/15) for vault item by ${auth.email}.`,
+        isCritical: true,
+      });
+
+      throw new Error(`Invalid Security PIN. Attempt ${currentFailures} of 15.`);
+    }
+
+    // On successful PIN verification: Reset failure counter
+    if (emergencyConfig?.consecutiveVaultFailures && emergencyConfig.consecutiveVaultFailures > 0) {
+      await LifeEmergencyAccess.findOneAndUpdate({}, { consecutiveVaultFailures: 0 });
+    }
+  }
 
   // Decrypt secret
   const decrypted = decryptVaultSecret(

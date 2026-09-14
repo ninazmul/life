@@ -408,6 +408,68 @@ export interface ILifeLegacyMessage {
   updatedAt: Date | string;
 }
 
+export type RecoveryEventType = "emergency_button" | "vault_failed_attempts";
+
+export type EmergencyRecoveryState =
+  | "NORMAL"
+  | "EMERGENCY_PENDING"
+  | "CANCELLED"
+  | "EMERGENCY_ACTIVATED"
+  | "EXPIRED";
+
+export type VaultRecoveryState =
+  | "VAULT_NORMAL"
+  | "VAULT_LOCKED_PENDING"
+  | "CANCELLED"
+  | "VAULT_RECOVERY_ACTIVATED";
+
+export interface ILifeEmergencyRecoveryEvent {
+  _id: string;
+  eventType: RecoveryEventType;
+  status: EmergencyRecoveryState | VaultRecoveryState;
+  triggeredBy: {
+    personId?: string;
+    name: string;
+    email: string;
+    role: string;
+  };
+  triggeredAt: Date | string;
+  reason?: string;
+  deviceInfo?: {
+    userAgent?: string;
+    ip?: string;
+    session?: string;
+  };
+  countdownEndsAt: Date | string;
+  simulationFastForwardHours: number;
+  remindersSent: Array<{
+    timestamp: Date | string;
+    hoursRemaining: number;
+  }>;
+  cancelledBy?: {
+    personId?: string;
+    name: string;
+    email: string;
+    cancelledAt: Date | string;
+    verificationMethod: string;
+  };
+  activatedAt?: Date | string;
+  emergencyAccessPolicy?: {
+    accessStartsAt?: Date | string;
+    accessExpiresAt?: Date | string;
+    grantedRecordIds: string[];
+    grantedVaultItemIds: string[];
+    isRevoked: boolean;
+  };
+  vaultFailureMetadata?: {
+    consecutiveFailures: number;
+    lockedAt: Date | string;
+    targetVaultItemTitle?: string;
+  };
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
 export interface ILifeEmergencyAccess {
   _id: string;
   isEmergencyActive: boolean;
@@ -417,6 +479,12 @@ export interface ILifeEmergencyAccess {
   secondaryAdminEmail?: string;
   reason?: string;
   instructions?: string;
+  recoveryState?: EmergencyRecoveryState;
+  vaultRecoveryState?: VaultRecoveryState;
+  consecutiveVaultFailures?: number;
+  isVaultLocked?: boolean;
+  vaultLockedAt?: Date | string;
+  activeRecoveryEventId?: string;
   updatedAt: Date | string;
 }
 
@@ -460,6 +528,9 @@ export interface LifeDashboardStats {
   recentActivities: ILifeActivityLog[];
   ownerSafetyStatus?: "safe" | "emergency" | "check_in_overdue";
   emergencyModeStatus?: string;
+  recoveryState?: EmergencyRecoveryState;
+  isVaultLocked?: boolean;
+  activeRecoveryPending?: boolean;
   trustedGuardiansCount?: number;
   pendingAccessRequestsCount?: number;
   pendingResponsibilitiesCount?: number;

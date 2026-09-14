@@ -9,5 +9,6 @@ export * from "./lifeDocument.actions";
 export * from "./lifeVault.actions";
 export * from "./lifeLegacy.actions";
 export * from "./lifeAccess.actions";
+export * from "./lifeEmergencyRecovery.actions";
 export * from "./lifeActivity.actions";
 export * from "./lifeSettings.actions";

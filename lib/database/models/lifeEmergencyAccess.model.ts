@@ -14,6 +14,12 @@ export interface ILifeEmergencyAccessDoc extends Document {
   activeRequestId?: mongoose.Types.ObjectId;
   ownerSafetyStatus: "safe" | "emergency" | "check_in_overdue";
   lastSafetyCheckIn?: Date;
+  recoveryState: "NORMAL" | "EMERGENCY_PENDING" | "EMERGENCY_ACTIVATED" | "CANCELLED" | "EXPIRED";
+  vaultRecoveryState: "VAULT_NORMAL" | "VAULT_LOCKED_PENDING" | "CANCELLED" | "VAULT_RECOVERY_ACTIVATED";
+  consecutiveVaultFailures: number;
+  isVaultLocked: boolean;
+  vaultLockedAt?: Date;
+  activeRecoveryEventId?: mongoose.Types.ObjectId;
   updatedAt: Date;
 }
 
@@ -53,6 +59,25 @@ const LifeEmergencyAccessSchema = new Schema<ILifeEmergencyAccessDoc>(
       default: "safe",
     },
     lastSafetyCheckIn: { type: Date, default: Date.now },
+    recoveryState: {
+      type: String,
+      enum: ["NORMAL", "EMERGENCY_PENDING", "EMERGENCY_ACTIVATED", "CANCELLED", "EXPIRED"],
+      default: "NORMAL",
+      index: true,
+    },
+    vaultRecoveryState: {
+      type: String,
+      enum: ["VAULT_NORMAL", "VAULT_LOCKED_PENDING", "CANCELLED", "VAULT_RECOVERY_ACTIVATED"],
+      default: "VAULT_NORMAL",
+      index: true,
+    },
+    consecutiveVaultFailures: { type: Number, default: 0 },
+    isVaultLocked: { type: Boolean, default: false },
+    vaultLockedAt: { type: Date },
+    activeRecoveryEventId: {
+      type: Schema.Types.ObjectId,
+      ref: "LifeEmergencyRecoveryEvent",
+    },
   },
   { timestamps: true }
 );

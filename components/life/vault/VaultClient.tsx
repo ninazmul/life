@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   KeyRound,
   Plus,
@@ -9,6 +10,8 @@ import {
   Shield,
   Trash2,
   Loader2,
+  AlertTriangle,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,9 +28,10 @@ import toast from "react-hot-toast";
 
 interface VaultClientProps {
   initialItems: VaultListItem[];
+  isVaultLocked?: boolean;
 }
 
-export function VaultClient({ initialItems }: VaultClientProps) {
+export function VaultClient({ initialItems, isVaultLocked = false }: VaultClientProps) {
   const [items, setItems] = useState<VaultListItem[]>(initialItems);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -172,6 +176,36 @@ export function VaultClient({ initialItems }: VaultClientProps) {
           Add Secret / Credential
         </Button>
       </div>
+
+      {/* Vault Locked Alert Banner */}
+      {isVaultLocked && (
+        <div className="p-4 rounded-3xl bg-red-500/15 border-2 border-red-500/60 shadow-lg shadow-red-950/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/40 flex items-center justify-center shrink-0 animate-pulse">
+              <Lock className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-red-600 text-white">
+                  Authentication Path Locked
+                </span>
+                <span className="text-xs font-bold text-red-700 dark:text-red-300">
+                  15 Consecutive Failed PIN Attempts
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Vault PIN verification is locked. A 48-Hour Recovery sequence has been initiated. Super Admins can unlock via Master PIN in Access Control.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/access"
+            className="inline-flex items-center justify-center h-9 px-4 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-500 text-white gap-1.5 shadow-sm shrink-0"
+          >
+            <span>Resolve in Access Control</span>
+          </Link>
+        </div>
+      )}
 
       {/* Security Banner */}
       <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-500/30 text-xs text-amber-700 dark:text-amber-300 flex items-center justify-between">

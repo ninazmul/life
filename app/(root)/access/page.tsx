@@ -1,16 +1,23 @@
 import { getEmergencyAccessState } from "@/lib/actions/lifeAccess.actions";
 import { getPeople } from "@/lib/actions/lifePeople.actions";
+import {
+  getActiveRecoveryEvent,
+  getRecoveryEventsHistory,
+} from "@/lib/actions/lifeEmergencyRecovery.actions";
 import { AccessClient } from "@/components/life/access/AccessClient";
 import { requireModuleAccess } from "@/lib/life/module-access.server";
 
 export const dynamic = "force-dynamic";
 
 export default async function AccessPage() {
-  const [authContext, emergencyState, people] = await Promise.all([
-    requireModuleAccess("/access"),
-    getEmergencyAccessState(),
-    getPeople({ status: "active" }),
-  ]);
+  const [authContext, emergencyState, people, recoveryData, recoveryHistory] =
+    await Promise.all([
+      requireModuleAccess("/access"),
+      getEmergencyAccessState(),
+      getPeople({ status: "active" }),
+      getActiveRecoveryEvent(),
+      getRecoveryEventsHistory(),
+    ]);
 
   const userEmail = authContext?.email?.toLowerCase().trim() || "";
   const primaryEmail = (emergencyState.primaryAdminEmail || "").toLowerCase().trim();
@@ -31,6 +38,9 @@ export default async function AccessPage() {
       isDesignated={isDesignated}
       canAccessEmergency={canAccessEmergency}
       currentUserEmail={userEmail}
+      initialActiveRecovery={recoveryData.activeEvent}
+      initialSecondsRemaining={recoveryData.secondsRemaining}
+      recoveryHistory={recoveryHistory}
     />
   );
 }
