@@ -470,6 +470,25 @@ export interface LifeDashboardStats {
   securityAlertsCount?: number;
   lastBackupDate?: Date | string;
   currencyTotals?: Record<string, { given: number; repaid: number; remaining: number }>;
+  contactsCount?: number;
+  documentsCount?: number;
+  legacyCount?: number;
+  instructionsCount?: number;
+  beneficiariesCount?: number;
+  ownerProfile?: {
+    name: string;
+    email?: string;
+    phone?: string;
+    avatarUrl?: string;
+    role: string;
+    personId?: string;
+    profileCompletion: number;
+    medicalInfoStatus: string;
+    documentsAddedCount: number;
+    privateRecordsCount: number;
+    emergencyInfoStatus: string;
+    lastUpdated?: Date | string;
+  };
 }
 
 // ------------------------------------------------------------

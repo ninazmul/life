@@ -73,15 +73,41 @@ export async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
 
     if (adminDoc && adminDoc.isActive) {
       const isSuper = adminDoc.role === "super_admin";
+
+      let adminPerson = await LifePerson.findOne({
+        $or: [
+          ...(emailRegexes.length > 0 ? [{ email: { $in: emailRegexes } }] : email ? [{ email: new RegExp(`^${email}$`, "i") }] : []),
+          { clerkUserId: userId },
+          ...(isSuper ? [{ role: { $in: ["owner", "super_admin"] } }] : []),
+        ],
+        status: { $ne: "archived" },
+      });
+
+      if (!adminPerson && isSuper && email) {
+        adminPerson = await LifePerson.create({
+          name: adminDoc.name || name,
+          relation: "Self / Owner",
+          email: email.toLowerCase().trim(),
+          role: "super_admin",
+          userRole: "super_admin",
+          status: "active",
+          accountStatus: "active",
+          isLoginEnabled: true,
+          clerkUserId: userId,
+          permissions: DEFAULT_OWNER_PERMS,
+        }).catch(() => null);
+      }
+
       return {
         userId,
         email,
-        name: adminDoc.name || name,
-        avatarUrl,
+        name: adminDoc.name || adminPerson?.name || name,
+        avatarUrl: adminPerson?.profilePhoto || adminPerson?.avatarUrl || avatarUrl,
         role: isSuper ? "super_admin" : "administrator",
         isOwner: true,
         isAdmin: true,
         isGuardian: false,
+        personId: adminPerson?._id ? String(adminPerson._id) : undefined,
         permissions: DEFAULT_OWNER_PERMS,
       };
     }

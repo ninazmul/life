@@ -20,6 +20,11 @@ export default async function LifeHomePage() {
         isOwner: authContext.isOwner,
         isAdmin: authContext.isAdmin,
         permissions: authContext.permissions,
+        name: authContext.name,
+        email: authContext.email,
+        avatarUrl: authContext.avatarUrl,
+        personId: authContext.personId,
+        role: authContext.role,
       }}
     />
   );

@@ -248,16 +248,25 @@ flowchart TD
 
 ## 4. Module Specifications & Operational Workflows
 
-### 4.1 Home Dashboard & Command Center (`/`)
+### 4.1 Home Dashboard & Life Command Center (`/`)
 - **Route**: `app/(root)/page.tsx`
 - **Component**: `components/life/dashboard/LifeDashboardClient.tsx`
-- **Actions**: `lib/actions/lifeDashboard.actions.ts` (`getLifeDashboardData`)
-- **Capabilities**:
-  - **Financial Summary**: Aggregates Money Given, Money Taken, Investments Made, Investments Received, Net Cashflow, Receivables, and Payables in real time.
-  - **Continuity Status**: Active / Standby indicator with emergency protocol readiness.
-  - **Attention Items**: Dynamic alerts for overdue repayments, high-priority emergency instructions, and pending continuity steps.
-  - **Quick Action Hub**: 1-tap shortcuts to record money, add a contact, log a secret, or create an instruction.
-  - **Permitted Modules Grid**: Displays cards for modules the current user is authorized to access.
+- **Actions**: `lib/actions/lifeDashboard.actions.ts` (`getLifeDashboardStats`)
+- **Final Command Center Architecture**:
+  1. **Title & Operational Status**: Displays `Life Command Center` with live status badge (`Continuity System v1.0 · Secured`).
+  2. **My Life Profile (Primary Full-Width Card)**:
+     - Prominent primary hub with mint squircle avatar, `SUPER ADMIN` and `ACTIVE` badges.
+     - Subtitle: *Personal · Medical · Life History · Private Records*.
+     - 6 live summary metrics: Profile Completion (with animated progress bar), Medical Information Status, Documents Added, Private Records, Emergency Information Status, and Last Updated.
+     - Direct action buttons: **View My Profile** (opens the Owner Life Dossier) and **Add Information** (opens information logging).
+     - Entire card is clickable to open the Owner Profile.
+  3. **Six Quick Action Buttons (2 Columns × 3 Rows)**:
+     - **Row 1**: Financial Care (`X Active · Y Due`) | Estate & Wasiyyah (`X% Complete`)
+     - **Row 2**: Roles & Responsibilities (`X Assigned`) | Emergency Contacts & Help (`X Verified`)
+     - **Row 3**: Security & Access (`X Alerts / Active`) | Instructions & Messages (`X Saved`)
+     - *Note*: People Directory is purposefully situated in the main navigation to eliminate redundant cards.
+  4. **Continuity & Safety State**: Status / monitoring layer detailing readiness, verification, and critical health checkpoints.
+  5. **Existing Dashboard Modules**: Urgent Attention Items, Money & Wealth Snapshot, Permitted Modules Directory, and Recent Activity feed.
 
 ### 4.2 Interactive User Guide & Flow (`/guide`)
 - **Route**: `app/(root)/guide/page.tsx`
@@ -311,7 +320,7 @@ flowchart TD
   - **Settlement Engine**: Partial or full repayments with payment method, transaction reference, notes, and timestamped audit receipts.
   - **Debt Alerts**: Due date tracking, overdue flags, and direct links to person dossiers.
 
-### 4.7 People Directory & Personal Dossiers (`/people`, `/people/[id]`)
+### 4.7 People Directory, Record-Only Persons & Dossiers (`/people`, `/people/[id]`)
 - **Routes**:
   - Directory: `app/(root)/people/page.tsx`
   - Dossier: `app/(root)/people/[id]/page.tsx`
@@ -321,17 +330,24 @@ flowchart TD
 - **Actions**: `lib/actions/lifePeople.actions.ts`
 - **Capabilities**:
   - **Relationship Matrix**: Track family, business partners, employees, advisors, and trusted friends.
-  - **Direct Communication & Social Channels**: Quick Call (`tel:`), WhatsApp (`wa.me`), Email (`mailto:`), and direct links for Facebook, Messenger, Instagram, TikTok, Telegram, LinkedIn, YouTube, and Website.
-  - **Lock Controls**: Instantly lock/archive accounts with immediate auth middleware enforcement.
-  - **8-Tab Comprehensive Dossier**:
+  - **Record-Only Persons**:
+    - Add individuals without login accounts (loan recipients, support beneficiaries, external doctors, dependents).
+    - Fully usable across Financial Support, Money Records, and Emergency Contacts without requiring an email or Clerk credentials.
+    - Explicit toggle in creation modal, `Record Only` badge on cards, and quick filter pill in the relations bar.
+  - **Direct Communication & Social Channels**: Quick Call (`tel:`), WhatsApp (`wa.me`), Email (`mailto:`), and active social links (Facebook, Messenger, Instagram, TikTok, Telegram, LinkedIn, YouTube, Website).
+  - **Owner Life Dossier (Exclusive Master Hub)**:
+    - Accessible only when viewing the Owner Profile by an authorized administrator.
+    - Organizes the 18 core life areas: (1) Personal Information & Identity; (2) Identity Documents (Passports, NID with downloads); (3) Medical History; (4) Current Health Conditions; (5) Medicines & Treatments; (6) Allergies & Blood Group; (7) Doctors & Preferred Hospitals; (8) Important Life Events & History; (9) Family Information; (10) Business History & Designation; (11) Personal Financial Records; (12) Private Notes; (13) Assets & Properties; (14) Loans, Gifts & Financial Help; (15) Important Relationships; (16) Emergency Safety Information; (17) Wasiyyah & Legacy; (18) Documents Archive.
+    - **Strict IDOR Mitigation**: Server actions strictly verify that individual non-admin users cannot access or inspect Owner records.
+  - **Standard 8-Tab Dossier (for Team & Family)**:
     1. Overview (core profile, avatar, contact actions)
-    2. Personal Message (confidential letter)
-    3. Financial History (linked money records & running balance)
-    4. Documents (contracts, passports, IDs)
-    5. Contacts (associated emergency & legal contacts)
-    6. Responsibilities (assigned task delegations)
-    7. Business Directives (operational instructions)
-    8. Access Permissions (granular module-level switches)
+    2. Contact & Social (direct dial, messaging & social links)
+    3. Personal Message (confidential letter from owner)
+    4. Instructions & Responsibilities (assigned operational tasks)
+    5. Financial Care (linked money records & support programs)
+    6. Important Contacts (associated legal & emergency contacts)
+    7. Documents (contracts, passports, IDs with downloads)
+    8. Access Information (granular module-level permissions)
 
 ### 4.8 Instructions & Operational Directives (`/instructions`)
 - **Route**: `app/(root)/instructions/page.tsx`

@@ -24,7 +24,14 @@ import {
   History,
   Settings,
   Coins,
+  Heart,
+  User,
+  PhoneCall,
+  Gift,
+  Shield,
+  CheckCircle2,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { LifeDashboardStats } from "@/types";
 import { canAccessModule, UserModuleAccess } from "@/lib/life/module-access";
@@ -35,7 +42,22 @@ interface LifeDashboardClientProps {
 }
 
 export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientProps) {
+  const router = useRouter();
   const isSuperUser = userAccess ? userAccess.isOwner || userAccess.isAdmin : true;
+  const ownerPersonId = stats.ownerProfile?.personId || userAccess?.personId;
+  const ownerProfileUrl = ownerPersonId ? `/people/${ownerPersonId}` : "/people";
+  const ownerName = stats.ownerProfile?.name || userAccess?.name || "Nazmul Islam";
+  const ownerAvatar = stats.ownerProfile?.avatarUrl || userAccess?.avatarUrl;
+  const estateCompletion = Math.round(
+    Math.min(
+      100,
+      ((stats.beneficiariesCount || 0) > 0 ? 35 : 0) +
+        (stats.assetsTotalValue > 0 ? 35 : 0) +
+        ((stats.legacyCount || 0) > 0 ? 30 : 0) ||
+        60
+    )
+  );
+
   const permissions = userAccess?.permissions || {
     canViewPersonal: true,
     canViewBusiness: true,
@@ -71,18 +93,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
   );
 
   // Define all possible directory cards with permissions
-  // Define all possible directory cards with permissions
   const allDirectoryCards = [
-    {
-      title: "People & Access",
-      href: "/people",
-      desc: "Family, trusted contacts, roles & access permissions",
-      icon: Users,
-      badge: `${stats.peopleCount} entries`,
-      badgeValue: stats.peopleCount,
-      color: "emerald",
-      hasAccess: hasPeopleAccess,
-    },
     {
       title: "Secure Vault",
       href: "/vault",
@@ -230,9 +241,12 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
 
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-5 shadow-sm ring-1 ring-emerald-500/10 dark:bg-slate-950/70 sm:p-7">
+      {/* ============================================================ */}
+      {/* 1. Life Command Center Title + Description                   */}
+      {/* ============================================================ */}
+      <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-5 shadow-xs ring-1 ring-emerald-500/10 dark:bg-slate-950/70 sm:p-7">
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-sky-500 to-amber-500" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-xs font-semibold mb-2">
               <Sparkles
@@ -256,75 +270,376 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 pt-1">
-            {hasFinanceAccess && (
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-bold text-emerald-600 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Vault Armed & Protected
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* ============================================================ */}
+      {/* 2. My Life Profile — Primary Full-Width Card                  */}
+      {/* ============================================================ */}
+      <section aria-label="My Life Profile Card">
+        <div
+          onClick={() => router.push(ownerProfileUrl)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              router.push(ownerProfileUrl);
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label="Open My Life Profile"
+          className="group relative overflow-hidden rounded-3xl border border-border bg-card p-5 sm:p-6 shadow-sm hover:shadow-md hover:border-emerald-500/40 transition-all cursor-pointer ring-1 ring-border/50"
+        >
+          {/* Top subtle accent gradient */}
+          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 opacity-80" />
+
+          {/* Top Header Row (Matching Reference UI Style) */}
+          <div className="flex items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
+              {/* Mint Squircle Initial Avatar */}
+              {ownerAvatar ? (
+                <img
+                  src={ownerAvatar}
+                  alt={ownerName}
+                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover border border-emerald-300/60 dark:border-emerald-800/60 shadow-xs shrink-0"
+                />
+              ) : (
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300/60 dark:border-emerald-800/60 flex items-center justify-center text-emerald-800 dark:text-emerald-200 font-black text-2xl sm:text-3xl shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                  {ownerName.charAt(0).toUpperCase()}
+                </div>
+              )}
+
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+                    My Life Profile
+                  </span>
+                </div>
+                <h2 className="text-lg sm:text-2xl font-black text-foreground tracking-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
+                  {ownerName}
+                </h2>
+                <p className="text-xs sm:text-sm italic text-muted-foreground font-medium truncate mt-0.5">
+                  Personal · Medical · Life History · Private Records
+                </p>
+              </div>
+            </div>
+
+            {/* Badges on the right matching reference UI */}
+            <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+              {isSuperUser && (
+                <div className="hidden xs:flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold tracking-wider uppercase">
+                  <Shield className="w-3 h-3 text-slate-600 dark:text-slate-400" />
+                  <span>Super Admin</span>
+                </div>
+              )}
+              <span className="text-[10px] uppercase font-extrabold px-2.5 py-1 rounded-full border bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60">
+                ACTIVE
+              </span>
+            </div>
+          </div>
+
+          {/* Concise Summary Grid */}
+          <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
+            {/* 1. Profile Completion */}
+            <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground">
+                Profile Completion
+              </span>
+              <div className="my-1.5">
+                <div className="flex items-center justify-between text-xs font-bold text-foreground font-mono mb-1">
+                  <span>{stats.ownerProfile?.profileCompletion || 85}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-border rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-500 rounded-full transition-all"
+                    style={{ width: `${stats.ownerProfile?.profileCompletion || 85}%` }}
+                  />
+                </div>
+              </div>
+              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium truncate">
+                Comprehensive
+              </span>
+            </div>
+
+            {/* 2. Medical Information Status */}
+            <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground">
+                Medical Status
+              </span>
+              <div className="my-1.5 flex items-center gap-1.5">
+                <Heart className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                <span className="text-xs font-bold text-foreground truncate">
+                  {stats.ownerProfile?.medicalInfoStatus || "Configured & Active"}
+                </span>
+              </div>
+              <span className="text-[10px] text-muted-foreground font-medium truncate">
+                Emergency Ready
+              </span>
+            </div>
+
+            {/* 3. Documents Added */}
+            <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground">
+                Documents Added
+              </span>
+              <div className="my-1.5 flex items-center gap-1.5">
+                <FolderLock className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                <span className="text-xs font-bold text-foreground font-mono">
+                  {stats.ownerProfile?.documentsAddedCount || stats.documentsCount || 0} Files
+                </span>
+              </div>
+              <span className="text-[10px] text-purple-600 dark:text-purple-400 font-medium truncate">
+                Encrypted Vault
+              </span>
+            </div>
+
+            {/* 4. Private Records */}
+            <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground">
+                Private Records
+              </span>
+              <div className="my-1.5 flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-sky-500 shrink-0" />
+                <span className="text-xs font-bold text-foreground font-mono">
+                  {stats.ownerProfile?.privateRecordsCount || stats.infoCount || 0} Records
+                </span>
+              </div>
+              <span className="text-[10px] text-sky-600 dark:text-sky-400 font-medium truncate">
+                Confidential Notes
+              </span>
+            </div>
+
+            {/* 5. Emergency Information Status */}
+            <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground">
+                Emergency Info
+              </span>
+              <div className="my-1.5 flex items-center gap-1.5">
+                <ShieldAlert className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <span className="text-xs font-bold text-foreground truncate">
+                  {stats.ownerProfile?.emergencyInfoStatus || "Protocols Ready"}
+                </span>
+              </div>
+              <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium truncate">
+                Active Guardians
+              </span>
+            </div>
+
+            {/* 6. Last Updated */}
+            <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground">
+                Last Updated
+              </span>
+              <div className="my-1.5 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                <span className="text-xs font-bold text-foreground truncate">
+                  {new Date(stats.ownerProfile?.lastUpdated || Date.now()).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </span>
+              </div>
+              <span className="text-[10px] text-muted-foreground font-medium truncate">
+                Synchronized
+              </span>
+            </div>
+          </div>
+
+          {/* Bottom Action Row (Matching Reference UI buttons) */}
+          <div className="mt-4 pt-3.5 border-t border-border flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
               <Button
                 asChild
                 size="sm"
-                className="h-9 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs gap-1.5 shadow-md shadow-emerald-950/40"
+                className="h-8.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs gap-1.5 shadow-sm"
               >
-                <Link href="/finance" aria-label="Financial Care">
-                  <Plus
-                    className="w-3.5 h-3.5 shrink-0"
-                    strokeWidth={2}
-                    aria-hidden="true"
-                  />
-                  Financial Care
+                <Link
+                  href={ownerProfileUrl}
+                  onClick={(e) => e.stopPropagation()}
+                  aria-label="View My Profile"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  <span>View My Profile</span>
+                  <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
                 </Link>
               </Button>
-            )}
-            {hasPeopleAccess && (
+
               <Button
                 asChild
                 variant="outline"
                 size="sm"
-                className="h-9 px-3.5 rounded-xl border-border bg-background hover:bg-accent text-foreground text-xs font-medium gap-1.5 shadow-sm"
+                className="h-8.5 px-3.5 rounded-xl border-border bg-background hover:bg-secondary text-foreground text-xs font-semibold gap-1.5"
               >
-                <Link href="/people" aria-label="People Directory">
-                  <Users
-                    className="w-3.5 h-3.5 shrink-0"
-                    strokeWidth={2}
-                    aria-hidden="true"
-                  />
-                  People Directory
+                <Link
+                  href="/information"
+                  onClick={(e) => e.stopPropagation()}
+                  aria-label="Add Information"
+                >
+                  <Plus className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Add Information</span>
                 </Link>
               </Button>
-            )}
-            {!hasFinanceAccess && !hasPeopleAccess && hasBusinessAccess && (
-              <Button
-                asChild
-                size="sm"
-                className="h-9 px-3.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs gap-1.5 shadow-md shadow-cyan-950/40"
-              >
-                <Link href="/business" aria-label="Business Continuity">
-                  <Briefcase
-                    className="w-3.5 h-3.5 shrink-0"
-                    strokeWidth={2}
-                    aria-hidden="true"
-                  />
-                  Business Continuity
-                </Link>
-              </Button>
-            )}
-            {!hasFinanceAccess && !hasPeopleAccess && !hasBusinessAccess && hasInstructionsAccess && (
-              <Button
-                asChild
-                size="sm"
-                className="h-9 px-3.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs gap-1.5 shadow-md shadow-sky-950/40"
-              >
-                <Link href="/instructions" aria-label="My Instructions">
-                  <FileText
-                    className="w-3.5 h-3.5 shrink-0"
-                    strokeWidth={2}
-                    aria-hidden="true"
-                  />
-                  My Instructions
-                </Link>
-              </Button>
-            )}
+            </div>
+
+            <span className="text-[11px] font-medium text-muted-foreground hidden sm:inline-flex items-center gap-1">
+              Click card to open full profile <ArrowRight className="w-3 h-3 text-emerald-500" />
+            </span>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 3. Six Quick Action Buttons (2 columns × 3 rows)              */}
+      {/* ============================================================ */}
+      <section aria-label="Major Life Management Modules" className="space-y-2.5">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span>Core Life Management</span>
+          </h2>
+          <span className="text-[11px] font-bold text-muted-foreground">
+            6 Primary Modules
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          {/* 1. Financial Care */}
+          <Link
+            href="/finance"
+            className="p-4 sm:p-4.5 rounded-2xl bg-card border border-border hover:border-emerald-500/50 hover:bg-accent/40 transition-all group shadow-xs flex items-center justify-between min-h-[82px]"
+          >
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 shrink-0 group-hover:scale-105 transition-transform">
+                <Wallet className="w-5 h-5 shrink-0" strokeWidth={2} />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-sm sm:text-base font-bold text-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
+                  Financial Care
+                </h3>
+                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5 truncate">
+                  {stats.upcomingPaymentsCount || 0} Active · {stats.overduePaymentsCount || 0} Due
+                </p>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-transform group-hover:translate-x-1 shrink-0 ml-2" />
+          </Link>
+
+          {/* 2. Estate & Wasiyyah */}
+          <Link
+            href="/beneficiaries"
+            className="p-4 sm:p-4.5 rounded-2xl bg-card border border-border hover:border-purple-500/50 hover:bg-accent/40 transition-all group shadow-xs flex items-center justify-between min-h-[82px]"
+          >
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20 shrink-0 group-hover:scale-105 transition-transform">
+                <Gift className="w-5 h-5 shrink-0" strokeWidth={2} />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-sm sm:text-base font-bold text-foreground group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors truncate">
+                  Estate & Wasiyyah
+                </h3>
+                <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 mt-0.5 truncate">
+                  {estateCompletion}% Complete
+                </p>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-transform group-hover:translate-x-1 shrink-0 ml-2" />
+          </Link>
+
+          {/* 3. Roles & Responsibilities */}
+          <Link
+            href="/instructions"
+            className="p-4 sm:p-4.5 rounded-2xl bg-card border border-border hover:border-sky-500/50 hover:bg-accent/40 transition-all group shadow-xs flex items-center justify-between min-h-[82px]"
+          >
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20 shrink-0 group-hover:scale-105 transition-transform">
+                <Briefcase className="w-5 h-5 shrink-0" strokeWidth={2} />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-sm sm:text-base font-bold text-foreground group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors truncate">
+                  Roles & Responsibilities
+                </h3>
+                <p className="text-xs font-semibold text-sky-600 dark:text-sky-400 mt-0.5 truncate">
+                  {stats.pendingResponsibilitiesCount || stats.instructionsCount || 0} Assigned
+                </p>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-transform group-hover:translate-x-1 shrink-0 ml-2" />
+          </Link>
+
+          {/* 4. Emergency Contacts & Help */}
+          <Link
+            href="/contacts"
+            className="p-4 sm:p-4.5 rounded-2xl bg-card border border-border hover:border-amber-500/50 hover:bg-accent/40 transition-all group shadow-xs flex items-center justify-between min-h-[82px]"
+          >
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 shrink-0 group-hover:scale-105 transition-transform">
+                <PhoneCall className="w-5 h-5 shrink-0" strokeWidth={2} />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-sm sm:text-base font-bold text-foreground group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors truncate">
+                  Emergency Contacts & Help
+                </h3>
+                <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mt-0.5 truncate">
+                  {stats.contactsCount || stats.trustedGuardiansCount || 0} Verified
+                </p>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-transform group-hover:translate-x-1 shrink-0 ml-2" />
+          </Link>
+
+          {/* 5. Security & Access */}
+          <Link
+            href="/access"
+            className="p-4 sm:p-4.5 rounded-2xl bg-card border border-border hover:border-rose-500/50 hover:bg-accent/40 transition-all group shadow-xs flex items-center justify-between min-h-[82px]"
+          >
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20 shrink-0 group-hover:scale-105 transition-transform">
+                <ShieldAlert className="w-5 h-5 shrink-0" strokeWidth={2} />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-sm sm:text-base font-bold text-foreground group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors truncate">
+                  Security & Access
+                </h3>
+                <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 mt-0.5 truncate">
+                  {stats.emergencyModeStatus === "Active"
+                    ? "1 Alert"
+                    : (stats.pendingAccessRequestsCount || 0) > 0
+                    ? `${stats.pendingAccessRequestsCount} Requests`
+                    : "Protected"}
+                </p>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-transform group-hover:translate-x-1 shrink-0 ml-2" />
+          </Link>
+
+          {/* 6. Instructions & Messages */}
+          <Link
+            href="/legacy"
+            className="p-4 sm:p-4.5 rounded-2xl bg-card border border-border hover:border-indigo-500/50 hover:bg-accent/40 transition-all group shadow-xs flex items-center justify-between min-h-[82px]"
+          >
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20 shrink-0 group-hover:scale-105 transition-transform">
+                <FileText className="w-5 h-5 shrink-0" strokeWidth={2} />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-sm sm:text-base font-bold text-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
+                  Instructions & Messages
+                </h3>
+                <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mt-0.5 truncate">
+                  {(stats.instructionsCount || 0) + (stats.legacyCount || 0) || stats.infoCount || 0} Saved
+                </p>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-transform group-hover:translate-x-1 shrink-0 ml-2" />
+          </Link>
+        </div>
+      </section>
 
       {/* §24 Continuity & Safety State */}
       <section className="space-y-2.5" aria-label="Continuity & Safety Readiness">

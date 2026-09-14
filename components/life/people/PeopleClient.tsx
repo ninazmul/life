@@ -47,6 +47,7 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<LifeRole>("individual");
+  const [isRecordOnly, setIsRecordOnly] = useState(false);
   const [personalMessage, setPersonalMessage] = useState("");
   const [emergencyPriority, setEmergencyPriority] = useState(0);
 
@@ -59,13 +60,16 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
       (p.email && p.email.toLowerCase().includes(search.toLowerCase()));
 
     const matchesRelation =
-      relationFilter === "all" ||
-      p.relation.toLowerCase() === relationFilter.toLowerCase();
+      relationFilter === "all"
+        ? true
+        : relationFilter === "record_only"
+        ? p.isLoginEnabled === false || (!p.email && p.role === "individual")
+        : p.relation.toLowerCase() === relationFilter.toLowerCase();
 
     return matchesSearch && matchesRelation;
   });
 
-  const relations = ["all", "Wife", "Brother", "Parents", "Partner", "Engineer", "Staff", "Family"];
+  const relations = ["all", "record_only", "Wife", "Brother", "Parents", "Partner", "Engineer", "Staff", "Family"];
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,8 +84,9 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
         name,
         relation,
         phone,
-        email,
-        role,
+        email: isRecordOnly ? "" : email,
+        role: isRecordOnly ? "individual" : role,
+        isLoginEnabled: !isRecordOnly,
         personalMessage,
         emergencyPriority: Number(emergencyPriority) || 0,
       });
@@ -93,6 +98,7 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
       setName("");
       setPhone("");
       setEmail("");
+      setIsRecordOnly(false);
       setPersonalMessage("");
       setEmergencyPriority(0);
     } catch (err: any) {
@@ -167,7 +173,7 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
                 : "bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
                 }`}
             >
-              {rel === "all" ? "All Relations" : rel}
+              {rel === "all" ? "All Relations" : rel === "record_only" ? "Record Only" : rel}
             </button>
           ))}
         </div>
@@ -210,7 +216,7 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
                       {person.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100 truncate">
                           {person.name}
                         </h3>
@@ -224,6 +230,11 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
                             P{person.emergencyPriority}
                           </span>
                         ) : null}
+                        {person.isLoginEnabled === false && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20">
+                            Record Only
+                          </span>
+                        )}
                       </div>
                       <span className="text-xs text-slate-400 font-medium">
                         {person.designation ? `${person.designation} • ` : ""}{person.relation}
@@ -362,15 +373,44 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
 
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-300">
-                  Email Address (Clerk Account)
+                  {isRecordOnly ? "Email Address (Optional)" : "Email Address (Clerk Account)"}
                 </label>
                 <Input
                   type="email"
-                  placeholder="e.g. sabbir@gmail.com"
+                  placeholder={isRecordOnly ? "Optional for record-only" : "e.g. sabbir@gmail.com"}
                   value={email}
+                  disabled={isRecordOnly}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="h-10 border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-emerald-500"
+                  className="h-10 border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-emerald-500 disabled:opacity-50"
                 />
+              </div>
+            </div>
+
+            {/* Record-Only Person Toggle */}
+            <div
+              className={`p-3 rounded-2xl border transition-all cursor-pointer ${
+                isRecordOnly
+                  ? "bg-emerald-500/10 border-emerald-500/30"
+                  : "bg-slate-900/60 border-slate-800"
+              }`}
+              onClick={() => setIsRecordOnly(!isRecordOnly)}
+            >
+              <div className="flex items-center gap-2.5">
+                <input
+                  type="checkbox"
+                  id="isRecordOnlyCheck"
+                  checked={isRecordOnly}
+                  onChange={(e) => setIsRecordOnly(e.target.checked)}
+                  className="rounded border-slate-700 accent-emerald-600"
+                />
+                <div>
+                  <label htmlFor="isRecordOnlyCheck" className="text-xs font-bold text-slate-200 cursor-pointer">
+                    Record-Only Person (No login account)
+                  </label>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    For financial transactions, gifts, support, deposits, repayments & emergency records without requiring a login account.
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -380,9 +420,10 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
                   Access Role
                 </label>
                 <select
-                  value={role}
+                  value={isRecordOnly ? "individual" : role}
+                  disabled={isRecordOnly}
                   onChange={(e) => setRole(e.target.value as LifeRole)}
-                  className="w-full h-10 px-3 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-emerald-500 focus:outline-none"
+                  className="w-full h-10 px-3 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-emerald-500 focus:outline-none disabled:opacity-50"
                 >
                   <option value="individual">Individual User (Assigned info only)</option>
                   <option value="business">Business User (Selected business)</option>

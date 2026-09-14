@@ -183,49 +183,58 @@ const sections: GuideSection[] = [
     color: "text-emerald-600 dark:text-emerald-400",
     bg: "bg-emerald-50 dark:bg-emerald-950/50",
     border: "border-emerald-200 dark:border-emerald-800/40",
-    title: "Home Dashboard & Command Center",
-    subtitle: "Real-time command center & continuity readiness",
+    title: "Home Dashboard & Life Command Center",
+    subtitle: "Central command console, My Life Profile & Six Quick Actions",
     description:
-      "The Dashboard serves as the central command console. It provides instantaneous visibility into your continuity readiness, owner safety check-ins, financial snapshot, urgent deadlines, and direct access to your permitted modules.",
+      "The Life Command Center serves as the central command console. It provides instantaneous visibility into your personal life profile, quick-access action buttons to major modules, continuity & safety monitoring, financial summaries, and urgent deadlines.",
     steps: [
       {
-        title: "Continuity & Safety State",
+        title: "1. Life Command Center Header & Status Badge",
         detail:
-          "Monitors owner safety check-in status, emergency protocol readiness, number of trusted guardians configured, pending responsibilities, and overall business continuity readiness. A green status means all protocols are active and healthy.",
+          "The top of the command center displays the title along with a live operational status badge (e.g. 'Continuity System v1.0 · Secured'), confirming that all vault security and monitoring services are active.",
       },
       {
-        title: "Urgent Attention Alerts",
+        title: "2. My Life Profile — Primary Full-Width Card",
         detail:
-          "Automatically highlights overdue financial support installments, upcoming payments, pending tasks, and critical security items requiring prompt action. These appear as prominent badges at the top of your dashboard.",
+          "Positioned directly below the title, My Life Profile serves as the central personal information hub. Features the Owner's mint squircle avatar, SUPER ADMIN and ACTIVE badges, and 6 live metrics: Profile Completion (with animated progress bar), Medical Information Status, Documents Added, Private Records, Emergency Information Status, and Last Updated timestamp. Includes direct action buttons: 'View My Profile' (opens the full Owner Life Dossier) and 'Add Information' (opens the information logger). The entire card is clickable.",
       },
       {
-        title: "Money & Wealth Snapshot",
+        title: "3. Six Quick Action Buttons (2 Columns × 3 Rows)",
         detail:
-          "Displays aggregate totals for Money Given, Money Taken, Investments Made, External Investments Received, Receivables (Due to me), and Payables (To return). These figures are calculated in real-time from your financial records. (Visible only to authorized users).",
+          "Directly below My Life Profile, six balanced quick action cards provide one-touch navigation to the major life-management modules with real-time live summaries: (1) Financial Care — active support & due installments; (2) Estate & Wasiyyah — testament completion percentage; (3) Roles & Responsibilities — assigned life directives; (4) Emergency Contacts & Help — verified emergency contacts; (5) Security & Access — active access rules and security status; (6) Instructions & Messages — saved legacy instructions. Note: People Directory is intentionally in the main header navigation to eliminate duplication.",
       },
       {
-        title: "Permitted Modules Directory",
+        title: "4. Continuity & Safety State",
         detail:
-          "Displays quick-access cards to all your active modules with live counts and status badges. Non-admin users only see the modules they have permission to access. Each card shows the module icon, name, and record count.",
+          "Positioned directly beneath the Six Quick Actions, this monitoring layer details owner safety check-in status, emergency protocol readiness, number of trusted guardians configured, pending responsibilities, and overall business continuity readiness. A green status confirms all protocols are active and healthy.",
       },
       {
-        title: "Quick Action Shortcuts",
+        title: "5. Urgent Attention Alerts & Money Snapshot",
         detail:
-          "Use header action buttons to quickly create new financial records, register people, update continuity plans, or review instructions with a single tap. These shortcuts save time on repetitive administrative tasks.",
+          "Automatically highlights overdue financial support installments, upcoming payments, pending tasks, and critical security items requiring prompt action. Also displays aggregate totals for Money Given, Money Taken, Investments, Receivables, and Payables in real-time.",
+      },
+      {
+        title: "6. Permitted Modules Directory & Recent Activity",
+        detail:
+          "Displays quick-access cards to all your active modules with live counts and status badges. Non-admin users only see the modules they have permission to access. Includes a live audit feed of recent life activities.",
       },
     ],
     tips: [
       {
         type: "tip",
-        text: "Make it a routine to check the Dashboard daily. If all indicators are green and operational, your legacy protocols are fully protected.",
+        text: "My Life Profile is your central personal hub. Tap 'View My Profile' or click anywhere on the card to inspect your comprehensive 18-part Owner Life Dossier.",
+      },
+      {
+        type: "info",
+        text: "The Six Quick Action buttons display live counts calculated directly from your database, showing at a glance how many financial programs, wasiyyah directives, or emergency contacts are active.",
       },
       {
         type: "security",
-        text: "The Dashboard dynamically adjusts its interface according to user permissions. Non-admin users will never see confidential financial figures or unauthorized modules.",
+        text: "The Dashboard dynamically adjusts its interface according to user permissions. Non-admin users will never see confidential financial figures, unauthorized modules, or Owner private records.",
       },
     ],
     whoCanAccess:
-      "Super Admin & Owner see all modules. Other users see only their permitted modules.",
+      "Super Admin & Owner see the full command center with My Life Profile. Other users see only their permitted modules and personal view.",
   },
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -554,14 +563,24 @@ const sections: GuideSection[] = [
     border: "border-emerald-200 dark:border-emerald-800/40",
     title: "7. People Directory & Team",
     subtitle:
-      "Family, partners, key employees & access roles",
+      "Family, partners, team & Record-Only individuals",
     description:
-      "Maintain the core directory of trusted people: Wife, Brother, Children, Parents, Business Partners, Key Employees, and Nominees. Assign granular module permissions and emergency delegation status. Every person gets a dedicated profile page with 8 organized tabs.",
+      "Maintain the core directory of trusted people: Wife, Brother, Children, Parents, Business Partners, Key Employees, and Nominees. Assign granular module permissions and emergency delegation status. The directory also supports Record-Only Persons who don't need login accounts.",
     steps: [
       {
         title: "Add Person Profile",
         detail:
           "Enter full name, relationship (Wife, Brother, Partner, Employee), phone number, WhatsApp, email address, physical address, and emergency priority rank.",
+      },
+      {
+        title: "Record-Only Persons (No Login Account)",
+        detail:
+          "Check 'Record-Only Person (No login account)' when adding individuals who do not need system access — such as financial aid recipients, loan borrowers/lenders, external doctors, or dependents. They can be selected across Financial Care, Money Records, and Emergency Contacts without requiring an email or Clerk login. A 'Record Only' badge is displayed on their profile card.",
+      },
+      {
+        title: "Filter by Relation or Record-Only",
+        detail:
+          "Use the top filter pills to quickly view 'All Relations', 'Record Only' individuals, 'Wife', 'Brother', 'Parents', 'Partner', 'Engineer', or 'Staff'. The search bar filters in real-time by name, relation, phone, or email.",
       },
       {
         title: "Add Social Links",
@@ -584,11 +603,6 @@ const sections: GuideSection[] = [
           "Designate whether the person serves as an Emergency Guardian (Primary, Secondary, or Independent) for multi-party consensus unlocking. Guardians can initiate emergency protocol activation.",
       },
       {
-        title: "Manage Account Status",
-        detail:
-          "Easily set person status to Active, Temporarily Locked, or Archived to instantly revoke system access when roles change. Locked users cannot sign in until re-activated.",
-      },
-      {
         title: "Quick Actions on People List",
         detail:
           "The People list shows each person's card with quick action buttons: Call (direct phone dial), WhatsApp (opens WhatsApp chat), and Profile (opens the full profile page). Buttons only appear when the person has a phone number or WhatsApp configured.",
@@ -596,16 +610,16 @@ const sections: GuideSection[] = [
     ],
     tips: [
       {
+        type: "tip",
+        text: "Use 'Record-Only' for people you lend money to or provide support for, but who do not need access to the LIFE Vault application.",
+      },
+      {
         type: "security",
         text: "Only grant canRevealVault or canManageAccess to individuals with absolute trust. For employees, grant strictly the modules they need for business continuity.",
       },
       {
-        type: "tip",
-        text: "Linking a person's registered Clerk email allows them to sign into LIFE Vault and see their personalized portal view with only their permitted modules.",
-      },
-      {
         type: "info",
-        text: "Social link icons (Facebook, Instagram, TikTok, etc.) only appear on the profile when that platform has a URL configured. Empty platforms are completely hidden for a clean, uncluttered interface.",
+        text: "Social link icons only appear on the profile when that platform has a URL configured. Empty platforms are completely hidden for a clean, uncluttered interface.",
       },
     ],
     whoCanAccess:
@@ -613,7 +627,7 @@ const sections: GuideSection[] = [
   },
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 9. PERSON PROFILE DEEP DIVE (8 Tabs Explained)
+  // 9. PERSON PROFILE DEEP DIVE (Owner Life Dossier & 8 Standard Tabs)
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "person-profile",
@@ -621,69 +635,74 @@ const sections: GuideSection[] = [
     color: "text-teal-600 dark:text-teal-400",
     bg: "bg-teal-50 dark:bg-teal-950/50",
     border: "border-teal-200 dark:border-teal-800/40",
-    title: "Person Profile — 8 Tabs Deep Dive",
+    title: "Person Profile & Owner Life Dossier",
     subtitle:
-      "Overview, contact, social, messages, instructions, finance, contacts, documents & access",
+      "Master Owner Dossier, Overview, Contact, Instructions, Finance & Access",
     description:
-      "Each person in the People Directory has a dedicated profile page organized into 8 structured tabs. This section explains every tab in detail — what it shows, how data flows into it, and who can see what.",
+      "Each person in the People Directory has a dedicated profile page. When viewing the Owner Profile, an exclusive Owner Life Dossier provides access to all 18 structured life-record areas. For team and family members, 8 structured tabs organize all linked records.",
     steps: [
+      {
+        title: "Owner Life Dossier (Exclusive Master Tab for Owner)",
+        detail:
+          "When viewing the Owner Profile as an authorized administrator, the 'Owner Life Dossier' tab organizes all 18 core life areas: (1) Personal Information & Identity; (2) Identity Documents (Passports, NID with downloads); (3) Medical History & Health Status; (4) Current Health Conditions; (5) Medicines & Treatments; (6) Allergies & Blood Group; (7) Doctors & Preferred Hospitals; (8) Important Life Events & History; (9) Family Information; (10) Business History & Designation; (11) Personal Financial Records; (12) Private Notes; (13) Assets & Property Registry; (14) Loans, Gifts & Financial Help; (15) Important Relationships; (16) Emergency Safety Information; (17) Wasiyyah & Legacy Directives; (18) Documents Archive. Non-admin users are strictly forbidden from viewing this dossier.",
+      },
       {
         title: "Tab 1 → Overview",
         detail:
-          "Shows a quick summary card: the person's full name, relationship, role, status badge (Active/Locked/Archived), photo, and a snapshot of their key details like phone, email, and address. Displays an aggregate count of their linked records across all tabs.",
+          "Shows a quick summary card: the person's full name, relationship, role, status badge (Active/Locked/Archived), photo, and key contact details. Displays an aggregate count of their linked records across all tabs.",
       },
       {
         title: "Tab 2 → Contact & Social",
         detail:
-          "Displays the person's Mobile Number with a direct Call button, WhatsApp with a Message button, and Email with an Email button. Below the contact cards, shows clickable social media links: Facebook, Messenger, Instagram, TikTok, Telegram, LinkedIn, YouTube, and Website. Only populated platforms are shown — empty ones are hidden. Each link opens in a new tab. Non-admin users can edit their own contact and social links but cannot change other fields.",
+          "Displays the person's Mobile Number with a direct Call button, WhatsApp with a Message button, and Email with an Email button. Below contact cards, displays active social media links (Facebook, Instagram, LinkedIn, etc.) that open in a new tab.",
       },
       {
         title: "Tab 3 → Personal Message",
         detail:
-          "A private text message or note from the Owner to this person. Only the Owner can write and edit personal messages. The message content is only visible to the Owner and the person themselves (if they have login access).",
+          "A private message or letter from the Owner to this person. Only the Owner can write and edit personal messages, and it is strictly visible only to the recipient.",
       },
       {
         title: "Tab 4 → Instructions & Responsibilities",
         detail:
-          "Lists all instructions and responsibilities assigned to this person from the Instructions module. Shows instruction title, category (Family Welfare, Business Duty, etc.), priority level (High/Medium/Normal), status (Active/In Progress/Completed), and detailed step-by-step procedure. The count badge on the tab shows the total number of linked instructions + responsibilities.",
+          "Lists all instructions and responsibilities assigned to this person from the Instructions module. Displays category, priority, status, and step-by-step procedures.",
       },
       {
         title: "Tab 5 → Financial Care",
         detail:
-          "Lists all financial care records and money records associated with this person. Shows support type (Given/Taken), amounts, remaining balances, installment progress, and repayment status. The count badge shows total financial care + money records linked to this person.",
+          "Lists all financial support records and money records associated with this person: support programs, given/taken funds, installment progress, and repayment status.",
       },
       {
         title: "Tab 6 → Important Contacts",
         detail:
-          "Shows all professional contacts (lawyers, doctors, accountants, etc.) that are linked or relevant to this person. Includes contact details with one-touch Call, WhatsApp, and Email action buttons.",
+          "Shows all professional contacts (lawyers, doctors, accountants) linked to this person with one-touch Call, WhatsApp, and Email buttons.",
       },
       {
         title: "Tab 7 → Documents",
         detail:
-          "Lists all critical documents associated with this person — property deeds, contracts, ID cards, etc. Documents can be viewed, downloaded, and linked to other modules. The count badge shows the total number of associated documents.",
+          "Lists all critical documents associated with this person — agreements, receipts, identity documents, and contracts with direct view and download links.",
       },
       {
         title: "Tab 8 → Access Information",
         detail:
-          "Shows the person's current permission configuration: all module access flags (canViewPersonal, canViewBusiness, canViewFinancial, etc.), their guardian designation, account type, and login status. Only Super Admin / Owner can modify access settings from this tab.",
+          "Shows the person's permission configuration: module access flags, guardian designation, account type, and login status. Super Admin / Owner can modify access flags from here.",
       },
     ],
     tips: [
       {
-        type: "tip",
-        text: "The Contact & Social tab is the most-used tab. Keep phone numbers and WhatsApp updated so quick action buttons (Call, WhatsApp) work correctly from both the People list and the profile page.",
+        type: "security",
+        text: "Strict IDOR mitigation prevents unauthorized users from inspecting another person's profile or the Owner Life Dossier. Non-admin users can only view their own assigned profile.",
       },
       {
-        type: "security",
-        text: "Non-admin users can only update their own phone, WhatsApp, email, and social links. They cannot modify their own permissions, status, or other people's profiles. This is enforced on the server side.",
+        type: "tip",
+        text: "The Owner Life Dossier tab provides instant links to Add Health Notes, Manage Doctors, View Asset Registry, and Open the Wasiyyah Hub.",
       },
       {
         type: "info",
-        text: "Tab count badges (e.g., 'Instructions & Responsibilities (3)') update automatically as you add or remove linked records from other modules.",
+        text: "Tab count badges update automatically in real-time as you add or remove linked records across the platform.",
       },
     ],
     whoCanAccess:
-      "Super Admin and Owner see all 8 tabs. Other users see tabs based on their granted permissions. Everyone can see and edit their own contact/social info.",
+      "Super Admin and Owner see all tabs and the Owner Life Dossier. Other users see only their own permitted profile tabs.",
   },
 
   // ─────────────────────────────────────────────────────────────────────────────

@@ -126,4 +126,9 @@ export interface UserModuleAccess {
   isOwner: boolean;
   isAdmin: boolean;
   permissions: LifePermission;
+  name?: string;
+  email?: string;
+  avatarUrl?: string;
+  personId?: string;
+  role?: string;
 }

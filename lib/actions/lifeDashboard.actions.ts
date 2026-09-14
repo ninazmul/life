@@ -12,6 +12,8 @@ import LifeLegacyMessage from "@/lib/database/models/lifeLegacyMessage.model";
 import LifeActivityLog from "@/lib/database/models/lifeActivityLog.model";
 import LifeEmergencyAccess from "@/lib/database/models/lifeEmergencyAccess.model";
 import LifeSettings from "@/lib/database/models/lifeSettings.model";
+import LifeDocument from "@/lib/database/models/lifeDocument.model";
+import LifeInstruction from "@/lib/database/models/lifeInstruction.model";
 import { getLifeAuthContext } from "@/lib/life/auth";
 import { LifeDashboardStats, ILifeEmergencyAccess } from "@/types";
 
@@ -56,6 +58,12 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     financialSupports,
     recentBackupLog,
     settingsDoc,
+    contactsCount,
+    documentsCount,
+    legacyCount,
+    instructionsCount,
+    beneficiariesCount,
+    personalInfoCount,
   ] = await Promise.all([
     connectToDatabase().then(() =>
       import("@/lib/database/models/lifeGuardian.model").then((m) =>
@@ -81,7 +89,19 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
       .sort({ createdAt: -1 })
       .lean(),
     LifeSettings.findOne().select("vaultPinHash").lean() as Promise<{ vaultPinHash?: string } | null>,
+    LifeContact.countDocuments({ status: { $ne: "archived" } }),
+    LifeDocument.countDocuments({ status: { $ne: "archived" } }),
+    LifeLegacyMessage.countDocuments({ status: { $ne: "archived" } }),
+    LifeInstruction.countDocuments({ status: { $ne: "archived" } }),
+    LifePerson.countDocuments({
+      $or: [{ role: "beneficiary" }, { userRole: "beneficiary" }],
+      status: { $ne: "archived" },
+    }),
+    LifeInformation.countDocuments({
+      category: "personal",
+    }),
   ]);
+
 
   // Multi-currency calculation (§17, §24)
   const currencyTotals: Record<string, { given: number; repaid: number; remaining: number }> = {};
@@ -213,6 +233,52 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     continuityScore += 25;
   }
 
+  // Resolve Owner Profile
+  let ownerPerson: any = null;
+  if (_auth?.personId) {
+    ownerPerson = await LifePerson.findById(_auth.personId).lean();
+  }
+  if (!ownerPerson && _auth?.email) {
+    ownerPerson = await LifePerson.findOne({
+      $or: [
+        { email: new RegExp(`^${_auth.email.trim()}$`, "i") },
+        { role: { $in: ["owner", "super_admin"] } },
+      ],
+      status: { $ne: "archived" },
+    }).lean();
+  }
+
+  // Profile completion score
+  let completionScore = 20;
+  if (ownerPerson?.phone) completionScore += 15;
+  if (personalInfoCount > 0) completionScore += 20;
+  if (documentsCount > 0) completionScore += 15;
+  if (activeGuardiansCount > 0 || contactsCount > 0) completionScore += 15;
+  if (settingsDoc?.vaultPinHash) completionScore += 15;
+  completionScore = Math.min(100, completionScore);
+
+  const medicalStatus = personalInfoCount > 0 ? "Recorded & Active" : "Pending Records";
+  const emergencyInfoStatus = emergencyState?.isEmergencyActive
+    ? "Emergency Active"
+    : activeGuardiansCount > 0
+    ? `${activeGuardiansCount} Guardians Ready`
+    : "Protocols Configured";
+
+  const ownerProfile = {
+    name: ownerPerson?.name || _auth?.name || "Nazmul Islam",
+    email: ownerPerson?.email || _auth?.email || "",
+    phone: ownerPerson?.phone || "",
+    avatarUrl: ownerPerson?.profilePhoto || ownerPerson?.avatarUrl || _auth?.avatarUrl || "",
+    role: ownerPerson?.role || _auth?.role || "super_admin",
+    personId: ownerPerson?._id ? String(ownerPerson._id) : (_auth?.personId || undefined),
+    profileCompletion: completionScore,
+    medicalInfoStatus: medicalStatus,
+    documentsAddedCount: documentsCount,
+    privateRecordsCount: infoCount,
+    emergencyInfoStatus,
+    lastUpdated: ownerPerson?.updatedAt || new Date(),
+  };
+
   return {
     peopleCount,
     infoCount,
@@ -238,6 +304,12 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     overduePaymentsCount,
     currencyTotals,
     lastBackupDate: (recentBackupLog as any)?.createdAt || new Date(),
+    contactsCount,
+    documentsCount,
+    legacyCount,
+    instructionsCount,
+    beneficiariesCount,
+    ownerProfile,
   };
 }
 

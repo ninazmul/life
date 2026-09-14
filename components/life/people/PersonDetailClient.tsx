@@ -28,6 +28,11 @@ import {
   User,
   Loader2,
   Share2,
+  HeartPulse,
+  Stethoscope,
+  Calendar,
+  Sparkles,
+  ScrollText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -184,6 +189,7 @@ interface PersonData {
   instructions: any[];
   responsibilities: any[];
   messages: any[];
+  assets?: any[];
 }
 
 interface PersonDetailClientProps {
@@ -199,9 +205,10 @@ export function PersonDetailClient({
   personData,
   currentUser,
 }: PersonDetailClientProps) {
+  const isOwnerProfile = personData.person.role === "owner" || personData.person.role === "super_admin";
   const [person, setPerson] = useState(personData.person);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("contact_social");
+  const [activeTab, setActiveTab] = useState(isOwnerProfile ? "owner_dossier" : "contact_social");
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [savingEdit, setSavingEdit] = useState(false);
 
@@ -579,6 +586,15 @@ export function PersonDetailClient({
         className="space-y-4"
       >
         <TabsList className="bg-secondary p-1 rounded-2xl border border-border flex overflow-x-auto scrollbar-none max-w-full justify-start h-auto gap-1">
+          {isOwnerProfile && (
+            <TabsTrigger
+              value="owner_dossier"
+              className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap flex items-center gap-1.5"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>Owner Life Dossier</span>
+            </TabsTrigger>
+          )}
           <TabsTrigger
             value="overview"
             className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap"
@@ -634,6 +650,474 @@ export function PersonDetailClient({
             Access Information
           </TabsTrigger>
         </TabsList>
+
+        {/* ============================================================ */}
+        {/* OWNER LIFE DOSSIER TAB (Primary Hub for Owner)                */}
+        {/* ============================================================ */}
+        {isOwnerProfile && (
+          <TabsContent value="owner_dossier" className="space-y-5 outline-none">
+            {/* Header Banner */}
+            <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-emerald-500/10 via-card to-secondary border border-emerald-500/20 shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md">
+                    <Sparkles className="w-5 h-5 text-amber-300" />
+                  </div>
+                  <div>
+                    <h2 className="text-base sm:text-lg font-extrabold text-foreground tracking-tight flex items-center gap-2">
+                      <span>My Life Profile Dossier</span>
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 uppercase">
+                        Master Records
+                      </span>
+                    </h2>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Personal · Medical · Life History · Private Records · Wasiyyah · Assets
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Link href="/information">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 rounded-xl text-xs font-semibold gap-1.5 border-border bg-card hover:bg-secondary"
+                    >
+                      <Pencil className="w-3 h-3" />
+                      <span>Manage Records</span>
+                    </Button>
+                  </Link>
+                  <Link href="/documents">
+                    <Button
+                      size="sm"
+                      className="h-8 rounded-xl text-xs font-semibold gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs"
+                    >
+                      <FileText className="w-3 h-3" />
+                      <span>Add Documents</span>
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Grid of Master Dossier Sections */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* 1. Personal Information & Identity */}
+              <div className="p-4 sm:p-5 rounded-3xl bg-card border border-border space-y-3.5 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <User className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Personal Information & Identity</span>
+                  </h3>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                    Verified
+                  </span>
+                </div>
+                <div className="space-y-2 text-xs">
+                  <p className="flex justify-between border-b border-border/50 pb-1.5">
+                    <span className="text-muted-foreground">Full Legal Name:</span>
+                    <span className="font-bold text-foreground">{person.name}</span>
+                  </p>
+                  <p className="flex justify-between border-b border-border/50 pb-1.5">
+                    <span className="text-muted-foreground">Designation / Role:</span>
+                    <span className="font-semibold text-foreground">
+                      {person.designation || person.relation || "Account Owner"}
+                    </span>
+                  </p>
+                  <p className="flex justify-between border-b border-border/50 pb-1.5">
+                    <span className="text-muted-foreground">Primary Mobile:</span>
+                    <span className="font-mono text-foreground">{person.phone || "Not provided"}</span>
+                  </p>
+                  <p className="flex justify-between border-b border-border/50 pb-1.5">
+                    <span className="text-muted-foreground">WhatsApp:</span>
+                    <span className="font-mono text-foreground">{person.whatsapp || person.phone || "Not provided"}</span>
+                  </p>
+                  <p className="flex justify-between border-b border-border/50 pb-1.5">
+                    <span className="text-muted-foreground">Primary Email:</span>
+                    <span className="font-mono text-foreground break-all">{person.email || "Not linked"}</span>
+                  </p>
+                  {person.address && (
+                    <p className="flex justify-between border-b border-border/50 pb-1.5">
+                      <span className="text-muted-foreground">Residential Address:</span>
+                      <span className="font-medium text-foreground text-right">{person.address}</span>
+                    </p>
+                  )}
+                  {person.country && (
+                    <p className="flex justify-between border-b border-border/50 pb-1.5">
+                      <span className="text-muted-foreground">Country:</span>
+                      <span className="font-medium text-foreground">{person.country}</span>
+                    </p>
+                  )}
+                </div>
+
+                {/* Identity Documents Sub-card */}
+                <div className="pt-2">
+                  <p className="text-[11px] font-bold text-foreground mb-1.5 flex items-center justify-between">
+                    <span>Identity Documents & Proofs</span>
+                    <Link href="/documents" className="text-emerald-600 hover:underline text-[10px]">
+                      View All
+                    </Link>
+                  </p>
+                  {personData.documents?.filter((d) => d.category === "identity").length === 0 ? (
+                    <p className="text-[11px] text-muted-foreground italic bg-secondary/50 p-2.5 rounded-xl border border-border">
+                      No identity documents added yet. Upload passport or national ID in Documents.
+                    </p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {personData.documents
+                        ?.filter((d) => d.category === "identity")
+                        .slice(0, 3)
+                        .map((doc) => (
+                          <div
+                            key={doc._id}
+                            className="p-2 rounded-xl bg-secondary/50 border border-border flex items-center justify-between text-xs"
+                          >
+                            <span className="font-medium truncate max-w-[200px]">{doc.title}</span>
+                            <a
+                              href={doc.fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-emerald-600 font-semibold hover:underline text-[11px] shrink-0"
+                            >
+                              Download
+                            </a>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 2. Medical & Health Status */}
+              <div className="p-4 sm:p-5 rounded-3xl bg-card border border-border space-y-3.5 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <HeartPulse className="w-3.5 h-3.5 text-rose-500" />
+                    <span>Medical & Health Records</span>
+                  </h3>
+                  <Link href="/information" className="text-emerald-600 hover:underline text-[10px] font-bold">
+                    + Add Health Note
+                  </Link>
+                </div>
+
+                {/* Medical Overview Cards */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-2.5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-center">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                      Blood Group
+                    </p>
+                    <p className="text-sm font-extrabold text-foreground mt-0.5">
+                      {personData.notes?.find((n) => n.title.toLowerCase().includes("blood"))?.content ||
+                        "On Record"}
+                    </p>
+                  </div>
+                  <div className="p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-center">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                      Allergies Status
+                    </p>
+                    <p className="text-sm font-extrabold text-foreground mt-0.5">
+                      {personData.notes?.find((n) => n.title.toLowerCase().includes("allergy"))?.content ||
+                        "Documented"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Current Health Conditions & Medicines */}
+                <div className="space-y-2 text-xs">
+                  <p className="font-bold text-foreground text-[11px]">Current Health & Treatments</p>
+                  {personData.notes?.filter(
+                    (n) =>
+                      n.category === "personal" &&
+                      (n.title.toLowerCase().includes("medic") ||
+                        n.title.toLowerCase().includes("health") ||
+                        n.tags?.includes("medical"))
+                  ).length === 0 ? (
+                    <p className="text-[11px] text-muted-foreground italic bg-secondary/50 p-2.5 rounded-xl border border-border">
+                      No active medical conditions or medication logs recorded. Add via Personal Information.
+                    </p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {personData.notes
+                        ?.filter(
+                          (n) =>
+                            n.category === "personal" &&
+                            (n.title.toLowerCase().includes("medic") ||
+                              n.title.toLowerCase().includes("health") ||
+                              n.tags?.includes("medical"))
+                        )
+                        .slice(0, 3)
+                        .map((note) => (
+                          <div
+                            key={note._id}
+                            className="p-2.5 rounded-xl bg-secondary/50 border border-border space-y-1"
+                          >
+                            <p className="font-bold text-foreground text-xs">{note.title}</p>
+                            <p className="text-xs text-muted-foreground line-clamp-2">{note.content}</p>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Doctors & Preferred Hospitals */}
+                <div className="pt-1">
+                  <p className="font-bold text-foreground text-[11px] mb-1.5 flex items-center justify-between">
+                    <span className="flex items-center gap-1">
+                      <Stethoscope className="w-3.5 h-3.5 text-blue-500" />
+                      <span>Doctors & Preferred Hospitals</span>
+                    </span>
+                    <Link href="/contacts" className="text-emerald-600 hover:underline text-[10px]">
+                      Manage ({personData.contacts?.filter((c) => c.category === "doctor" || (c.category as string) === "medical" || c.role?.toLowerCase().includes("doctor")).length || 0})
+                    </Link>
+                  </p>
+                  {personData.contacts?.filter((c) => c.category === "doctor" || (c.category as string) === "medical" || c.role?.toLowerCase().includes("doctor")).length === 0 ? (
+                    <p className="text-[11px] text-muted-foreground italic bg-secondary/50 p-2 rounded-xl border border-border">
+                      No doctors or hospitals linked. Add doctor contacts in Important Contacts.
+                    </p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {personData.contacts
+                        ?.filter((c) => c.category === "doctor" || (c.category as string) === "medical" || c.role?.toLowerCase().includes("doctor"))
+                        .slice(0, 2)
+                        .map((doc) => (
+                          <div
+                            key={doc._id}
+                            className="p-2 rounded-xl bg-secondary/50 border border-border flex items-center justify-between text-xs"
+                          >
+                            <div>
+                              <p className="font-bold text-foreground">{doc.name}</p>
+                              <p className="text-[11px] text-muted-foreground">{doc.role || doc.company || "Medical"}</p>
+                            </div>
+                            <a
+                              href={`tel:${doc.phone}`}
+                              className="text-emerald-600 font-bold hover:underline text-xs"
+                            >
+                              {doc.phone}
+                            </a>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 3. Assets & Properties */}
+              <div className="p-4 sm:p-5 rounded-3xl bg-card border border-border space-y-3.5 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Assets & Properties</span>
+                  </h3>
+                  <Link href="/assets" className="text-emerald-600 hover:underline text-[10px] font-bold">
+                    View Registry ({personData.assets?.length || 0})
+                  </Link>
+                </div>
+
+                {personData.assets?.length === 0 ? (
+                  <p className="text-[11px] text-muted-foreground italic bg-secondary/50 p-3 rounded-xl border border-border">
+                    No physical or financial assets registered. Add properties, bank accounts, or investments in Assets.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {personData.assets?.slice(0, 4).map((asset: any) => (
+                      <div
+                        key={asset._id}
+                        className="p-2.5 rounded-xl bg-secondary/50 border border-border flex items-center justify-between text-xs"
+                      >
+                        <div>
+                          <p className="font-bold text-foreground">{asset.name}</p>
+                          <p className="text-[10px] text-muted-foreground uppercase">{asset.category} {asset.location ? `· ${asset.location}` : ""}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-emerald-600">
+                            {asset.currency || "BDT"} {Number(asset.value || 0).toLocaleString()}
+                          </p>
+                          <span className="text-[10px] text-muted-foreground">{asset.ownershipPercentage || 100}% ownership</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 4. Financial Records: Loans, Gifts & Financial Help */}
+              <div className="p-4 sm:p-5 rounded-3xl bg-card border border-border space-y-3.5 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <Wallet className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Loans, Gifts & Financial Care</span>
+                  </h3>
+                  <Link href="/finance" className="text-emerald-600 hover:underline text-[10px] font-bold">
+                    Open Finance Hub
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-center">
+                  <div className="p-2.5 rounded-2xl bg-secondary/50 border border-border">
+                    <p className="text-[10px] font-bold uppercase text-muted-foreground">Support Programs</p>
+                    <p className="text-base font-extrabold text-foreground mt-0.5">
+                      {personData.financialCare?.length || 0}
+                    </p>
+                  </div>
+                  <div className="p-2.5 rounded-2xl bg-secondary/50 border border-border">
+                    <p className="text-[10px] font-bold uppercase text-muted-foreground">Money Records</p>
+                    <p className="text-base font-extrabold text-foreground mt-0.5">
+                      {personData.moneyRecords?.length || 0}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5 text-xs">
+                  {personData.moneyRecords?.slice(0, 3).map((record: any) => (
+                    <div
+                      key={record._id}
+                      className="p-2 rounded-xl bg-secondary/50 border border-border flex items-center justify-between"
+                    >
+                      <div>
+                        <span className="font-bold capitalize text-foreground">{record.type?.replace("_", " ")}</span>
+                        <p className="text-[10px] text-muted-foreground">{record.notes || "Financial transaction"}</p>
+                      </div>
+                      <span className="font-bold text-foreground">
+                        {record.currency || "BDT"} {Number(record.amount || 0).toLocaleString()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 5. Important Life Events, History & Family */}
+              <div className="p-4 sm:p-5 rounded-3xl bg-card border border-border space-y-3.5 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-purple-500" />
+                    <span>Life Events & Family History</span>
+                  </h3>
+                  <Link href="/people" className="text-emerald-600 hover:underline text-[10px] font-bold">
+                    People Directory
+                  </Link>
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  <div className="p-2.5 rounded-xl bg-secondary/50 border border-border space-y-1">
+                    <p className="font-bold text-foreground">Family Circle</p>
+                    <p className="text-muted-foreground text-xs">
+                      Family records and trusted relations registered across the Life platform.
+                    </p>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-secondary/50 border border-border space-y-1">
+                    <p className="font-bold text-foreground">Important Relationships</p>
+                    <p className="text-muted-foreground text-xs">
+                      Key advisors, legal counsel, and business partners designated for continuity.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 6. Emergency Readiness & Safety */}
+              <div className="p-4 sm:p-5 rounded-3xl bg-card border border-border space-y-3.5 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Emergency Safety & Continuity</span>
+                  </h3>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20">
+                    Priority {person.emergencyPriority || "Normal"}
+                  </span>
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  <p className="flex justify-between border-b border-border/50 pb-1.5">
+                    <span className="text-muted-foreground">Emergency Protocols:</span>
+                    <span className="font-semibold text-foreground">Active & Configured</span>
+                  </p>
+                  <p className="flex justify-between border-b border-border/50 pb-1.5">
+                    <span className="text-muted-foreground">Critical Instructions:</span>
+                    <span className="font-bold text-foreground">
+                      {personData.instructions?.filter((i: any) => i.priority === "critical" || i.isEmergency).length || 0} logged
+                    </span>
+                  </p>
+                  <p className="flex justify-between border-b border-border/50 pb-1.5">
+                    <span className="text-muted-foreground">Verified Emergency Contacts:</span>
+                    <span className="font-bold text-foreground">
+                      {personData.contacts?.filter((c: any) => c.category === "emergency" || c.whenToContact).length || 0} designated
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              {/* 7. Wasiyyah & Legacy */}
+              <div className="p-4 sm:p-5 rounded-3xl bg-card border border-border space-y-3.5 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <ScrollText className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Estate, Wasiyyah & Legacy</span>
+                  </h3>
+                  <Link href="/legacy" className="text-emerald-600 hover:underline text-[10px] font-bold">
+                    Open Wasiyyah Hub ({personData.messages?.length || 0})
+                  </Link>
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  <p className="text-muted-foreground">
+                    Confidential testamentary directives, final wishes, and time-locked beneficiary messages.
+                  </p>
+                  {personData.messages?.length === 0 ? (
+                    <p className="text-[11px] text-muted-foreground italic bg-secondary/50 p-2.5 rounded-xl border border-border">
+                      No legacy messages created yet. Draft Wasiyyah notes in Estate & Wasiyyah.
+                    </p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {personData.messages?.slice(0, 3).map((msg: any) => (
+                        <div
+                          key={msg._id}
+                          className="p-2 rounded-xl bg-secondary/50 border border-border flex items-center justify-between"
+                        >
+                          <span className="font-bold text-foreground truncate max-w-[200px]">{msg.title}</span>
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600">
+                            {msg.visibility || "Protected"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 8. Private Notes & Confidential Records */}
+              <div className="p-4 sm:p-5 rounded-3xl bg-card border border-border space-y-3.5 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <Lock className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Private Notes & Records</span>
+                  </h3>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary text-muted-foreground border border-border">
+                    Confidential
+                  </span>
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  {person.notes && (
+                    <div className="p-2.5 rounded-xl bg-secondary/50 border border-border space-y-1">
+                      <p className="font-bold text-foreground text-[11px]">Personal Profile Note</p>
+                      <p className="text-muted-foreground text-xs">{person.notes}</p>
+                    </div>
+                  )}
+                  {person.generalNotes && (
+                    <div className="p-2.5 rounded-xl bg-secondary/50 border border-border space-y-1">
+                      <p className="font-bold text-foreground text-[11px]">General Directive</p>
+                      <p className="text-muted-foreground text-xs">{person.generalNotes}</p>
+                    </div>
+                  )}
+                  {!person.notes && !person.generalNotes && (
+                    <p className="text-[11px] text-muted-foreground italic bg-secondary/50 p-3 rounded-xl border border-border">
+                      No private notes recorded. Use Private Information to document confidential accounts or instructions.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        )}
 
         {/* ============================================================ */}
         {/* TAB 1: OVERVIEW                                              */}

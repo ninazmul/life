@@ -11,6 +11,7 @@ import LifeInformation from "@/lib/database/models/lifeInformation.model";
 import LifeInstruction from "@/lib/database/models/lifeInstruction.model";
 import LifeResponsibility from "@/lib/database/models/lifeResponsibility.model";
 import LifeLegacyMessage from "@/lib/database/models/lifeLegacyMessage.model";
+import LifeAsset from "@/lib/database/models/lifeAsset.model";
 import Admin from "@/lib/database/models/admin.model";
 import { getLifeAuthContext, logLifeActivity, DEFAULT_OWNER_PERMS } from "@/lib/life/auth";
 import { ILifePerson, PersonStatus, LifeRole, AccountStatus } from "@/types";
@@ -66,26 +67,44 @@ export async function getPersonById(id: string) {
     }
   }
 
-  const person = await LifePerson.findById(id).lean();
+  const person = (await LifePerson.findById(id).lean()) as any;
   if (!person) return null;
 
-  // Fetch related records linked strictly to this person
-  const [financialCare, moneyRecords, documents, contacts, notes, instructions, responsibilities, messages] =
+  const isOwnerOrSuper = person.role === "owner" || person.role === "super_admin";
+  const canViewOwnerDetails = auth.isOwner || auth.isAdmin;
+
+  // Fetch related records linked strictly to this person (or comprehensive owner records if viewing owner)
+  const [financialCare, moneyRecords, documents, contacts, notes, instructions, responsibilities, messages, assets] =
     await Promise.all([
-      LifeFinancialSupport.find({ recipientPersonId: id }).sort({ givenDate: -1 }).lean(),
-      LifeMoneyRecord.find({ personId: id }).sort({ date: -1 }).lean(),
-      LifeDocument.find({
-        $or: [{ relatedPersonId: id }, { assignedToPersonIds: id }],
-      }).lean(),
-      LifeContact.find({ relatedPersonId: id }).lean(),
-      LifeInformation.find({ relatedPersonId: id }).lean(),
-      LifeInstruction.find({
-        $or: [{ assignedPersonId: id }, { backupPersonId: id }],
-      }).lean(),
-      LifeResponsibility.find({
-        $or: [{ assignedPersonId: id }, { backupPersonId: id }],
-      }).lean(),
-      LifeLegacyMessage.find({ recipientPersonId: id }).lean(),
+      LifeFinancialSupport.find(isOwnerOrSuper && canViewOwnerDetails ? {} : { recipientPersonId: id }).sort({ givenDate: -1 }).lean(),
+      LifeMoneyRecord.find(isOwnerOrSuper && canViewOwnerDetails ? {} : { personId: id }).sort({ date: -1 }).lean(),
+      LifeDocument.find(
+        isOwnerOrSuper && canViewOwnerDetails
+          ? {}
+          : { $or: [{ relatedPersonId: id }, { assignedToPersonIds: id }] }
+      ).lean(),
+      LifeContact.find(isOwnerOrSuper && canViewOwnerDetails ? {} : { relatedPersonId: id }).lean(),
+      LifeInformation.find(
+        isOwnerOrSuper && canViewOwnerDetails
+          ? { $or: [{ relatedPersonId: id }, { category: { $in: ["personal", "emergency", "instruction"] } }] }
+          : { relatedPersonId: id }
+      ).lean(),
+      LifeInstruction.find(
+        isOwnerOrSuper && canViewOwnerDetails
+          ? {}
+          : { $or: [{ assignedPersonId: id }, { backupPersonId: id }] }
+      ).lean(),
+      LifeResponsibility.find(
+        isOwnerOrSuper && canViewOwnerDetails
+          ? {}
+          : { $or: [{ assignedPersonId: id }, { backupPersonId: id }] }
+      ).lean(),
+      (isOwnerOrSuper && canViewOwnerDetails)
+        ? LifeLegacyMessage.find().lean()
+        : LifeLegacyMessage.find({ recipientPersonId: id }).lean(),
+      (isOwnerOrSuper && canViewOwnerDetails)
+        ? LifeAsset.find({ status: { $ne: "disposed" } }).lean()
+        : LifeAsset.find({ relatedPersonId: id }).lean(),
     ]);
 
   // If caller is an individual, filter unreleased legacy messages
@@ -103,6 +122,7 @@ export async function getPersonById(id: string) {
     instructions: JSON.parse(JSON.stringify(instructions)),
     responsibilities: JSON.parse(JSON.stringify(responsibilities)),
     messages: JSON.parse(JSON.stringify(filteredMessages)),
+    assets: JSON.parse(JSON.stringify(assets || [])),
   };
 }
 
