@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect, useRef, useMemo } from "react";
 import {
   TrendingUp,
   TrendingDown,
@@ -22,9 +22,17 @@ import {
   CheckCircle2,
   AlertCircle,
   X,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Loader2,
+  Sparkles,
+  SlidersHorizontal,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   IGesnReportsData,
   IGesnTransactionItem,
@@ -49,6 +57,8 @@ const PERIOD_OPTIONS = [
   { label: "All Time", value: "all" },
 ];
 
+const PAGE_SIZE_OPTIONS = [10, 15, 25, 50];
+
 export function GesnTransactionsView({
   initialData,
   initialError,
@@ -61,6 +71,14 @@ export function GesnTransactionsView({
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [showMonthlyBreakdown, setShowMonthlyBreakdown] = useState<boolean>(false);
   const [isPending, startTransition] = useTransition();
+
+  // Pagination & Lazy Loading States
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(15);
+  const [viewMode, setViewMode] = useState<"paginated" | "infinite">("paginated");
+  const [visibleCount, setVisibleCount] = useState<number>(15);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+  const loadMoreSentinelRef = useRef<HTMLDivElement | null>(null);
 
   const handlePeriodChange = (period: string) => {
     setActivePeriod(period);
@@ -102,62 +120,133 @@ export function GesnTransactionsView({
   };
 
   // Merge Income & Expenses into a unified transaction list with type tags
-  const allTransactions: Array<IGesnTransactionItem & { transType: "income" | "expense" }> = [];
-  if (data?.income?.items) {
-    data.income.items.forEach((item) => {
-      allTransactions.push({ ...item, transType: "income" });
-    });
-  }
-  if (data?.expenses?.items) {
-    data.expenses.items.forEach((item) => {
-      allTransactions.push({ ...item, transType: "expense" });
-    });
-  }
+  const allTransactions: Array<IGesnTransactionItem & { transType: "income" | "expense" }> = useMemo(() => {
+    const list: Array<IGesnTransactionItem & { transType: "income" | "expense" }> = [];
+    if (data?.income?.items) {
+      data.income.items.forEach((item) => {
+        list.push({ ...item, transType: "income" });
+      });
+    }
+    if (data?.expenses?.items) {
+      data.expenses.items.forEach((item) => {
+        list.push({ ...item, transType: "expense" });
+      });
+    }
 
-  // Sort descending by date
-  allTransactions.sort((a, b) => {
-    const dateA = new Date(a.date || a.createdAt || 0).getTime();
-    const dateB = new Date(b.date || b.createdAt || 0).getTime();
-    return dateB - dateA;
-  });
+    // Sort descending by date
+    list.sort((a, b) => {
+      const dateA = new Date(a.date || a.createdAt || 0).getTime();
+      const dateB = new Date(b.date || b.createdAt || 0).getTime();
+      return dateB - dateA;
+    });
+
+    return list;
+  }, [data]);
 
   // Filter transactions
-  const filteredTransactions = allTransactions.filter((tx) => {
-    // Type filter
-    if (transactionTypeFilter !== "all" && tx.transType !== transactionTypeFilter) {
-      return false;
-    }
-    // Category filter
-    if (selectedCategory !== "all") {
-      const catId = tx.category?._id || "";
-      const catName = tx.category?.name?.toLowerCase() || "";
-      if (catId !== selectedCategory && catName !== selectedCategory.toLowerCase()) {
+  const filteredTransactions = useMemo(() => {
+    return allTransactions.filter((tx) => {
+      // Type filter
+      if (transactionTypeFilter !== "all" && tx.transType !== transactionTypeFilter) {
         return false;
       }
-    }
-    // Search query
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      const desc = (tx.description || "").toLowerCase();
-      const cat = (tx.category?.name || "").toLowerCase();
-      const ref = (tx.referenceNumber || "").toLowerCase();
-      const pay = (tx.paymentMethod || "").toLowerCase();
-      const owner = (tx.owner || "").toLowerCase();
-      const amt = String(tx.amount);
+      // Category filter
+      if (selectedCategory !== "all") {
+        const catId = tx.category?._id || "";
+        const catName = tx.category?.name?.toLowerCase() || "";
+        if (catId !== selectedCategory && catName !== selectedCategory.toLowerCase()) {
+          return false;
+        }
+      }
+      // Search query
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const desc = (tx.description || "").toLowerCase();
+        const cat = (tx.category?.name || "").toLowerCase();
+        const ref = (tx.referenceNumber || "").toLowerCase();
+        const pay = (tx.paymentMethod || "").toLowerCase();
+        const owner = (tx.owner || "").toLowerCase();
+        const amt = String(tx.amount);
 
-      return (
-        desc.includes(q) ||
-        cat.includes(q) ||
-        ref.includes(q) ||
-        pay.includes(q) ||
-        owner.includes(q) ||
-        amt.includes(q)
-      );
-    }
-    return true;
-  });
+        return (
+          desc.includes(q) ||
+          cat.includes(q) ||
+          ref.includes(q) ||
+          pay.includes(q) ||
+          owner.includes(q) ||
+          amt.includes(q)
+        );
+      }
+      return true;
+    });
+  }, [allTransactions, transactionTypeFilter, selectedCategory, searchQuery]);
 
-  // Unique categories from the response
+  // Reset pagination when filters, search, period, or page size change
+  useEffect(() => {
+    setCurrentPage(1);
+    setVisibleCount(pageSize);
+  }, [searchQuery, transactionTypeFilter, selectedCategory, activePeriod, pageSize]);
+
+  // IntersectionObserver for lazy loading in infinite scroll mode
+  useEffect(() => {
+    if (viewMode !== "infinite") return;
+    if (visibleCount >= filteredTransactions.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first.isIntersecting && !isLoadingMore) {
+          setIsLoadingMore(true);
+          setTimeout(() => {
+            setVisibleCount((prev) => Math.min(prev + pageSize, filteredTransactions.length));
+            setIsLoadingMore(false);
+          }, 200);
+        }
+      },
+      { threshold: 0.1, rootMargin: "100px" }
+    );
+
+    const sentinel = loadMoreSentinelRef.current;
+    if (sentinel) observer.observe(sentinel);
+
+    return () => {
+      if (sentinel) observer.unobserve(sentinel);
+    };
+  }, [viewMode, visibleCount, filteredTransactions.length, pageSize, isLoadingMore]);
+
+  // Pagination calculations
+  const totalPages = Math.max(1, Math.ceil(filteredTransactions.length / pageSize));
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, filteredTransactions.length);
+
+  // Transactions displayed in current mode
+  const displayedTransactions = useMemo(() => {
+    if (viewMode === "paginated") {
+      return filteredTransactions.slice(startIndex, endIndex);
+    } else {
+      return filteredTransactions.slice(0, visibleCount);
+    }
+  }, [viewMode, filteredTransactions, startIndex, endIndex, visibleCount]);
+
+  // Dynamic pagination pages calculation (e.g., 1, 2, 3 ... 8)
+  const paginationPages = useMemo(() => {
+    const pages: (number | string)[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (currentPage > 3) pages.push("...");
+
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+      for (let i = start; i <= end; i++) pages.push(i);
+
+      if (currentPage < totalPages - 2) pages.push("...");
+      pages.push(totalPages);
+    }
+    return pages;
+  }, [totalPages, currentPage]);
+
   const categoriesList: IGesnCategorySummary[] = data?.categories || [];
 
   const summary = data?.summary || {
@@ -508,9 +597,9 @@ export function GesnTransactionsView({
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setSelectedCategory("all")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors border ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all border flex items-center gap-1.5 ${
                 selectedCategory === "all"
-                  ? "bg-foreground text-background border-foreground font-semibold"
+                  ? "bg-emerald-600 text-white border-emerald-600 font-semibold shadow-sm"
                   : "bg-card text-muted-foreground border-border hover:bg-muted"
               }`}
             >
@@ -561,75 +650,173 @@ export function GesnTransactionsView({
       {/* Transactions Section */}
       <div className="space-y-4 pt-2">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-lg font-extrabold text-foreground flex items-center gap-2">
               <Layers className="w-4 h-4 text-emerald-600" />
               Live Accounting Transactions
             </h3>
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium border border-border">
-              {filteredTransactions.length} of {allTransactions.length} records
+              {filteredTransactions.length} total
             </span>
           </div>
 
-          {/* Type Filter Buttons */}
-          <div className="flex items-center gap-1.5 self-start sm:self-auto">
-            <button
-              onClick={() => setTransactionTypeFilter("all")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors border ${
-                transactionTypeFilter === "all"
-                  ? "bg-foreground text-background border-foreground font-semibold"
-                  : "bg-card text-muted-foreground border-border hover:bg-muted"
-              }`}
-            >
-              All Types
-            </button>
-            <button
-              onClick={() => setTransactionTypeFilter("income")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors border ${
-                transactionTypeFilter === "income"
-                  ? "bg-emerald-600 text-white border-emerald-600 font-semibold shadow-sm"
-                  : "bg-card text-emerald-600 dark:text-emerald-400 border-border hover:bg-muted"
-              }`}
-            >
-              <ArrowDownLeft className="w-3.5 h-3.5" />
-              Income ({data?.income?.count || 0})
-            </button>
-            <button
-              onClick={() => setTransactionTypeFilter("expense")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors border ${
-                transactionTypeFilter === "expense"
-                  ? "bg-rose-600 text-white border-rose-600 font-semibold shadow-sm"
-                  : "bg-card text-rose-600 dark:text-rose-400 border-border hover:bg-muted"
-              }`}
-            >
-              <ArrowUpRight className="w-3.5 h-3.5" />
-              Expenses ({data?.expenses?.count || 0})
-            </button>
+          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+            {/* View Mode Switcher (Pagination vs Infinite Lazy Scroll) */}
+            <div className="flex items-center bg-card border border-border rounded-xl p-0.5 text-xs">
+              <button
+                onClick={() => setViewMode("paginated")}
+                className={`px-2.5 py-1 rounded-lg font-semibold transition-all ${
+                  viewMode === "paginated"
+                    ? "bg-emerald-600 text-white shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Pages
+              </button>
+              <button
+                onClick={() => setViewMode("infinite")}
+                className={`px-2.5 py-1 rounded-lg font-semibold transition-all ${
+                  viewMode === "infinite"
+                    ? "bg-emerald-600 text-white shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Lazy Scroll
+              </button>
+            </div>
+
+            {/* Type Filter Buttons */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setTransactionTypeFilter("all")}
+                className={`px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all border ${
+                  transactionTypeFilter === "all"
+                    ? "bg-emerald-600 text-white border-emerald-600 font-semibold shadow-sm"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted"
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setTransactionTypeFilter("income")}
+                className={`px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1 transition-colors border ${
+                  transactionTypeFilter === "income"
+                    ? "bg-emerald-600 text-white border-emerald-600 font-semibold shadow-sm"
+                    : "bg-card text-emerald-600 dark:text-emerald-400 border-border hover:bg-muted"
+                }`}
+              >
+                <ArrowDownLeft className="w-3 h-3" />
+                Income ({data?.income?.count || 0})
+              </button>
+              <button
+                onClick={() => setTransactionTypeFilter("expense")}
+                className={`px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1 transition-colors border ${
+                  transactionTypeFilter === "expense"
+                    ? "bg-rose-600 text-white border-rose-600 font-semibold shadow-sm"
+                    : "bg-card text-rose-600 dark:text-rose-400 border-border hover:bg-muted"
+                }`}
+              >
+                <ArrowUpRight className="w-3 h-3" />
+                Expenses ({data?.expenses?.count || 0})
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Search Input */}
-        <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search transactions by description, category, payment method, reference, owner..."
-            className="pl-9 rounded-xl bg-card"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
+        {/* Search & Page Size Filter Bar */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search transactions by description, category, payment method, reference, owner..."
+              className="pl-9 rounded-xl bg-card"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Page Size Selector */}
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground self-end sm:self-auto">
+            <span className="hidden sm:inline">Per page:</span>
+            {PAGE_SIZE_OPTIONS.map((sz) => (
+              <button
+                key={sz}
+                onClick={() => {
+                  setPageSize(sz);
+                  setCurrentPage(1);
+                  setVisibleCount(sz);
+                }}
+                className={`px-2.5 py-1.5 rounded-xl border text-xs font-medium transition-all ${
+                  pageSize === sz
+                    ? "bg-emerald-600 text-white border-emerald-600 font-bold shadow-sm"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted"
+                }`}
+              >
+                {sz}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {/* Range Information */}
+        {filteredTransactions.length > 0 && (
+          <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
+            <span>
+              {viewMode === "paginated" ? (
+                <>
+                  Showing <strong className="text-foreground">{startIndex + 1}</strong> to{" "}
+                  <strong className="text-foreground">{endIndex}</strong> of{" "}
+                  <strong className="text-foreground">{filteredTransactions.length}</strong> transactions
+                </>
+              ) : (
+                <>
+                  Showing <strong className="text-foreground">{displayedTransactions.length}</strong> of{" "}
+                  <strong className="text-foreground">{filteredTransactions.length}</strong> loaded
+                </>
+              )}
+            </span>
+
+            {viewMode === "paginated" && totalPages > 1 && (
+              <span>
+                Page <strong className="text-foreground">{currentPage}</strong> of{" "}
+                <strong className="text-foreground">{totalPages}</strong>
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Transactions List */}
         <div className="space-y-2.5">
-          {filteredTransactions.length === 0 ? (
+          {isPending ? (
+            /* Loading Skeleton Rows */
+            Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="p-4 rounded-2xl border border-border bg-card/60 animate-pulse flex items-center justify-between gap-4"
+              >
+                <div className="flex items-center gap-3">
+                  <Skeleton className="w-9 h-9 rounded-xl flex-shrink-0" />
+                  <div className="space-y-2">
+                    <Skeleton className="w-24 h-4 rounded-full" />
+                    <Skeleton className="w-44 h-4 rounded" />
+                    <Skeleton className="w-20 h-3 rounded" />
+                  </div>
+                </div>
+                <div className="space-y-1 text-right">
+                  <Skeleton className="w-20 h-6 rounded ml-auto" />
+                  <Skeleton className="w-14 h-3 rounded ml-auto" />
+                </div>
+              </div>
+            ))
+          ) : filteredTransactions.length === 0 ? (
             <div className="p-10 text-center rounded-2xl border border-dashed border-border bg-card">
               <Receipt className="w-10 h-10 mx-auto text-muted-foreground/40 mb-2" />
               <p className="text-sm font-semibold text-foreground">
@@ -654,7 +841,7 @@ export function GesnTransactionsView({
               )}
             </div>
           ) : (
-            filteredTransactions.map((tx) => {
+            displayedTransactions.map((tx) => {
               const isIncome = tx.transType === "income";
               const formattedDate = tx.date
                 ? new Date(tx.date).toLocaleDateString("en-US", {
@@ -763,6 +950,140 @@ export function GesnTransactionsView({
             })
           )}
         </div>
+
+        {/* PAGINATION CONTROLS (When in paginated viewMode) */}
+        {viewMode === "paginated" && totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 border-t border-border">
+            <div className="text-xs text-muted-foreground">
+              Showing {startIndex + 1}–{endIndex} of {filteredTransactions.length} transactions
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              {/* First Page */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0 rounded-xl"
+                title="First Page"
+              >
+                <ChevronsLeft className="w-4 h-4" />
+              </Button>
+
+              {/* Prev Page */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="h-8 px-2.5 rounded-xl text-xs"
+              >
+                <ChevronLeft className="w-3.5 h-3.5 mr-1" />
+                Prev
+              </Button>
+
+              {/* Page Numbers */}
+              <div className="flex items-center gap-1">
+                {paginationPages.map((pageItem, idx) => {
+                  if (pageItem === "...") {
+                    return (
+                      <span
+                        key={`ellipsis-${idx}`}
+                        className="px-2 text-xs text-muted-foreground"
+                      >
+                        ...
+                      </span>
+                    );
+                  }
+                  const pageNum = Number(pageItem);
+                  const isCurrent = pageNum === currentPage;
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`h-8 w-8 rounded-xl text-xs font-semibold transition-all border ${
+                        isCurrent
+                          ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                          : "bg-card text-muted-foreground border-border hover:bg-muted"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Next Page */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="h-8 px-2.5 rounded-xl text-xs"
+              >
+                Next
+                <ChevronRight className="w-3.5 h-3.5 ml-1" />
+              </Button>
+
+              {/* Last Page */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0 rounded-xl"
+                title="Last Page"
+              >
+                <ChevronsRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* INFINITE SCROLL / LAZY LOAD SENTINEL & LOAD MORE BUTTON */}
+        {viewMode === "infinite" && filteredTransactions.length > 0 && (
+          <div className="pt-2 text-center">
+            {visibleCount < filteredTransactions.length ? (
+              <div className="space-y-3">
+                {/* Sentinel for IntersectionObserver */}
+                <div ref={loadMoreSentinelRef} className="h-6 w-full" />
+
+                {isLoadingMore ? (
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-muted text-muted-foreground border border-border">
+                    <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+                    Lazy loading more transactions...
+                  </div>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      setVisibleCount((prev) =>
+                        Math.min(prev + pageSize, filteredTransactions.length)
+                      )
+                    }
+                    className="rounded-xl text-xs border-border hover:bg-card shadow-sm"
+                  >
+                    Load More Transactions (+{pageSize})
+                  </Button>
+                )}
+
+                <div className="w-full max-w-xs mx-auto bg-muted rounded-full h-1 overflow-hidden">
+                  <div
+                    className="bg-emerald-600 h-full rounded-full transition-all"
+                    style={{
+                      width: `${(displayedTransactions.length / filteredTransactions.length) * 100}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground py-2 border-t border-border">
+                All {filteredTransactions.length} transactions loaded
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

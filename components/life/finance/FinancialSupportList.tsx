@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
   Wallet,
@@ -35,9 +36,18 @@ import {
   FinancialSupportType,
 } from "@/types";
 import { createFinancialSupport } from "@/lib/actions/lifeFinancialSupport.actions";
-import { GesnTransactionsView } from "./GesnTransactionsView";
+import { GesnTransactionsSkeleton } from "./GesnTransactionsSkeleton";
 import { IGesnReportsData } from "@/types/gesnReports";
 import toast from "react-hot-toast";
+
+const GesnTransactionsView = dynamic(
+  () => import("./GesnTransactionsView").then((mod) => mod.GesnTransactionsView),
+  {
+    loading: () => <GesnTransactionsSkeleton />,
+    ssr: true,
+  }
+);
+
 
 interface FinancialSupportListProps {
   records: ILifeFinancialSupport[];
@@ -66,8 +76,15 @@ export function FinancialSupportList({
   const [mainView, setMainView] = useState<"acc_transactions" | "personal_support">("acc_transactions");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
+  const [personalPage, setPersonalPage] = useState<number>(1);
+  const personalPageSize = 10;
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    setPersonalPage(1);
+  }, [searchQuery, filterType]);
+
 
 
   // Form State
@@ -341,101 +358,145 @@ export function FinancialSupportList({
                 <p className="text-sm text-muted-foreground">No financial support records found.</p>
               </div>
             ) : (
-              filteredRecords.map((r) => {
-                const recipient = r.recipientPersonId as any;
-                const business = r.relatedBusinessId as any;
+              (() => {
+                const totalPersonalPages = Math.max(1, Math.ceil(filteredRecords.length / personalPageSize));
+                const personalStartIndex = (personalPage - 1) * personalPageSize;
+                const personalEndIndex = Math.min(personalStartIndex + personalPageSize, filteredRecords.length);
+                const pagedRecords = filteredRecords.slice(personalStartIndex, personalEndIndex);
 
                 return (
-                  <Link
-                    key={r._id}
-                    href={`/finance/${r._id}`}
-                    className="block p-4 sm:p-5 rounded-2xl border border-border bg-card hover:border-emerald-500/40 transition-all shadow-sm group"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div className="space-y-1.5 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-bold uppercase">
-                            {r.supportType.replace("_", " ")}
-                          </span>
+                  <>
+                    {pagedRecords.map((r) => {
+                      const recipient = r.recipientPersonId as any;
+                      const business = r.relatedBusinessId as any;
 
-                          <span
-                            className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
-                              r.status === "fully_repaid" || r.status === "closed"
-                                ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
-                                : r.status === "overdue"
-                                ? "bg-red-500/10 text-red-600 border border-red-500/20"
-                                : r.status === "converted_to_gift" || r.status === "gift"
-                                ? "bg-purple-500/10 text-purple-600 border border-purple-500/20"
-                                : "bg-blue-500/10 text-blue-600 border border-blue-500/20"
-                            }`}
+                      return (
+                        <Link
+                          key={r._id}
+                          href={`/finance/${r._id}`}
+                          className="block p-4 sm:p-5 rounded-2xl border border-border bg-card hover:border-emerald-500/40 transition-all shadow-sm group"
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="space-y-1.5 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-bold uppercase">
+                                  {r.supportType.replace("_", " ")}
+                                </span>
+
+                                <span
+                                  className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
+                                    r.status === "fully_repaid" || r.status === "closed"
+                                      ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                                      : r.status === "overdue"
+                                      ? "bg-red-500/10 text-red-600 border border-red-500/20"
+                                      : r.status === "converted_to_gift" || r.status === "gift"
+                                      ? "bg-purple-500/10 text-purple-600 border border-purple-500/20"
+                                      : "bg-blue-500/10 text-blue-600 border border-blue-500/20"
+                                  }`}
+                                >
+                                  {r.status.replace("_", " ")}
+                                </span>
+
+                                {r.visibilityMode && r.visibilityMode !== "available_now" && (
+                                  <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 border border-purple-500/20 font-medium">
+                                    {r.visibilityMode}
+                                  </span>
+                                )}
+                              </div>
+
+                              <h3 className="text-base font-bold text-foreground truncate group-hover:text-emerald-600 transition-colors">
+                                {r.title}
+                              </h3>
+
+                              <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1 font-medium text-foreground">
+                                  <User className="w-3.5 h-3.5 text-emerald-500" />
+                                  {recipient?.name || "Recipient"} {recipient?.relation ? `(${recipient.relation})` : ""}
+                                </span>
+
+                                {business && (
+                                  <span className="flex items-center gap-1">
+                                    <Building2 className="w-3.5 h-3.5" />
+                                    {business.name}
+                                  </span>
+                                )}
+
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-3.5 h-3.5" />
+                                  {new Date(r.givenDate).toLocaleDateString()}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Financial Values */}
+                            <div className="flex items-center justify-between sm:justify-end gap-6 pt-2 sm:pt-0 border-t sm:border-0 border-border">
+                              <div className="text-left sm:text-right">
+                                <p className="text-xs text-muted-foreground">Total Support</p>
+                                <p className="text-base font-extrabold text-foreground">
+                                  {r.currency} {r.totalAmount.toLocaleString()}
+                                </p>
+                              </div>
+
+                              {r.repayableOrNot && r.status !== "converted_to_gift" && r.status !== "gift" ? (
+                                <div className="text-right">
+                                  <p className="text-xs text-muted-foreground">Remaining</p>
+                                  <p className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">
+                                    {r.currency} {r.remainingBalance.toLocaleString()}
+                                  </p>
+                                </div>
+                              ) : (
+                                <div className="text-right">
+                                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-purple-600 bg-purple-500/10 px-2 py-1 rounded-lg">
+                                    <Gift className="w-3.5 h-3.5" /> Non-Repayable
+                                  </span>
+                                </div>
+                              )}
+
+                              <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })}
+
+                    {totalPersonalPages > 1 && (
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-border text-xs text-muted-foreground">
+                        <span>
+                          Showing {personalStartIndex + 1}–{personalEndIndex} of {filteredRecords.length} records
+                        </span>
+
+                        <div className="flex items-center gap-1.5">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setPersonalPage((p) => Math.max(1, p - 1))}
+                            disabled={personalPage === 1}
+                            className="h-8 px-2.5 rounded-xl text-xs"
                           >
-                            {r.status.replace("_", " ")}
+                            Prev
+                          </Button>
+                          <span className="px-2 font-medium text-foreground">
+                            Page {personalPage} of {totalPersonalPages}
                           </span>
-
-                          {r.visibilityMode && r.visibilityMode !== "available_now" && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 border border-purple-500/20 font-medium">
-                              {r.visibilityMode}
-                            </span>
-                          )}
-                        </div>
-
-                        <h3 className="text-base font-bold text-foreground truncate group-hover:text-emerald-600 transition-colors">
-                          {r.title}
-                        </h3>
-
-                        <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1 font-medium text-foreground">
-                            <User className="w-3.5 h-3.5 text-emerald-500" />
-                            {recipient?.name || "Recipient"} {recipient?.relation ? `(${recipient.relation})` : ""}
-                          </span>
-
-                          {business && (
-                            <span className="flex items-center gap-1">
-                              <Building2 className="w-3.5 h-3.5" />
-                              {business.name}
-                            </span>
-                          )}
-
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5" />
-                            {new Date(r.givenDate).toLocaleDateString()}
-                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setPersonalPage((p) => Math.min(totalPersonalPages, p + 1))}
+                            disabled={personalPage === totalPersonalPages}
+                            className="h-8 px-2.5 rounded-xl text-xs"
+                          >
+                            Next
+                          </Button>
                         </div>
                       </div>
-
-                      {/* Financial Values */}
-                      <div className="flex items-center justify-between sm:justify-end gap-6 pt-2 sm:pt-0 border-t sm:border-0 border-border">
-                        <div className="text-left sm:text-right">
-                          <p className="text-xs text-muted-foreground">Total Support</p>
-                          <p className="text-base font-extrabold text-foreground">
-                            {r.currency} {r.totalAmount.toLocaleString()}
-                          </p>
-                        </div>
-
-                        {r.repayableOrNot && r.status !== "converted_to_gift" && r.status !== "gift" ? (
-                          <div className="text-right">
-                            <p className="text-xs text-muted-foreground">Remaining</p>
-                            <p className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">
-                              {r.currency} {r.remainingBalance.toLocaleString()}
-                            </p>
-                          </div>
-                        ) : (
-                          <div className="text-right">
-                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-purple-600 bg-purple-500/10 px-2 py-1 rounded-lg">
-                              <Gift className="w-3.5 h-3.5" /> Non-Repayable
-                            </span>
-                          </div>
-                        )}
-
-                        <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
-                      </div>
-                    </div>
-                  </Link>
+                    )}
+                  </>
                 );
-              })
+              })()
             )}
           </div>
         </>
+
       )}
 
 
