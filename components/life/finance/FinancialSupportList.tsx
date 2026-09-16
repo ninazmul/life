@@ -35,6 +35,8 @@ import {
   FinancialSupportType,
 } from "@/types";
 import { createFinancialSupport } from "@/lib/actions/lifeFinancialSupport.actions";
+import { GesnTransactionsView } from "./GesnTransactionsView";
+import { IGesnReportsData } from "@/types/gesnReports";
 import toast from "react-hot-toast";
 
 interface FinancialSupportListProps {
@@ -45,6 +47,8 @@ interface FinancialSupportListProps {
   userSummary?: any;
   isOwner?: boolean;
   isAdmin?: boolean;
+  initialGesnReports?: IGesnReportsData | null;
+  initialGesnError?: string | null;
 }
 
 export function FinancialSupportList({
@@ -55,12 +59,16 @@ export function FinancialSupportList({
   userSummary,
   isOwner = false,
   isAdmin = false,
+  initialGesnReports = null,
+  initialGesnError = null,
 }: FinancialSupportListProps) {
   const [records, setRecords] = useState(initialRecords);
+  const [mainView, setMainView] = useState<"acc_transactions" | "personal_support">("acc_transactions");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
 
   // Form State
   const [formData, setFormData] = useState({
@@ -170,7 +178,10 @@ export function FinancialSupportList({
 
         {(isOwner || isAdmin) && (
           <Button
-            onClick={() => setAddModalOpen(true)}
+            onClick={() => {
+              setMainView("personal_support");
+              setAddModalOpen(true);
+            }}
             className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -179,207 +190,254 @@ export function FinancialSupportList({
         )}
       </div>
 
-      {/* Summary Cards: Currency-separated for Owner (§17) or User Dashboard (§16) */}
-      {isOwner && ownerDashboard?.currencyMap ? (
-        <div className="space-y-3">
-          <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Currency Portfolios (Distinct Totals)
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {Object.entries(ownerDashboard.currencyMap).map(([cur, val]: [string, any]) => (
-              <div
-                key={cur}
-                className="p-4 rounded-2xl border border-border bg-card shadow-sm space-y-2 relative overflow-hidden"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-                    {cur}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    Repaid: {cur} {val.totalRepaid.toLocaleString()}
-                  </span>
-                </div>
+      {/* Main View Switcher Tabs */}
+      <div className="flex border-b border-border gap-2 overflow-x-auto scrollbar-none">
+        <button
+          onClick={() => setMainView("acc_transactions")}
+          className={`pb-3 px-3 sm:px-4 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all whitespace-nowrap ${
+            mainView === "acc_transactions"
+              ? "border-emerald-600 text-emerald-600 dark:text-emerald-400"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Building2 className="w-4 h-4" />
+          <span>ACC.GESN.NET Live Accounting</span>
+          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Live Sync
+          </span>
+        </button>
 
-                <div>
-                  <p className="text-xs text-muted-foreground">Total Given</p>
-                  <p className="text-xl font-extrabold text-foreground">
-                    {cur} {val.totalGiven.toLocaleString()}
-                  </p>
-                </div>
-
-                <div className="pt-2 border-t border-border flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">Remaining:</span>
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                    {cur} {val.remaining.toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : userSummary ? (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="p-4 rounded-2xl border border-border bg-card">
-            <p className="text-xs text-muted-foreground">Total Support Received</p>
-            <p className="text-xl font-extrabold text-foreground mt-1">
-              {userSummary.currency} {userSummary.totalReceived.toLocaleString()}
-            </p>
-          </div>
-
-          <div className="p-4 rounded-2xl border border-border bg-card">
-            <p className="text-xs text-muted-foreground">Repayable Support</p>
-            <p className="text-xl font-extrabold text-blue-600 dark:text-blue-400 mt-1">
-              {userSummary.currency} {userSummary.repayableAmount.toLocaleString()}
-            </p>
-          </div>
-
-          <div className="p-4 rounded-2xl border border-border bg-card">
-            <p className="text-xs text-muted-foreground">Total Returned</p>
-            <p className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
-              {userSummary.currency} {userSummary.totalRepaid.toLocaleString()}
-            </p>
-          </div>
-
-          <div className="p-4 rounded-2xl border border-border bg-card">
-            <p className="text-xs text-muted-foreground">Remaining to Return</p>
-            <p className="text-xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">
-              {userSummary.currency} {userSummary.remainingBalance.toLocaleString()}
-            </p>
-          </div>
-        </div>
-      ) : null}
-
-      {/* Filters & Search */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search records or recipients..."
-            className="pl-9 rounded-xl"
-          />
-        </div>
-
-        <div className="flex gap-2">
-          {["all", "repayable", "gift", "overdue"].map((t) => (
-            <button
-              key={t}
-              onClick={() => setFilterType(t)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold capitalize transition-colors border ${
-                filterType === t
-                  ? "bg-emerald-600 text-white border-emerald-600"
-                  : "bg-card text-muted-foreground border-border hover:bg-muted"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
+        <button
+          onClick={() => setMainView("personal_support")}
+          className={`pb-3 px-3 sm:px-4 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all whitespace-nowrap ${
+            mainView === "personal_support"
+              ? "border-emerald-600 text-emerald-600 dark:text-emerald-400"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Wallet className="w-4 h-4" />
+          <span>Personal Support & Commitments</span>
+          {records.length > 0 && (
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-semibold border border-border">
+              {records.length}
+            </span>
+          )}
+        </button>
       </div>
 
-      {/* List */}
-      <div className="space-y-3">
-        {filteredRecords.length === 0 ? (
-          <div className="p-10 text-center rounded-2xl border border-dashed border-border bg-card">
-            <Wallet className="w-10 h-10 mx-auto text-muted-foreground/50 mb-2" />
-            <p className="text-sm text-muted-foreground">No financial support records found.</p>
-          </div>
-        ) : (
-          filteredRecords.map((r) => {
-            const recipient = r.recipientPersonId as any;
-            const business = r.relatedBusinessId as any;
-
-            return (
-              <Link
-                key={r._id}
-                href={`/finance/${r._id}`}
-                className="block p-4 sm:p-5 rounded-2xl border border-border bg-card hover:border-emerald-500/40 transition-all shadow-sm group"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="space-y-1.5 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-bold uppercase">
-                        {r.supportType.replace("_", " ")}
+      {/* View Content */}
+      {mainView === "acc_transactions" ? (
+        <GesnTransactionsView
+          initialData={initialGesnReports}
+          initialError={initialGesnError}
+        />
+      ) : (
+        <>
+          {/* Summary Cards: Currency-separated for Owner (§17) or User Dashboard (§16) */}
+          {isOwner && ownerDashboard?.currencyMap ? (
+            <div className="space-y-3">
+              <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Currency Portfolios (Distinct Totals)
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {Object.entries(ownerDashboard.currencyMap).map(([cur, val]: [string, any]) => (
+                  <div
+                    key={cur}
+                    className="p-4 rounded-2xl border border-border bg-card shadow-sm space-y-2 relative overflow-hidden"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                        {cur}
                       </span>
-
-                      <span
-                        className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
-                          r.status === "fully_repaid" || r.status === "closed"
-                            ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
-                            : r.status === "overdue"
-                            ? "bg-red-500/10 text-red-600 border border-red-500/20"
-                            : r.status === "converted_to_gift" || r.status === "gift"
-                            ? "bg-purple-500/10 text-purple-600 border border-purple-500/20"
-                            : "bg-blue-500/10 text-blue-600 border border-blue-500/20"
-                        }`}
-                      >
-                        {r.status.replace("_", " ")}
-                      </span>
-
-                      {r.visibilityMode && r.visibilityMode !== "available_now" && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 border border-purple-500/20 font-medium">
-                          {r.visibilityMode}
-                        </span>
-                      )}
-                    </div>
-
-                    <h3 className="text-base font-bold text-foreground truncate group-hover:text-emerald-600 transition-colors">
-                      {r.title}
-                    </h3>
-
-                    <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1 font-medium text-foreground">
-                        <User className="w-3.5 h-3.5 text-emerald-500" />
-                        {recipient?.name || "Recipient"} {recipient?.relation ? `(${recipient.relation})` : ""}
-                      </span>
-
-                      {business && (
-                        <span className="flex items-center gap-1">
-                          <Building2 className="w-3.5 h-3.5" />
-                          {business.name}
-                        </span>
-                      )}
-
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" />
-                        {new Date(r.givenDate).toLocaleDateString()}
+                      <span className="text-xs text-muted-foreground">
+                        Repaid: {cur} {val.totalRepaid.toLocaleString()}
                       </span>
                     </div>
-                  </div>
 
-                  {/* Financial Values */}
-                  <div className="flex items-center justify-between sm:justify-end gap-6 pt-2 sm:pt-0 border-t sm:border-0 border-border">
-                    <div className="text-left sm:text-right">
-                      <p className="text-xs text-muted-foreground">Total Support</p>
-                      <p className="text-base font-extrabold text-foreground">
-                        {r.currency} {r.totalAmount.toLocaleString()}
+                    <div>
+                      <p className="text-xs text-muted-foreground">Total Given</p>
+                      <p className="text-xl font-extrabold text-foreground">
+                        {cur} {val.totalGiven.toLocaleString()}
                       </p>
                     </div>
 
-                    {r.repayableOrNot && r.status !== "converted_to_gift" && r.status !== "gift" ? (
-                      <div className="text-right">
-                        <p className="text-xs text-muted-foreground">Remaining</p>
-                        <p className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">
-                          {r.currency} {r.remainingBalance.toLocaleString()}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="text-right">
-                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-purple-600 bg-purple-500/10 px-2 py-1 rounded-lg">
-                          <Gift className="w-3.5 h-3.5" /> Non-Repayable
-                        </span>
-                      </div>
-                    )}
-
-                    <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                    <div className="pt-2 border-t border-border flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Remaining:</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                        {cur} {val.remaining.toLocaleString()}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </Link>
-            );
-          })
-        )}
-      </div>
+                ))}
+              </div>
+            </div>
+          ) : userSummary ? (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="p-4 rounded-2xl border border-border bg-card">
+                <p className="text-xs text-muted-foreground">Total Support Received</p>
+                <p className="text-xl font-extrabold text-foreground mt-1">
+                  {userSummary.currency} {userSummary.totalReceived.toLocaleString()}
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl border border-border bg-card">
+                <p className="text-xs text-muted-foreground">Repayable Support</p>
+                <p className="text-xl font-extrabold text-blue-600 dark:text-blue-400 mt-1">
+                  {userSummary.currency} {userSummary.repayableAmount.toLocaleString()}
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl border border-border bg-card">
+                <p className="text-xs text-muted-foreground">Total Returned</p>
+                <p className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
+                  {userSummary.currency} {userSummary.totalRepaid.toLocaleString()}
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl border border-border bg-card">
+                <p className="text-xs text-muted-foreground">Remaining to Return</p>
+                <p className="text-xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">
+                  {userSummary.currency} {userSummary.remainingBalance.toLocaleString()}
+                </p>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Filters & Search */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search records or recipients..."
+                className="pl-9 rounded-xl"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              {["all", "repayable", "gift", "overdue"].map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setFilterType(t)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold capitalize transition-colors border ${
+                    filterType === t
+                      ? "bg-emerald-600 text-white border-emerald-600"
+                      : "bg-card text-muted-foreground border-border hover:bg-muted"
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* List */}
+          <div className="space-y-3">
+            {filteredRecords.length === 0 ? (
+              <div className="p-10 text-center rounded-2xl border border-dashed border-border bg-card">
+                <Wallet className="w-10 h-10 mx-auto text-muted-foreground/50 mb-2" />
+                <p className="text-sm text-muted-foreground">No financial support records found.</p>
+              </div>
+            ) : (
+              filteredRecords.map((r) => {
+                const recipient = r.recipientPersonId as any;
+                const business = r.relatedBusinessId as any;
+
+                return (
+                  <Link
+                    key={r._id}
+                    href={`/finance/${r._id}`}
+                    className="block p-4 sm:p-5 rounded-2xl border border-border bg-card hover:border-emerald-500/40 transition-all shadow-sm group"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="space-y-1.5 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-bold uppercase">
+                            {r.supportType.replace("_", " ")}
+                          </span>
+
+                          <span
+                            className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
+                              r.status === "fully_repaid" || r.status === "closed"
+                                ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                                : r.status === "overdue"
+                                ? "bg-red-500/10 text-red-600 border border-red-500/20"
+                                : r.status === "converted_to_gift" || r.status === "gift"
+                                ? "bg-purple-500/10 text-purple-600 border border-purple-500/20"
+                                : "bg-blue-500/10 text-blue-600 border border-blue-500/20"
+                            }`}
+                          >
+                            {r.status.replace("_", " ")}
+                          </span>
+
+                          {r.visibilityMode && r.visibilityMode !== "available_now" && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 border border-purple-500/20 font-medium">
+                              {r.visibilityMode}
+                            </span>
+                          )}
+                        </div>
+
+                        <h3 className="text-base font-bold text-foreground truncate group-hover:text-emerald-600 transition-colors">
+                          {r.title}
+                        </h3>
+
+                        <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1 font-medium text-foreground">
+                            <User className="w-3.5 h-3.5 text-emerald-500" />
+                            {recipient?.name || "Recipient"} {recipient?.relation ? `(${recipient.relation})` : ""}
+                          </span>
+
+                          {business && (
+                            <span className="flex items-center gap-1">
+                              <Building2 className="w-3.5 h-3.5" />
+                              {business.name}
+                            </span>
+                          )}
+
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5" />
+                            {new Date(r.givenDate).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Financial Values */}
+                      <div className="flex items-center justify-between sm:justify-end gap-6 pt-2 sm:pt-0 border-t sm:border-0 border-border">
+                        <div className="text-left sm:text-right">
+                          <p className="text-xs text-muted-foreground">Total Support</p>
+                          <p className="text-base font-extrabold text-foreground">
+                            {r.currency} {r.totalAmount.toLocaleString()}
+                          </p>
+                        </div>
+
+                        {r.repayableOrNot && r.status !== "converted_to_gift" && r.status !== "gift" ? (
+                          <div className="text-right">
+                            <p className="text-xs text-muted-foreground">Remaining</p>
+                            <p className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">
+                              {r.currency} {r.remainingBalance.toLocaleString()}
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="text-right">
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-purple-600 bg-purple-500/10 px-2 py-1 rounded-lg">
+                              <Gift className="w-3.5 h-3.5" /> Non-Repayable
+                            </span>
+                          </div>
+                        )}
+
+                        <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })
+            )}
+          </div>
+        </>
+      )}
+
 
       {/* Add Financial Record Modal */}
       <Dialog open={addModalOpen} onOpenChange={setAddModalOpen}>

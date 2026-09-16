@@ -5,6 +5,7 @@ import {
 } from "@/lib/actions/lifeFinancialSupport.actions";
 import { getPeople } from "@/lib/actions/lifePeople.actions";
 import { getBusinesses } from "@/lib/actions/lifeBusiness.actions";
+import { getGesnReports } from "@/lib/actions/gesnReports.actions";
 import { FinancialSupportList } from "@/components/life/finance/FinancialSupportList";
 import { requireModuleAccess } from "@/lib/life/module-access.server";
 
@@ -18,10 +19,11 @@ export const metadata = {
 export default async function FinancePage() {
   const authContext = await requireModuleAccess("/finance");
 
-  const [records, people, businesses] = await Promise.all([
+  const [records, people, businesses, gesnReportsRes] = await Promise.all([
     getFinancialSupports(),
     getPeople({ status: "active" }),
     getBusinesses(),
+    getGesnReports({ period: "thisMonth" }),
   ]);
 
   const isOwner = Boolean(authContext?.isOwner);
@@ -41,6 +43,9 @@ export default async function FinancePage() {
       userSummary={userSummary}
       isOwner={isOwner}
       isAdmin={isAdmin}
+      initialGesnReports={gesnReportsRes?.data || null}
+      initialGesnError={gesnReportsRes?.error || null}
     />
   );
 }
+

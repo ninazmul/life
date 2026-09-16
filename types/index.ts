@@ -986,3 +986,6 @@ export interface ILifeInstruction {
   createdAt: Date | string;
   updatedAt: Date | string;
 }
+
+export * from "./gesnReports";
+
