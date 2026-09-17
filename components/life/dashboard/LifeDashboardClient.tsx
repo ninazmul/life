@@ -316,19 +316,20 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                   : "Authorized Access Portal"}
               </span>
             </div>
-            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <h1 className="text-lg sm:text-2xl md:text-3xl font-bold sm:font-extrabold text-foreground tracking-tight truncate">
                 {isSuperUser ? "Life Command Center" : "Your Life Vault Portal"}
               </h1>
-              <span className="text-[11px] font-bold text-emerald-600 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 inline-flex items-center gap-1.5 translate-y-[-1px]">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Vault Armed &amp; Protected
+              <span className="text-[10px] sm:text-[11px] font-semibold sm:font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full border border-emerald-500/20 inline-flex items-center gap-1 sm:gap-1.5 shrink-0">
+                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <span className="hidden sm:inline">Vault Armed &amp; Protected</span>
+                <span className="sm:hidden">Vault Armed</span>
               </span>
             </div>
             <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               {isSuperUser
-                ? "Wealth, continuity, emergency & legacy — all in one secure place."
-                : "Your assigned modules, instructions & continuity protocols."}
+                ? "Secure wealth, legacy & continuity vault."
+                : "Assigned modules, instructions & protocols."}
             </p>
           </div>
 
@@ -348,10 +349,6 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               aria-label="Open My Life Profile"
               className="group relative overflow-hidden rounded-3xl border border-border bg-card p-4 sm:p-6 shadow-sm hover:shadow-md hover:border-emerald-500/40 transition-all cursor-pointer ring-1 ring-border/50"
             >
-              {/* Top subtle accent gradient */}
-              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 opacity-80" />
-
-              {/* Top Header Row (Matching Reference UI Style) */}
               <div className="flex items-start sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
                   {/* Mint Squircle Initial Avatar */}
@@ -502,9 +499,10 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                   </span>
                 </div>
               </div>
-
+            </div>
+            <div className="mt-2 md:mt-4 rounded-3xl border border-border bg-card p-4 sm:p-6 shadow-sm hover:shadow-md hover:border-emerald-500/40 transition-all cursor-pointer ring-1 ring-border/50">
               {/* Financial Overview - directly after profile stats like provided UI */}
-              <div className="mt-4 pt-3.5 border-t border-border/80">
+              <div>
                 <div className="flex items-center justify-between mb-2.5 px-0.5">
                   <div className="flex items-center gap-1.5">
                     <BarChart3 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -1041,33 +1039,30 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                 <button
                   type="button"
                   onClick={() => setFinanceTab("business")}
-                  className={`px-3 py-1 rounded-lg transition-all ${
-                    financeTab === "business"
-                      ? "bg-background text-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
+                  className={`px-3 py-1 rounded-lg transition-all ${financeTab === "business"
+                    ? "bg-background text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                    }`}
                 >
                   Accounting & Cash Flow
                 </button>
                 <button
                   type="button"
                   onClick={() => setFinanceTab("personal")}
-                  className={`px-3 py-1 rounded-lg transition-all ${
-                    financeTab === "personal"
-                      ? "bg-background text-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
+                  className={`px-3 py-1 rounded-lg transition-all ${financeTab === "personal"
+                    ? "bg-background text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                    }`}
                 >
                   Personal Care
                 </button>
                 <button
                   type="button"
                   onClick={() => setFinanceTab("combined")}
-                  className={`px-3 py-1 rounded-lg transition-all ${
-                    financeTab === "combined"
-                      ? "bg-background text-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
+                  className={`px-3 py-1 rounded-lg transition-all ${financeTab === "combined"
+                    ? "bg-background text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                    }`}
                 >
                   All
                 </button>
@@ -1115,11 +1110,10 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                       type="button"
                       onClick={() => handlePeriodChange(p.value)}
                       disabled={isPendingGesn}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all shrink-0 ${
-                        gesnPeriod === p.value
-                          ? "bg-emerald-600 text-white font-semibold shadow-xs"
-                          : "bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary"
-                      }`}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all shrink-0 ${gesnPeriod === p.value
+                        ? "bg-emerald-600 text-white font-semibold shadow-xs"
+                        : "bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary"
+                        }`}
                     >
                       {p.label}
                     </button>
@@ -1181,11 +1175,10 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                   </div>
                   <div className="my-1.5">
                     <span
-                      className={`text-xl sm:text-2xl font-extrabold font-mono ${
-                        (gesnData?.netProfit || 0) >= 0
-                          ? "text-emerald-700 dark:text-emerald-300"
-                          : "text-rose-600 dark:text-rose-400"
-                      }`}
+                      className={`text-xl sm:text-2xl font-extrabold font-mono ${(gesnData?.netProfit || 0) >= 0
+                        ? "text-emerald-700 dark:text-emerald-300"
+                        : "text-rose-600 dark:text-rose-400"
+                        }`}
                     >
                       {(gesnData?.netProfit || 0) >= 0 ? "+" : ""}
                       ৳{(gesnData?.netProfit || 0).toLocaleString()}
