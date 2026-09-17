@@ -298,345 +298,312 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
   return (
     <div className="space-y-6">
       {/* ============================================================ */}
-      {/* 1. Life Command Center Title + Description                   */}
+      {/* 2. My Life Profile — Primary Full-Width Card                  */}
       {/* ============================================================ */}
-      <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-3 shadow-xs ring-1 ring-emerald-500/10 dark:bg-slate-950/70 sm:p-5">
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-sky-500 to-amber-500" />
-        <div className="relative z-10 space-y-4">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-xs font-semibold mb-2">
-              <Sparkles
-                className="w-3.5 h-3.5 shrink-0"
-                strokeWidth={2}
-                aria-hidden="true"
-              />
-              <span>
-                {isSuperUser
-                  ? "Personal Legacy & Continuity Active"
-                  : "Authorized Access Portal"}
+      <section aria-label="My Life Profile Card">
+        <div
+          onClick={() => router.push(ownerProfileUrl)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              router.push(ownerProfileUrl);
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label="Open My Life Profile"
+          className="group relative overflow-hidden rounded-3xl border border-border bg-card p-4 sm:p-6 shadow-sm hover:shadow-md hover:border-emerald-500/40 transition-all cursor-pointer ring-1 ring-border/50"
+        >
+          <div className="flex items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
+              {/* Mint Squircle Initial Avatar */}
+              {ownerAvatar ? (
+                <img
+                  src={ownerAvatar}
+                  alt={ownerName}
+                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover border border-emerald-300/60 dark:border-emerald-800/60 shadow-xs shrink-0"
+                />
+              ) : (
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300/60 dark:border-emerald-800/60 flex items-center justify-center text-emerald-800 dark:text-emerald-200 font-black text-2xl sm:text-3xl shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                  {ownerName.charAt(0).toUpperCase()}
+                </div>
+              )}
+
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+                    My Life Profile
+                  </span>
+                </div>
+                <h2 className="text-lg sm:text-2xl font-black text-foreground tracking-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
+                  {ownerName}
+                </h2>
+                <p className="text-xs sm:text-sm italic text-muted-foreground font-medium truncate mt-0.5">
+                  Personal · Medical · Life History · Private Records
+                </p>
+              </div>
+            </div>
+
+            {/* Badges on the right matching reference UI */}
+            <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+              {isSuperUser && (
+                <div className="hidden xs:flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold tracking-wider uppercase">
+                  <Shield className="w-3 h-3 text-slate-600 dark:text-slate-400" />
+                  <span>Super Admin</span>
+                </div>
+              )}
+              <span className="text-[10px] uppercase font-extrabold px-2.5 py-1 rounded-full border bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60">
+                ACTIVE
               </span>
             </div>
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <h1 className="text-lg sm:text-2xl md:text-3xl font-bold sm:font-extrabold text-foreground tracking-tight truncate">
-                {isSuperUser ? "Life Command Center" : "Your Life Vault Portal"}
-              </h1>
-              <span className="text-[10px] sm:text-[11px] font-semibold sm:font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full border border-emerald-500/20 inline-flex items-center gap-1 sm:gap-1.5 shrink-0">
-                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                <span className="hidden sm:inline">Vault Armed &amp; Protected</span>
-                <span className="sm:hidden">Vault Armed</span>
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-              {isSuperUser
-                ? "Secure wealth, legacy & continuity vault."
-                : "Assigned modules, instructions & protocols."}
-            </p>
           </div>
 
-          {/* 2. My Life Profile — Primary Full-Width Card                  */}
-          {/* ============================================================ */}
-          <section aria-label="My Life Profile Card">
-            <div
-              onClick={() => router.push(ownerProfileUrl)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  router.push(ownerProfileUrl);
-                }
-              }}
-              role="button"
-              tabIndex={0}
-              aria-label="Open My Life Profile"
-              className="group relative overflow-hidden rounded-3xl border border-border bg-card p-4 sm:p-6 shadow-sm hover:shadow-md hover:border-emerald-500/40 transition-all cursor-pointer ring-1 ring-border/50"
-            >
-              <div className="flex items-start sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
-                  {/* Mint Squircle Initial Avatar */}
-                  {ownerAvatar ? (
-                    <img
-                      src={ownerAvatar}
-                      alt={ownerName}
-                      className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover border border-emerald-300/60 dark:border-emerald-800/60 shadow-xs shrink-0"
-                    />
-                  ) : (
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300/60 dark:border-emerald-800/60 flex items-center justify-center text-emerald-800 dark:text-emerald-200 font-black text-2xl sm:text-3xl shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                      {ownerName.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
-                        My Life Profile
-                      </span>
-                    </div>
-                    <h2 className="text-lg sm:text-2xl font-black text-foreground tracking-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
-                      {ownerName}
-                    </h2>
-                    <p className="text-xs sm:text-sm italic text-muted-foreground font-medium truncate mt-0.5">
-                      Personal · Medical · Life History · Private Records
-                    </p>
-                  </div>
+          {/* Concise Summary Grid */}
+          <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
+            {/* 1. Profile Completion */}
+            <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground">
+                Profile Completion
+              </span>
+              <div className="my-1.5">
+                <div className="flex items-center justify-between text-xs font-bold text-foreground font-mono mb-1">
+                  <span>{stats.ownerProfile?.profileCompletion || 85}%</span>
                 </div>
-
-                {/* Badges on the right matching reference UI */}
-                <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
-                  {isSuperUser && (
-                    <div className="hidden xs:flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold tracking-wider uppercase">
-                      <Shield className="w-3 h-3 text-slate-600 dark:text-slate-400" />
-                      <span>Super Admin</span>
-                    </div>
-                  )}
-                  <span className="text-[10px] uppercase font-extrabold px-2.5 py-1 rounded-full border bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60">
-                    ACTIVE
-                  </span>
+                <div className="w-full h-1.5 bg-border rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-500 rounded-full transition-all"
+                    style={{ width: `${stats.ownerProfile?.profileCompletion || 85}%` }}
+                  />
                 </div>
               </div>
-
-              {/* Concise Summary Grid */}
-              <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
-                {/* 1. Profile Completion */}
-                <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
-                  <span className="text-[11px] font-semibold text-muted-foreground">
-                    Profile Completion
-                  </span>
-                  <div className="my-1.5">
-                    <div className="flex items-center justify-between text-xs font-bold text-foreground font-mono mb-1">
-                      <span>{stats.ownerProfile?.profileCompletion || 85}%</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-border rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-emerald-500 rounded-full transition-all"
-                        style={{ width: `${stats.ownerProfile?.profileCompletion || 85}%` }}
-                      />
-                    </div>
-                  </div>
-                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium truncate">
-                    Comprehensive
-                  </span>
-                </div>
-
-                {/* 2. Medical Information Status */}
-                <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
-                  <span className="text-[11px] font-semibold text-muted-foreground">
-                    Medical Status
-                  </span>
-                  <div className="my-1.5 flex items-center gap-1.5">
-                    <Heart className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                    <span className="text-xs font-bold text-foreground truncate">
-                      {stats.ownerProfile?.medicalInfoStatus || "Configured & Active"}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground font-medium truncate">
-                    Emergency Ready
-                  </span>
-                </div>
-
-                {/* 3. Documents Added */}
-                <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
-                  <span className="text-[11px] font-semibold text-muted-foreground">
-                    Documents Added
-                  </span>
-                  <div className="my-1.5 flex items-center gap-1.5">
-                    <FolderLock className="w-3.5 h-3.5 text-purple-500 shrink-0" />
-                    <span className="text-xs font-bold text-foreground font-mono">
-                      {stats.ownerProfile?.documentsAddedCount || stats.documentsCount || 0} Files
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-purple-600 dark:text-purple-400 font-medium truncate">
-                    Encrypted Vault
-                  </span>
-                </div>
-
-                {/* 4. Private Records */}
-                <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
-                  <span className="text-[11px] font-semibold text-muted-foreground">
-                    Private Records
-                  </span>
-                  <div className="my-1.5 flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-sky-500 shrink-0" />
-                    <span className="text-xs font-bold text-foreground font-mono">
-                      {stats.ownerProfile?.privateRecordsCount || stats.infoCount || 0} Records
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-sky-600 dark:text-sky-400 font-medium truncate">
-                    Confidential Notes
-                  </span>
-                </div>
-
-                {/* 5. Emergency Information Status */}
-                <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
-                  <span className="text-[11px] font-semibold text-muted-foreground">
-                    Emergency Info
-                  </span>
-                  <div className="my-1.5 flex items-center gap-1.5">
-                    <ShieldAlert className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                    <span className="text-xs font-bold text-foreground truncate">
-                      {stats.ownerProfile?.emergencyInfoStatus || "Protocols Ready"}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium truncate">
-                    Active Guardians
-                  </span>
-                </div>
-
-                {/* 6. Last Updated */}
-                <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
-                  <span className="text-[11px] font-semibold text-muted-foreground">
-                    Last Updated
-                  </span>
-                  <div className="my-1.5 flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                    <span className="text-xs font-bold text-foreground truncate">
-                      {new Date(stats.ownerProfile?.lastUpdated || Date.now()).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground font-medium truncate">
-                    Synchronized
-                  </span>
-                </div>
-              </div>
+              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium truncate">
+                Comprehensive
+              </span>
             </div>
-            <div className="mt-2 md:mt-4 rounded-3xl border border-border bg-card p-4 sm:p-6 shadow-sm hover:shadow-md hover:border-emerald-500/40 transition-all cursor-pointer ring-1 ring-border/50">
-              {/* Financial Overview - directly after profile stats like provided UI */}
-              <div>
-                <div className="flex items-center justify-between mb-2.5 px-0.5">
-                  <div className="flex items-center gap-1.5">
-                    <BarChart3 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                    <h3 className="text-xs sm:text-sm font-bold text-foreground">
-                      Financial Overview
-                    </h3>
-                  </div>
-                  <Link
-                    href="/finance"
-                    onClick={(e) => e.stopPropagation()}
-                    className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 flex items-center gap-1"
-                  >
-                    <span>All Finances</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
 
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-                  {/* 1. Total Income Received */}
-                  <div className="p-3 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
-                    <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
-                      <Coins className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                      <span className="text-[11px] font-medium truncate">
-                        Total Income Received
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-sm sm:text-base font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">
-                        {currency} {totalIncomeReceived.toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* 2. Available Cash */}
-                  <div className="p-3 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
-                    <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
-                      <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                      <span className="text-[11px] font-medium truncate">
-                        Available Cash
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-sm sm:text-base font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">
-                        {currency} {availableCash.toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* 3. Assets & Investments */}
-                  <div className="p-3 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
-                    <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
-                      <TrendingUp className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
-                      <span className="text-[11px] font-medium truncate">
-                        Assets & Investments
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-sm sm:text-base font-extrabold text-amber-700 dark:text-amber-400 font-mono">
-                        {currency} {assetsAndInvestments.toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* 4. Total Net Worth */}
-                  <div className="p-3 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
-                    <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
-                      <Gem className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
-                      <span className="text-[11px] font-medium truncate">
-                        Total Net Worth
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-sm sm:text-base font-extrabold text-sky-700 dark:text-sky-400 font-mono">
-                        {currency} {totalNetWorth.toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+            {/* 2. Medical Information Status */}
+            <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground">
+                Medical Status
+              </span>
+              <div className="my-1.5 flex items-center gap-1.5">
+                <Heart className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                <span className="text-xs font-bold text-foreground truncate">
+                  {stats.ownerProfile?.medicalInfoStatus || "Configured & Active"}
+                </span>
               </div>
-
-              {/* Bottom Action Row (Matching Reference UI buttons: View My Profile, Add Information, Add Income) */}
-              <div className="mt-3.5 pt-3.5 border-t border-border flex items-center justify-start sm:justify-center gap-2.5 flex-wrap">
-                <Button
-                  asChild
-                  size="sm"
-                  className="h-9 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-semibold text-xs gap-1.5 shadow-sm"
-                >
-                  <Link
-                    href={ownerProfileUrl}
-                    onClick={(e) => e.stopPropagation()}
-                    aria-label="View My Profile"
-                  >
-                    <User className="w-3.5 h-3.5" />
-                    <span>View My Profile</span>
-                    <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
-                  </Link>
-                </Button>
-
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="h-9 px-3.5 rounded-xl border-border bg-background hover:bg-secondary text-foreground text-xs font-semibold gap-1.5 shadow-2xs"
-                >
-                  <Link
-                    href="/information"
-                    onClick={(e) => e.stopPropagation()}
-                    aria-label="Add Information"
-                  >
-                    <Plus className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Add Information</span>
-                  </Link>
-                </Button>
-
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="h-9 px-3.5 rounded-xl border-border bg-background hover:bg-secondary text-foreground text-xs font-semibold gap-1.5 shadow-2xs"
-                >
-                  <Link
-                    href="/finance"
-                    onClick={(e) => e.stopPropagation()}
-                    aria-label="Add Income"
-                  >
-                    <Coins className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Add Income</span>
-                  </Link>
-                </Button>
-              </div>
+              <span className="text-[10px] text-muted-foreground font-medium truncate">
+                Emergency Ready
+              </span>
             </div>
-          </section>
+
+            {/* 3. Documents Added */}
+            <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground">
+                Documents Added
+              </span>
+              <div className="my-1.5 flex items-center gap-1.5">
+                <FolderLock className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                <span className="text-xs font-bold text-foreground font-mono">
+                  {stats.ownerProfile?.documentsAddedCount || stats.documentsCount || 0} Files
+                </span>
+              </div>
+              <span className="text-[10px] text-purple-600 dark:text-purple-400 font-medium truncate">
+                Encrypted Vault
+              </span>
+            </div>
+
+            {/* 4. Private Records */}
+            <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground">
+                Private Records
+              </span>
+              <div className="my-1.5 flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-sky-500 shrink-0" />
+                <span className="text-xs font-bold text-foreground font-mono">
+                  {stats.ownerProfile?.privateRecordsCount || stats.infoCount || 0} Records
+                </span>
+              </div>
+              <span className="text-[10px] text-sky-600 dark:text-sky-400 font-medium truncate">
+                Confidential Notes
+              </span>
+            </div>
+
+            {/* 5. Emergency Information Status */}
+            <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground">
+                Emergency Info
+              </span>
+              <div className="my-1.5 flex items-center gap-1.5">
+                <ShieldAlert className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <span className="text-xs font-bold text-foreground truncate">
+                  {stats.ownerProfile?.emergencyInfoStatus || "Protocols Ready"}
+                </span>
+              </div>
+              <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium truncate">
+                Active Guardians
+              </span>
+            </div>
+
+            {/* 6. Last Updated */}
+            <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground">
+                Last Updated
+              </span>
+              <div className="my-1.5 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                <span className="text-xs font-bold text-foreground truncate">
+                  {new Date(stats.ownerProfile?.lastUpdated || Date.now()).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </span>
+              </div>
+              <span className="text-[10px] text-muted-foreground font-medium truncate">
+                Synchronized
+              </span>
+            </div>
+          </div>
         </div>
-      </div>
+        <div className="mt-2 md:mt-4 rounded-3xl border border-border bg-card p-4 sm:p-6 shadow-sm hover:shadow-md hover:border-emerald-500/40 transition-all cursor-pointer ring-1 ring-border/50">
+          {/* Financial Overview - directly after profile stats like provided UI */}
+          <div>
+            <div className="flex items-center justify-between mb-2.5 px-0.5">
+              <div className="flex items-center gap-1.5">
+                <BarChart3 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <h3 className="text-xs sm:text-sm font-bold text-foreground">
+                  Financial Overview
+                </h3>
+              </div>
+              <Link
+                href="/finance"
+                onClick={(e) => e.stopPropagation()}
+                className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 flex items-center gap-1"
+              >
+                <span>All Finances</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+              {/* 1. Total Income Received */}
+              <div className="p-3 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
+                <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
+                  <Coins className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span className="text-[11px] font-medium truncate">
+                    Total Income Received
+                  </span>
+                </div>
+                <div>
+                  <span className="text-sm sm:text-base font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">
+                    {totalIncomeReceived.toLocaleString()}
+                    <span className="text-xs font-normal text-muted-foreground ml-1">SAR</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* 2. Available Cash */}
+              <div className="p-3 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
+                <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
+                  <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span className="text-[11px] font-medium truncate">
+                    Available Cash
+                  </span>
+                </div>
+                <div>
+                  <span className="text-sm sm:text-base font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">
+                    {availableCash.toLocaleString()}
+                    <span className="text-xs font-normal text-muted-foreground ml-1">SAR</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* 3. Assets & Investments */}
+              <div className="p-3 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
+                <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
+                  <TrendingUp className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                  <span className="text-[11px] font-medium truncate">
+                    Assets & Investments
+                  </span>
+                </div>
+                <div>
+                  <span className="text-sm sm:text-base font-extrabold text-amber-700 dark:text-amber-400 font-mono">
+                    {assetsAndInvestments.toLocaleString()}
+                    <span className="text-xs font-normal text-muted-foreground ml-1">SAR</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* 4. Total Net Worth */}
+              <div className="p-3 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
+                <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
+                  <Gem className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
+                  <span className="text-[11px] font-medium truncate">
+                    Total Net Worth
+                  </span>
+                </div>
+                <div>
+                  <span className="text-sm sm:text-base font-extrabold text-sky-700 dark:text-sky-400 font-mono">
+                    {totalNetWorth.toLocaleString()}
+                    <span className="text-xs font-normal text-muted-foreground ml-1">SAR</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Action Row (Matching Reference UI buttons: View My Profile, Add Information, Add Income) */}
+          <div className="mt-3.5 pt-3.5 border-t border-border flex items-center justify-start sm:justify-center gap-2.5 flex-wrap">
+            <Button
+              asChild
+              size="sm"
+              className="h-9 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-semibold text-xs gap-1.5 shadow-sm"
+            >
+              <Link
+                href={ownerProfileUrl}
+                onClick={(e) => e.stopPropagation()}
+                aria-label="View My Profile"
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>View My Profile</span>
+                <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
+              </Link>
+            </Button>
+
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="h-9 px-3.5 rounded-xl border-border bg-background hover:bg-secondary text-foreground text-xs font-semibold gap-1.5 shadow-2xs"
+            >
+              <Link
+                href="/information"
+                onClick={(e) => e.stopPropagation()}
+                aria-label="Add Information"
+              >
+                <Plus className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Add Information</span>
+              </Link>
+            </Button>
+
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="h-9 px-3.5 rounded-xl border-border bg-background hover:bg-secondary text-foreground text-xs font-semibold gap-1.5 shadow-2xs"
+            >
+              <Link
+                href="/finance"
+                onClick={(e) => e.stopPropagation()}
+                aria-label="Add Income"
+              >
+                <Coins className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Add Income</span>
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
 
       {/* ============================================================ */}
       {/* 3. Six Quick Action Buttons (2 columns × 3 rows)              */}
@@ -1135,7 +1102,8 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                   </div>
                   <div className="my-1.5">
                     <span className="text-xl sm:text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
-                      ৳{(gesnData?.totalIncome || 0).toLocaleString()}
+                      {(gesnData?.totalIncome || 0).toLocaleString()}
+                      <span className="text-xs font-normal text-muted-foreground ml-1.5">SAR</span>
                     </span>
                   </div>
                   <span className="text-[11px] text-muted-foreground font-medium truncate">
@@ -1155,7 +1123,8 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                   </div>
                   <div className="my-1.5">
                     <span className="text-xl sm:text-2xl font-extrabold text-rose-600 dark:text-rose-400 font-mono">
-                      ৳{(gesnData?.totalExpenses || 0).toLocaleString()}
+                      {(gesnData?.totalExpenses || 0).toLocaleString()}
+                      <span className="text-xs font-normal text-muted-foreground ml-1.5">SAR</span>
                     </span>
                   </div>
                   <span className="text-[11px] text-muted-foreground font-medium truncate">
@@ -1181,7 +1150,8 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                         }`}
                     >
                       {(gesnData?.netProfit || 0) >= 0 ? "+" : ""}
-                      ৳{(gesnData?.netProfit || 0).toLocaleString()}
+                      {(gesnData?.netProfit || 0).toLocaleString()}
+                      <span className="text-xs font-normal text-muted-foreground ml-1.5">SAR</span>
                     </span>
                   </div>
                   <span className="text-[11px] text-muted-foreground font-medium truncate">
@@ -1246,7 +1216,8 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                           {cat.name}
                         </span>
                         <span className="font-bold text-muted-foreground font-mono text-[11px]">
-                          ৳{cat.total.toLocaleString()}
+                          {cat.total.toLocaleString()}
+                          <span className="text-[10px] text-muted-foreground font-normal ml-0.5">SAR</span>
                         </span>
                         <span className="text-[10px] text-muted-foreground">
                           ({cat.count})

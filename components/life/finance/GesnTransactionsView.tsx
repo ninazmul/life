@@ -378,7 +378,8 @@ export function GesnTransactionsView({
           </div>
           <div>
             <div className="text-2xl font-black tracking-tight text-emerald-600 dark:text-emerald-400">
-              ৳ {summary.totalIncome.toLocaleString()}
+              {summary.totalIncome.toLocaleString()}
+              <span className="text-xs font-normal text-muted-foreground ml-1.5">SAR</span>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
               {summary.incomeCount} transaction{summary.incomeCount === 1 ? "" : "s"} recorded
@@ -404,7 +405,8 @@ export function GesnTransactionsView({
           </div>
           <div>
             <div className="text-2xl font-black tracking-tight text-rose-600 dark:text-rose-400">
-              ৳ {summary.totalExpenses.toLocaleString()}
+              {summary.totalExpenses.toLocaleString()}
+              <span className="text-xs font-normal text-muted-foreground ml-1.5">SAR</span>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
               {summary.expenseCount} expenditure{summary.expenseCount === 1 ? "" : "s"} recorded
@@ -442,7 +444,9 @@ export function GesnTransactionsView({
                   : "text-rose-600 dark:text-rose-400"
               }`}
             >
-              {isNetProfitPositive ? "+" : ""}৳ {summary.netProfit.toLocaleString()}
+              {isNetProfitPositive ? "+" : ""}
+              {summary.netProfit.toLocaleString()}
+              <span className="text-xs font-normal text-muted-foreground ml-1.5">SAR</span>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
               Net balance after all operational expenses
@@ -512,9 +516,10 @@ export function GesnTransactionsView({
                 Year {data.monthlyPerformance.year} Monthly Financial Performance
               </h3>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Yearly Total: ৳ {data.monthlyPerformance.yearlyTotal.income.toLocaleString()} Income /{" "}
-                ৳ {data.monthlyPerformance.yearlyTotal.expenses.toLocaleString()} Expenses (Net Profit: ৳{" "}
-                {data.monthlyPerformance.yearlyTotal.profit.toLocaleString()})
+                Yearly Total: {data.monthlyPerformance.yearlyTotal.income.toLocaleString()} Income /{" "}
+                {data.monthlyPerformance.yearlyTotal.expenses.toLocaleString()} Expenses (Net Profit:{" "}
+                {data.monthlyPerformance.yearlyTotal.profit.toLocaleString()}{" "}
+                <span className="text-xs text-muted-foreground font-normal">SAR</span>)
               </p>
             </div>
             <Button
@@ -556,16 +561,17 @@ export function GesnTransactionsView({
                   <div className="space-y-0.5 text-[11px]">
                     <div className="flex justify-between text-emerald-600">
                       <span>Inc:</span>
-                      <span className="font-semibold">৳{m.totalIncome.toLocaleString()}</span>
+                      <span className="font-semibold">{m.totalIncome.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-rose-600">
                       <span>Exp:</span>
-                      <span className="font-semibold">৳{m.totalExpenses.toLocaleString()}</span>
+                      <span className="font-semibold">{m.totalExpenses.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between font-bold text-foreground pt-1 border-t border-border/50">
                       <span>Net:</span>
                       <span className={m.profit >= 0 ? "text-emerald-600" : "text-rose-600"}>
-                        ৳{m.profit.toLocaleString()}
+                        {m.profit.toLocaleString()}
+                        <span className="text-[10px] text-muted-foreground font-normal ml-0.5">SAR</span>
                       </span>
                     </div>
                   </div>
@@ -638,7 +644,7 @@ export function GesnTransactionsView({
                           : "bg-muted text-muted-foreground"
                       }`}
                     >
-                      ৳{c.total.toLocaleString()} ({c.count})
+                      {c.total.toLocaleString()} <span className="text-[10px] opacity-75">SAR</span> ({c.count})
                     </span>
                   </button>
                 );
@@ -939,7 +945,8 @@ export function GesnTransactionsView({
                           : "text-rose-600 dark:text-rose-400"
                       }`}
                     >
-                      {isIncome ? "+" : "-"} ৳ {tx.amount.toLocaleString()}
+                      {isIncome ? "+" : "-"} {tx.amount.toLocaleString()}
+                      <span className="text-xs font-normal text-muted-foreground ml-1">SAR</span>
                     </span>
                     <span className="block text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
                       {isIncome ? "Credit (Inflow)" : "Debit (Outflow)"}
