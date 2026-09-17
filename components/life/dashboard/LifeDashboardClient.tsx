@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import {
   Users,
@@ -30,11 +31,17 @@ import {
   Gift,
   Shield,
   CheckCircle2,
+  TrendingUp,
+  TrendingDown,
+  RefreshCw,
+  Percent,
+  BarChart3,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { LifeDashboardStats } from "@/types";
 import { canAccessModule, UserModuleAccess } from "@/lib/life/module-access";
+import { getGesnReports } from "@/lib/actions/gesnReports.actions";
 
 interface LifeDashboardClientProps {
   stats: LifeDashboardStats;
@@ -52,9 +59,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
     Math.min(
       100,
       ((stats.beneficiariesCount || 0) > 0 ? 35 : 0) +
-        (stats.assetsTotalValue > 0 ? 35 : 0) +
-        ((stats.legacyCount || 0) > 0 ? 30 : 0) ||
-        60
+      (stats.assetsTotalValue > 0 ? 35 : 0) +
+      ((stats.legacyCount || 0) > 0 ? 30 : 0) ||
+      60
     )
   );
 
@@ -86,6 +93,44 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
 
   const hasAccessControlAccess = canAccessModule("/access", permissions, isSuperUser);
   const hasSettingsAccess = canAccessModule("/settings", permissions, isSuperUser);
+
+  // Financial Overview Interactive State
+  const [financeTab, setFinanceTab] = useState<"business" | "personal" | "combined">("business");
+  const [gesnPeriod, setGesnPeriod] = useState<string>("thisMonth");
+  const [gesnData, setGesnData] = useState(stats.gesnSummary || null);
+  const [isPendingGesn, startGesnTransition] = useTransition();
+
+  const handlePeriodChange = (period: string) => {
+    setGesnPeriod(period);
+    startGesnTransition(async () => {
+      try {
+        const res = await getGesnReports({ period });
+        if (res.success && res.data) {
+          setGesnData({
+            totalIncome: res.data.summary.totalIncome || 0,
+            totalExpenses: res.data.summary.totalExpenses || 0,
+            netProfit: res.data.summary.netProfit || 0,
+            profitMarginPercent: res.data.summary.profitMarginPercent || 0,
+            incomeCount: res.data.summary.incomeCount || 0,
+            expenseCount: res.data.summary.expenseCount || 0,
+            topCategories: (res.data.categories || [])
+              .filter((c: any) => (c.total || 0) > 0)
+              .sort((a: any, b: any) => (b.total || 0) - (a.total || 0))
+              .slice(0, 6)
+              .map((c: any) => ({
+                name: c.category?.name || "Uncategorized",
+                type: c.category?.type || "Expense",
+                total: c.total || 0,
+                count: c.count || 0,
+                color: c.category?.color || (c.category?.type === "Income" ? "#10b981" : "#ef4444"),
+              })),
+          });
+        }
+      } catch {
+        // preserve current state on transient failure
+      }
+    });
+  };
 
   // Filter urgent items by module permissions
   const filteredUrgentItems = stats.urgentItems.filter((item) =>
@@ -244,9 +289,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       {/* ============================================================ */}
       {/* 1. Life Command Center Title + Description                   */}
       {/* ============================================================ */}
-      <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-5 shadow-xs ring-1 ring-emerald-500/10 dark:bg-slate-950/70 sm:p-7">
+      <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-3 shadow-xs ring-1 ring-emerald-500/10 dark:bg-slate-950/70 sm:p-5">
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-sky-500 to-amber-500" />
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="relative z-10 space-y-4">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-xs font-semibold mb-2">
               <Sparkles
@@ -260,239 +305,237 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                   : "Authorized Access Portal"}
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
-              {isSuperUser ? "Life Command Center" : "Your Life Vault Portal"}
-            </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground max-w-xl mt-1 leading-relaxed">
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
+                {isSuperUser ? "Life Command Center" : "Your Life Vault Portal"}
+              </h1>
+              <span className="text-[11px] font-bold text-emerald-600 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 inline-flex items-center gap-1.5 translate-y-[-1px]">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                Vault Armed &amp; Protected
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               {isSuperUser
-                ? "Your private wealth, business continuity, emergency instructions, and legacy messages organized securely in one place."
-                : "Secure access to your assigned modules, instructions, and business continuity protocols."}
+                ? "Wealth, continuity, emergency & legacy — all in one secure place."
+                : "Your assigned modules, instructions & continuity protocols."}
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold text-emerald-600 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Vault Armed & Protected
-            </span>
-          </div>
-        </div>
-      </div>
+          {/* 2. My Life Profile — Primary Full-Width Card                  */}
+          {/* ============================================================ */}
+          <section aria-label="My Life Profile Card">
+            <div
+              onClick={() => router.push(ownerProfileUrl)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  router.push(ownerProfileUrl);
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label="Open My Life Profile"
+              className="group relative overflow-hidden rounded-3xl border border-border bg-card p-4 sm:p-6 shadow-sm hover:shadow-md hover:border-emerald-500/40 transition-all cursor-pointer ring-1 ring-border/50"
+            >
+              {/* Top subtle accent gradient */}
+              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 opacity-80" />
 
-      {/* ============================================================ */}
-      {/* 2. My Life Profile — Primary Full-Width Card                  */}
-      {/* ============================================================ */}
-      <section aria-label="My Life Profile Card">
-        <div
-          onClick={() => router.push(ownerProfileUrl)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              router.push(ownerProfileUrl);
-            }
-          }}
-          role="button"
-          tabIndex={0}
-          aria-label="Open My Life Profile"
-          className="group relative overflow-hidden rounded-3xl border border-border bg-card p-5 sm:p-6 shadow-sm hover:shadow-md hover:border-emerald-500/40 transition-all cursor-pointer ring-1 ring-border/50"
-        >
-          {/* Top subtle accent gradient */}
-          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 opacity-80" />
+              {/* Top Header Row (Matching Reference UI Style) */}
+              <div className="flex items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
+                  {/* Mint Squircle Initial Avatar */}
+                  {ownerAvatar ? (
+                    <img
+                      src={ownerAvatar}
+                      alt={ownerName}
+                      className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover border border-emerald-300/60 dark:border-emerald-800/60 shadow-xs shrink-0"
+                    />
+                  ) : (
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300/60 dark:border-emerald-800/60 flex items-center justify-center text-emerald-800 dark:text-emerald-200 font-black text-2xl sm:text-3xl shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                      {ownerName.charAt(0).toUpperCase()}
+                    </div>
+                  )}
 
-          {/* Top Header Row (Matching Reference UI Style) */}
-          <div className="flex items-start sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
-              {/* Mint Squircle Initial Avatar */}
-              {ownerAvatar ? (
-                <img
-                  src={ownerAvatar}
-                  alt={ownerName}
-                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover border border-emerald-300/60 dark:border-emerald-800/60 shadow-xs shrink-0"
-                />
-              ) : (
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300/60 dark:border-emerald-800/60 flex items-center justify-center text-emerald-800 dark:text-emerald-200 font-black text-2xl sm:text-3xl shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                  {ownerName.charAt(0).toUpperCase()}
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+                        My Life Profile
+                      </span>
+                    </div>
+                    <h2 className="text-lg sm:text-2xl font-black text-foreground tracking-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
+                      {ownerName}
+                    </h2>
+                    <p className="text-xs sm:text-sm italic text-muted-foreground font-medium truncate mt-0.5">
+                      Personal · Medical · Life History · Private Records
+                    </p>
+                  </div>
                 </div>
-              )}
 
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
-                    My Life Profile
+                {/* Badges on the right matching reference UI */}
+                <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+                  {isSuperUser && (
+                    <div className="hidden xs:flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold tracking-wider uppercase">
+                      <Shield className="w-3 h-3 text-slate-600 dark:text-slate-400" />
+                      <span>Super Admin</span>
+                    </div>
+                  )}
+                  <span className="text-[10px] uppercase font-extrabold px-2.5 py-1 rounded-full border bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60">
+                    ACTIVE
                   </span>
                 </div>
-                <h2 className="text-lg sm:text-2xl font-black text-foreground tracking-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
-                  {ownerName}
-                </h2>
-                <p className="text-xs sm:text-sm italic text-muted-foreground font-medium truncate mt-0.5">
-                  Personal · Medical · Life History · Private Records
-                </p>
               </div>
-            </div>
 
-            {/* Badges on the right matching reference UI */}
-            <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
-              {isSuperUser && (
-                <div className="hidden xs:flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold tracking-wider uppercase">
-                  <Shield className="w-3 h-3 text-slate-600 dark:text-slate-400" />
-                  <span>Super Admin</span>
+              {/* Concise Summary Grid */}
+              <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
+                {/* 1. Profile Completion */}
+                <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
+                  <span className="text-[11px] font-semibold text-muted-foreground">
+                    Profile Completion
+                  </span>
+                  <div className="my-1.5">
+                    <div className="flex items-center justify-between text-xs font-bold text-foreground font-mono mb-1">
+                      <span>{stats.ownerProfile?.profileCompletion || 85}%</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-border rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-emerald-500 rounded-full transition-all"
+                        style={{ width: `${stats.ownerProfile?.profileCompletion || 85}%` }}
+                      />
+                    </div>
+                  </div>
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium truncate">
+                    Comprehensive
+                  </span>
                 </div>
-              )}
-              <span className="text-[10px] uppercase font-extrabold px-2.5 py-1 rounded-full border bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60">
-                ACTIVE
-              </span>
-            </div>
-          </div>
 
-          {/* Concise Summary Grid */}
-          <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
-            {/* 1. Profile Completion */}
-            <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
-              <span className="text-[11px] font-semibold text-muted-foreground">
-                Profile Completion
-              </span>
-              <div className="my-1.5">
-                <div className="flex items-center justify-between text-xs font-bold text-foreground font-mono mb-1">
-                  <span>{stats.ownerProfile?.profileCompletion || 85}%</span>
+                {/* 2. Medical Information Status */}
+                <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
+                  <span className="text-[11px] font-semibold text-muted-foreground">
+                    Medical Status
+                  </span>
+                  <div className="my-1.5 flex items-center gap-1.5">
+                    <Heart className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                    <span className="text-xs font-bold text-foreground truncate">
+                      {stats.ownerProfile?.medicalInfoStatus || "Configured & Active"}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground font-medium truncate">
+                    Emergency Ready
+                  </span>
                 </div>
-                <div className="w-full h-1.5 bg-border rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-emerald-500 rounded-full transition-all"
-                    style={{ width: `${stats.ownerProfile?.profileCompletion || 85}%` }}
-                  />
+
+                {/* 3. Documents Added */}
+                <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
+                  <span className="text-[11px] font-semibold text-muted-foreground">
+                    Documents Added
+                  </span>
+                  <div className="my-1.5 flex items-center gap-1.5">
+                    <FolderLock className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                    <span className="text-xs font-bold text-foreground font-mono">
+                      {stats.ownerProfile?.documentsAddedCount || stats.documentsCount || 0} Files
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-purple-600 dark:text-purple-400 font-medium truncate">
+                    Encrypted Vault
+                  </span>
+                </div>
+
+                {/* 4. Private Records */}
+                <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
+                  <span className="text-[11px] font-semibold text-muted-foreground">
+                    Private Records
+                  </span>
+                  <div className="my-1.5 flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-sky-500 shrink-0" />
+                    <span className="text-xs font-bold text-foreground font-mono">
+                      {stats.ownerProfile?.privateRecordsCount || stats.infoCount || 0} Records
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-sky-600 dark:text-sky-400 font-medium truncate">
+                    Confidential Notes
+                  </span>
+                </div>
+
+                {/* 5. Emergency Information Status */}
+                <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
+                  <span className="text-[11px] font-semibold text-muted-foreground">
+                    Emergency Info
+                  </span>
+                  <div className="my-1.5 flex items-center gap-1.5">
+                    <ShieldAlert className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    <span className="text-xs font-bold text-foreground truncate">
+                      {stats.ownerProfile?.emergencyInfoStatus || "Protocols Ready"}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium truncate">
+                    Active Guardians
+                  </span>
+                </div>
+
+                {/* 6. Last Updated */}
+                <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
+                  <span className="text-[11px] font-semibold text-muted-foreground">
+                    Last Updated
+                  </span>
+                  <div className="my-1.5 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    <span className="text-xs font-bold text-foreground truncate">
+                      {new Date(stats.ownerProfile?.lastUpdated || Date.now()).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground font-medium truncate">
+                    Synchronized
+                  </span>
                 </div>
               </div>
-              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium truncate">
-                Comprehensive
-              </span>
-            </div>
 
-            {/* 2. Medical Information Status */}
-            <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
-              <span className="text-[11px] font-semibold text-muted-foreground">
-                Medical Status
-              </span>
-              <div className="my-1.5 flex items-center gap-1.5">
-                <Heart className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                <span className="text-xs font-bold text-foreground truncate">
-                  {stats.ownerProfile?.medicalInfoStatus || "Configured & Active"}
+              {/* Bottom Action Row (Matching Reference UI buttons) */}
+              <div className="mt-4 pt-3.5 border-t border-border flex items-center justify-center gap-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <Button
+                    asChild
+                    size="sm"
+                    className="h-8.5 px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs gap-1.5 shadow-sm"
+                  >
+                    <Link
+                      href={ownerProfileUrl}
+                      onClick={(e) => e.stopPropagation()}
+                      aria-label="View My Profile"
+                    >
+                      <User className="w-3.5 h-3.5" />
+                      <span>My Profile</span>
+                      <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
+                    </Link>
+                  </Button>
+
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="h-8.5 px-3 py-1 rounded-xl border-border bg-background hover:bg-secondary text-foreground text-xs font-semibold gap-1.5"
+                  >
+                    <Link
+                      href="/information"
+                      onClick={(e) => e.stopPropagation()}
+                      aria-label="Add Information"
+                    >
+                      <Plus className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Add Information</span>
+                    </Link>
+                  </Button>
+                </div>
+
+                <span className="text-[11px] font-medium text-muted-foreground hidden sm:inline-flex items-center gap-1">
+                  Click card to open full profile <ArrowRight className="w-3 h-3 text-emerald-500" />
                 </span>
               </div>
-              <span className="text-[10px] text-muted-foreground font-medium truncate">
-                Emergency Ready
-              </span>
             </div>
-
-            {/* 3. Documents Added */}
-            <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
-              <span className="text-[11px] font-semibold text-muted-foreground">
-                Documents Added
-              </span>
-              <div className="my-1.5 flex items-center gap-1.5">
-                <FolderLock className="w-3.5 h-3.5 text-purple-500 shrink-0" />
-                <span className="text-xs font-bold text-foreground font-mono">
-                  {stats.ownerProfile?.documentsAddedCount || stats.documentsCount || 0} Files
-                </span>
-              </div>
-              <span className="text-[10px] text-purple-600 dark:text-purple-400 font-medium truncate">
-                Encrypted Vault
-              </span>
-            </div>
-
-            {/* 4. Private Records */}
-            <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
-              <span className="text-[11px] font-semibold text-muted-foreground">
-                Private Records
-              </span>
-              <div className="my-1.5 flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-sky-500 shrink-0" />
-                <span className="text-xs font-bold text-foreground font-mono">
-                  {stats.ownerProfile?.privateRecordsCount || stats.infoCount || 0} Records
-                </span>
-              </div>
-              <span className="text-[10px] text-sky-600 dark:text-sky-400 font-medium truncate">
-                Confidential Notes
-              </span>
-            </div>
-
-            {/* 5. Emergency Information Status */}
-            <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
-              <span className="text-[11px] font-semibold text-muted-foreground">
-                Emergency Info
-              </span>
-              <div className="my-1.5 flex items-center gap-1.5">
-                <ShieldAlert className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                <span className="text-xs font-bold text-foreground truncate">
-                  {stats.ownerProfile?.emergencyInfoStatus || "Protocols Ready"}
-                </span>
-              </div>
-              <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium truncate">
-                Active Guardians
-              </span>
-            </div>
-
-            {/* 6. Last Updated */}
-            <div className="p-3 rounded-2xl bg-secondary/60 border border-border/70 flex flex-col justify-between">
-              <span className="text-[11px] font-semibold text-muted-foreground">
-                Last Updated
-              </span>
-              <div className="my-1.5 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                <span className="text-xs font-bold text-foreground truncate">
-                  {new Date(stats.ownerProfile?.lastUpdated || Date.now()).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </span>
-              </div>
-              <span className="text-[10px] text-muted-foreground font-medium truncate">
-                Synchronized
-              </span>
-            </div>
-          </div>
-
-          {/* Bottom Action Row (Matching Reference UI buttons) */}
-          <div className="mt-4 pt-3.5 border-t border-border flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
-              <Button
-                asChild
-                size="sm"
-                className="h-8.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs gap-1.5 shadow-sm"
-              >
-                <Link
-                  href={ownerProfileUrl}
-                  onClick={(e) => e.stopPropagation()}
-                  aria-label="View My Profile"
-                >
-                  <User className="w-3.5 h-3.5" />
-                  <span>View My Profile</span>
-                  <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
-                </Link>
-              </Button>
-
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-                className="h-8.5 px-3.5 rounded-xl border-border bg-background hover:bg-secondary text-foreground text-xs font-semibold gap-1.5"
-              >
-                <Link
-                  href="/information"
-                  onClick={(e) => e.stopPropagation()}
-                  aria-label="Add Information"
-                >
-                  <Plus className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Add Information</span>
-                </Link>
-              </Button>
-            </div>
-
-            <span className="text-[11px] font-medium text-muted-foreground hidden sm:inline-flex items-center gap-1">
-              Click card to open full profile <ArrowRight className="w-3 h-3 text-emerald-500" />
-            </span>
-          </div>
+          </section>
         </div>
-      </section>
+      </div>
 
       {/* ============================================================ */}
       {/* 3. Six Quick Action Buttons (2 columns × 3 rows)              */}
@@ -610,8 +653,8 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                   {stats.emergencyModeStatus === "Active"
                     ? "1 Alert"
                     : (stats.pendingAccessRequestsCount || 0) > 0
-                    ? `${stats.pendingAccessRequestsCount} Requests`
-                    : "Protected"}
+                      ? `${stats.pendingAccessRequestsCount} Requests`
+                      : "Protected"}
                 </p>
               </div>
             </div>
@@ -678,11 +721,10 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span>Continuity & Safety State</span>
           </h2>
-          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${
-            stats.activeRecoveryPending
-              ? "text-red-600 bg-red-500/10 border-red-500/20 animate-pulse"
-              : "text-emerald-600 bg-emerald-500/10 border-emerald-500/20"
-          }`}>
+          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${stats.activeRecoveryPending
+            ? "text-red-600 bg-red-500/10 border-red-500/20 animate-pulse"
+            : "text-emerald-600 bg-emerald-500/10 border-emerald-500/20"
+            }`}>
             {stats.activeRecoveryPending ? "Recovery Active (48h)" : "System Operational"}
           </span>
         </div>
@@ -693,9 +735,8 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
             <span className="text-[11px] font-medium text-muted-foreground">Owner Safety</span>
             <div className="my-1 flex items-center gap-1.5">
               <span
-                className={`w-2 h-2 rounded-full ${
-                  stats.ownerSafetyStatus === "emergency" ? "bg-red-500 animate-pulse" : "bg-emerald-500"
-                }`}
+                className={`w-2 h-2 rounded-full ${stats.ownerSafetyStatus === "emergency" ? "bg-red-500 animate-pulse" : "bg-emerald-500"
+                  }`}
               />
               <span className="text-sm font-extrabold capitalize text-foreground">
                 {stats.ownerSafetyStatus || "Safe"}
@@ -713,9 +754,8 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               <span className="text-[11px] font-medium text-muted-foreground">Emergency Mode</span>
               <div className="my-1">
                 <span
-                  className={`text-sm font-extrabold ${
-                    stats.emergencyModeStatus === "Active" ? "text-red-600" : "text-foreground"
-                  }`}
+                  className={`text-sm font-extrabold ${stats.emergencyModeStatus === "Active" ? "text-red-600" : "text-foreground"
+                    }`}
                 >
                   {stats.emergencyModeStatus || "Normal"}
                 </span>
@@ -795,9 +835,8 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                 </span>
               </div>
               <span
-                className={`text-[10px] font-medium ${
-                  (stats.overduePaymentsCount || 0) > 0 ? "text-red-500" : "text-muted-foreground"
-                }`}
+                className={`text-[10px] font-medium ${(stats.overduePaymentsCount || 0) > 0 ? "text-red-500" : "text-muted-foreground"
+                  }`}
               >
                 {stats.overduePaymentsCount || 0} Overdue
               </span>
@@ -828,20 +867,18 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               <Link
                 key={item.id}
                 href={item.link}
-                className={`p-3.5 rounded-2xl border transition-all hover:scale-[1.01] flex items-center justify-between group min-w-0 ${
-                  item.severity === "high"
-                    ? "bg-red-500/10 border-red-500/25 hover:border-red-500/50"
-                    : "bg-amber-500/10 border-amber-500/25 hover:border-amber-500/50"
-                }`}
+                className={`p-3.5 rounded-2xl border transition-all hover:scale-[1.01] flex items-center justify-between group min-w-0 ${item.severity === "high"
+                  ? "bg-red-500/10 border-red-500/25 hover:border-red-500/50"
+                  : "bg-amber-500/10 border-amber-500/25 hover:border-amber-500/50"
+                  }`}
                 aria-label={`Urgent: ${item.title} (${item.severity} priority)`}
               >
                 <div className="min-w-0 pr-2">
                   <span
-                    className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border shrink-0 inline-block ${
-                      item.severity === "high"
-                        ? "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/25"
-                        : "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/25"
-                    }`}
+                    className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border shrink-0 inline-block ${item.severity === "high"
+                      ? "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/25"
+                      : "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/25"
+                      }`}
                   >
                     {item.category}
                   </span>
@@ -870,126 +907,381 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
         </section>
       )}
 
-      {/* Financial Care Overview - Only shown to users with Financial or Super Admin access */}
+      {/* Financial Care & Cash Flow Command Overview - Only shown to users with Financial or Super Admin access */}
       {(hasMoneyAccess || hasFinanceAccess) && (
-        <section className="space-y-3" aria-label="Financial Care overview">
-          <div className="flex items-center justify-between px-1 gap-2">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 min-w-0">
-              <Wallet
-                className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0"
-                strokeWidth={2}
-                aria-hidden="true"
-              />
-              <span className="truncate">Financial Care Overview</span>
-            </h2>
-            <Link
-              href="/finance"
-              className="text-xs font-semibold text-emerald-700 hover:text-emerald-600 dark:text-emerald-300 dark:hover:text-emerald-200 flex items-center gap-1 shrink-0 whitespace-nowrap"
-            >
-              Detailed Financial Care{" "}
-              <ArrowRight
-                className="w-3 h-3 shrink-0"
-                strokeWidth={2}
-                aria-hidden="true"
-              />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <div className="p-3.5 rounded-2xl bg-card border border-border shadow-sm flex flex-col justify-between min-h-[104px]">
-              <span className="text-[11px] font-medium text-muted-foreground">
-                Financial Care Provided
-              </span>
-              <div className="my-1">
-                <span className="text-lg sm:text-xl font-extrabold text-foreground font-mono">
-                  ৳{stats.moneyGivenTotal.toLocaleString()}
-                </span>
-              </div>
-              <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-medium truncate">
-                Remaining: ৳{stats.moneyGivenRemaining.toLocaleString()}
-              </span>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-card border border-border shadow-sm flex flex-col justify-between min-h-[104px]">
-              <span className="text-[11px] font-medium text-muted-foreground">
-                Financial Care Received
-              </span>
-              <div className="my-1">
-                <span className="text-lg sm:text-xl font-extrabold text-amber-700 dark:text-amber-300 font-mono">
-                  ৳{stats.moneyTakenTotal.toLocaleString()}
-                </span>
-              </div>
-              <span className="text-[10px] text-muted-foreground font-medium truncate">
-                Outstanding: ৳{stats.moneyTakenRemaining.toLocaleString()}
-              </span>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-card border border-border shadow-sm flex flex-col justify-between min-h-[104px]">
-              <span className="text-[11px] font-medium text-muted-foreground">
-                Investment Made
-              </span>
-              <div className="my-1">
-                <span className="text-lg sm:text-xl font-extrabold text-cyan-700 dark:text-cyan-300 font-mono">
-                  ৳{stats.investedTotal.toLocaleString()}
-                </span>
-              </div>
-              <span className="text-[10px] text-muted-foreground font-medium truncate">
-                Active ventures
-              </span>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-card border border-border shadow-sm flex flex-col justify-between min-h-[104px]">
-              <span className="text-[11px] font-medium text-muted-foreground">
-                Investment Received
-              </span>
-              <div className="my-1">
-                <span className="text-lg sm:text-xl font-extrabold text-indigo-700 dark:text-indigo-300 font-mono">
-                  ৳{stats.investmentReceivedTotal.toLocaleString()}
-                </span>
-              </div>
-              <span className="text-[10px] text-muted-foreground font-medium truncate">
-                External equity
-              </span>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 shadow-sm flex flex-col justify-between min-h-[104px]">
-              <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
-                <ArrowDownLeft
-                  className="w-3 h-3 text-emerald-600 dark:text-emerald-300 shrink-0"
+        <section className="space-y-4" aria-label="Financial and cash flow overview">
+          {/* Section Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
+            <div className="flex items-center gap-2.5 flex-wrap min-w-0">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 min-w-0">
+                <Wallet
+                  className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0"
                   strokeWidth={2}
                   aria-hidden="true"
                 />
-                Receivable
-              </span>
-              <div className="my-1">
-                <span className="text-lg sm:text-xl font-extrabold text-emerald-800 dark:text-emerald-200 font-mono break-all">
-                  ৳{stats.receivablesTotal.toLocaleString()}
+                <span className="truncate">Financial & Cash Flow Overview</span>
+              </h2>
+
+              {/* Real-time sync badge */}
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                 </span>
+                <span>ACC.GESN.NET Live</span>
               </div>
-              <span className="text-[10px] text-emerald-700/80 dark:text-emerald-300/80 font-medium truncate">
-                Due to me
-              </span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/25 shadow-sm flex flex-col justify-between min-h-[104px]">
-              <span className="text-[11px] font-medium text-rose-700 dark:text-rose-300 flex items-center gap-1">
-                <ArrowUpRight
-                  className="w-3 h-3 text-rose-600 dark:text-rose-300 shrink-0"
+            {/* View Filter Segmented Controls & Link */}
+            <div className="flex items-center gap-2 shrink-0 flex-wrap">
+              <div className="inline-flex p-1 rounded-xl bg-secondary/80 border border-border text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => setFinanceTab("business")}
+                  className={`px-3 py-1 rounded-lg transition-all ${
+                    financeTab === "business"
+                      ? "bg-background text-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Accounting & Cash Flow
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFinanceTab("personal")}
+                  className={`px-3 py-1 rounded-lg transition-all ${
+                    financeTab === "personal"
+                      ? "bg-background text-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Personal Care
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFinanceTab("combined")}
+                  className={`px-3 py-1 rounded-lg transition-all ${
+                    financeTab === "combined"
+                      ? "bg-background text-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  All
+                </button>
+              </div>
+
+              <Link
+                href="/finance"
+                className="text-xs font-semibold text-emerald-700 hover:text-emerald-600 dark:text-emerald-300 dark:hover:text-emerald-200 flex items-center gap-1 shrink-0 whitespace-nowrap pl-1"
+              >
+                Detailed Ledger{" "}
+                <ArrowRight
+                  className="w-3.5 h-3.5 shrink-0"
                   strokeWidth={2}
                   aria-hidden="true"
                 />
-                Payable
-              </span>
-              <div className="my-1">
-                <span className="text-lg sm:text-xl font-extrabold text-rose-800 dark:text-rose-200 font-mono break-all">
-                  ৳{stats.payablesTotal.toLocaleString()}
-                </span>
-              </div>
-              <span className="text-[10px] text-rose-700/80 dark:text-rose-300/80 font-medium truncate">
-                I need to return
-              </span>
+              </Link>
             </div>
           </div>
+
+          {/* 1. Real-time Accounting & Cash Flow Section (ACC.GESN.NET) */}
+          {(financeTab === "business" || financeTab === "combined") && (
+            <div className="space-y-3 p-4 sm:p-5 rounded-3xl bg-card border border-border shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1 border-b border-border/60">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span className="text-xs font-bold text-foreground">
+                    Business Accounting & Performance
+                  </span>
+                  {isPendingGesn && (
+                    <RefreshCw className="w-3 h-3 text-emerald-500 animate-spin shrink-0" />
+                  )}
+                </div>
+
+                {/* Period Selector Pills */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+                  {[
+                    { label: "This Month", value: "thisMonth" },
+                    { label: "Today", value: "today" },
+                    { label: "Last 7 Days", value: "last7days" },
+                    { label: "Last 30 Days", value: "last30days" },
+                    { label: "This Year", value: "thisYear" },
+                  ].map((p) => (
+                    <button
+                      key={p.value}
+                      type="button"
+                      onClick={() => handlePeriodChange(p.value)}
+                      disabled={isPendingGesn}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all shrink-0 ${
+                        gesnPeriod === p.value
+                          ? "bg-emerald-600 text-white font-semibold shadow-xs"
+                          : "bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary"
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Accounting KPI Grid */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {/* Total Revenue / Income */}
+                <div className="p-3.5 rounded-2xl bg-secondary/40 border border-emerald-500/20 hover:border-emerald-500/40 transition-all flex flex-col justify-between min-h-[110px]">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground">
+                      Total Revenue
+                    </span>
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      <TrendingUp className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                  <div className="my-1.5">
+                    <span className="text-xl sm:text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
+                      ৳{(gesnData?.totalIncome || 0).toLocaleString()}
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground font-medium truncate">
+                    {gesnData?.incomeCount || 0} Credited transactions
+                  </span>
+                </div>
+
+                {/* Total Operating Expenses */}
+                <div className="p-3.5 rounded-2xl bg-secondary/40 border border-rose-500/20 hover:border-rose-500/40 transition-all flex flex-col justify-between min-h-[110px]">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground">
+                      Operating Expenses
+                    </span>
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                      <TrendingDown className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                  <div className="my-1.5">
+                    <span className="text-xl sm:text-2xl font-extrabold text-rose-600 dark:text-rose-400 font-mono">
+                      ৳{(gesnData?.totalExpenses || 0).toLocaleString()}
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground font-medium truncate">
+                    {gesnData?.expenseCount || 0} Debited entries
+                  </span>
+                </div>
+
+                {/* Net Cash Flow / Profit */}
+                <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border hover:border-border/80 transition-all flex flex-col justify-between min-h-[110px]">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground">
+                      Net Cash Flow
+                    </span>
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20">
+                      <Coins className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                  <div className="my-1.5">
+                    <span
+                      className={`text-xl sm:text-2xl font-extrabold font-mono ${
+                        (gesnData?.netProfit || 0) >= 0
+                          ? "text-emerald-700 dark:text-emerald-300"
+                          : "text-rose-600 dark:text-rose-400"
+                      }`}
+                    >
+                      {(gesnData?.netProfit || 0) >= 0 ? "+" : ""}
+                      ৳{(gesnData?.netProfit || 0).toLocaleString()}
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground font-medium truncate">
+                    {(gesnData?.netProfit || 0) >= 0 ? "Operating Surplus" : "Operating Deficit"}
+                  </span>
+                </div>
+
+                {/* Profit Margin & Efficiency */}
+                <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border hover:border-border/80 transition-all flex flex-col justify-between min-h-[110px]">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground">
+                      Profit Margin
+                    </span>
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                      <Percent className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                  <div className="my-1.5">
+                    <span className="text-xl sm:text-2xl font-extrabold text-foreground font-mono">
+                      {(gesnData?.profitMarginPercent || 0).toFixed(1)}%
+                    </span>
+                    <div className="w-full bg-secondary h-1.5 rounded-full overflow-hidden mt-1.5">
+                      <div
+                        className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${Math.min(100, Math.max(0, gesnData?.profitMarginPercent || 0))}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground font-medium truncate">
+                    Margin on total revenue
+                  </span>
+                </div>
+              </div>
+
+              {/* Top Categories Distribution Preview */}
+              {gesnData?.topCategories && gesnData.topCategories.length > 0 && (
+                <div className="pt-2 border-t border-border/50">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Top Expense & Revenue Categories
+                    </span>
+                    <Link
+                      href="/finance"
+                      className="text-[11px] font-semibold text-emerald-600 hover:underline"
+                    >
+                      View All in Ledger
+                    </Link>
+                  </div>
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                    {gesnData.topCategories.map((cat, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-background border border-border/80 shrink-0 text-xs shadow-2xs"
+                      >
+                        <span
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{ backgroundColor: cat.color || "#10b981" }}
+                        />
+                        <span className="font-semibold text-foreground truncate max-w-[120px]">
+                          {cat.name}
+                        </span>
+                        <span className="font-bold text-muted-foreground font-mono text-[11px]">
+                          ৳{cat.total.toLocaleString()}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
+                          ({cat.count})
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 2. Personal Financial Care & Support Section (LIFE Vault) */}
+          {(financeTab === "personal" || financeTab === "combined") && (
+            <div className="space-y-3 p-4 sm:p-5 rounded-3xl bg-card border border-border shadow-xs">
+              <div className="flex items-center justify-between pb-1 border-b border-border/60">
+                <div className="flex items-center gap-2">
+                  <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span className="text-xs font-bold text-foreground">
+                    Personal Financial Care & Mutual Assistance
+                  </span>
+                </div>
+                <span className="text-[11px] font-medium text-muted-foreground">
+                  {stats.upcomingPaymentsCount || 0} Active · {stats.overduePaymentsCount || 0} Overdue
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                {/* 1. Care Provided */}
+                <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border shadow-2xs flex flex-col justify-between min-h-[104px]">
+                  <span className="text-[11px] font-medium text-muted-foreground">
+                    Financial Care Provided
+                  </span>
+                  <div className="my-1">
+                    <span className="text-lg sm:text-xl font-extrabold text-foreground font-mono">
+                      ৳{stats.moneyGivenTotal.toLocaleString()}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-medium truncate">
+                    Remaining: ৳{stats.moneyGivenRemaining.toLocaleString()}
+                  </span>
+                </div>
+
+                {/* 2. Receivable Due */}
+                <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 shadow-2xs flex flex-col justify-between min-h-[104px]">
+                  <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
+                    <ArrowDownLeft
+                      className="w-3 h-3 text-emerald-600 dark:text-emerald-300 shrink-0"
+                      strokeWidth={2}
+                      aria-hidden="true"
+                    />
+                    Receivable
+                  </span>
+                  <div className="my-1">
+                    <span className="text-lg sm:text-xl font-extrabold text-emerald-800 dark:text-emerald-200 font-mono break-all">
+                      ৳{stats.receivablesTotal.toLocaleString()}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-emerald-700/80 dark:text-emerald-300/80 font-medium truncate">
+                    Due to me
+                  </span>
+                </div>
+
+                {/* 3. Repaid / Returned so far */}
+                <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border shadow-2xs flex flex-col justify-between min-h-[104px]">
+                  <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-teal-600 dark:text-teal-400 shrink-0" />
+                    Recovered / Repaid
+                  </span>
+                  <div className="my-1">
+                    <span className="text-lg sm:text-xl font-extrabold text-teal-700 dark:text-teal-300 font-mono">
+                      ৳{(stats.supportRepaidTotal || 0).toLocaleString()}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground font-medium truncate">
+                    Collected back
+                  </span>
+                </div>
+
+                {/* 4. Care Received */}
+                <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border shadow-2xs flex flex-col justify-between min-h-[104px]">
+                  <span className="text-[11px] font-medium text-muted-foreground">
+                    Care Received
+                  </span>
+                  <div className="my-1">
+                    <span className="text-lg sm:text-xl font-extrabold text-amber-700 dark:text-amber-300 font-mono">
+                      ৳{stats.moneyTakenTotal.toLocaleString()}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground font-medium truncate">
+                    Outstanding: ৳{stats.moneyTakenRemaining.toLocaleString()}
+                  </span>
+                </div>
+
+                {/* 5. Payable */}
+                <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/25 shadow-2xs flex flex-col justify-between min-h-[104px]">
+                  <span className="text-[11px] font-medium text-rose-700 dark:text-rose-300 flex items-center gap-1">
+                    <ArrowUpRight
+                      className="w-3 h-3 text-rose-600 dark:text-rose-300 shrink-0"
+                      strokeWidth={2}
+                      aria-hidden="true"
+                    />
+                    Payable
+                  </span>
+                  <div className="my-1">
+                    <span className="text-lg sm:text-xl font-extrabold text-rose-800 dark:text-rose-200 font-mono break-all">
+                      ৳{stats.payablesTotal.toLocaleString()}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-rose-700/80 dark:text-rose-300/80 font-medium truncate">
+                    I need to return
+                  </span>
+                </div>
+
+                {/* 6. Active Investments */}
+                <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border shadow-2xs flex flex-col justify-between min-h-[104px]">
+                  <span className="text-[11px] font-medium text-muted-foreground">
+                    Investment Made
+                  </span>
+                  <div className="my-1">
+                    <span className="text-lg sm:text-xl font-extrabold text-cyan-700 dark:text-cyan-300 font-mono">
+                      ৳{stats.investedTotal.toLocaleString()}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground font-medium truncate">
+                    Active ventures
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </section>
       )}
 

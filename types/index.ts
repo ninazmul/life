@@ -541,6 +541,22 @@ export interface LifeDashboardStats {
   securityAlertsCount?: number;
   lastBackupDate?: Date | string;
   currencyTotals?: Record<string, { given: number; repaid: number; remaining: number }>;
+  supportRepaidTotal?: number;
+  gesnSummary?: {
+    totalIncome: number;
+    totalExpenses: number;
+    netProfit: number;
+    profitMarginPercent: number;
+    incomeCount: number;
+    expenseCount: number;
+    topCategories?: Array<{
+      name: string;
+      type: string;
+      total: number;
+      count: number;
+      color?: string;
+    }>;
+  } | null;
   contactsCount?: number;
   documentsCount?: number;
   legacyCount?: number;

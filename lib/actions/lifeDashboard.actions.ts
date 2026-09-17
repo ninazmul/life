@@ -15,6 +15,7 @@ import LifeSettings from "@/lib/database/models/lifeSettings.model";
 import LifeDocument from "@/lib/database/models/lifeDocument.model";
 import LifeInstruction from "@/lib/database/models/lifeInstruction.model";
 import { getLifeAuthContext } from "@/lib/life/auth";
+import { getGesnReports } from "@/lib/actions/gesnReports.actions";
 import { LifeDashboardStats, ILifeEmergencyAccess } from "@/types";
 
 export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
@@ -64,6 +65,7 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     instructionsCount,
     beneficiariesCount,
     personalInfoCount,
+    gesnReportRes,
   ] = await Promise.all([
     connectToDatabase().then(() =>
       import("@/lib/database/models/lifeGuardian.model").then((m) =>
@@ -100,6 +102,7 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     LifeInformation.countDocuments({
       category: "personal",
     }),
+    getGesnReports({ period: "thisMonth" }).catch(() => null),
   ]);
 
 
@@ -107,18 +110,29 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
   const currencyTotals: Record<string, { given: number; repaid: number; remaining: number }> = {};
   let upcomingPaymentsCount = 0;
   let overduePaymentsCount = 0;
+  let supportGivenTotal = 0;
+  let supportRepaidTotal = 0;
+  let supportRemainingTotal = 0;
 
   (financialSupports || []).forEach((fs: any) => {
     const cur = (fs.currency || "BDT").toUpperCase();
     if (!currencyTotals[cur]) {
       currencyTotals[cur] = { given: 0, repaid: 0, remaining: 0 };
     }
-    currencyTotals[cur].given += fs.totalAmount || 0;
-    currencyTotals[cur].repaid += fs.totalRepaid || 0;
-    currencyTotals[cur].remaining += fs.remainingBalance || 0;
+    const amount = Number(fs.totalAmount) || 0;
+    const repaid = Number(fs.totalRepaid) || 0;
+    const remaining = Number(fs.remainingBalance) || 0;
+
+    currencyTotals[cur].given += amount;
+    currencyTotals[cur].repaid += repaid;
+    currencyTotals[cur].remaining += remaining;
+
+    supportGivenTotal += amount;
+    supportRepaidTotal += repaid;
+    supportRemainingTotal += remaining;
 
     if (fs.status === "overdue") overduePaymentsCount++;
-    if (fs.remainingBalance > 0 && fs.status !== "overdue") upcomingPaymentsCount++;
+    if (remaining > 0 && fs.status !== "overdue") upcomingPaymentsCount++;
   });
 
   const moneyMap: Record<string, { total: number; remaining: number }> = {};
@@ -129,17 +143,42 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     };
   });
 
-  const moneyGivenTotal = moneyMap["given"]?.total || 0;
-  const moneyGivenRemaining = moneyMap["given"]?.remaining || 0;
+  // Combine financial supports with legacy money records
+  const moneyGivenTotal = (moneyMap["given"]?.total || 0) + supportGivenTotal;
+  const moneyGivenRemaining = (moneyMap["given"]?.remaining || 0) + supportRemainingTotal;
   const moneyTakenTotal = moneyMap["taken"]?.total || 0;
   const moneyTakenRemaining = moneyMap["taken"]?.remaining || 0;
   const investedTotal = moneyMap["invest_made"]?.total || 0;
   const investmentReceivedTotal = moneyMap["invest_received"]?.total || 0;
 
-  // Receivables = remaining from money given + expected investment return
+  // Receivables = remaining from money given / support + expected investment return
   const receivablesTotal = moneyGivenRemaining;
   // Payables = remaining from money taken
   const payablesTotal = moneyTakenRemaining;
+
+  // Parse ACC.GESN.NET real-time reports data
+  const gesnSummary =
+    gesnReportRes?.success && gesnReportRes.data
+      ? {
+          totalIncome: gesnReportRes.data.summary.totalIncome || 0,
+          totalExpenses: gesnReportRes.data.summary.totalExpenses || 0,
+          netProfit: gesnReportRes.data.summary.netProfit || 0,
+          profitMarginPercent: gesnReportRes.data.summary.profitMarginPercent || 0,
+          incomeCount: gesnReportRes.data.summary.incomeCount || 0,
+          expenseCount: gesnReportRes.data.summary.expenseCount || 0,
+          topCategories: (gesnReportRes.data.categories || [])
+            .filter((c: any) => (c.total || 0) > 0)
+            .sort((a: any, b: any) => (b.total || 0) - (a.total || 0))
+            .slice(0, 6)
+            .map((c: any) => ({
+              name: c.category?.name || "Uncategorized",
+              type: c.category?.type || "Expense",
+              total: c.total || 0,
+              count: c.count || 0,
+              color: c.category?.color || (c.category?.type === "Income" ? "#10b981" : "#ef4444"),
+            })),
+        }
+      : null;
 
   // Fetch attention / urgent items
   const now = new Date();
@@ -306,6 +345,8 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     upcomingPaymentsCount,
     overduePaymentsCount,
     currencyTotals,
+    supportRepaidTotal,
+    gesnSummary,
     lastBackupDate: (recentBackupLog as any)?.createdAt || new Date(),
     contactsCount,
     documentsCount,
