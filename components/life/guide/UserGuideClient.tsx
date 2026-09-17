@@ -107,9 +107,9 @@ const sections: GuideSection[] = [
           "Go to Businesses → Add Business. Record company name, registration number, trade license, your equity percentage, capital invested, and partners. Document corporate bank accounts with authorized signatories. Fill the 'If I Am Not Available' handover checklist for each business.",
       },
       {
-        title: "Step 7 → Set Up Financial Tracking",
+        title: "Step 7 → Set Up Finance & Real-Time Accounting",
         detail:
-          "Go to Financial Care to record money given/taken, monthly family support, installments, and settlements. Go to Money Overview for the master ledger view (Given, Taken, Invested, Receivables, Payables). Log every transaction with amounts, dates, counterparties, and payment methods.",
+          "Go to Finance to access both your live ACC.GESN.NET Accounting Ledger (tracking corporate/personal income, expenses, cash on hand, bank balances, and full transaction history in SAR) and Personal Financial Support (monthly family allowances, personal loans given/taken, installment repayment schedules, and gift conversions). Go to Money Overview for the double-entry net worth ledger (Investments Made, Capital Received, Receivables, and Payables).",
       },
       {
         title: "Step 8 → Catalog All Assets & Properties",
@@ -152,9 +152,9 @@ const sections: GuideSection[] = [
           "Go to Guardians → Designate Guardians. Appoint 2–5 trusted individuals (e.g. Wife as Primary, Brother as Secondary). Set the multi-party consensus threshold (e.g. 2 of 3 must approve). Set the countdown grace period (24, 48, or 72 hours). This is the fail-safe: if guardians initiate emergency access and you don't cancel within the grace period, emergency mode activates and designated vault secrets, instructions, and legacy messages unlock.",
       },
       {
-        title: "Step 16 → Review Dashboard & Verify Everything",
+        title: "Step 16 → Review Dashboard & Command Center",
         detail:
-          "Return to the Home Dashboard. Verify all indicators: continuity readiness, guardian count, financial snapshot, overdue alerts, and module counts. If everything shows green — congratulations, your LIFE Vault is fully configured and production-ready.",
+          "Return to the Home Dashboard. Verify your My Life Profile metrics, the 4-card Financial Overview (Total Income, Available Cash, Assets & Investments, Total Net Worth in SAR), Six Quick Action modules, continuity readiness, and urgent alerts. If everything shows green — congratulations, your LIFE Vault is fully configured and production-ready.",
       },
     ],
     tips: [
@@ -185,9 +185,9 @@ const sections: GuideSection[] = [
     bg: "bg-emerald-50 dark:bg-emerald-950/50",
     border: "border-emerald-200 dark:border-emerald-800/40",
     title: "Home Dashboard & Life Command Center",
-    subtitle: "Central command console, My Life Profile & Six Quick Actions",
+    subtitle: "Central command console, My Life Profile, Financial Overview & Quick Actions",
     description:
-      "The Life Command Center serves as the central command console. It provides instantaneous visibility into your personal life profile, quick-access action buttons to major modules, continuity & safety monitoring, financial summaries, and urgent deadlines.",
+      "The Life Command Center serves as the central executive console. It provides instantaneous visibility into your personal life profile, live SAR financial net worth overview, quick-access action buttons, continuity & safety monitoring, and urgent deadlines.",
     steps: [
       {
         title: "1. Life Command Center Header & Status Badge",
@@ -195,12 +195,12 @@ const sections: GuideSection[] = [
           "The top of the command center displays the title along with a live operational status badge (e.g. 'Continuity System v1.0 · Secured'), confirming that all vault security and monitoring services are active.",
       },
       {
-        title: "2. My Life Profile — Primary Full-Width Card",
+        title: "2. My Life Profile & Embedded Financial Overview",
         detail:
-          "Positioned directly below the title, My Life Profile serves as the central personal information hub. Features the Owner's mint squircle avatar, SUPER ADMIN and ACTIVE badges, and 6 live metrics: Profile Completion (with animated progress bar), Medical Information Status, Documents Added, Private Records, Emergency Information Status, and Last Updated timestamp. Includes direct action buttons: 'View My Profile' (opens the full Owner Life Dossier) and 'Add Information' (opens the information logger). The entire card is clickable.",
+          "Positioned directly below the title, My Life Profile serves as the central personal information hub. Features the Owner's mint squircle avatar, SUPER ADMIN and ACTIVE badges, and 6 live metrics: Profile Completion (with animated progress bar), Medical Information Status, Documents Added, Private Records, Emergency Information Status, and Last Updated timestamp. Integrated directly within the card is the real-time 4-Card Financial Overview: Total Income Received, Available Cash, Assets & Investments, and Total Net Worth (all denominated in SAR with clean muted suffixes). Includes direct action buttons: 'View My Profile' (opens the full Owner Life Dossier), '+ Add Information' (opens the information logger), and '+ Add Income' (quick shortcut to finance).",
       },
       {
-        title: "3. Six Quick Action Buttons (2 Columns × 3 Rows)",
+        title: "3. ⚡ Quick Actions — Six Primary Modules",
         detail:
           "Directly below My Life Profile, six balanced quick action cards provide one-touch navigation to the major life-management modules with real-time live summaries: (1) Financial Care — active support & due installments; (2) Estate & Wasiyyah — testament completion percentage; (3) Roles & Responsibilities — assigned life directives; (4) Emergency Contacts & Help — verified emergency contacts; (5) Security & Access — active access rules and security status; (6) Instructions & Messages — saved legacy instructions. Note: People Directory is intentionally in the main header navigation to eliminate duplication.",
       },
@@ -227,7 +227,11 @@ const sections: GuideSection[] = [
       },
       {
         type: "info",
-        text: "The Six Quick Action buttons display live counts calculated directly from your database, showing at a glance how many financial programs, wasiyyah directives, or emergency contacts are active.",
+        text: "The Financial Overview embedded under My Life Profile calculates your Net Worth in real-time combining live cash & income from ACC.GESN.NET and your recorded asset portfolio in SAR.",
+      },
+      {
+        type: "tip",
+        text: "Currency standard: All accounting figures and Dashboard Financial Overview amounts are tracked in Saudi Riyal (SAR). Suffixes are displayed in muted small text at the end of values for clean visual hierarchy.",
       },
       {
         type: "security",
@@ -235,7 +239,7 @@ const sections: GuideSection[] = [
       },
     ],
     whoCanAccess:
-      "Super Admin & Owner see the full command center with My Life Profile. Other users see only their permitted modules and personal view.",
+      "Super Admin & Owner see the full command center with My Life Profile and live financial net worth. Other users see only their permitted modules and personal view.",
   },
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -293,7 +297,8 @@ const sections: GuideSection[] = [
   },
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 3. FINANCIAL CARE
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 3. FINANCIAL CARE & ACCOUNTING LEDGER
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "finance",
@@ -301,16 +306,36 @@ const sections: GuideSection[] = [
     color: "text-emerald-600 dark:text-emerald-400",
     bg: "bg-emerald-50 dark:bg-emerald-950/50",
     border: "border-emerald-200 dark:border-emerald-800/40",
-    title: "2. Financial Care & Repayments",
+    title: "2. Finance & Accounting Ledger",
     subtitle:
-      "Financial care, monthly support, installment schedules & settlements",
+      "Real-time ACC.GESN.NET accounting (SAR), personal support & repayments",
     description:
-      "A dedicated module for tracking financial care provided to relatives/friends, care received, monthly family commitments, installment repayment calendars, and signed settlement agreements.",
+      "A dual-engine financial command center: (1) Live integration with the ACC.GESN.NET enterprise accounting ledger tracking corporate/personal income, expenses, cash, and bank accounts in SAR; and (2) Personal Financial Support tracking family care, monthly allowances, installments, and settlement agreements.",
     steps: [
       {
-        title: "Create Financial Support Record",
+        title: "Switch Between Accounting Ledger & Personal Support",
         detail:
-          "Choose record type: Support Given (lent/family allowance) or Support Taken (borrowed). Specify beneficiary person from your People directory, total principal amount, and purpose.",
+          "Use the main view toggle at the top of /finance to switch between 'ACC Transactions (Accounting Ledger)' for real-time double-entry accounting records, and 'Personal Financial Support' for family allowances, personal borrowings, and gifts.",
+      },
+      {
+        title: "ACC.GESN.NET Real-Time Accounting Sync",
+        detail:
+          "Connected live to acc.gesn.net (Owner: SHOUROV). Displays live KPI cards: Total Income Received, Total Expenses, Net Margin, Cash on Hand, and Bank Balances. All figures are strictly denominated in Saudi Riyal (SAR) with muted 'SAR' suffixes at the end of values.",
+      },
+      {
+        title: "Filter Accounting by Period & Instant Search",
+        detail:
+          "Filter live accounting records by period (All Time, Today, This Month, Last Month, This Year) or use the instant search bar to find transactions by counterparty, memo, account, or category. Toggle between standard pagination and smooth infinite scroll mode.",
+      },
+      {
+        title: "Inspect Account Balances & Expense Categories",
+        detail:
+          "View detailed balance badges for Cash on Hand, Corporate Bank Accounts, and interactive category pills showing where funds flow in SAR to understand cash velocity at a glance.",
+      },
+      {
+        title: "Create Personal Financial Support Records",
+        detail:
+          "Choose record type: Support Given (lent/family allowance) or Support Taken (borrowed). Specify beneficiary person from your People directory, total principal amount, currency (BDT, SAR, USD, etc.), and purpose.",
       },
       {
         title: "Configure Repayment & Installment Schedule",
@@ -318,9 +343,9 @@ const sections: GuideSection[] = [
           "Define payment terms: Lump sum or Monthly installments. Specify start date, installment amount, expected settlement date, and payment method (bKash, Bank, Cash).",
       },
       {
-        title: "Log Installment Payments",
+        title: "Log Installment Payments & Gift Conversions",
         detail:
-          "Each time an installment is paid or received, record the date, amount, transaction reference, and optional receipt attachment. The remaining balance recalculates automatically in real-time.",
+          "Each time an installment is paid or received, record the date, amount, transaction reference, and optional receipt attachment. The remaining balance recalculates automatically. Optionally convert any personal support record into a non-repayable Gift with a full audit trail.",
       },
       {
         title: "Monitor Overdue & Upcoming Alerts",
@@ -341,11 +366,19 @@ const sections: GuideSection[] = [
     tips: [
       {
         type: "tip",
-        text: "For recurrent monthly family support (e.g., parents or dependents), enable recurring status to track monthly disbursement history accurately.",
+        text: "Currency standard: All accounting ledger transactions and balances from ACC.GESN.NET are strictly denominated in SAR (Saudi Riyal). Amounts display a clean, muted 'SAR' label at the end of values without cluttering repeating symbols.",
       },
       {
         type: "info",
-        text: "Non-owner users who are granted financial access see a personalized summary showing their own obligations and transactions.",
+        text: "Dual-currency flexibility: While the ACC.GESN.NET accounting ledger operates strictly in SAR, personal financial support records can be logged in local currencies (BDT, SAR, USD) based on agreement terms.",
+      },
+      {
+        type: "tip",
+        text: "For recurrent monthly family support (e.g., parents or dependents), enable recurring status to track monthly disbursement history accurately.",
+      },
+      {
+        type: "security",
+        text: "Non-owner users who are granted financial access see a personalized summary showing their own obligations and transactions, with zero access to confidential corporate accounting ledgers.",
       },
     ],
     whoCanAccess:
@@ -364,7 +397,7 @@ const sections: GuideSection[] = [
     title: "3. Money Overview & Ledger",
     subtitle: "Receivables, payables, investments & net financial standing",
     description:
-      "A consolidated double-entry ledger detailing all financial obligations: Money Given, Money Taken, Investments Made in ventures, External Capital Received, To Receive (due to you), and To Pay (owed to others).",
+      "A consolidated double-entry balance sheet detailing all financial obligations and venture capital: Money Given (loans/receivables), Money Taken (borrowings/payables), Investments Made in ventures, External Capital Received, To Receive (due to you), and To Pay (owed to others). Complements the live operational accounting in Finance.",
     steps: [
       {
         title: "Inspect Aggregate Financial Balances",
@@ -388,6 +421,10 @@ const sections: GuideSection[] = [
       },
     ],
     tips: [
+      {
+        type: "info",
+        text: "Finance vs Money: Use '/finance' for operational accounting via ACC.GESN.NET (SAR) and family installment support. Use '/money' for your master net-worth balance sheet of loans, venture investments, and debt obligations.",
+      },
       {
         type: "warning",
         text: "Keep every entry backed by a linked person in the People directory to prevent ambiguity regarding who owes or is owed money.",

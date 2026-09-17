@@ -82,7 +82,7 @@ The platform functions as an installable **Progressive Web App (PWA)** with a na
 │       ├── guide/                       # UserGuideClient (End-to-End Onboarding)
 │       ├── business/                    # BusinessClient, BusinessModal, ContinuityModal
 │       ├── information/                 # InformationClient, InformationModal
-│       ├── finance/                     # FinancialSupportClient, InstallmentModal
+│       ├── finance/                     # FinancialSupportList, GesnTransactionsView, InstallmentModal
 │       ├── money/                       # MoneyClient, MoneyFormModal, SettlementModal
 │       ├── people/                      # PeopleClient, PersonDetailClient, PersonFormModal
 │       ├── instructions/                # InstructionClient, InstructionModal
@@ -197,9 +197,11 @@ flowchart TD
    - Infrastructure Registry: Server IPs, hosting providers, control panel URLs, and primary server engineer contacts.
    - **"If I Am Not Available"** Protocol: Pre-scripted step-by-step continuity checklist (e.g., who to pay for domain renewal, who to contact to keep servers online, how to handle client inquiries).
 
-7. **Step 7 → Set Up Financial Care & Money Ledger (`/finance` & `/money`)**
-   - **Financial Care (`/finance`)**: Record recurring dependent living allowances, educational stipends, and medical funds. Schedule monthly installment due dates.
-   - **Money Ledger (`/money`)**: Log 4-way financial records:
+7. **Step 7 → Set Up Finance & Accounting Ledger (`/finance` & `/money`)**
+   - **Finance & Accounting Hub (`/finance`)**:
+     - **ACC.GESN.NET Accounting Ledger**: Real-time integration with `acc.gesn.net` (Owner: `SHOUROV`), tracking income, expenses, net margin, cash on hand, and bank balances strictly in **SAR** (Saudi Riyal) with period filters and instant search.
+     - **Personal Financial Support**: Record family living allowances, educational stipends, personal loans, and gifts. Configure repayment calendars and monthly installments.
+   - **Money & Net Worth Ledger (`/money`)**: Log 4-way financial records:
      - `Given`: Money lent to others (Receivables).
      - `Taken`: Money borrowed from others (Payables).
      - `Invested Made`: Capital invested in ventures or partnerships.
@@ -254,13 +256,20 @@ flowchart TD
 - **Actions**: `lib/actions/lifeDashboard.actions.ts` (`getLifeDashboardStats`)
 - **Final Command Center Architecture**:
   1. **Title & Operational Status**: Displays `Life Command Center` with live status badge (`Continuity System v1.0 · Secured`).
-  2. **My Life Profile (Primary Full-Width Card)**:
+  2. **My Life Profile & Embedded Financial Overview (Primary Full-Width Card)**:
      - Prominent primary hub with mint squircle avatar, `SUPER ADMIN` and `ACTIVE` badges.
      - Subtitle: *Personal · Medical · Life History · Private Records*.
      - 6 live summary metrics: Profile Completion (with animated progress bar), Medical Information Status, Documents Added, Private Records, Emergency Information Status, and Last Updated.
-     - Direct action buttons: **View My Profile** (opens the Owner Life Dossier) and **Add Information** (opens information logging).
+     - **Embedded 4-Card Financial Overview**:
+       - **Total Income Received** (in `SAR`)
+       - **Available Cash** (in `SAR`)
+       - **Assets & Investments** (in `SAR`)
+       - **Total Net Worth** (in `SAR`)
+       - Formatted with muted `text-xs` `SAR` suffix and zero redundant repeating symbols.
+     - Direct action buttons: **View My Profile** (opens the Owner Life Dossier), **+ Add Information** (opens information logger), and **+ Add Income** (links to finance hub).
      - Entire card is clickable to open the Owner Profile.
-  3. **Six Quick Action Buttons (2 Columns × 3 Rows)**:
+  3. **⚡ Quick Actions (2 Columns × 3 Rows)**:
+     - Section header: `⚡ Quick Actions` (Six primary life-management modules with real-time health and status).
      - **Row 1**: Financial Care (`X Active · Y Due`) | Estate & Wasiyyah (`X% Complete`)
      - **Row 2**: Roles & Responsibilities (`X Assigned`) | Emergency Contacts & Help (`X Verified`)
      - **Row 3**: Security & Access (`X Alerts / Active`) | Instructions & Messages (`X Saved`)
@@ -295,17 +304,29 @@ flowchart TD
   - **Identity & Legal Records**: NID, Passport, Birth Certificate, Driving License, e-TIN, and Tax Circle.
   - **Emergency Notes & Instructions**: Categorized memos, security directives, and family guidelines.
 
-### 4.5 Financial Care & Dependent Support (`/finance`, `/finance/[id]`)
+### 4.5 Finance Hub & Accounting Ledger (`/finance`, `/finance/[id]`)
 - **Routes**:
   - Master Ledger: `app/(root)/finance/page.tsx`
   - Dependent Dossier: `app/(root)/finance/[id]/page.tsx`
 - **Components**:
-  - `components/life/finance/FinancialSupportClient.tsx`
-- **Actions**: `lib/actions/lifeFinancialSupport.actions.ts`
+  - `components/life/finance/FinancialSupportList.tsx`
+  - `components/life/finance/GesnTransactionsView.tsx`
+- **Actions**:
+  - `lib/actions/lifeFinancialSupport.actions.ts`
+  - `lib/actions/gesnReports.actions.ts` (`getGesnReports`)
 - **Capabilities**:
-  - **Dependent Living Support**: Monthly living allowances, educational expenses, and medical care commitments for family members.
-  - **Installment Schedules**: Track scheduled payments, due dates, paid amounts, and overdue warnings.
-  - **Recipient Dossier**: Dedicated financial profile for every dependent with complete historical transaction timeline and settlement logging.
+  - **ACC.GESN.NET Real-Time Accounting Ledger**:
+    - Synchronizes live corporate & personal accounting data from `https://acc.gesn.net/api/reports` authenticated with secret key (Owner: `SHOUROV`).
+    - Key metrics: Total Income Received, Total Expenses, Net Margin, Cash on Hand, and Bank Balances.
+    - Currency Standard: Denominated strictly in Saudi Riyal (**SAR**) with muted `SAR` suffix styling (`text-xs text-muted-foreground ml-1.5`) and zero redundant repeating currency symbols.
+    - Period Filters: `All Time`, `Today`, `This Month`, `Last Month`, and `This Year`.
+    - Account & Category breakdowns: Visual badges showing exact balances per corporate bank account, cash holdings, and expense categories in SAR.
+    - Transaction Ledger: Instant search, date filters, debit/credit badges, pagination, and infinite scroll toggle mode.
+  - **Personal Financial Support & Care**:
+    - **Dependent Living Support**: Monthly living allowances, educational expenses, and medical care commitments for family members.
+    - **Installment Schedules**: Track scheduled payments, due dates, paid amounts, and overdue warnings.
+    - **Gift Conversions**: Convert personal loans into non-repayable gifts with a complete audit trail.
+    - **Recipient Dossier**: Dedicated financial profile for every dependent with complete historical transaction timeline and settlement logging.
 
 ### 4.6 Money & Debt Ledger (`/money`)
 - **Route**: `app/(root)/money/page.tsx`
@@ -745,6 +766,7 @@ All database mutations and queries are implemented as Next.js Server Actions wit
 | `lifeDashboard.actions.ts` | `getLifeDashboardData()` | Aggregates finances, continuity state, guardian status, and attention alerts |
 | `lifePeople.actions.ts` | `getPeople()`, `getPersonById()`, `createPerson()`, `updatePerson()`, `deletePerson()` | Manages directory and 8-tab personal dossiers |
 | `lifeFinancialSupport.actions.ts` | `getFinancialSupports()`, `createFinancialSupport()`, `updateFinancialSupport()`, `deleteFinancialSupport()`, `recordInstallmentPayment()` | Manages dependent living allowances, installment schedules & payments |
+| `gesnReports.actions.ts` | `getGesnReports()` | Synchronizes real-time enterprise accounting reports from ACC.GESN.NET (SAR) |
 | `lifeMoney.actions.ts` | `getMoneyRecords()`, `createMoneyRecord()`, `updateMoneyRecord()`, `deleteMoneyRecord()`, `recordSettlement()` | Financial ledger, debt records, and settlement installments |
 | `lifeVault.actions.ts` | `getVaultItems()`, `createVaultItem()`, `updateVaultItem()`, `deleteVaultItem()`, `revealVaultSecret()` | AES-256-GCM encrypted secrets CRUD, PIN verification, and 15-failure vault lockout |
 | `lifeBusiness.actions.ts` | `getBusinesses()`, `getBusinessById()`, `createBusiness()`, `updateBusiness()`, `addContinuityStep()`, `toggleContinuityStep()` | Ventures, hosting records, and contingency checklists |
