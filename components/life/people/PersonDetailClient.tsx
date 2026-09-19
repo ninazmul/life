@@ -565,11 +565,10 @@ export function PersonDetailClient({
             )}
 
             <span
-              className={`text-[10px] uppercase font-extrabold px-2.5 py-0.5 rounded-full border ${
-                person.status === "active" || person.accountStatus === "active"
+              className={`text-[10px] uppercase font-extrabold px-2.5 py-0.5 rounded-full border ${person.status === "active" || person.accountStatus === "active"
                   ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60"
                   : "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400 border-red-200 dark:border-red-800/60"
-              }`}
+                }`}
             >
               {(person.accountStatus || person.status || "active").toUpperCase()}
             </span>
@@ -666,9 +665,6 @@ export function PersonDetailClient({
                   <div>
                     <h2 className="text-base sm:text-lg font-extrabold text-foreground tracking-tight flex items-center gap-2">
                       <span>My Life Profile Dossier</span>
-                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 uppercase">
-                        Master Records
-                      </span>
                     </h2>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       Personal · Medical · Life History · Private Records · Wasiyyah · Assets
@@ -1021,7 +1017,7 @@ export function PersonDetailClient({
                     <span>Emergency Safety & Continuity</span>
                   </h3>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20">
-                    Priority {person.emergencyPriority || "Normal"}
+                    {person.emergencyPriority || "Normal"}
                   </span>
                 </div>
 
@@ -1442,7 +1438,7 @@ export function PersonDetailClient({
               <span>Assigned Instructions & Duties</span>
             </h3>
             {personData.instructions?.length > 0 ||
-            person.responsibilities?.length ? (
+              person.responsibilities?.length ? (
               <div className="space-y-2.5">
                 {personData.instructions?.map((inst: any) => (
                   <div
@@ -1485,7 +1481,7 @@ export function PersonDetailClient({
         {/* ============================================================ */}
         <TabsContent value="financial_care" className="outline-none space-y-3">
           {(!personData.financialCare || personData.financialCare.length === 0) &&
-          (!personData.moneyRecords || personData.moneyRecords.length === 0) ? (
+            (!personData.moneyRecords || personData.moneyRecords.length === 0) ? (
             <div className="p-8 text-center rounded-3xl border border-dashed border-border text-xs text-muted-foreground">
               No financial care records associated with {person.name}.
             </div>
@@ -1513,11 +1509,10 @@ export function PersonDetailClient({
                     </p>
                   </div>
                   <span
-                    className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${
-                      rec.status === "active"
+                    className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${rec.status === "active"
                         ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                         : "bg-secondary text-muted-foreground border-border"
-                    }`}
+                      }`}
                   >
                     {(rec.status || "active").replace("_", " ")}
                   </span>
@@ -1688,11 +1683,10 @@ export function PersonDetailClient({
                     size="sm"
                     onClick={handleToggleLock}
                     disabled={loading}
-                    className={`h-8 rounded-xl text-xs font-medium gap-1.5 ${
-                      person.status === "locked"
+                    className={`h-8 rounded-xl text-xs font-medium gap-1.5 ${person.status === "locked"
                         ? "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
                         : "border-red-200 text-red-700 hover:bg-red-50"
-                    }`}
+                      }`}
                   >
                     {person.status === "locked" ? (
                       <>
