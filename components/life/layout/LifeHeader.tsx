@@ -1,12 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, Command, ShieldAlert, BookOpen } from "lucide-react";
+import { Search, Command, ShieldAlert, BookOpen, Bell, Check, ExternalLink, Lock, CheckCircle2, Clock } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { LifeSearchDialog } from "@/components/life/shared/LifeSearchDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  getMyNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+} from "@/lib/actions/lifeNotification.actions";
+import { ILifeNotification } from "@/types";
 
 interface LifeHeaderProps {
   userName?: string;
@@ -18,6 +30,25 @@ export function LifeHeader({
   isEmergencyActive = false,
 }: LifeHeaderProps) {
   const [searchOpen, setSearchOpen] = useState(false);
+  const [notifications, setNotifications] = useState<ILifeNotification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifLoading, setNotifLoading] = useState(false);
+
+  const fetchNotifs = useCallback(async () => {
+    try {
+      const data = await getMyNotifications();
+      setNotifications(data.notifications);
+      setUnreadCount(data.unreadCount);
+    } catch {
+      // silent fallback
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNotifs();
+    const interval = setInterval(fetchNotifs, 30000); // 30s polling
+    return () => clearInterval(interval);
+  }, [fetchNotifs]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -29,6 +60,24 @@ export function LifeHeader({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  const handleMarkAllRead = async () => {
+    setNotifLoading(true);
+    await markAllNotificationsAsRead();
+    setUnreadCount(0);
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    setNotifLoading(false);
+  };
+
+  const handleNotificationClick = async (notif: ILifeNotification) => {
+    if (!notif.isRead) {
+      await markNotificationAsRead(notif._id);
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === notif._id ? { ...n, isRead: true } : n))
+      );
+    }
+  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -76,7 +125,7 @@ export function LifeHeader({
           </Link>
         </div>
 
-        {/* Right: Emergency Chip + Search Button + Guide + Theme Toggle + User Avatar */}
+        {/* Right: Emergency Chip + Search + Notifications + Guide + Theme Toggle + User Avatar */}
         <div className="flex items-center gap-2 shrink-0">
           {isEmergencyActive && (
             <Link
@@ -117,6 +166,122 @@ export function LifeHeader({
               K
             </kbd>
           </button>
+
+          {/* In-App Notifications Bell (§16) */}
+          <DropdownMenu onOpenChange={(open) => open && fetchNotifs()}>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card/60 dark:bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted/80 active:scale-95 transition-all shrink-0"
+                aria-label="Notifications"
+                title="Notifications"
+              >
+                <Bell className="w-4 h-4 shrink-0" strokeWidth={2} aria-hidden="true" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold text-white shadow-xs">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              sideOffset={8}
+              className="w-80 sm:w-96 p-0 rounded-2xl bg-popover/95 backdrop-blur-xl border border-border shadow-2xl z-50 overflow-hidden"
+            >
+              <div className="flex items-center justify-between p-3.5 border-b border-border bg-secondary/30">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-emerald-600" />
+                  <span className="text-xs font-bold text-foreground">Notifications</span>
+                  {unreadCount > 0 && (
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                      {unreadCount} new
+                    </span>
+                  )}
+                </div>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={handleMarkAllRead}
+                    disabled={notifLoading}
+                    className="text-[11px] font-medium text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+                  >
+                    <Check className="w-3 h-3" />
+                    <span>Mark all read</span>
+                  </button>
+                )}
+              </div>
+
+              <div className="max-h-80 overflow-y-auto divide-y divide-border/50">
+                {notifications.length === 0 ? (
+                  <div className="p-6 text-center text-xs text-muted-foreground">
+                    <p>No notifications yet</p>
+                    <p className="text-[10px] mt-1 text-muted-foreground/70">
+                      You will be alerted about note releases, unlock requests, and access updates.
+                    </p>
+                  </div>
+                ) : (
+                  notifications.map((notif) => {
+                    const isUnlock = notif.type === "unlock_request";
+                    const isRelease = notif.type === "note_released" || notif.type === "scheduled_release";
+                    return (
+                      <DropdownMenuItem
+                        key={notif._id}
+                        asChild
+                        className={`p-3 cursor-pointer rounded-none focus:bg-accent/80 transition-colors ${
+                          !notif.isRead ? "bg-emerald-500/5 dark:bg-emerald-500/10" : ""
+                        }`}
+                      >
+                        <Link
+                          href={notif.link || "#"}
+                          onClick={() => handleNotificationClick(notif)}
+                          className="flex items-start gap-3 w-full"
+                        >
+                          <div
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
+                              isUnlock
+                                ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                                : isRelease
+                                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                                : "bg-sky-500/15 text-sky-600 dark:text-sky-400"
+                            }`}
+                          >
+                            {isUnlock ? (
+                              <Lock className="w-3.5 h-3.5" />
+                            ) : isRelease ? (
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                            ) : (
+                              <Clock className="w-3.5 h-3.5" />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center justify-between gap-1">
+                              <p className={`text-xs truncate ${!notif.isRead ? "font-bold text-foreground" : "font-medium text-foreground/80"}`}>
+                                {notif.title}
+                              </p>
+                              {!notif.isRead && (
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                              )}
+                            </div>
+                            <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">
+                              {notif.message}
+                            </p>
+                            <span className="text-[9px] text-muted-foreground/70 font-mono mt-1 block">
+                              {new Date(notif.createdAt).toLocaleDateString(undefined, {
+                                month: "short",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </div>
+                        </Link>
+                      </DropdownMenuItem>
+                    );
+                  })
+                )}
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <Link
             href="/guide"

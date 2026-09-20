@@ -539,15 +539,33 @@ const SENSITIVE_PATTERNS = [
 Any network request matching these patterns is forced to bypass the cache and execute directly over network with `no-store` directives. Only public static assets (CSS, fonts, logos) are cached.
 
 ### 5.4 Multi-Tier Role-Based Access Control (RBAC)
-User authorization is determined dynamically by `getLifeAuthContext()` in `lib/life/auth.ts`:
+User authorization is determined dynamically by `getLifeAuthContext()` in `lib/life/auth.ts`. The platform enforces 7 distinct roles alongside an Owner designation:
 
 | Role | Access Level | Description |
 | :--- | :--- | :--- |
-| **`owner`** / **`super_admin`** | Full Unrestricted | Master of all data, settings, vault decryption, and access delegation |
-| **`admin`** | High Operational | Can view all records, edit continuity plans, and trigger emergency mode |
-| **`individual`** | Personal & Family | Can only view personal letters, allocated financial notes, and contacts |
-| **`business`** | Partner Operational | Can view assigned venture continuity steps, engineer contacts, and server notes |
-| **`read_only`** | Gated Viewer | Read-only access to specifically delegated resources |
+| **`owner`** / **`super_admin`** | Master Ownership | Unrestricted access across all 13+ modules, settings, encryption keys, and permission assignment. |
+| **`admin`** | High Operational | Operational administration across all permitted modules, continuity plans, and emergency recovery. |
+| **`guardian`** | Family & Emergency | Family protection, emergency health directives, and multi-party emergency consensus activation. |
+| **`business_staff`** | Operational Continuity | Assigned business venture execution, server maintenance, and operational directives. |
+| **`business_partner`** | Enterprise Partner | Shared business accounts, partner equity, debts, and corporate agreements. |
+| **`individual`** | Personal & Family | Isolated access restricted exclusively to their own assigned records, notes, and personal messages. |
+| **`read_only`** | Gated Viewer | View-only inspection of permitted resources without mutation or vault secret reveal rights. |
+
+#### 5.4.1 Record-Only Persons (Strict Reference Mode)
+LIFE distinguishes between active portal users and **Record-Only Persons** (`isRecordOnly: true`):
+- **Purpose**: Designed for financial aid recipients, loan debtors/creditors, minor children, dependents, or deceased relatives who need to be referenced in transactions, instructions, or emergency contacts.
+- **Security Enforcement**: Login is strictly forbidden. Any authentication attempt via Clerk or direct session is immediately intercepted and blocked by `getLifeAuthContext()`.
+
+#### 5.4.2 2-Step Permission Audit & Diff Confirmation
+Modifications to access rights are executed via a 2-step dialog:
+1. **Step 1 (Configure)**: Adjust module capabilities, category scopes, note access scopes, and role defaults.
+2. **Step 2 (Review Diff)**: The UI computes and displays an exact delta:
+   - `[+ Permissions & Access Added]` (in green)
+   - `[- Permissions & Access Revoked]` (in red)
+Upon confirmation, `updatePersonAccessAndPermissions()` commits the changes and logs the delta directly into the immutable `LifeActivityLog`.
+
+#### 5.4.3 Super Admin Owner-Protection Guard
+To protect vault ownership, Super Admins are prohibited from modifying or deleting the Owner account. Only the authentic Owner can alter Owner-level credentials.
 
 ---
 
@@ -565,8 +583,13 @@ All schemas reside in `lib/database/models/`:
 | `email` | `String` | Email address (used for Clerk auth matching) |
 | `avatarUrl` | `String` | Avatar image path or URL |
 | `status` | `String` (Enum) | `active`, `locked`, `archived` |
-| `role` | `String` (Enum) | `owner`, `admin`, `individual`, `business`, `read_only` |
-| `permissions` | `Object` | Granular boolean flags (`canViewPersonal`, `canViewBusiness`, etc.) |
+| `role` | `String` (Enum) | `owner`, `super_admin`, `admin`, `guardian`, `business_staff`, `business_partner`, `individual`, `read_only` |
+| `isRecordOnly` | `Boolean` | True if person is reference-only without portal login privileges |
+| `isLoginEnabled`| `Boolean` | Whether login access to the dashboard is permitted |
+| `permissions` | `Object` | Granular boolean flags (`canViewPersonal`, `canViewBusiness`, `canViewFinancial`, `canViewSensitive`, `canRevealVault`, `canManageAccess`, `canAccessEmergency`, `canManageSecretNotes`) |
+| `allowedCategoryKeys` | `[String]` | Specific main category keys permitted for this user |
+| `allowedSubcategoryIds` | `[String]` | Specific subcategory IDs permitted for this user |
+| `notesAccessScope` | `String` | `"all"`, `"assigned_only"`, or `"none"` |
 | `socialLinks` | `Object` | `facebook`, `messenger`, `instagram`, `tiktok`, `telegram`, `linkedin`, `youtube`, `website` |
 | `personalMessage` | `String` | Private confidential message dedicated to this person |
 | `emergencyPriority`| `Number` | Emergency calling order ranking (1 = First call) |
@@ -755,6 +778,46 @@ All schemas reside in `lib/database/models/`:
 | `expiredAt` | `Date` | Timestamp when access was revoked |
 | `simulationFastForwardHours` | `Number` | Hours added to effective server time for testing |
 
+### 6.13 `LifeCategory` (`lifeCategory.model.ts`)
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `mainCategory` | `String` (Enum) | One of 6 main keys: `financial_care`, `business_continuity`, `personal_health`, `digital_vault`, `contacts_circle`, `legacy_directives` |
+| `name` | `String` (Required) | Display name of the subcategory |
+| `description` | `String` | Optional explanatory note |
+| `order` | `Number` | Display position within the main category |
+| `isArchived` | `Boolean` | Archive flag (hides from selection without breaking links) |
+| `createdBy` | `String` | User ID or `"system"` |
+
+### 6.14 `LifeNote` (`lifeNote.model.ts`)
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `title` | `String` (Required) | Note title or subject |
+| `content` | `String` (Required) | Content (masked when secret note is locked) |
+| `noteType` | `String` (Enum) | `always_visible`, `secret_emergency`, `internal_admin`, `manual_release`, `scheduled_release` |
+| `assignedPersonId` | `ObjectId` (Ref) | Target `LifePerson` |
+| `priority` | `String` (Enum) | `low`, `medium`, `high`, `critical` |
+| `category` | `String` | Descriptive category label |
+| `tags` | `[String]` | Search and categorization tags |
+| `isPinned` | `Boolean` | Pin note to top of list |
+| `isArchived` | `Boolean` | Soft-archive flag |
+| `status` | `String` (Enum) | `locked`, `unlock_requested`, `countdown_active`, `approved`, `released`, `relocked`, `archived` |
+| `waitingPeriodHours` | `Number` | Countdown duration before release (default 48h) |
+| `unlockDeadline` | `Date` | Calculated expiry timestamp for unlock countdown |
+| `isReleased` | `Boolean` | Release flag (reveals encrypted content) |
+| `userActions` | `Object` | `readAt`, `acknowledgedAt`, `followUpRequired`, `completedAt`, `responses` array |
+| `history` | `[Object]` | Revision array tracking `changedAt`, `changedBy`, `action`, `previousContent`, `newContent` |
+
+### 6.15 `LifeNotification` (`lifeNotification.model.ts`)
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `recipientEmail` | `String` | Target recipient email address |
+| `recipientPersonId`| `ObjectId` (Ref) | Target `LifePerson` |
+| `title` | `String` (Required) | Short alert notification headline |
+| `message` | `String` (Required) | Full notification body |
+| `type` | `String` (Enum) | `unlock_request`, `deadline_reminder`, `request_approved`, `note_released`, `access_changed`, `system` |
+| `link` | `String` | Navigation URL for 1-tap resolution |
+| `isRead` | `Boolean` | Read acknowledgment state |
+
 ---
 
 ## 7. Server Actions API Reference (`lib/actions/`)
@@ -764,7 +827,10 @@ All database mutations and queries are implemented as Next.js Server Actions wit
 | Action File | Key Functions | Description |
 | :--- | :--- | :--- |
 | `lifeDashboard.actions.ts` | `getLifeDashboardData()` | Aggregates finances, continuity state, guardian status, and attention alerts |
-| `lifePeople.actions.ts` | `getPeople()`, `getPersonById()`, `createPerson()`, `updatePerson()`, `deletePerson()` | Manages directory and 8-tab personal dossiers |
+| `lifePeople.actions.ts` | `getPeople()`, `getPersonById()`, `createPerson()`, `updatePerson()`, `updatePersonAccessAndPermissions()`, `deletePerson()` | Manages directory, 9-tab dossiers, and 2-step permission diff tracking |
+| `lifeCategory.actions.ts` | `getCategoriesWithSubcategories()`, `getCategoriesAndSubcategories()`, `createSubcategory()`, `updateSubcategory()`, `reorderSubcategories()`, `archiveSubcategory()`, `deleteSubcategory()` | Dynamic subcategories under 6 main categories with in-use deletion protection |
+| `lifeNote.actions.ts` | `getPersonNotes()`, `createNote()`, `updateNote()`, `requestNoteUnlock()`, `approveNoteUnlock()`, `rejectNoteUnlock()`, `cancelNoteUnlock()`, `extendNoteUnlock()`, `relockNote()`, `recordNoteUserAction()`, `archiveNote()` | Complete notes lifecycle, secret emergency unlock countdowns, recipient actions, and history |
+| `lifeNotification.actions.ts`| `getMyNotifications()`, `markNotificationAsRead()`, `markAllNotificationsAsRead()` | In-app notification queue and real-time header bell badge integration |
 | `lifeFinancialSupport.actions.ts` | `getFinancialSupports()`, `createFinancialSupport()`, `updateFinancialSupport()`, `deleteFinancialSupport()`, `recordInstallmentPayment()` | Manages dependent living allowances, installment schedules & payments |
 | `gesnReports.actions.ts` | `getGesnReports()` | Synchronizes real-time enterprise accounting reports from ACC.GESN.NET (SAR) |
 | `lifeMoney.actions.ts` | `getMoneyRecords()`, `createMoneyRecord()`, `updateMoneyRecord()`, `deleteMoneyRecord()`, `recordSettlement()` | Financial ledger, debt records, and settlement installments |

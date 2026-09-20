@@ -89,12 +89,12 @@ const sections: GuideSection[] = [
       {
         title: "Step 3 → Register Your People (People Directory)",
         detail:
-          "Go to People → Add Person. Register your family members (Wife, Parents, Children, Siblings), business partners, key employees (e.g. Sabbir, Sana), and trusted friends. Enter their full name, relationship, phone number, WhatsApp, email, and social links (Facebook, Messenger, Instagram, TikTok, Telegram, LinkedIn, YouTube, Website). Set their role: Family Member, Business Partner, Responsible Person, Beneficiary, Trusted Guardian, or Administrator.",
+          "Go to People → Add Person. Register your family members (Wife, Parents, Children, Siblings), business partners, key employees (e.g. Sabbir, Sana), and trusted friends. Enter their full name, relationship, phone number, WhatsApp, email, and social links (Facebook, Messenger, Instagram, TikTok, Telegram, LinkedIn, YouTube, Website). Select from the 7 specialized roles: Super Admin, Administrator, Guardian, Business Staff, Business Partner, Individual User, or Read Only. For individuals who only serve as references (e.g. loan debtors, dependents, emergency references) and do not need portal login credentials, toggle 'Record-Only Person'.",
       },
       {
-        title: "Step 4 → Assign Permissions to Each Person",
+        title: "Step 4 → Assign Granular Permissions with 2-Step Audit Review",
         detail:
-          "For each person, configure their module-level permissions using granular checkboxes: canViewPersonal, canViewBusiness, canViewFinancial, canViewSensitive, canRevealVault, canManageAccess, canAccessEmergency. Only grant what each person needs — follow the principle of least privilege. Employees get business-only access; family gets personal + financial.",
+          "For each person, configure module-level capabilities (canViewPersonal, canViewBusiness, canViewFinancial, canViewSensitive, canRevealVault, canManageAccess, canAccessEmergency, canManageSecretNotes) and Note access scopes. Before applying changes, Step 2 displays a complete visual confirmation preview of [+ Permissions Added] and [- Permissions Revoked], guaranteeing transparent auditability and zero accidental privilege grants.",
       },
       {
         title: "Step 5 → Add Personal Information & Identity Records",
@@ -200,9 +200,9 @@ const sections: GuideSection[] = [
           "Positioned directly below the title, My Life Profile serves as the central personal information hub. Features the Owner's mint squircle avatar, SUPER ADMIN and ACTIVE badges, and 6 live metrics: Profile Completion (with animated progress bar), Medical Information Status, Documents Added, Private Records, Emergency Information Status, and Last Updated timestamp. Integrated directly within the card is the real-time 4-Card Financial Overview: Total Income Received, Available Cash, Assets & Investments, and Total Net Worth (all denominated in SAR with clean muted suffixes). Includes direct action buttons: 'View My Profile' (opens the full Owner Life Dossier), '+ Add Information' (opens the information logger), and '+ Add Income' (quick shortcut to finance).",
       },
       {
-        title: "3. ⚡ Quick Actions — Six Primary Modules",
+        title: "3. ⚡ Quick Actions & Dynamic Subcategories",
         detail:
-          "Directly below My Life Profile, six balanced quick action cards provide one-touch navigation to the major life-management modules with real-time live summaries: (1) Financial Care — active support & due installments; (2) Estate & Wasiyyah — testament completion percentage; (3) Roles & Responsibilities — assigned life directives; (4) Emergency Contacts & Help — verified emergency contacts; (5) Security & Access — active access rules and security status; (6) Instructions & Messages — saved legacy instructions. Note: People Directory is intentionally in the main header navigation to eliminate duplication.",
+          "Directly below My Life Profile, six balanced quick action cards provide one-touch navigation to the major life-management modules with real-time live summaries: (1) Financial Care — active support & due installments; (2) Estate & Wasiyyah — testament completion percentage; (3) Roles & Responsibilities — assigned life directives; (4) Emergency Contacts & Help — verified emergency contacts; (5) Security & Access — active access rules and security status; (6) Instructions & Messages — saved legacy instructions. Furthermore, Super Admins can click 'Manage Subcategories' inside the Quick Actions dropdown to launch the Subcategory Management Console — offering full reordering (up/down), inline editing, archiving, and deletion safeguards across all 6 main categories.",
       },
       {
         title: "4. Continuity & Safety State",
@@ -626,14 +626,19 @@ const sections: GuideSection[] = [
           "Optionally link their social media accounts: Facebook, Messenger, Instagram, TikTok, Telegram, LinkedIn, YouTube, and personal Website. Only icons with linked accounts appear on their profile — unlinked platforms are hidden completely.",
       },
       {
-        title: "Assign User Role & Account Type",
+        title: "Assign System Role & Account Type",
         detail:
-          "Set role: Family Member, Business Partner, Responsible Person, Beneficiary, Trusted Guardian, or Administrator. The role determines default permission suggestions and portal behavior.",
+          "Choose from the 7 built-in system roles: (1) Super Admin (full system ownership and unconstrained override); (2) Administrator (permitted records and day-to-day operations); (3) Guardian (family members, medical directives, emergency consensus activation); (4) Business Staff (assigned operational areas and continuity procedures); (5) Business Partner (shared enterprise accounts, capital & liabilities); (6) Individual User (assigned profile records only); or (7) Read Only (view-only inspection without editing or vault reveal).",
       },
       {
-        title: "Configure Granular Module Permissions",
+        title: "Record-Only Persons vs Login-Enabled Accounts",
         detail:
-          "Grant specific checkboxes: canViewPersonal, canViewBusiness, canViewFinancial, canViewSensitive, canRevealVault, canManageAccess, canAccessEmergency. Each flag controls exactly which modules the person can see and interact with.",
+          "The 'Record-Only Person' switch permanently deactivates login credentials for individuals who are strictly documented for ledger and relationship purposes (such as dependents, minor children, deceased relatives, aid recipients, or loan parties). This prevents credential sprawl and guarantees system boundary integrity.",
+      },
+      {
+        title: "Edit Profile & Access with 2-Step Diff Confirmation",
+        detail:
+          "Admins can open the 'Edit Profile & Access' modal on any person's profile to manage both personal information and permissions in a unified dialog. Step 1 allows toggling module capabilities, role, and note scopes. Clicking 'Review Changes' transitions to Step 2, displaying a side-by-side color-coded audit diff: [+ Permissions Added] in green and [- Permissions Revoked] in red, which is permanently logged in the system audit trail upon confirmation.",
       },
       {
         title: "Set Guardian Status",
@@ -723,6 +728,11 @@ const sections: GuideSection[] = [
         title: "Tab 8 → Access Information",
         detail:
           "Shows the person's permission configuration: module access flags, guardian designation, account type, and login status. Super Admin / Owner can modify access flags from here.",
+      },
+      {
+        title: "Tab 9 → Notes & Secret Emergency Notes",
+        detail:
+          "A comprehensive notes workspace supporting 5 distinct note classifications: (1) Always Visible (standard instructions & notes); (2) Secret Emergency Note (AES encrypted and sealed until authorized release); (3) Internal Admin Only (private operator directives); (4) Manual Release; and (5) Scheduled Release. Features a custom waiting period (default 48 hours). When an authorized person submits an unlock request, a live countdown timer begins. Super Admins receive in-app notifications and can approve immediately, extend the countdown by +24 hours, reject, or cancel. Once released, the assigned person can mark as Read, Acknowledge, flag for Follow-up, mark as Completed, or submit written responses. Super Admins can re-lock the note at any time, and the Version History dialog records all prior revisions with timestamps and editor identities.",
       },
     ],
     tips: [
@@ -1134,9 +1144,19 @@ const sections: GuideSection[] = [
           "The Owner / Super Admin has unrestricted access to all 13+ modules, full system settings, security logs, financial balances, and user permission management. There is only one Super Admin per LIFE Vault instance.",
       },
       {
-        title: "Module Permission Flags",
+        title: "The 7 Core System Roles & Capability Presets",
         detail:
-          "Assign specific permission flags to people: canViewPersonal (identity, contacts), canViewBusiness (companies, partners), canViewFinancial (money, assets, finance), canViewSensitive (restricted data), canRevealVault (decrypt secrets), canManageAccess (edit permissions), and canAccessEmergency (guardian duties).",
+          "LIFE features 7 well-defined system roles with automated capability defaults: (1) Super Admin — complete unconstrained ownership across all modules; (2) Administrator — operational management across permitted areas; (3) Guardian — family care, medical records, and emergency consensus triggers; (4) Business Staff — access to assigned business continuity directives and operations; (5) Business Partner — corporate accounts, business assets, and capital agreements; (6) Individual User — isolated access strictly limited to their own assigned records; and (7) Read Only — viewing allowed records without modification rights or vault revelation.",
+      },
+      {
+        title: "Module Permission Flags & Notes Scopes",
+        detail:
+          "Assign specific permission flags to people: canViewPersonal (identity, contacts), canViewBusiness (companies, partners), canViewFinancial (money, assets, finance), canViewSensitive (restricted data), canRevealVault (decrypt secrets), canManageAccess (edit permissions), canAccessEmergency (guardian duties), and canManageSecretNotes. Also configure Notes Access Scope: All Notes, Assigned Notes Only, or None.",
+      },
+      {
+        title: "Real-Time In-App Notification Center",
+        detail:
+          "The header features a live notification bell with a dynamic unread badge count. Users receive instant interactive alerts when: an unlock request is submitted for a secret note, an unlock countdown is running or expiring, a note is released or shared, permissions are modified, or an operational deadline is approaching. Users can view alerts with 1-tap navigation to the relevant record or mark notifications as read.",
       },
       {
         title: "Automatic UI Navigation Filtering",
@@ -1154,9 +1174,9 @@ const sections: GuideSection[] = [
           "Direct browser URL navigation is enforced on the server. If an unauthorized user attempts to open a restricted route (e.g. /vault or /finance), they are automatically redirected to the access-denied page. This prevents IDOR (Insecure Direct Object Reference) attacks.",
       },
       {
-        title: "Self-Edit Restrictions",
+        title: "Self-Edit Restrictions & Owner Protection",
         detail:
-          "Non-admin users who access their own profile can update only their phone number, WhatsApp, email, and social links. They cannot modify their own permissions, role, status, or other people's data. This is enforced on the backend API level.",
+          "Non-admin users who access their own profile can update only their phone number, WhatsApp, email, and social links. They cannot modify their own permissions, role, status, or other people's data. Furthermore, Super Admins cannot alter Owner-level master credentials or permissions without explicit Owner verification.",
       },
     ],
     tips: [

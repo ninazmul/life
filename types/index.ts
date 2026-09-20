@@ -7,6 +7,7 @@ export type LifeRole =
   | "guardian"
   | "administrator"
   | "business_partner"
+  | "business_staff"
   | "responsible_person"
   | "beneficiary"
   | "read_only"
@@ -16,6 +17,26 @@ export type LifeRole =
   | "individual"
   | "business"
   | "custom";
+
+export interface CrudActionPermissions {
+  view: boolean;
+  add: boolean;
+  edit: boolean;
+  delete: boolean;
+}
+
+export type CrudAreaKey =
+  | "categories"
+  | "profiles"
+  | "business"
+  | "financial"
+  | "documents"
+  | "notes"
+  | "instructions"
+  | "emergency"
+  | "vault";
+
+export type CrudPermissionMatrix = Partial<Record<CrudAreaKey, CrudActionPermissions>>;
 
 export interface LifePermission {
   canViewPersonal: boolean;
@@ -27,6 +48,11 @@ export interface LifePermission {
   canAccessEmergency: boolean;
   allowedPersonIds?: string[];
   allowedBusinessIds?: string[];
+  allowedCategoryKeys?: string[];
+  allowedSubcategoryIds?: string[];
+  crud?: CrudPermissionMatrix;
+  notesAccessScope?: "all" | "assigned_only" | "none";
+  canManageSecretNotes?: boolean;
 }
 
 export type PersonStatus = "active" | "locked" | "archived";
@@ -92,6 +118,7 @@ export interface ILifePerson {
   lastLogin?: Date | string;
   lastActivity?: Date | string;
   isLoginEnabled?: boolean;
+  isRecordOnly?: boolean;
   socialLinks?: {
     facebook?: string;
     messenger?: string;
@@ -1001,6 +1028,136 @@ export interface ILifeInstruction {
   }>;
   createdAt: Date | string;
   updatedAt: Date | string;
+}
+
+// ============================================================
+// Quick Actions Main Categories & Subcategories (§1)
+// ============================================================
+export type MainCategoryKey =
+  | "financial_care"
+  | "estate_wasiyyah"
+  | "roles_responsibilities"
+  | "emergency_contacts"
+  | "security_access"
+  | "instructions_messages";
+
+export interface ILifeCategory {
+  _id: string;
+  mainCategory: MainCategoryKey;
+  name: string;
+  description?: string;
+  order: number;
+  isArchived: boolean;
+  itemCount?: number;
+  createdBy?: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+// ============================================================
+// User Notes & Secret Notes (§6 - §14)
+// ============================================================
+export type NoteType =
+  | "internal_admin"
+  | "always_visible"
+  | "manual_release"
+  | "scheduled_release"
+  | "secret_emergency";
+
+export type NoteStatus =
+  | "locked"
+  | "unlock_requested"
+  | "countdown_active"
+  | "approved"
+  | "request_cancelled"
+  | "request_rejected"
+  | "released"
+  | "relocked"
+  | "archived";
+
+export interface INoteHistoryEntry {
+  changedAt: Date | string;
+  changedBy: string;
+  action: string;
+  previousContent?: string;
+  newContent?: string;
+  previousNoteType?: string;
+  newNoteType?: string;
+  previousWaitingPeriod?: number;
+  newWaitingPeriod?: number;
+}
+
+export interface INoteUserResponse {
+  respondedAt: Date | string;
+  respondedBy: string;
+  message: string;
+}
+
+export interface ILifeNote {
+  _id: string;
+  title: string;
+  content: string;
+  noteType: NoteType;
+  assignedPersonId: string | ILifePerson;
+  assignedPersonName?: string;
+  createdBy: string;
+  createdByName?: string;
+  lastEditedBy?: string;
+  priority: "low" | "medium" | "high" | "critical";
+  category?: string;
+  tags?: string[];
+  isPinned: boolean;
+  attachments?: string[];
+  isArchived: boolean;
+  status: NoteStatus;
+  waitingPeriodHours: number;
+  unlockRequestedAt?: Date | string;
+  unlockRequestedBy?: string;
+  unlockDeadline?: Date | string;
+  scheduledReleaseDate?: Date | string;
+  isReleased: boolean;
+  releasedAt?: Date | string;
+  releasedBy?: string;
+  relockedAt?: Date | string;
+  relockedBy?: string;
+  userActions?: {
+    readAt?: Date | string;
+    acknowledgedAt?: Date | string;
+    followUpRequired?: boolean;
+    completedAt?: Date | string;
+    responses?: INoteUserResponse[];
+  };
+  history?: INoteHistoryEntry[];
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+// ============================================================
+// In-App Notifications (§16)
+// ============================================================
+export type NotificationType =
+  | "note_shared"
+  | "scheduled_release"
+  | "unlock_request"
+  | "deadline_reminder"
+  | "request_approved"
+  | "request_rejected"
+  | "request_cancelled"
+  | "note_released"
+  | "instruction_completed"
+  | "access_changed"
+  | "system";
+
+export interface ILifeNotification {
+  _id: string;
+  recipientEmail: string;
+  recipientPersonId?: string;
+  title: string;
+  message: string;
+  type: NotificationType;
+  link?: string;
+  isRead: boolean;
+  createdAt: Date | string;
 }
 
 export * from "./gesnReports";

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -33,6 +33,24 @@ import {
   Calendar,
   Sparkles,
   ScrollText,
+  StickyNote,
+  Plus,
+  Pin,
+  Eye,
+  EyeOff,
+  Archive,
+  MessageSquare,
+  History,
+  ChevronDown,
+  Timer,
+  ShieldAlert,
+  Send,
+  RotateCcw,
+  Tag,
+  BookOpen,
+  Check,
+  X,
+  Layers,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -47,13 +65,34 @@ import { Input } from "@/components/ui/input";
 import {
   updatePerson,
   setPersonAccountStatus,
+  updatePersonAccessAndPermissions,
 } from "@/lib/actions/lifePeople.actions";
+import { getCategoriesAndSubcategories } from "@/lib/actions/lifeCategory.actions";
+import {
+  getPersonNotes,
+  createNote,
+  updateNote,
+  requestNoteUnlock,
+  approveNoteUnlock,
+  rejectNoteUnlock,
+  cancelNoteUnlock,
+  extendNoteUnlock,
+  relockNote,
+  recordNoteUserAction,
+  archiveNote,
+} from "@/lib/actions/lifeNote.actions";
 import toast from "react-hot-toast";
 import type {
   ILifeDocument,
   ILifeContact,
   ILifePerson,
+  ILifeNote,
+  ILifeCategory,
+  NoteType,
+  NoteStatus,
   AccountStatus,
+  LifeRole,
+  LifePermission,
 } from "@/types";
 
 // ============================================================
@@ -212,6 +251,40 @@ export function PersonDetailClient({
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [savingEdit, setSavingEdit] = useState(false);
 
+  const isSuperUser = Boolean(currentUser?.isOwner || currentUser?.isAdmin);
+  const isSelf = Boolean(currentUser?.personId && String(currentUser.personId) === String(person._id));
+  const canEdit = isSuperUser || isSelf;
+
+  // Profile & Access Management Modal state
+  const [accessModalOpen, setAccessModalOpen] = useState(false);
+  const [accessStep, setAccessStep] = useState<"edit" | "review">("edit");
+  const [allCategories, setAllCategories] = useState<Record<string, ILifeCategory[]>>({});
+  const [accessSaving, setAccessSaving] = useState(false);
+  const [accessForm, setAccessForm] = useState({
+    name: person.name || "",
+    relation: person.relation || "",
+    designation: person.designation || "",
+    phone: person.phone || "",
+    whatsapp: person.whatsapp || "",
+    email: person.email || "",
+    role: (person.role || "individual") as LifeRole,
+    isRecordOnly: Boolean(person.isRecordOnly),
+    isLoginEnabled: person.isLoginEnabled !== false && !person.isRecordOnly,
+    accountStatus: (person.accountStatus || "active") as AccountStatus,
+    emergencyPriority: person.emergencyPriority ?? 0,
+    canViewPersonal: Boolean(person.permissions?.canViewPersonal),
+    canViewBusiness: Boolean(person.permissions?.canViewBusiness),
+    canViewFinancial: Boolean(person.permissions?.canViewFinancial),
+    canViewSensitive: Boolean(person.permissions?.canViewSensitive),
+    canRevealVault: Boolean(person.permissions?.canRevealVault),
+    canManageAccess: Boolean(person.permissions?.canManageAccess),
+    canAccessEmergency: Boolean(person.permissions?.canAccessEmergency),
+    canManageSecretNotes: Boolean(person.permissions?.canManageSecretNotes),
+    notesAccessScope: person.permissions?.notesAccessScope || "assigned_only",
+    allowedCategoryKeys: person.permissions?.allowedCategoryKeys || [],
+    allowedSubcategoryIds: person.permissions?.allowedSubcategoryIds || [],
+  });
+
   // Edit contact & social links form state
   const [editForm, setEditForm] = useState({
     phone: person.phone || "",
@@ -227,9 +300,356 @@ export function PersonDetailClient({
     website: person.socialLinks?.website || "",
   });
 
-  const isSuperUser = currentUser?.isOwner || currentUser?.isAdmin;
-  const isSelf = currentUser?.personId && String(currentUser.personId) === String(person._id);
-  const canEdit = isSuperUser || isSelf;
+  // Notes state
+  const [notes, setNotes] = useState<ILifeNote[]>([]);
+  const [notesLoading, setNotesLoading] = useState(false);
+  const [noteModalOpen, setNoteModalOpen] = useState(false);
+  const [noteSaving, setNoteSaving] = useState(false);
+  const [noteFilter, setNoteFilter] = useState<string>("all");
+  const [editingNote, setEditingNote] = useState<ILifeNote | null>(null);
+  const [noteForm, setNoteForm] = useState({
+    title: "",
+    content: "",
+    noteType: "always_visible" as NoteType,
+    priority: "medium" as "low" | "medium" | "high" | "critical",
+    category: "",
+    tags: "",
+    isPinned: false,
+    waitingPeriodHours: 48,
+  });
+  const [noteHistoryModal, setNoteHistoryModal] = useState<ILifeNote | null>(null);
+  const [noteResponseText, setNoteResponseText] = useState("");
+
+  const loadNotes = async () => {
+    setNotesLoading(true);
+    try {
+      const data = await getPersonNotes(person._id);
+      setNotes(data);
+    } catch {
+      // silent
+    } finally {
+      setNotesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadNotes();
+  }, [person._id]);
+
+  const openAccessModal = async () => {
+    setAccessForm({
+      name: person.name || "",
+      relation: person.relation || "",
+      designation: person.designation || "",
+      phone: person.phone || "",
+      whatsapp: person.whatsapp || "",
+      email: person.email || "",
+      role: (person.role || "individual") as LifeRole,
+      isRecordOnly: Boolean(person.isRecordOnly),
+      isLoginEnabled: person.isLoginEnabled !== false && !person.isRecordOnly,
+      accountStatus: (person.accountStatus || "active") as AccountStatus,
+      emergencyPriority: person.emergencyPriority ?? 0,
+      canViewPersonal: Boolean(person.permissions?.canViewPersonal),
+      canViewBusiness: Boolean(person.permissions?.canViewBusiness),
+      canViewFinancial: Boolean(person.permissions?.canViewFinancial),
+      canViewSensitive: Boolean(person.permissions?.canViewSensitive),
+      canRevealVault: Boolean(person.permissions?.canRevealVault),
+      canManageAccess: Boolean(person.permissions?.canManageAccess),
+      canAccessEmergency: Boolean(person.permissions?.canAccessEmergency),
+      canManageSecretNotes: Boolean(person.permissions?.canManageSecretNotes),
+      notesAccessScope: person.permissions?.notesAccessScope || "assigned_only",
+      allowedCategoryKeys: person.permissions?.allowedCategoryKeys || [],
+      allowedSubcategoryIds: person.permissions?.allowedSubcategoryIds || [],
+    });
+    setAccessStep("edit");
+    setAccessModalOpen(true);
+    try {
+      const cats = await getCategoriesAndSubcategories();
+      setAllCategories(cats);
+    } catch {
+      // silent
+    }
+  };
+
+  const getPermissionDiff = () => {
+    const added: string[] = [];
+    const removed: string[] = [];
+
+    const prevPerms = person.permissions || {};
+    const checkPerm = (label: string, prevVal: boolean, newVal: boolean) => {
+      if (!prevVal && newVal) added.push(label);
+      if (prevVal && !newVal) removed.push(label);
+    };
+
+    checkPerm("View Personal Data", Boolean(prevPerms.canViewPersonal), accessForm.canViewPersonal);
+    checkPerm("View Business Continuity", Boolean(prevPerms.canViewBusiness), accessForm.canViewBusiness);
+    checkPerm("View Financial Care", Boolean(prevPerms.canViewFinancial), accessForm.canViewFinancial);
+    checkPerm("View Sensitive Records", Boolean(prevPerms.canViewSensitive), accessForm.canViewSensitive);
+    checkPerm("Reveal Vault Secrets", Boolean(prevPerms.canRevealVault), accessForm.canRevealVault);
+    checkPerm("Manage Access Control", Boolean(prevPerms.canManageAccess), accessForm.canManageAccess);
+    checkPerm("Access Emergency Mode", Boolean(prevPerms.canAccessEmergency), accessForm.canAccessEmergency);
+    checkPerm("Manage Secret Notes", Boolean(prevPerms.canManageSecretNotes), accessForm.canManageSecretNotes);
+
+    if (person.role !== accessForm.role) {
+      added.push(`Role upgraded/changed to ${accessForm.role.toUpperCase()}`);
+      removed.push(`Previous role: ${person.role.toUpperCase()}`);
+    }
+
+    if (person.isLoginEnabled !== accessForm.isLoginEnabled) {
+      if (accessForm.isLoginEnabled) added.push("Login Access Enabled");
+      else removed.push("Login Access Disabled");
+    }
+
+    if (Boolean(person.isRecordOnly) !== accessForm.isRecordOnly) {
+      if (accessForm.isRecordOnly) added.push("Set to Record-Only (Reference Only)");
+      else removed.push("Record-Only status removed");
+    }
+
+    return { added, removed };
+  };
+
+  const handleSaveAccess = async () => {
+    setAccessSaving(true);
+    try {
+      const diff = getPermissionDiff();
+      await updatePersonAccessAndPermissions(person._id, {
+        name: accessForm.name.trim(),
+        relation: accessForm.relation.trim(),
+        designation: accessForm.designation.trim(),
+        phone: accessForm.phone.trim(),
+        whatsapp: accessForm.whatsapp.trim(),
+        email: accessForm.email.trim(),
+        role: accessForm.role,
+        isRecordOnly: accessForm.isRecordOnly,
+        isLoginEnabled: accessForm.isLoginEnabled,
+        accountStatus: accessForm.accountStatus,
+        emergencyPriority: accessForm.emergencyPriority,
+        allowedCategoryKeys: accessForm.allowedCategoryKeys,
+        allowedSubcategoryIds: accessForm.allowedSubcategoryIds,
+        permissions: {
+          canViewPersonal: accessForm.canViewPersonal,
+          canViewBusiness: accessForm.canViewBusiness,
+          canViewFinancial: accessForm.canViewFinancial,
+          canViewSensitive: accessForm.canViewSensitive,
+          canRevealVault: accessForm.canRevealVault,
+          canManageAccess: accessForm.canManageAccess,
+          canAccessEmergency: accessForm.canAccessEmergency,
+          canManageSecretNotes: accessForm.canManageSecretNotes,
+          notesAccessScope: accessForm.notesAccessScope,
+          allowedCategoryKeys: accessForm.allowedCategoryKeys,
+          allowedSubcategoryIds: accessForm.allowedSubcategoryIds,
+        },
+        addedDiffSummary: diff.added,
+        removedDiffSummary: diff.removed,
+      });
+
+      setPerson((prev) => ({
+        ...prev,
+        name: accessForm.name.trim(),
+        relation: accessForm.relation.trim(),
+        designation: accessForm.designation.trim(),
+        phone: accessForm.phone.trim(),
+        whatsapp: accessForm.whatsapp.trim(),
+        email: accessForm.email.trim(),
+        role: accessForm.role,
+        isRecordOnly: accessForm.isRecordOnly,
+        isLoginEnabled: accessForm.isLoginEnabled,
+        accountStatus: accessForm.accountStatus,
+        emergencyPriority: accessForm.emergencyPriority,
+        permissions: {
+          ...prev.permissions,
+          canViewPersonal: accessForm.canViewPersonal,
+          canViewBusiness: accessForm.canViewBusiness,
+          canViewFinancial: accessForm.canViewFinancial,
+          canViewSensitive: accessForm.canViewSensitive,
+          canRevealVault: accessForm.canRevealVault,
+          canManageAccess: accessForm.canManageAccess,
+          canAccessEmergency: accessForm.canAccessEmergency,
+          canManageSecretNotes: accessForm.canManageSecretNotes,
+          notesAccessScope: accessForm.notesAccessScope,
+          allowedCategoryKeys: accessForm.allowedCategoryKeys,
+          allowedSubcategoryIds: accessForm.allowedSubcategoryIds,
+        },
+      }));
+
+      toast.success("Profile & access permissions updated successfully!");
+      setAccessModalOpen(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update permissions.");
+    } finally {
+      setAccessSaving(false);
+    }
+  };
+
+  const handleSaveNote = async () => {
+    if (!noteForm.title.trim() || !noteForm.content.trim()) {
+      toast.error("Title and content are required.");
+      return;
+    }
+    setNoteSaving(true);
+    try {
+      const tagsArr = noteForm.tags ? noteForm.tags.split(",").map(t => t.trim()).filter(Boolean) : [];
+      if (editingNote) {
+        await updateNote(editingNote._id, {
+          title: noteForm.title,
+          content: noteForm.content,
+          noteType: noteForm.noteType,
+          priority: noteForm.priority,
+          category: noteForm.category,
+          tags: tagsArr,
+          isPinned: noteForm.isPinned,
+          waitingPeriodHours: noteForm.waitingPeriodHours,
+        });
+        toast.success("Note updated.");
+      } else {
+        await createNote({
+          title: noteForm.title,
+          content: noteForm.content,
+          noteType: noteForm.noteType,
+          assignedPersonId: person._id,
+          priority: noteForm.priority,
+          category: noteForm.category,
+          tags: tagsArr,
+          isPinned: noteForm.isPinned,
+          waitingPeriodHours: noteForm.waitingPeriodHours,
+        });
+        toast.success("Note created.");
+      }
+      setNoteModalOpen(false);
+      setEditingNote(null);
+      resetNoteForm();
+      await loadNotes();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save note.");
+    } finally {
+      setNoteSaving(false);
+    }
+  };
+
+  const resetNoteForm = () => {
+    setNoteForm({
+      title: "",
+      content: "",
+      noteType: "always_visible",
+      priority: "medium",
+      category: "",
+      tags: "",
+      isPinned: false,
+      waitingPeriodHours: 48,
+    });
+  };
+
+  const openEditNote = (note: ILifeNote) => {
+    setEditingNote(note);
+    setNoteForm({
+      title: note.title,
+      content: note.content,
+      noteType: note.noteType,
+      priority: note.priority,
+      category: note.category || "",
+      tags: (note.tags || []).join(", "),
+      isPinned: note.isPinned,
+      waitingPeriodHours: note.waitingPeriodHours,
+    });
+    setNoteModalOpen(true);
+  };
+
+  const handleNoteAction = async (noteId: string, action: string, text?: string) => {
+    try {
+      switch (action) {
+        case "request_unlock":
+          await requestNoteUnlock(noteId);
+          toast.success("Unlock request submitted.");
+          break;
+        case "approve":
+          await approveNoteUnlock(noteId);
+          toast.success("Note approved and released.");
+          break;
+        case "reject":
+          await rejectNoteUnlock(noteId, "Rejected by admin");
+          toast.success("Request rejected.");
+          break;
+        case "cancel":
+          await cancelNoteUnlock(noteId);
+          toast.success("Request cancelled.");
+          break;
+        case "extend":
+          await extendNoteUnlock(noteId, 24);
+          toast.success("Countdown extended by 24 hours.");
+          break;
+        case "relock":
+          await relockNote(noteId);
+          toast.success("Note re-locked.");
+          break;
+        case "read":
+          await recordNoteUserAction(noteId, "read");
+          toast.success("Marked as read.");
+          break;
+        case "acknowledge":
+          await recordNoteUserAction(noteId, "acknowledge");
+          toast.success("Acknowledged.");
+          break;
+        case "followup":
+          await recordNoteUserAction(noteId, "followup");
+          toast.success("Follow-up required flagged.");
+          break;
+        case "completed":
+          await recordNoteUserAction(noteId, "completed");
+          toast.success("Marked as completed.");
+          break;
+        case "response":
+          if (text) {
+            await recordNoteUserAction(noteId, "response", text);
+            toast.success("Response submitted.");
+          }
+          break;
+        case "archive":
+          await archiveNote(noteId);
+          toast.success("Note archived.");
+          break;
+      }
+      await loadNotes();
+    } catch (err: any) {
+      toast.error(err.message || "Action failed.");
+    }
+  };
+
+  const formatCountdown = (deadline: string | Date) => {
+    const now = new Date();
+    const dl = new Date(deadline);
+    const diff = dl.getTime() - now.getTime();
+    if (diff <= 0) return "Expired";
+    const hours = Math.floor(diff / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    return `${hours}h ${mins}m remaining`;
+  };
+
+  const getNoteStatusColor = (status: NoteStatus) => {
+    const colors: Record<string, string> = {
+      locked: "bg-slate-500/10 text-slate-600 border-slate-500/20",
+      unlock_requested: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+      countdown_active: "bg-orange-500/10 text-orange-600 border-orange-500/20",
+      approved: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+      released: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+      request_cancelled: "bg-slate-500/10 text-slate-600 border-slate-500/20",
+      request_rejected: "bg-rose-500/10 text-rose-600 border-rose-500/20",
+      relocked: "bg-slate-500/10 text-slate-600 border-slate-500/20",
+      archived: "bg-slate-500/10 text-slate-500 border-slate-500/20",
+    };
+    return colors[status] || "bg-slate-500/10 text-slate-600 border-slate-500/20";
+  };
+
+  const getNoteTypeLabel = (noteType: NoteType) => {
+    const labels: Record<string, string> = {
+      internal_admin: "Internal Admin",
+      always_visible: "Always Visible",
+      manual_release: "Manual Release",
+      scheduled_release: "Scheduled Release",
+      secret_emergency: "Secret Note",
+    };
+    return labels[noteType] || noteType;
+  };
+
 
   const handleToggleLock = async () => {
     const newStatus = person.status === "locked" ? "active" : "locked";
@@ -531,6 +951,18 @@ export function PersonDetailClient({
               <span className="hidden xs:inline">Edit Links</span>
             </Button>
           )}
+
+          {isSuperUser && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={openAccessModal}
+              className="h-8 rounded-xl text-xs font-semibold gap-1.5 border-emerald-500/30 text-foreground hover:bg-accent"
+            >
+              <Shield className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="hidden xs:inline">Edit Profile & Access</span>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -647,6 +1079,13 @@ export function PersonDetailClient({
             className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap"
           >
             Access Information
+          </TabsTrigger>
+          <TabsTrigger
+            value="notes"
+            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap flex items-center gap-1.5"
+          >
+            <StickyNote className="w-3.5 h-3.5" />
+            <span>Notes & Secret Notes ({notes.length})</span>
           </TabsTrigger>
         </TabsList>
 
@@ -1768,6 +2207,313 @@ export function PersonDetailClient({
             </p>
           </div>
         </TabsContent>
+
+        {/* ============================================================ */}
+        {/* NOTES & SECRET NOTES TAB                                      */}
+        {/* ============================================================ */}
+        <TabsContent value="notes" className="space-y-4 outline-none">
+          {/* Header Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-3xl bg-card border border-border">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                Filter:
+              </span>
+              {["all", "pinned", "always_visible", "secret_emergency", "internal_admin", "archived"].map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setNoteFilter(f)}
+                  className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all ${
+                    noteFilter === f
+                      ? "bg-emerald-600 text-white shadow-xs"
+                      : "bg-secondary text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {f === "all"
+                    ? "All"
+                    : f === "pinned"
+                    ? "Pinned"
+                    : f === "always_visible"
+                    ? "Always Visible"
+                    : f === "secret_emergency"
+                    ? "Secret Notes"
+                    : f === "internal_admin"
+                    ? "Internal Admin"
+                    : "Archived"}
+                </button>
+              ))}
+            </div>
+
+            {canEdit && (
+              <Button
+                onClick={() => {
+                  resetNoteForm();
+                  setEditingNote(null);
+                  setNoteModalOpen(true);
+                }}
+                className="h-8 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold gap-1.5 shadow-xs"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Note</span>
+              </Button>
+            )}
+          </div>
+
+          {/* Notes List */}
+          {notesLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+            </div>
+          ) : notes.length === 0 ? (
+            <div className="text-center py-16 p-6 rounded-3xl border border-dashed border-border bg-card/50">
+              <StickyNote className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+              <h3 className="text-sm font-bold text-foreground">No notes recorded</h3>
+              <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+                Keep vital instructions, directives, and secret emergency notes tied to this person.
+              </p>
+              {canEdit && (
+                <Button
+                  onClick={() => {
+                    resetNoteForm();
+                    setEditingNote(null);
+                    setNoteModalOpen(true);
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="mt-4 rounded-xl text-xs font-semibold gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Create First Note
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {notes
+                .filter((n) => {
+                  if (noteFilter === "pinned") return n.isPinned;
+                  if (noteFilter === "always_visible") return n.noteType === "always_visible";
+                  if (noteFilter === "secret_emergency") return n.noteType === "secret_emergency";
+                  if (noteFilter === "internal_admin") return n.noteType === "internal_admin";
+                  if (noteFilter === "archived") return n.isArchived || n.status === "archived";
+                  return !n.isArchived && n.status !== "archived";
+                })
+                .map((note) => {
+                  const isSecret = note.noteType === "secret_emergency";
+                  const isLocked = isSecret && !note.isReleased && note.status !== "approved";
+                  const isCountdown = note.status === "unlock_requested" || note.status === "countdown_active";
+
+                  return (
+                    <div
+                      key={note._id}
+                      className={`p-4 rounded-3xl border transition-all flex flex-col justify-between ${
+                        note.isPinned
+                          ? "bg-card border-emerald-500/40 shadow-sm"
+                          : "bg-card border-border hover:border-border/80"
+                      }`}
+                    >
+                      <div>
+                        {/* Note Header */}
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {note.isPinned && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 text-[10px] font-bold">
+                                <Pin className="w-2.5 h-2.5" /> Pinned
+                              </span>
+                            )}
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase border ${
+                                isSecret
+                                  ? "bg-rose-500/10 text-rose-600 border-rose-500/20"
+                                  : "bg-teal-500/10 text-teal-600 border-teal-500/20"
+                              }`}
+                            >
+                              {isSecret ? <Lock className="w-2.5 h-2.5" /> : <Eye className="w-2.5 h-2.5" />}
+                              {getNoteTypeLabel(note.noteType)}
+                            </span>
+                            <span
+                              className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase border ${getNoteStatusColor(
+                                note.status
+                              )}`}
+                            >
+                              {note.status.replace("_", " ")}
+                            </span>
+                          </div>
+
+                          {note.category && (
+                            <span className="text-[10px] font-semibold text-muted-foreground bg-secondary px-2 py-0.5 rounded-md truncate max-w-[120px]">
+                              {note.category}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Note Title */}
+                        <h4 className="text-sm font-bold text-foreground mb-1">
+                          {note.title}
+                        </h4>
+
+                        {/* Secret Note Locked State */}
+                        {isLocked ? (
+                          <div className="p-4 rounded-2xl bg-secondary/70 border border-border/80 my-3 text-center space-y-2">
+                            <Lock className="w-6 h-6 text-amber-500 mx-auto" />
+                            <p className="text-xs font-semibold text-foreground">
+                              Confidential / Emergency Sealed Note
+                            </p>
+                            <p className="text-[11px] text-muted-foreground">
+                              Content is encrypted and concealed until authorized release or emergency protocol activation.
+                            </p>
+
+                            {isCountdown && note.unlockDeadline && (
+                              <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400 text-xs font-bold">
+                                <Timer className="w-4 h-4 animate-spin" />
+                                <span>{formatCountdown(note.unlockDeadline)}</span>
+                              </div>
+                            )}
+
+                            {/* Unlock Actions */}
+                            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                              {!isCountdown && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleNoteAction(note._id, "request_unlock")}
+                                  className="h-7 px-3 text-[11px] rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold"
+                                >
+                                  <Unlock className="w-3 h-3 mr-1" />
+                                  Request to Unlock
+                                </Button>
+                              )}
+
+                              {isSuperUser && (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleNoteAction(note._id, "approve")}
+                                    className="h-7 px-2.5 text-[11px] rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
+                                  >
+                                    Approve Release
+                                  </Button>
+                                  {isCountdown && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleNoteAction(note._id, "extend")}
+                                      className="h-7 px-2 text-[11px] rounded-xl"
+                                    >
+                                      +24h
+                                    </Button>
+                                  )}
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleNoteAction(note._id, "cancel")}
+                                    className="h-7 px-2 text-[11px] rounded-xl text-rose-600 border-rose-200 dark:border-rose-900"
+                                  >
+                                    Cancel
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="my-2 text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                            {note.content}
+                          </div>
+                        )}
+
+                        {/* Tags */}
+                        {note.tags && note.tags.length > 0 && (
+                          <div className="flex items-center gap-1 flex-wrap my-2">
+                            {note.tags.map((t, idx) => (
+                              <span
+                                key={idx}
+                                className="text-[10px] font-medium bg-secondary text-muted-foreground px-2 py-0.5 rounded-full"
+                              >
+                                #{t}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* User Action Responses / Acknowledgment */}
+                        {!isLocked && (
+                          <div className="mt-3 pt-2 border-t border-border flex flex-wrap items-center gap-1.5">
+                            <button
+                              onClick={() => handleNoteAction(note._id, "read")}
+                              className="px-2 py-1 rounded-lg bg-secondary hover:bg-accent text-[10px] font-semibold text-muted-foreground transition-colors flex items-center gap-1"
+                            >
+                              <Check className="w-2.5 h-2.5 text-emerald-600" /> Read
+                            </button>
+                            <button
+                              onClick={() => handleNoteAction(note._id, "acknowledge")}
+                              className="px-2 py-1 rounded-lg bg-secondary hover:bg-accent text-[10px] font-semibold text-muted-foreground transition-colors flex items-center gap-1"
+                            >
+                              <CheckCircle2 className="w-2.5 h-2.5 text-blue-600" /> Acknowledge
+                            </button>
+                            <button
+                              onClick={() => handleNoteAction(note._id, "followup")}
+                              className="px-2 py-1 rounded-lg bg-secondary hover:bg-accent text-[10px] font-semibold text-muted-foreground transition-colors flex items-center gap-1"
+                            >
+                              <Clock className="w-2.5 h-2.5 text-amber-600" /> Follow-up
+                            </button>
+                            <button
+                              onClick={() => handleNoteAction(note._id, "completed")}
+                              className="px-2 py-1 rounded-lg bg-secondary hover:bg-accent text-[10px] font-semibold text-muted-foreground transition-colors flex items-center gap-1"
+                            >
+                              <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" /> Completed
+                            </button>
+                            {isSuperUser && isSecret && note.isReleased && (
+                              <button
+                                onClick={() => handleNoteAction(note._id, "relock")}
+                                className="px-2 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-[10px] font-semibold text-rose-600 transition-colors flex items-center gap-1 ml-auto"
+                              >
+                                <Lock className="w-2.5 h-2.5" /> Re-lock
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Card Footer Controls */}
+                      <div className="flex items-center justify-between pt-3 mt-2 border-t border-border text-[11px] text-muted-foreground">
+                        <span className="text-[10px]">
+                          {new Date(note.createdAt).toLocaleDateString()}
+                        </span>
+
+                        <div className="flex items-center gap-1">
+                          {note.history && note.history.length > 0 && (
+                            <button
+                              onClick={() => setNoteHistoryModal(note)}
+                              className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+                              title="Version History"
+                            >
+                              <History className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          {canEdit && (
+                            <>
+                              <button
+                                onClick={() => openEditNote(note)}
+                                className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+                                title="Edit Note"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleNoteAction(note._id, "archive")}
+                                className="p-1 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
+                                title="Archive Note"
+                              >
+                                <Archive className="w-3.5 h-3.5" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
+        </TabsContent>
       </Tabs>
 
       {/* ============================================================ */}
@@ -2019,6 +2765,509 @@ export function PersonDetailClient({
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ============================================================ */}
+      {/* Note Creation / Editing Modal                                */}
+      {/* ============================================================ */}
+      <Dialog open={noteModalOpen} onOpenChange={setNoteModalOpen}>
+        <DialogContent className="life-dialog sm:max-w-lg rounded-3xl border border-border bg-card text-foreground shadow-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
+              <StickyNote className="w-4 h-4 text-emerald-600" />
+              <span>{editingNote ? "Edit Note" : "Create New Note"}</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-2 text-xs">
+            <div className="space-y-1">
+              <label className="font-semibold text-muted-foreground">Title *</label>
+              <Input
+                placeholder="Note title or directive subject..."
+                value={noteForm.title}
+                onChange={(e) => setNoteForm((prev) => ({ ...prev, title: e.target.value }))}
+                className="h-9 rounded-xl text-xs"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="font-semibold text-muted-foreground">Note Type</label>
+                <select
+                  value={noteForm.noteType}
+                  onChange={(e) => setNoteForm((prev) => ({ ...prev, noteType: e.target.value as NoteType }))}
+                  className="w-full h-9 px-3 rounded-xl border border-border bg-secondary text-foreground text-xs focus:outline-none"
+                >
+                  <option value="always_visible">Always Visible</option>
+                  <option value="secret_emergency">Secret Emergency Note (Sealed)</option>
+                  <option value="internal_admin">Internal Admin Only</option>
+                  <option value="manual_release">Manual Release</option>
+                  <option value="scheduled_release">Scheduled Release</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-muted-foreground">Priority</label>
+                <select
+                  value={noteForm.priority}
+                  onChange={(e) => setNoteForm((prev) => ({ ...prev, priority: e.target.value as any }))}
+                  className="w-full h-9 px-3 rounded-xl border border-border bg-secondary text-foreground text-xs focus:outline-none"
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="critical">Critical</option>
+                </select>
+              </div>
+            </div>
+
+            {noteForm.noteType === "secret_emergency" && (
+              <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-2">
+                <div className="flex items-center gap-1.5 text-amber-600 font-bold text-xs">
+                  <ShieldAlert className="w-4 h-4" />
+                  <span>Secret Emergency Settings</span>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-amber-700 dark:text-amber-300">
+                    Unlock Waiting Period (Hours)
+                  </label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={noteForm.waitingPeriodHours}
+                    onChange={(e) =>
+                      setNoteForm((prev) => ({
+                        ...prev,
+                        waitingPeriodHours: parseInt(e.target.value) || 48,
+                      }))
+                    }
+                    className="h-8 rounded-xl text-xs bg-card"
+                  />
+                  <p className="text-[10px] text-amber-600/80">
+                    When unlock is requested, a countdown of this duration will run before the note is released.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="font-semibold text-muted-foreground">Category</label>
+                <Input
+                  placeholder="e.g. Legal, Medical, Financial..."
+                  value={noteForm.category}
+                  onChange={(e) => setNoteForm((prev) => ({ ...prev, category: e.target.value }))}
+                  className="h-9 rounded-xl text-xs"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-muted-foreground">Tags (comma-separated)</label>
+                <Input
+                  placeholder="urgent, insurance, password"
+                  value={noteForm.tags}
+                  onChange={(e) => setNoteForm((prev) => ({ ...prev, tags: e.target.value }))}
+                  className="h-9 rounded-xl text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-semibold text-muted-foreground">Content *</label>
+              <textarea
+                placeholder="Write note contents, instructions, or secret directives..."
+                value={noteForm.content}
+                onChange={(e) => setNoteForm((prev) => ({ ...prev, content: e.target.value }))}
+                rows={5}
+                className="w-full p-3 rounded-2xl border border-border bg-secondary text-foreground text-xs focus:outline-none resize-none leading-relaxed"
+              />
+            </div>
+
+            <label className="flex items-center gap-2 cursor-pointer pt-1">
+              <input
+                type="checkbox"
+                checked={noteForm.isPinned}
+                onChange={(e) => setNoteForm((prev) => ({ ...prev, isPinned: e.target.checked }))}
+                className="rounded border-border text-emerald-600 focus:ring-0"
+              />
+              <span className="font-semibold text-muted-foreground text-xs flex items-center gap-1">
+                <Pin className="w-3 h-3 text-emerald-600" /> Pin this note to top
+              </span>
+            </label>
+
+            <DialogFooter className="pt-3 gap-2 sm:gap-0">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setNoteModalOpen(false)}
+                disabled={noteSaving}
+                className="rounded-xl text-xs"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleSaveNote}
+                disabled={noteSaving}
+                className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold gap-1.5 shadow-xs"
+              >
+                {noteSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                {editingNote ? "Save Changes" : "Create Note"}
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ============================================================ */}
+      {/* Note Version History Modal                                    */}
+      {/* ============================================================ */}
+      <Dialog open={Boolean(noteHistoryModal)} onOpenChange={(open) => !open && setNoteHistoryModal(null)}>
+        <DialogContent className="life-dialog sm:max-w-lg rounded-3xl border border-border bg-card text-foreground shadow-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
+              <History className="w-4 h-4 text-emerald-600" />
+              <span>Version History — {noteHistoryModal?.title}</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3 pt-2 text-xs">
+            {!noteHistoryModal?.history || noteHistoryModal.history.length === 0 ? (
+              <p className="text-xs text-muted-foreground py-6 text-center">
+                No past revisions recorded.
+              </p>
+            ) : (
+              noteHistoryModal.history.map((h, idx) => (
+                <div key={idx} className="p-3 rounded-2xl bg-secondary/60 border border-border space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px] text-muted-foreground font-semibold">
+                    <span>{h.changedBy || "User"}</span>
+                    <span>{new Date(h.changedAt).toLocaleString()}</span>
+                  </div>
+                  {h.action && (
+                    <span className="inline-block px-1.5 py-0.5 rounded bg-card text-[10px] font-bold uppercase text-foreground">
+                      {h.action}
+                    </span>
+                  )}
+                  {h.previousContent && (
+                    <div className="p-2 rounded-xl bg-card/80 text-[11px] text-muted-foreground border border-border line-through opacity-80">
+                      {h.previousContent}
+                    </div>
+                  )}
+                  {h.newContent && (
+                    <div className="p-2 rounded-xl bg-card text-[11px] text-foreground border border-border font-medium">
+                      {h.newContent}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ============================================================ */}
+      {/* Edit Profile & Access Permissions Modal                      */}
+      {/* ============================================================ */}
+      <Dialog open={accessModalOpen} onOpenChange={setAccessModalOpen}>
+        <DialogContent className="life-dialog sm:max-w-2xl rounded-3xl border border-border bg-card text-foreground shadow-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-foreground flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Shield className="w-4.5 h-4.5 text-emerald-600" />
+                <span>Profile & Granular Access Control</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs font-semibold">
+                <span className={`px-2 py-0.5 rounded-full ${accessStep === "edit" ? "bg-emerald-600 text-white" : "bg-secondary text-muted-foreground"}`}>
+                  1. Configure
+                </span>
+                <span className={`px-2 py-0.5 rounded-full ${accessStep === "review" ? "bg-emerald-600 text-white" : "bg-secondary text-muted-foreground"}`}>
+                  2. Review Diff
+                </span>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+
+          {accessStep === "edit" ? (
+            <div className="space-y-4 pt-2 text-xs">
+              {/* Personal Information */}
+              <div className="space-y-2.5 pb-3 border-b border-border">
+                <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">
+                  Personal Information
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground">Full Name *</label>
+                    <Input
+                      value={accessForm.name}
+                      onChange={(e) => setAccessForm((p) => ({ ...p, name: e.target.value }))}
+                      className="h-9 rounded-xl text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground">Relationship</label>
+                    <Input
+                      value={accessForm.relation}
+                      onChange={(e) => setAccessForm((p) => ({ ...p, relation: e.target.value }))}
+                      className="h-9 rounded-xl text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground">Designation</label>
+                    <Input
+                      value={accessForm.designation}
+                      onChange={(e) => setAccessForm((p) => ({ ...p, designation: e.target.value }))}
+                      className="h-9 rounded-xl text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground">Phone</label>
+                    <Input
+                      value={accessForm.phone}
+                      onChange={(e) => setAccessForm((p) => ({ ...p, phone: e.target.value }))}
+                      className="h-9 rounded-xl text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground">Email</label>
+                    <Input
+                      value={accessForm.email}
+                      onChange={(e) => setAccessForm((p) => ({ ...p, email: e.target.value }))}
+                      className="h-9 rounded-xl text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Account & Role Configuration */}
+              <div className="space-y-3 pb-3 border-b border-border">
+                <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">
+                  Role & Account Mode
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground">System Role</label>
+                    <select
+                      value={accessForm.role}
+                      onChange={(e) => setAccessForm((p) => ({ ...p, role: e.target.value as LifeRole }))}
+                      className="w-full h-9 px-3 rounded-xl border border-border bg-secondary text-foreground text-xs focus:outline-none"
+                    >
+                      <option value="individual">Individual User (Assigned info only)</option>
+                      <option value="guardian">Guardian (Family members, emergency, medical)</option>
+                      <option value="business_staff">Business Staff (Assigned business area)</option>
+                      <option value="business_partner">Business Partner (Selected business)</option>
+                      <option value="admin">Administrator (Permitted records)</option>
+                      <option value="super_admin">Super Admin (Full access)</option>
+                      <option value="read_only">Read Only (View-only access)</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="font-semibold text-muted-foreground">Account Status</label>
+                    <select
+                      value={accessForm.accountStatus}
+                      onChange={(e) => setAccessForm((p) => ({ ...p, accountStatus: e.target.value as AccountStatus }))}
+                      className="w-full h-9 px-3 rounded-xl border border-border bg-secondary text-foreground text-xs focus:outline-none"
+                    >
+                      <option value="active">Active</option>
+                      <option value="locked">Locked</option>
+                      <option value="disabled">Disabled</option>
+                      <option value="archived">Archived</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Record-Only & Login Toggles */}
+                <div className="p-3 rounded-2xl bg-secondary/60 border border-border space-y-2">
+                  <label className="flex items-center justify-between cursor-pointer">
+                    <div>
+                      <span className="font-bold text-foreground text-xs">Record-Only Person</span>
+                      <p className="text-[11px] text-muted-foreground">
+                        Reference-only record (gifts, loans, emergency); login is permanently disabled.
+                      </p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={accessForm.isRecordOnly}
+                      onChange={(e) => {
+                        const rec = e.target.checked;
+                        setAccessForm((p) => ({
+                          ...p,
+                          isRecordOnly: rec,
+                          isLoginEnabled: rec ? false : p.isLoginEnabled,
+                        }));
+                      }}
+                      className="rounded border-border text-emerald-600 focus:ring-0"
+                    />
+                  </label>
+
+                  {!accessForm.isRecordOnly && (
+                    <label className="flex items-center justify-between cursor-pointer pt-2 border-t border-border">
+                      <div>
+                        <span className="font-bold text-foreground text-xs">Login Allowed</span>
+                        <p className="text-[11px] text-muted-foreground">
+                          Allow this user to sign in to their dedicated Life Vault dashboard.
+                        </p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={accessForm.isLoginEnabled}
+                        onChange={(e) => setAccessForm((p) => ({ ...p, isLoginEnabled: e.target.checked }))}
+                        className="rounded border-border text-emerald-600 focus:ring-0"
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+
+              {/* Capability Permissions */}
+              <div className="space-y-3 pb-3 border-b border-border">
+                <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">
+                  Core Module Capabilities
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {[
+                    { key: "canViewPersonal", label: "View Personal Data" },
+                    { key: "canViewBusiness", label: "View Business Continuity" },
+                    { key: "canViewFinancial", label: "View Financial Care" },
+                    { key: "canViewSensitive", label: "View Sensitive Records" },
+                    { key: "canRevealVault", label: "Reveal Vault Secrets" },
+                    { key: "canManageAccess", label: "Manage Access Control" },
+                    { key: "canAccessEmergency", label: "Access Emergency Mode" },
+                    { key: "canManageSecretNotes", label: "Manage Secret Notes" },
+                  ].map((perm) => (
+                    <label
+                      key={perm.key}
+                      className="flex items-center gap-2 p-2 rounded-xl bg-secondary/50 border border-border cursor-pointer hover:bg-accent transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={Boolean((accessForm as any)[perm.key])}
+                        onChange={(e) =>
+                          setAccessForm((p) => ({ ...p, [perm.key]: e.target.checked }))
+                        }
+                        className="rounded border-border text-emerald-600 focus:ring-0"
+                      />
+                      <span className="font-semibold text-foreground text-xs">{perm.label}</span>
+                    </label>
+                  ))}
+                </div>
+
+                <div className="space-y-1 pt-1">
+                  <label className="font-semibold text-muted-foreground">Notes Access Scope</label>
+                  <select
+                    value={accessForm.notesAccessScope}
+                    onChange={(e) => setAccessForm((p) => ({ ...p, notesAccessScope: e.target.value as any }))}
+                    className="w-full h-8 px-3 rounded-xl border border-border bg-secondary text-foreground text-xs focus:outline-none"
+                  >
+                    <option value="assigned_only">Assigned Notes Only</option>
+                    <option value="all">All Notes</option>
+                    <option value="none">No Notes Access</option>
+                  </select>
+                </div>
+              </div>
+
+              <DialogFooter className="pt-2 gap-2 sm:gap-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setAccessModalOpen(false)}
+                  className="rounded-xl text-xs"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => setAccessStep("review")}
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold gap-1.5 shadow-xs"
+                >
+                  Review Changes →
+                </Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            /* Review Step with Diff Summary */
+            <div className="space-y-4 pt-2 text-xs">
+              <div className="p-3 rounded-2xl bg-secondary/60 border border-border">
+                <h4 className="font-bold text-xs text-foreground mb-1">
+                  Confirmation & Audit Preview
+                </h4>
+                <p className="text-[11px] text-muted-foreground">
+                  The following changes will be applied and permanently logged in the audit trail.
+                </p>
+              </div>
+
+              {/* Added Diff */}
+              <div className="p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 space-y-2">
+                <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-xs">
+                  <Check className="w-4 h-4" />
+                  <span>[+ Permissions & Access Added]</span>
+                </div>
+                {getPermissionDiff().added.length === 0 ? (
+                  <p className="text-[11px] text-muted-foreground italic pl-5">None</p>
+                ) : (
+                  <ul className="space-y-1 pl-5 list-disc text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
+                    {getPermissionDiff().added.map((item, idx) => (
+                      <li key={idx}>{item}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {/* Removed Diff */}
+              <div className="p-3.5 rounded-2xl border border-rose-500/30 bg-rose-500/5 space-y-2">
+                <div className="flex items-center gap-1.5 text-rose-600 font-bold text-xs">
+                  <X className="w-4 h-4" />
+                  <span>[- Permissions & Access Revoked]</span>
+                </div>
+                {getPermissionDiff().removed.length === 0 ? (
+                  <p className="text-[11px] text-muted-foreground italic pl-5">None</p>
+                ) : (
+                  <ul className="space-y-1 pl-5 list-disc text-[11px] text-rose-700 dark:text-rose-400 font-medium">
+                    {getPermissionDiff().removed.map((item, idx) => (
+                      <li key={idx}>{item}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <DialogFooter className="pt-3 gap-2 sm:gap-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setAccessStep("edit")}
+                  disabled={accessSaving}
+                  className="rounded-xl text-xs"
+                >
+                  ← Back to Edit
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleSaveAccess}
+                  disabled={accessSaving}
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold gap-1.5 shadow-xs"
+                >
+                  {accessSaving ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  )}
+                  Confirm & Apply Permissions
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

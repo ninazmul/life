@@ -12,3 +12,6 @@ export * from "./lifeAccess.actions";
 export * from "./lifeEmergencyRecovery.actions";
 export * from "./lifeActivity.actions";
 export * from "./lifeSettings.actions";
+export * from "./lifeCategory.actions";
+export * from "./lifeNote.actions";
+export * from "./lifeNotification.actions";

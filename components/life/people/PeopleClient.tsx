@@ -426,10 +426,12 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
                   className="w-full h-10 px-3 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-emerald-500 focus:outline-none disabled:opacity-50"
                 >
                   <option value="individual">Individual User (Assigned info only)</option>
-                  <option value="business">Business User (Selected business)</option>
+                  <option value="guardian">Guardian (Family members, emergency, medical)</option>
+                  <option value="business_staff">Business Staff (Assigned business area)</option>
+                  <option value="business_partner">Business Partner (Selected business)</option>
                   <option value="admin">Administrator (Permitted records)</option>
                   <option value="super_admin">Super Admin (Full access)</option>
-                  <option value="read_only">Read Only</option>
+                  <option value="read_only">Read Only (View-only access)</option>
                 </select>
               </div>
 

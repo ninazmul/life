@@ -364,12 +364,88 @@ export function AccessClient({
     }
   };
 
+const getRoleDefaultPermissions = (role: LifeRole): LifePermission => {
+  switch (role) {
+    case "owner":
+    case "super_admin":
+      return {
+        canViewPersonal: true,
+        canViewBusiness: true,
+        canViewFinancial: true,
+        canViewSensitive: true,
+        canRevealVault: true,
+        canManageAccess: true,
+        canAccessEmergency: true,
+      };
+    case "admin":
+      return {
+        canViewPersonal: true,
+        canViewBusiness: true,
+        canViewFinancial: true,
+        canViewSensitive: true,
+        canRevealVault: false,
+        canManageAccess: true,
+        canAccessEmergency: false,
+      };
+    case "guardian":
+      return {
+        canViewPersonal: true,
+        canViewBusiness: false,
+        canViewFinancial: false,
+        canViewSensitive: true,
+        canRevealVault: false,
+        canManageAccess: false,
+        canAccessEmergency: true,
+      };
+    case "business_partner":
+      return {
+        canViewPersonal: false,
+        canViewBusiness: true,
+        canViewFinancial: true,
+        canViewSensitive: false,
+        canRevealVault: false,
+        canManageAccess: false,
+        canAccessEmergency: false,
+      };
+    case "business_staff":
+      return {
+        canViewPersonal: false,
+        canViewBusiness: true,
+        canViewFinancial: false,
+        canViewSensitive: false,
+        canRevealVault: false,
+        canManageAccess: false,
+        canAccessEmergency: false,
+      };
+    case "read_only":
+      return {
+        canViewPersonal: true,
+        canViewBusiness: true,
+        canViewFinancial: false,
+        canViewSensitive: false,
+        canRevealVault: false,
+        canManageAccess: false,
+        canAccessEmergency: false,
+      };
+    case "individual":
+    default:
+      return {
+        canViewPersonal: true,
+        canViewBusiness: false,
+        canViewFinancial: false,
+        canViewSensitive: false,
+        canRevealVault: false,
+        canManageAccess: false,
+        canAccessEmergency: false,
+      };
+  }
+};
+
   const handleRoleChange = async (personId: string, newRole: LifeRole) => {
     const person = people.find((p) => p._id === personId);
     if (!person) return;
 
-    const isSuper = newRole === "super_admin" || newRole === "owner";
-    const newPerms: LifePermission = isSuper ? DEFAULT_OWNER_PERMS : person.permissions;
+    const newPerms = getRoleDefaultPermissions(newRole);
 
     try {
       await updatePersonRoleAndPermissions(
@@ -776,7 +852,9 @@ export function AccessClient({
                   className="h-8 px-2.5 rounded-lg border border-border bg-card text-foreground text-xs font-medium focus:outline-none"
                 >
                   <option value="individual">Individual</option>
-                  <option value="business">Business</option>
+                  <option value="guardian">Guardian</option>
+                  <option value="business_staff">Business Staff</option>
+                  <option value="business_partner">Business Partner</option>
                   <option value="admin">Admin</option>
                   <option value="super_admin">Super Admin</option>
                   <option value="read_only">Read Only</option>

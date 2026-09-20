@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   Users,
@@ -39,18 +39,42 @@ import {
   Gem,
   Zap,
   ChevronDown,
+  Archive,
+  Pencil,
+  Trash2,
+  GripVertical,
+  Loader2,
+  X,
+  ChevronUp,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LifeDashboardStats } from "@/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { LifeDashboardStats, ILifeCategory, MainCategoryKey } from "@/types";
 import { canAccessModule, UserModuleAccess } from "@/lib/life/module-access";
 import { getGesnReports } from "@/lib/actions/gesnReports.actions";
+import {
+  getCategoriesAndSubcategories,
+  createSubcategory,
+  updateSubcategory,
+  reorderSubcategories,
+  archiveSubcategory,
+  deleteSubcategory,
+  MAIN_CATEGORIES,
+} from "@/lib/actions/lifeCategory.actions";
+import toast from "react-hot-toast";
 
 interface LifeDashboardClientProps {
   stats: LifeDashboardStats;
@@ -60,6 +84,99 @@ interface LifeDashboardClientProps {
 export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientProps) {
   const router = useRouter();
   const isSuperUser = userAccess ? userAccess.isOwner || userAccess.isAdmin : true;
+  const [subcatModalOpen, setSubcatModalOpen] = useState(false);
+  const [subcategories, setSubcategories] = useState<Record<string, ILifeCategory[]>>({});
+  const [subcatLoading, setSubcatLoading] = useState(false);
+  const [selectedMainCat, setSelectedMainCat] = useState<MainCategoryKey>("financial_care");
+  const [newSubcatName, setNewSubcatName] = useState("");
+  const [editingSubcat, setEditingSubcat] = useState<ILifeCategory | null>(null);
+  const [editSubcatName, setEditSubcatName] = useState("");
+  const [subcatSaving, setSubcatSaving] = useState(false);
+
+  const loadSubcategories = useCallback(async () => {
+    setSubcatLoading(true);
+    try {
+      const data = await getCategoriesAndSubcategories();
+      setSubcategories(data);
+    } catch {
+      // silent
+    } finally {
+      setSubcatLoading(false);
+    }
+  }, []);
+
+  const handleAddSubcategory = async () => {
+    if (!newSubcatName.trim()) return;
+    setSubcatSaving(true);
+    try {
+      await createSubcategory({ mainCategory: selectedMainCat, name: newSubcatName.trim() });
+      setNewSubcatName("");
+      await loadSubcategories();
+      toast.success("Subcategory added!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to add subcategory.");
+    } finally {
+      setSubcatSaving(false);
+    }
+  };
+
+  const handleEditSubcategory = async () => {
+    if (!editingSubcat || !editSubcatName.trim()) return;
+    setSubcatSaving(true);
+    try {
+      await updateSubcategory(editingSubcat._id, { name: editSubcatName.trim() });
+      setEditingSubcat(null);
+      setEditSubcatName("");
+      await loadSubcategories();
+      toast.success("Subcategory updated!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update.");
+    } finally {
+      setSubcatSaving(false);
+    }
+  };
+
+  const handleArchiveSubcategory = async (id: string) => {
+    setSubcatSaving(true);
+    try {
+      await archiveSubcategory(id);
+      await loadSubcategories();
+      toast.success("Subcategory archived.");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to archive.");
+    } finally {
+      setSubcatSaving(false);
+    }
+  };
+
+  const handleDeleteSubcategory = async (id: string) => {
+    if (!confirm("Delete this subcategory? This cannot be undone.")) return;
+    setSubcatSaving(true);
+    try {
+      await deleteSubcategory(id);
+      await loadSubcategories();
+      toast.success("Subcategory deleted.");
+    } catch (err: any) {
+      toast.error(err.message || "Cannot delete — records may be linked.");
+    } finally {
+      setSubcatSaving(false);
+    }
+  };
+
+  const handleMoveSubcategory = async (catKey: string, index: number, direction: "up" | "down") => {
+    const cats = [...(subcategories[catKey] || [])];
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= cats.length) return;
+    [cats[index], cats[newIndex]] = [cats[newIndex], cats[index]];
+    const orderedIds = cats.map(c => c._id);
+    try {
+      await reorderSubcategories(orderedIds);
+      await loadSubcategories();
+    } catch {
+      toast.error("Failed to reorder.");
+    }
+  };
+
   const ownerPersonId = stats.ownerProfile?.personId || userAccess?.personId;
   const ownerProfileUrl = ownerPersonId ? `/people/${ownerPersonId}` : "/people";
   const ownerName = stats.ownerProfile?.name || userAccess?.name || "Nazmul Islam";
@@ -445,6 +562,35 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                       );
                     })}
                   </div>
+                  {isSuperUser && (
+                    <>
+                      <div className="border-t border-border my-1" />
+                      <DropdownMenuItem
+                        className="cursor-pointer rounded-xl focus:bg-accent p-2.5 transition-colors"
+                        onClick={() => {
+                          loadSubcategories();
+                          setSubcatModalOpen(true);
+                        }}
+                      >
+                        <div className="flex items-center justify-between w-full gap-3">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border text-teal-700 dark:text-teal-300 bg-teal-500/10 border-teal-500/20">
+                              <Layers className="w-4 h-4 shrink-0" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-foreground truncate">
+                                Manage Subcategories
+                              </p>
+                              <p className="text-[10px] text-muted-foreground truncate">
+                                Add, edit, reorder, archive
+                              </p>
+                            </div>
+                          </div>
+                          <Settings className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                        </div>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
 
@@ -1427,6 +1573,178 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
           </div>
         </section>
       )}
+
+      {/* ============================================================ */}
+      {/* Subcategory Management Modal                                 */}
+      {/* ============================================================ */}
+      <Dialog open={subcatModalOpen} onOpenChange={setSubcatModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col rounded-3xl border border-border bg-card shadow-2xl p-0">
+          <DialogHeader className="px-5 pt-5 pb-3 border-b border-border">
+            <DialogTitle className="text-base font-extrabold text-foreground flex items-center gap-2">
+              <Layers className="w-4.5 h-4.5 text-teal-500" />
+              Manage Subcategories
+            </DialogTitle>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Organize subcategories under each of the 6 main categories.
+            </p>
+          </DialogHeader>
+
+          {/* Main Category Tabs */}
+          <div className="px-5 pt-3 flex overflow-x-auto scrollbar-none gap-1.5">
+            {MAIN_CATEGORIES.map((mc) => (
+              <button
+                key={mc.key}
+                onClick={() => setSelectedMainCat(mc.key)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${
+                  selectedMainCat === mc.key
+                    ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                    : "bg-secondary text-muted-foreground border-border hover:bg-accent"
+                }`}
+              >
+                {mc.title}
+              </button>
+            ))}
+          </div>
+
+          {/* Subcategory List */}
+          <div className="flex-1 overflow-y-auto px-5 py-3 space-y-2 min-h-0">
+            {subcatLoading ? (
+              <div className="flex items-center justify-center py-10">
+                <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : (subcategories[selectedMainCat] || []).length === 0 ? (
+              <div className="text-center py-10">
+                <Layers className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
+                <p className="text-xs text-muted-foreground">No subcategories yet.</p>
+              </div>
+            ) : (
+              (subcategories[selectedMainCat] || []).map((cat, idx) => (
+                <div
+                  key={cat._id}
+                  className={`flex items-center gap-2 p-2.5 rounded-2xl border transition-all ${
+                    cat.isArchived
+                      ? "bg-secondary/50 border-border/60 opacity-60"
+                      : "bg-card border-border hover:border-emerald-500/30"
+                  }`}
+                >
+                  {/* Reorder Controls */}
+                  <div className="flex flex-col gap-0.5">
+                    <button
+                      onClick={() => handleMoveSubcategory(selectedMainCat, idx, "up")}
+                      disabled={idx === 0}
+                      className="p-0.5 rounded hover:bg-accent disabled:opacity-30"
+                    >
+                      <ChevronUp className="w-3 h-3 text-muted-foreground" />
+                    </button>
+                    <button
+                      onClick={() => handleMoveSubcategory(selectedMainCat, idx, "down")}
+                      disabled={idx === (subcategories[selectedMainCat]?.length || 1) - 1}
+                      className="p-0.5 rounded hover:bg-accent disabled:opacity-30"
+                    >
+                      <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                    </button>
+                  </div>
+
+                  {/* Name */}
+                  <div className="flex-1 min-w-0">
+                    {editingSubcat?._id === cat._id ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={editSubcatName}
+                          onChange={(e) => setEditSubcatName(e.target.value)}
+                          className="h-7 text-xs flex-1 border-emerald-500/40 bg-secondary"
+                          autoFocus
+                          onKeyDown={(e) => e.key === "Enter" && handleEditSubcategory()}
+                        />
+                        <Button
+                          size="sm"
+                          onClick={handleEditSubcategory}
+                          disabled={subcatSaving}
+                          className="h-7 px-2 text-[10px] bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg"
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setEditingSubcat(null)}
+                          className="h-7 px-1.5 text-[10px] rounded-lg"
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-foreground truncate">
+                          {cat.name}
+                        </span>
+                        {cat.isArchived && (
+                          <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20">
+                            Archived
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  {editingSubcat?._id !== cat._id && (
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => {
+                          setEditingSubcat(cat);
+                          setEditSubcatName(cat.name);
+                        }}
+                        className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                        title="Edit"
+                      >
+                        <Pencil className="w-3 h-3" />
+                      </button>
+                      {!cat.isArchived && (
+                        <button
+                          onClick={() => handleArchiveSubcategory(cat._id)}
+                          className="p-1.5 rounded-lg hover:bg-amber-500/10 text-muted-foreground hover:text-amber-600 transition-colors"
+                          title="Archive"
+                        >
+                          <Archive className="w-3 h-3" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDeleteSubcategory(cat._id)}
+                        className="p-1.5 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600 transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Add New Subcategory */}
+          <div className="px-5 pb-5 pt-3 border-t border-border">
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="New subcategory name..."
+                value={newSubcatName}
+                onChange={(e) => setNewSubcatName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAddSubcategory()}
+                className="h-9 text-xs flex-1 border-border bg-secondary"
+              />
+              <Button
+                onClick={handleAddSubcategory}
+                disabled={subcatSaving || !newSubcatName.trim()}
+                className="h-9 px-3.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl gap-1.5 shadow-sm"
+              >
+                {subcatSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                Add
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

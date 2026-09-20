@@ -267,11 +267,16 @@ const SENSITIVE_ROUTES = [
 ### Multi-Tier Role-Based Access Control (RBAC)
 | Role | Access Level | Description |
 | :--- | :--- | :--- |
-| **`owner`** / **`super_admin`** | Full Unrestricted | Master of all data, settings, vault decryption, and access delegation |
-| **`admin`** | High Operational | Can view all records, edit continuity plans, and trigger emergency mode |
-| **`individual`** | Personal & Family | Can only view personal letters, allocated financial notes, and contacts |
-| **`business`** | Partner Operational | Can view assigned venture continuity steps, engineer contacts, and server notes |
-| **`read_only`** | Gated Viewer | Read-only access to specifically delegated resources |
+| **`owner`** / **`super_admin`** | Master Ownership | Unrestricted access across all 13+ modules, settings, encryption keys, and permission assignment. |
+| **`admin`** | High Operational | Operational administration across all permitted modules, continuity plans, and emergency recovery. |
+| **`guardian`** | Family & Emergency | Family protection, emergency health directives, and multi-party emergency consensus activation. |
+| **`business_staff`** | Operational Continuity | Assigned business venture execution, server maintenance, and operational directives. |
+| **`business_partner`** | Enterprise Partner | Shared business accounts, partner equity, debts, and corporate agreements. |
+| **`individual`** | Personal & Family | Isolated access restricted exclusively to their own assigned records, notes, and personal messages. |
+| **`read_only`** | Gated Viewer | View-only inspection of permitted resources without mutation or vault secret reveal rights. |
+
+> **Record-Only Persons**: For individuals documented purely for financial, emergency, or family relationship records without portal logins, the `isRecordOnly` flag permanently blocks authentication attempts at the auth layer.
+
 
 ---
 
@@ -317,9 +322,9 @@ const SENSITIVE_ROUTES = [
 │   └── layout.tsx              # Root HTML layout with ClerkProvider & ThemeProvider
 ├── components/
 │   └── life/                   # Modular Life UI components
-│       ├── layout/             # LifeHeader, LifeSidebar, LifeBottomNav
-│       ├── dashboard/          # LifeDashboardClient & metric cards
-│       ├── people/             # PeopleClient, PersonDetailClient & 8 dossier tabs
+│       ├── layout/             # LifeHeader (with Notification Bell), LifeSidebar, LifeBottomNav
+│       ├── dashboard/          # LifeDashboardClient, metric cards & Subcategory Manager Modal
+│       ├── people/             # PeopleClient, PersonDetailClient & 9 dossier tabs (including Notes)
 │       ├── money/              # MoneyClient, MoneyFormModal, SettlementModal
 │       ├── information/        # InformationClient & InformationModal
 │       ├── business/           # BusinessClient, BusinessModal, ContinuityModal
@@ -338,13 +343,16 @@ const SENSITIVE_ROUTES = [
 │   │   ├── lifeActivity.actions.ts
 │   │   ├── lifeAsset.actions.ts
 │   │   ├── lifeBusiness.actions.ts
+│   │   ├── lifeCategory.actions.ts # Dynamic subcategory CRUD & reordering
 │   │   ├── lifeContact.actions.ts
 │   │   ├── lifeDashboard.actions.ts
 │   │   ├── lifeDocument.actions.ts
 │   │   ├── lifeInformation.actions.ts
 │   │   ├── lifeLegacy.actions.ts
 │   │   ├── lifeMoney.actions.ts
-│   │   ├── lifePeople.actions.ts
+│   │   ├── lifeNote.actions.ts     # Notes & secret emergency note lifecycle
+│   │   ├── lifeNotification.actions.ts # In-app notification queue & read receipts
+│   │   ├── lifePeople.actions.ts   # Directory, permissions & 2-step audit diffs
 │   │   ├── lifeSettings.actions.ts
 │   │   ├── lifeVault.actions.ts
 │   │   └── index.ts
@@ -373,7 +381,10 @@ All entities are modeled with Mongoose under `lib/database/models/`:
 | Schema | Model File | Description |
 | :--- | :--- | :--- |
 | `Admin` | `admin.model.ts` | System administrators and super-admin accounts |
-| `LifePerson` | `lifePerson.model.ts` | Individuals, relationships, dossier data, and assigned roles |
+| `LifePerson` | `lifePerson.model.ts` | Individuals, relationships, dossier data, 7 roles, and Record-Only mode |
+| `LifeCategory` | `lifeCategory.model.ts` | Dynamic subcategories under 6 main categories with reordering and archiving |
+| `LifeNote` | `lifeNote.model.ts` | Notes & secret emergency notes with countdowns, approvals, and revisions |
+| `LifeNotification`| `lifeNotification.model.ts`| In-app notification queue, unread counters, and instant alerts |
 | `LifeMoneyRecord` | `lifeMoneyRecord.model.ts` | Receivables, payables, investments, due dates, and returned amounts |
 | `LifeSettlement` | `lifeSettlement.model.ts` | Ledger of partial and full return payments |
 | `LifeVaultItem` | `lifeVaultItem.model.ts` | Encrypted secrets (AES-256-GCM ciphertext, IV, and auth tag) |
@@ -401,7 +412,7 @@ All entities are modeled with Mongoose under `lib/database/models/`:
 | `/finance/[id]` | Dependent Support Dossier | Full Access | View Own Profile | Hidden |
 | `/money` | Financial & Debt Ledger | Full Access | View Own Records | View Venture Debts |
 | `/people` | People Directory & Profiles | Full Access | View Self / Family | View Team |
-| `/people/[id]` | 8-Tab Individual Dossier | Full Access | View Assigned | View Assigned |
+| `/people/[id]` | 9-Tab Individual Dossier & Notes | Full Access | View Assigned | View Assigned |
 | `/instructions`| Operational Handover Directives| Full Access | View Assigned Directives | View Operational Steps |
 | `/assets` | Asset Portfolio & Valuation | Full Access | Emergency View | Hidden |
 | `/contacts` | Emergency Contacts Directory | Full Access | Full Access | Relevant Contacts |

@@ -14,7 +14,8 @@ import LifeLegacyMessage from "@/lib/database/models/lifeLegacyMessage.model";
 import LifeAsset from "@/lib/database/models/lifeAsset.model";
 import Admin from "@/lib/database/models/admin.model";
 import { getLifeAuthContext, logLifeActivity, DEFAULT_OWNER_PERMS } from "@/lib/life/auth";
-import { ILifePerson, PersonStatus, LifeRole, AccountStatus } from "@/types";
+import { createInAppNotification } from "./lifeNotification.actions";
+import { ILifePerson, PersonStatus, LifeRole, AccountStatus, LifePermission } from "@/types";
 
 export async function getPeople(params?: {
   search?: string;
@@ -141,6 +142,7 @@ export async function createPerson(data: {
   businessInstructions?: string[];
   notes?: string;
   emergencyPriority?: number;
+  isRecordOnly?: boolean;
   permissions?: Record<string, boolean>;
 }) {
   await connectToDatabase();
@@ -151,6 +153,7 @@ export async function createPerson(data: {
 
   const isSuper = data.role === "super_admin" || data.role === "owner";
   const finalRole = data.role || "individual";
+  const isRecordOnly = Boolean(data.isRecordOnly);
   const finalPerms = isSuper
     ? DEFAULT_OWNER_PERMS
     : data.permissions || {
@@ -168,12 +171,13 @@ export async function createPerson(data: {
     relation: data.relation,
     phone: data.phone || "",
     whatsapp: data.whatsapp || data.phone || "",
-    email: data.email?.toLowerCase().trim() || "",
+    email: isRecordOnly ? "" : data.email?.toLowerCase().trim() || "",
     role: finalRole,
     userRole: finalRole,
     status: data.status || "active",
     accountStatus: data.accountStatus || "active",
-    isLoginEnabled: data.isLoginEnabled ?? true,
+    isLoginEnabled: isRecordOnly ? false : (data.isLoginEnabled ?? true),
+    isRecordOnly,
     personalMessage: data.personalMessage || "",
     responsibilities: data.responsibilities || [],
     businessInstructions: data.businessInstructions || [],
@@ -385,4 +389,147 @@ export async function setPersonAccountStatus(
   revalidatePath("/people");
   revalidatePath(`/people/${id}`);
   return { success: true, accountStatus: newStatus };
+}
+
+/**
+ * Updates full profile & access permissions with diff tracking (§5).
+ */
+export async function updatePersonAccessAndPermissions(
+  personId: string,
+  data: {
+    name?: string;
+    relation?: string;
+    designation?: string;
+    phone?: string;
+    whatsapp?: string;
+    email?: string;
+    role: LifeRole;
+    status?: PersonStatus;
+    accountStatus?: AccountStatus;
+    isLoginEnabled?: boolean;
+    isRecordOnly?: boolean;
+    emergencyPriority?: number;
+    allowedBusinessIds?: string[];
+    allowedCategoryKeys?: string[];
+    allowedSubcategoryIds?: string[];
+    permissions: LifePermission;
+    addedDiffSummary?: string[];
+    removedDiffSummary?: string[];
+  }
+) {
+  await connectToDatabase();
+  const auth = await getLifeAuthContext();
+  if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+    throw new Error("Forbidden: Only Owners or Admins can modify permissions.");
+  }
+
+  const person = await LifePerson.findById(personId);
+  if (!person) throw new Error("Person profile not found.");
+
+  // Super Admin cannot modify Owner's account unless caller is Owner
+  const isTargetOwner = person.role === "owner" || person.role === "super_admin";
+  if (isTargetOwner && !auth.isOwner) {
+    throw new Error("Forbidden: Super Admins cannot modify Owner-level control.");
+  }
+
+  const isSuper = data.role === "super_admin" || data.role === "owner";
+  const finalPerms: LifePermission = isSuper
+    ? DEFAULT_OWNER_PERMS
+    : {
+        ...data.permissions,
+        allowedBusinessIds: data.allowedBusinessIds || [],
+        allowedCategoryKeys: data.allowedCategoryKeys || [],
+        allowedSubcategoryIds: data.allowedSubcategoryIds || [],
+      };
+
+  const isRecordOnly = Boolean(data.isRecordOnly);
+  const isLoginEnabled = isRecordOnly ? false : (data.isLoginEnabled ?? true);
+
+  const prevRole = person.role;
+  const updateFields: Record<string, unknown> = {
+    role: data.role,
+    userRole: data.role,
+    permissions: finalPerms,
+    isRecordOnly,
+    isLoginEnabled,
+  };
+
+  if (data.name !== undefined) updateFields.name = data.name.trim();
+  if (data.relation !== undefined) updateFields.relation = data.relation.trim();
+  if (data.designation !== undefined) updateFields.designation = data.designation.trim();
+  if (data.phone !== undefined) updateFields.phone = data.phone.trim();
+  if (data.whatsapp !== undefined) updateFields.whatsapp = data.whatsapp.trim();
+  if (data.email !== undefined) updateFields.email = isRecordOnly ? "" : data.email.toLowerCase().trim();
+  if (data.status !== undefined) updateFields.status = data.status;
+  if (data.accountStatus !== undefined) updateFields.accountStatus = data.accountStatus;
+  if (data.emergencyPriority !== undefined) updateFields.emergencyPriority = Number(data.emergencyPriority) || 0;
+
+  const updated = (await LifePerson.findByIdAndUpdate(
+    personId,
+    { $set: updateFields },
+    { new: true }
+  ).lean()) as (ILifePerson & { _id: unknown }) | null;
+
+  if (!updated) throw new Error("Failed to update person.");
+
+  // Sync with Admin collection if role is admin or super_admin
+  const targetEmail = (updated.email || "").toLowerCase().trim();
+  if (targetEmail) {
+    if (updated.role === "super_admin" || updated.role === "admin") {
+      await Admin.findOneAndUpdate(
+        { email: new RegExp(`^${targetEmail}$`, "i") },
+        {
+          $set: {
+            email: targetEmail,
+            name: updated.name,
+            role: updated.role === "super_admin" ? "super_admin" : "admin",
+            isActive: updated.status === "active" && updated.isLoginEnabled !== false,
+          },
+        },
+        { upsert: true }
+      ).catch(() => {});
+    } else {
+      await Admin.findOneAndUpdate(
+        { email: new RegExp(`^${targetEmail}$`, "i") },
+        { $set: { isActive: false } }
+      ).catch(() => {});
+    }
+  }
+
+  const addedStr = (data.addedDiffSummary || []).join(", ") || "None";
+  const removedStr = (data.removedDiffSummary || []).join(", ") || "None";
+
+  // Audit log with detailed diff
+  await logLifeActivity({
+    action: "UPDATE_USER_PERMISSIONS_DIFF",
+    resourceType: "people",
+    resourceId: personId,
+    resourceName: updated.name,
+    details: `Updated permissions for ${updated.name} (Role: ${prevRole} -> ${data.role}). Added: [${addedStr}]. Removed: [${removedStr}].`,
+    previousValue: `Role: ${prevRole}`,
+    newValue: `Role: ${data.role} | Added: [${addedStr}] | Removed: [${removedStr}]`,
+    isCritical: true,
+  });
+
+  // In-app notification to the affected user if they have login access
+  if (updated.email && !isRecordOnly) {
+    await createInAppNotification({
+      recipientEmail: updated.email,
+      recipientPersonId: personId,
+      title: "Your Account Permissions Updated",
+      message: `Your Life role is now "${data.role}". Access permissions have been updated by ${auth.name}.`,
+      type: "access_changed",
+      link: `/people/${personId}`,
+    });
+  }
+
+  revalidatePath("/people");
+  revalidatePath(`/people/${personId}`);
+  revalidatePath("/access");
+  revalidatePath("/");
+
+  return {
+    success: true,
+    person: JSON.parse(JSON.stringify(updated)),
+  };
 }

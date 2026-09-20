@@ -5,7 +5,7 @@ import Admin from "@/lib/database/models/admin.model";
 import LifePerson from "@/lib/database/models/lifePerson.model";
 import LifeActivityLog from "@/lib/database/models/lifeActivityLog.model";
 import LifeEmergencyAccess from "@/lib/database/models/lifeEmergencyAccess.model";
-import { LifeRole, LifePermission } from "@/types";
+import { LifeRole, LifePermission, CrudAreaKey } from "@/types";
 
 export interface LifeAuthContext {
   userId: string;
@@ -29,7 +29,231 @@ export const DEFAULT_OWNER_PERMS: LifePermission = {
   canRevealVault: true,
   canManageAccess: true,
   canAccessEmergency: true,
+  allowedCategoryKeys: [
+    "financial_care",
+    "estate_wasiyyah",
+    "roles_responsibilities",
+    "emergency_contacts",
+    "security_access",
+    "instructions_messages",
+  ],
+  crud: {
+    categories: { view: true, add: true, edit: true, delete: true },
+    profiles: { view: true, add: true, edit: true, delete: true },
+    business: { view: true, add: true, edit: true, delete: true },
+    financial: { view: true, add: true, edit: true, delete: true },
+    documents: { view: true, add: true, edit: true, delete: true },
+    notes: { view: true, add: true, edit: true, delete: true },
+    instructions: { view: true, add: true, edit: true, delete: true },
+    emergency: { view: true, add: true, edit: true, delete: true },
+    vault: { view: true, add: true, edit: true, delete: true },
+  },
+  notesAccessScope: "all",
+  canManageSecretNotes: true,
 };
+
+/**
+ * Returns customized default permissions according to specification for each role (§4).
+ */
+export function getDefaultPermissionsForRole(role: LifeRole): LifePermission {
+  switch (role) {
+    case "owner":
+    case "super_admin":
+      return { ...DEFAULT_OWNER_PERMS };
+
+    case "admin":
+    case "administrator":
+      return {
+        canViewPersonal: true,
+        canViewBusiness: true,
+        canViewFinancial: false,
+        canViewSensitive: false,
+        canRevealVault: false,
+        canManageAccess: false,
+        canAccessEmergency: true,
+        allowedCategoryKeys: [
+          "roles_responsibilities",
+          "emergency_contacts",
+          "instructions_messages",
+        ],
+        crud: {
+          categories: { view: true, add: false, edit: false, delete: false },
+          profiles: { view: true, add: true, edit: true, delete: false },
+          business: { view: true, add: false, edit: false, delete: false },
+          financial: { view: false, add: false, edit: false, delete: false },
+          documents: { view: true, add: true, edit: false, delete: false },
+          notes: { view: true, add: true, edit: true, delete: false },
+          instructions: { view: true, add: true, edit: true, delete: false },
+          emergency: { view: true, add: true, edit: false, delete: false },
+          vault: { view: false, add: false, edit: false, delete: false },
+        },
+        notesAccessScope: "assigned_only",
+        canManageSecretNotes: false,
+      };
+
+    case "guardian":
+      return {
+        canViewPersonal: true,
+        canViewBusiness: false,
+        canViewFinancial: false,
+        canViewSensitive: false,
+        canRevealVault: false,
+        canManageAccess: false,
+        canAccessEmergency: true,
+        allowedCategoryKeys: [
+          "emergency_contacts",
+          "instructions_messages",
+          "roles_responsibilities",
+        ],
+        crud: {
+          categories: { view: true, add: false, edit: false, delete: false },
+          profiles: { view: true, add: false, edit: false, delete: false },
+          business: { view: false, add: false, edit: false, delete: false },
+          financial: { view: false, add: false, edit: false, delete: false },
+          documents: { view: true, add: false, edit: false, delete: false },
+          notes: { view: true, add: false, edit: false, delete: false },
+          instructions: { view: true, add: false, edit: false, delete: false },
+          emergency: { view: true, add: false, edit: false, delete: false },
+          vault: { view: false, add: false, edit: false, delete: false },
+        },
+        notesAccessScope: "assigned_only",
+        canManageSecretNotes: false,
+      };
+
+    case "business_staff":
+      return {
+        canViewPersonal: false,
+        canViewBusiness: true,
+        canViewFinancial: false,
+        canViewSensitive: false,
+        canRevealVault: false,
+        canManageAccess: false,
+        canAccessEmergency: false,
+        allowedCategoryKeys: ["roles_responsibilities"],
+        crud: {
+          categories: { view: false, add: false, edit: false, delete: false },
+          profiles: { view: false, add: false, edit: false, delete: false },
+          business: { view: true, add: false, edit: false, delete: false },
+          financial: { view: false, add: false, edit: false, delete: false },
+          documents: { view: false, add: false, edit: false, delete: false },
+          notes: { view: true, add: true, edit: false, delete: false },
+          instructions: { view: true, add: false, edit: false, delete: false },
+          emergency: { view: false, add: false, edit: false, delete: false },
+          vault: { view: false, add: false, edit: false, delete: false },
+        },
+        notesAccessScope: "assigned_only",
+        canManageSecretNotes: false,
+      };
+
+    case "business":
+    case "business_partner":
+      return {
+        canViewPersonal: false,
+        canViewBusiness: true,
+        canViewFinancial: true,
+        canViewSensitive: false,
+        canRevealVault: false,
+        canManageAccess: false,
+        canAccessEmergency: false,
+        allowedCategoryKeys: ["roles_responsibilities", "financial_care"],
+        crud: {
+          categories: { view: false, add: false, edit: false, delete: false },
+          profiles: { view: false, add: false, edit: false, delete: false },
+          business: { view: true, add: false, edit: false, delete: false },
+          financial: { view: true, add: false, edit: false, delete: false },
+          documents: { view: true, add: false, edit: false, delete: false },
+          notes: { view: true, add: false, edit: false, delete: false },
+          instructions: { view: true, add: false, edit: false, delete: false },
+          emergency: { view: false, add: false, edit: false, delete: false },
+          vault: { view: false, add: false, edit: false, delete: false },
+        },
+        notesAccessScope: "assigned_only",
+        canManageSecretNotes: false,
+      };
+
+    case "individual":
+    case "responsible_person":
+    case "beneficiary":
+      return {
+        canViewPersonal: true,
+        canViewBusiness: false,
+        canViewFinancial: true,
+        canViewSensitive: false,
+        canRevealVault: false,
+        canManageAccess: false,
+        canAccessEmergency: false,
+        allowedCategoryKeys: [
+          "financial_care",
+          "roles_responsibilities",
+          "instructions_messages",
+        ],
+        crud: {
+          categories: { view: true, add: false, edit: false, delete: false },
+          profiles: { view: true, add: false, edit: false, delete: false },
+          business: { view: false, add: false, edit: false, delete: false },
+          financial: { view: true, add: false, edit: false, delete: false },
+          documents: { view: true, add: false, edit: false, delete: false },
+          notes: { view: true, add: false, edit: false, delete: false },
+          instructions: { view: true, add: false, edit: false, delete: false },
+          emergency: { view: false, add: false, edit: false, delete: false },
+          vault: { view: false, add: false, edit: false, delete: false },
+        },
+        notesAccessScope: "assigned_only",
+        canManageSecretNotes: false,
+      };
+
+    case "read_only":
+    default:
+      return {
+        canViewPersonal: true,
+        canViewBusiness: false,
+        canViewFinancial: false,
+        canViewSensitive: false,
+        canRevealVault: false,
+        canManageAccess: false,
+        canAccessEmergency: false,
+        allowedCategoryKeys: [],
+        crud: {
+          categories: { view: true, add: false, edit: false, delete: false },
+          profiles: { view: true, add: false, edit: false, delete: false },
+          business: { view: false, add: false, edit: false, delete: false },
+          financial: { view: false, add: false, edit: false, delete: false },
+          documents: { view: true, add: false, edit: false, delete: false },
+          notes: { view: true, add: false, edit: false, delete: false },
+          instructions: { view: true, add: false, edit: false, delete: false },
+          emergency: { view: false, add: false, edit: false, delete: false },
+          vault: { view: false, add: false, edit: false, delete: false },
+        },
+        notesAccessScope: "assigned_only",
+        canManageSecretNotes: false,
+      };
+  }
+}
+
+/**
+ * Checks if caller has granular CRUD permission for a specific area.
+ */
+export function hasCrudAccess(
+  context: LifeAuthContext | null,
+  area: CrudAreaKey,
+  action: "view" | "add" | "edit" | "delete"
+): boolean {
+  if (!context) return false;
+  if (context.isOwner || context.role === "super_admin") return true;
+  if (action !== "view" && context.role === "read_only") return false;
+  const areaPerms = context.permissions?.crud?.[area];
+  if (areaPerms && areaPerms[action] !== undefined) {
+    return Boolean(areaPerms[action]);
+  }
+  if (action === "view") {
+    if (area === "financial") return Boolean(context.permissions?.canViewFinancial);
+    if (area === "business") return Boolean(context.permissions?.canViewBusiness);
+    if (area === "vault") return Boolean(context.permissions?.canRevealVault);
+    if (area === "emergency") return Boolean(context.permissions?.canAccessEmergency);
+    return Boolean(context.permissions?.canViewPersonal);
+  }
+  return context.isAdmin;
+}
 
 /**
  * Resolves the authenticated user and their Life authorization profile server-side.
@@ -126,9 +350,11 @@ export async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
       personDoc &&
       (personDoc.status === "locked" ||
         personDoc.accountStatus === "temporarily_locked" ||
-        personDoc.accountStatus === "disabled")
+        personDoc.accountStatus === "disabled" ||
+        personDoc.isLoginEnabled === false ||
+        personDoc.isRecordOnly === true)
     ) {
-      throw new Error("Your access to Life has been locked. Please contact the Owner.");
+      throw new Error("Your access to Life has been locked or configured as Record-Only. Login is not permitted.");
     }
 
     if (personDoc) {
@@ -213,18 +439,12 @@ export async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
       const isOwner = isSuperUser;
       const isAdmin = isSuperUser || role === "admin" || role === "administrator";
 
+      const defaultPerms = getDefaultPermissionsForRole(role);
       const perms: LifePermission = isSuperUser
         ? DEFAULT_OWNER_PERMS
         : {
-            ...(personDoc.permissions || {
-              canViewPersonal: false,
-              canViewBusiness: role === "business" || role === "business_partner",
-              canViewFinancial: false,
-              canViewSensitive: false,
-              canRevealVault: false,
-              canManageAccess: false,
-              canAccessEmergency: isGuardian,
-            }),
+            ...defaultPerms,
+            ...(personDoc.permissions || {}),
             ...(isDesignatedEmergencyAdmin || isGuardian ? { canAccessEmergency: true } : {}),
           };
 

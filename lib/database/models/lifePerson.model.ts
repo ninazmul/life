@@ -30,6 +30,11 @@ export interface ILifePersonDoc extends Document {
     canAccessEmergency: boolean;
     allowedPersonIds?: string[];
     allowedBusinessIds?: string[];
+    allowedCategoryKeys?: string[];
+    allowedSubcategoryIds?: string[];
+    crud?: Record<string, { view: boolean; add: boolean; edit: boolean; delete: boolean }>;
+    notesAccessScope?: "all" | "assigned_only" | "none";
+    canManageSecretNotes?: boolean;
   };
   emergencyPriority?: number;
   personalMessage?: string;
@@ -40,6 +45,7 @@ export interface ILifePersonDoc extends Document {
   lastLogin?: Date;
   lastActivity?: Date;
   isLoginEnabled?: boolean;
+  isRecordOnly?: boolean;
   clerkUserId?: string;
   socialLinks?: {
     facebook?: string;
@@ -85,6 +91,11 @@ const LifePersonSchema = new Schema<ILifePersonDoc>(
       default: true,
       index: true,
     },
+    isRecordOnly: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
     role: {
       type: String,
       default: "individual",
@@ -109,6 +120,15 @@ const LifePersonSchema = new Schema<ILifePersonDoc>(
       canAccessEmergency: { type: Boolean, default: false },
       allowedPersonIds: [{ type: String }],
       allowedBusinessIds: [{ type: String }],
+      allowedCategoryKeys: [{ type: String }],
+      allowedSubcategoryIds: [{ type: String }],
+      crud: { type: Schema.Types.Mixed, default: {} },
+      notesAccessScope: {
+        type: String,
+        enum: ["all", "assigned_only", "none"],
+        default: "assigned_only",
+      },
+      canManageSecretNotes: { type: Boolean, default: false },
     },
     emergencyPriority: { type: Number, default: 0 },
     personalMessage: { type: String, default: "" },
