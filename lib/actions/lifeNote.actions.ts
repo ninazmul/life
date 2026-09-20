@@ -732,7 +732,111 @@ export async function archiveNote(noteId: string) {
       details: `Archived note "${note.title}"`,
     });
     revalidatePath(`/people/${note.assignedPersonId}`);
+    revalidatePath("/lifenote");
   }
 
   return { success: true };
+}
+
+/**
+ * Retrieves all notes accessible to the current user across all people for /lifenote.
+ */
+export async function getAllNotes(): Promise<ILifeNote[]> {
+  await connectToDatabase();
+  const auth = await getLifeAuthContext();
+  if (!auth) return [];
+
+  const query: Record<string, unknown> = {
+    isArchived: false,
+  };
+
+  // If not owner or admin, restrict to notes assigned to current person
+  if (!auth.isOwner && !auth.isAdmin) {
+    if (!auth.personId) return [];
+    query.assignedPersonId = auth.personId;
+  }
+
+  const notes = await LifeNote.find(query)
+    .populate("assignedPersonId", "name email relation role profilePhoto avatarUrl")
+    .sort({ isPinned: -1, createdAt: -1 })
+    .lean();
+
+  const now = new Date();
+  const results: any[] = [];
+
+  for (const n of notes as any[]) {
+    // Scheduled release auto-trigger
+    if (
+      n.noteType === "scheduled_release" &&
+      !n.isReleased &&
+      n.scheduledReleaseDate &&
+      new Date(n.scheduledReleaseDate) <= now
+    ) {
+      await LifeNote.updateOne(
+        { _id: n._id },
+        {
+          $set: {
+            isReleased: true,
+            status: "released",
+            releasedAt: now,
+            releasedBy: "Scheduled Release Date Passed",
+          },
+        }
+      );
+      n.isReleased = true;
+      n.status = "released";
+      n.releasedAt = now;
+    }
+
+    // Emergency unlock countdown auto-expiry
+    if (
+      n.noteType === "secret_emergency" &&
+      !n.isReleased &&
+      (n.status === "countdown_active" || n.status === "unlock_requested") &&
+      n.unlockDeadline &&
+      new Date(n.unlockDeadline) <= now
+    ) {
+      await LifeNote.updateOne(
+        { _id: n._id },
+        {
+          $set: {
+            isReleased: true,
+            status: "released",
+            releasedAt: now,
+            releasedBy: "Waiting Period Expiry (Auto-Released)",
+          },
+        }
+      );
+      n.isReleased = true;
+      n.status = "released";
+      n.releasedAt = now;
+
+      const assigned = n.assignedPersonId as any;
+      if (assigned?.email) {
+        await createInAppNotification({
+          recipientEmail: assigned.email,
+          recipientPersonId: String(assigned._id || n.assignedPersonId),
+          title: "Secret Note Released",
+          message: `The waiting period for "${n.title}" has completed. Your note is now unlocked.`,
+          type: "note_released",
+          link: "/lifenote",
+        });
+      }
+    }
+
+    const { allowed, maskSecret } = canViewNote(n, auth);
+    if (!allowed) continue;
+
+    if (maskSecret) {
+      results.push({
+        ...n,
+        content: "•••••••• [Protected Secret Note — Unlock Required]",
+        isMasked: true,
+      });
+    } else {
+      results.push(n);
+    }
+  }
+
+  return JSON.parse(JSON.stringify(results));
 }
