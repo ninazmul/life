@@ -19,6 +19,7 @@ import {
   Settings,
   BookOpen,
   Coins,
+  NotebookPen,
 } from "lucide-react";
 import { canAccessModule, UserModuleAccess } from "@/lib/life/module-access";
 
@@ -71,6 +72,12 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
           url: "/instructions",
           icon: FileText,
           isActive: pathname.startsWith("/instructions"),
+        },
+        {
+          title: "LifeNote",
+          url: "/lifenote",
+          icon: NotebookPen,
+          isActive: pathname.startsWith("/lifenote"),
         },
         {
           title: "Important Information",

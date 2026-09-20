@@ -26,6 +26,7 @@ export type ModulePath =
   | "/settings"
   | "/access"
   | "/information"
+  | "/lifenote"
   | "/guide";
 
 /**
@@ -53,6 +54,9 @@ const MODULE_PERMISSION_MAP: Record<string, (p: LifePermission) => boolean> = {
   "/information": (p) => p.canViewPersonal,
   "/contacts": (p) => p.canViewPersonal,
   "/instructions": (p) => p.canViewPersonal,
+
+  // LifeNote (personal notes, messages & locked notes)
+  "/lifenote": (p) => p.canViewPersonal || p.canViewSensitive,
 
   // Business
   "/business": (p) => p.canViewBusiness,

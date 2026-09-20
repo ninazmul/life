@@ -18,6 +18,7 @@ import {
   CheckSquare,
   Gift,
   ShieldCheck,
+  NotebookPen,
 } from "lucide-react";
 import {
   Sheet,
@@ -56,6 +57,15 @@ export function LifeMoreSheet({ open, onOpenChange, userAccess }: LifeMoreSheetP
       serial: "05",
       color:
         "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-800/40",
+    },
+    {
+      title: "LifeNote",
+      desc: "Personal notes, locked messages & emergency releases",
+      href: "/lifenote",
+      icon: NotebookPen,
+      serial: "05B",
+      color:
+        "text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-950/60 border-violet-200 dark:border-violet-800/40",
     },
     {
       title: "Important Information",

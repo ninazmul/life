@@ -33,6 +33,7 @@ import {
   Trash2,
   UserCircle,
   Clock,
+  NotebookPen,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -700,6 +701,66 @@ const sections: GuideSection[] = [
     ],
     whoCanAccess:
       "Super Admin, Owner, and assigned users with the canViewPersonal permission.",
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 05B. LIFENOTE — Personal Notes, Locked Messages & Emergency Releases
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    id: "lifenote",
+    category: "Records & Continuity",
+    serial: "05B",
+    icon: NotebookPen,
+    color: "text-violet-600 dark:text-violet-400",
+    bg: "bg-violet-50 dark:bg-violet-950/50",
+    border: "border-violet-200 dark:border-violet-800/40",
+    title: "05B. LifeNote — Personal Notes & Locked Messages",
+    subtitle: "Private notes, timed releases, secret messages & emergency unlock flows",
+    description:
+      "LifeNote is your private note vault. Write notes for specific people that unlock only when you choose — immediately, on a schedule, or triggered by an emergency. From simple reminders to sealed final messages, LifeNote gives you full control over what gets shared, when, and with whom.",
+    steps: [
+      {
+        title: "Create a Note",
+        detail:
+          "Give the note a title, write your content, and choose a note type: Always Visible (shared immediately), Manual Release (you decide when to unlock), Scheduled Release (auto-unlocks on a date), Secret Emergency (unlocks only after guardian approval), or Internal Admin (never visible to the assigned person).",
+      },
+      {
+        title: "Assign to a Person",
+        detail:
+          "Select the recipient from your People directory. The note appears on their portal only when released. Until then, only you (Owner/Admin) can see it. The assigned person receives an in-app notification once their note is unlocked.",
+      },
+      {
+        title: "Set Priority & Category",
+        detail:
+          "Assign a priority level (Low, Medium, High, Critical) and an optional category or tags to organize your notes. Pinned notes always appear at the top of the list.",
+      },
+      {
+        title: "Lock & Release Controls",
+        detail:
+          "For Manual Release notes: use the 'Release Now' button to unlock immediately, or 'Re-lock' to seal it again. For Scheduled Release: set a future date — the system auto-releases it at midnight on that date. For Secret Emergency: the assigned person must submit an unlock request, which triggers a waiting period before access is granted.",
+      },
+      {
+        title: "Emergency Unlock Flow",
+        detail:
+          "When a Secret Emergency note unlock is requested, a countdown (configurable hours) begins. You can approve or cancel it before the deadline. If not cancelled, access is auto-granted. All actions are logged immutably in Activity & Audit Log.",
+      },
+    ],
+    tips: [
+      {
+        type: "tip",
+        text: "Use 'Secret Emergency' type for your most sensitive messages — final wishes, PIN disclosures, or legal directives. They only unlock when truly needed.",
+      },
+      {
+        type: "info",
+        text: "Assigned users see their notes under LifeNote on their portal. They can acknowledge, respond, and mark follow-ups from their view.",
+      },
+      {
+        type: "warning",
+        text: "Internal Admin notes are never visible to the assigned person — use them for your own private reference only.",
+      },
+    ],
+    whoCanAccess:
+      "Owner and Super Admin can create and manage all notes. Assigned users with canViewPersonal or canViewSensitive permission can view their released notes.",
   },
 
   // ─────────────────────────────────────────────────────────────────────────────

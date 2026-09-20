@@ -46,6 +46,7 @@ import {
   Loader2,
   X,
   ChevronUp,
+  NotebookPen,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -225,6 +226,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
   const hasBeneficiariesAccess = canAccessModule("/beneficiaries", permissions, isSuperUser);
   const hasContactsAccess = canAccessModule("/contacts", permissions, isSuperUser);
   const hasInfoAccess = canAccessModule("/information", permissions, isSuperUser);
+  const hasLifeNoteAccess = canAccessModule("/lifenote", permissions, isSuperUser);
 
   const hasAccessControlAccess = canAccessModule("/access", permissions, isSuperUser);
   const hasSettingsAccess = canAccessModule("/settings", permissions, isSuperUser);
@@ -343,6 +345,16 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       badgeValue: "Encrypted",
       color: "purple",
       hasAccess: hasDocumentsAccess,
+    },
+    {
+      title: "LifeNote",
+      href: "/lifenote",
+      desc: "Personal notes, locked messages & emergency releases",
+      icon: NotebookPen,
+      badge: "Private",
+      badgeValue: "Private",
+      color: "violet",
+      hasAccess: hasLifeNoteAccess,
     },
     {
       title: "Important Information",
@@ -473,6 +485,14 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       icon: FileText,
       color: "text-indigo-700 dark:text-indigo-300 bg-indigo-500/10 border-indigo-500/20",
       hasAccess: hasLegacyAccess,
+    },
+    {
+      title: "LifeNote",
+      href: "/lifenote",
+      desc: `Notes, messages & locked releases`,
+      icon: NotebookPen,
+      color: "text-violet-700 dark:text-violet-300 bg-violet-500/10 border-violet-500/20",
+      hasAccess: hasLifeNoteAccess,
     },
   ];
 
