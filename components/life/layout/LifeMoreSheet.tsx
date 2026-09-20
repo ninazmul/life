@@ -40,42 +40,56 @@ export function LifeMoreSheet({ open, onOpenChange, userAccess }: LifeMoreSheetP
 
   const allMoreItems = [
     {
-      title: "Businesses & Partnerships",
-      desc: "Companies, shares, partner equity & continuity",
-      href: "/business",
-      icon: Briefcase,
-      color:
-        "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-800/40",
-    },
-    {
       title: "Financial Care",
       desc: "Financial care provided, received, installments & tracking",
       href: "/finance",
       icon: Wallet,
+      serial: "03",
       color:
         "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800/40",
-    },
-    {
-      title: "Assets & Properties",
-      desc: "Bank balances, property & valuations",
-      href: "/assets",
-      icon: Layers,
-      color:
-        "text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/60 border-cyan-200 dark:border-cyan-800/40",
     },
     {
       title: "Instructions & Responsibilities",
       desc: "Directives, task assignments & emergency actions",
       href: "/instructions",
       icon: CheckSquare,
+      serial: "05",
       color:
         "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-800/40",
+    },
+    {
+      title: "Important Information",
+      desc: "Medical dossier, identity records, legal & tax details",
+      href: "/information",
+      icon: FileText,
+      serial: "06",
+      color:
+        "text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 border-teal-200 dark:border-teal-800/40",
+    },
+    {
+      title: "Businesses & Partnerships",
+      desc: "Companies, shares, partner equity & continuity",
+      href: "/business",
+      icon: Briefcase,
+      serial: "07",
+      color:
+        "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-800/40",
+    },
+    {
+      title: "Assets & Properties",
+      desc: "Bank balances, property & valuations",
+      href: "/assets",
+      icon: Layers,
+      serial: "08",
+      color:
+        "text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/60 border-cyan-200 dark:border-cyan-800/40",
     },
     {
       title: "Contact Directory",
       desc: "Emergency & key advisors (1-tap call)",
       href: "/contacts",
       icon: Contact,
+      serial: "09",
       color:
         "text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 border-sky-200 dark:border-sky-800/40",
     },
@@ -84,54 +98,61 @@ export function LifeMoreSheet({ open, onOpenChange, userAccess }: LifeMoreSheetP
       desc: "Private deeds, contracts & receipts",
       href: "/documents",
       icon: FolderLock,
+      serial: "10",
       color:
         "text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 border-indigo-200 dark:border-indigo-800/40",
-    },
-    {
-      title: "Personal & Legacy Messages",
-      desc: "Private letters & instructions for designated people",
-      href: "/legacy",
-      icon: HeartHandshake,
-      color:
-        "text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800/40",
     },
     {
       title: "Beneficiaries",
       desc: "Designated recipients of legacy allocations",
       href: "/beneficiaries",
       icon: Gift,
+      serial: "11",
       color:
         "text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 border-purple-200 dark:border-purple-800/40",
+    },
+    {
+      title: "Personal & Legacy Messages",
+      desc: "Private letters & instructions for designated people",
+      href: "/legacy",
+      icon: HeartHandshake,
+      serial: "12",
+      color:
+        "text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800/40",
     },
     {
       title: "Guardians & Emergency Access",
       desc: "Trusted guardians, release approvals & safety state",
       href: "/guardians",
       icon: ShieldCheck,
+      serial: "13",
       color:
         "text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/60 border-red-200 dark:border-red-800/40",
-    },
-    {
-      title: "Activity & Audit Log",
-      desc: "Immutable logs of all sensitive actions",
-      href: "/activity",
-      icon: History,
-      color:
-        "text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800",
     },
     {
       title: "Access & Emergency Control",
       desc: "Emergency trigger, user roles & module permissions",
       href: "/access",
       icon: ShieldAlert,
+      serial: "14",
       color:
         "text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-950/60 border-orange-200 dark:border-orange-800/40",
+    },
+    {
+      title: "Activity & Audit Log",
+      desc: "Immutable logs of all sensitive actions",
+      href: "/activity",
+      icon: History,
+      serial: "15",
+      color:
+        "text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800",
     },
     {
       title: "Security & Settings",
       desc: "Security PIN, database backup, restore & preferences",
       href: "/settings",
       icon: Settings,
+      serial: "16",
       color:
         "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-slate-900 border-emerald-200 dark:border-slate-800",
     },
@@ -140,6 +161,7 @@ export function LifeMoreSheet({ open, onOpenChange, userAccess }: LifeMoreSheetP
       desc: "How to use every module of LIFE Vault",
       href: "/guide",
       icon: BookOpen,
+      serial: "17",
       color:
         "text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 border-teal-200 dark:border-teal-800/40",
     },
@@ -230,11 +252,18 @@ export function LifeMoreSheet({ open, onOpenChange, userAccess }: LifeMoreSheetP
                     >
                       {item.title}
                     </span>
-                    {isActive && (
-                      <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-300 px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/25 shrink-0">
-                        Active
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {(item as any).serial && (
+                        <span className="text-[10px] font-mono font-bold text-muted-foreground/60 px-1.5 py-0.5 rounded bg-muted/60 border border-border/50">
+                          {(item as any).serial}
+                        </span>
+                      )}
+                      {isActive && (
+                        <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-300 px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/25 shrink-0">
+                          Active
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <p className="text-xs text-muted-foreground truncate mt-0.5">
                     {item.desc}

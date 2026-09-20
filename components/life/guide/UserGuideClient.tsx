@@ -48,6 +48,8 @@ interface Tip {
 
 interface GuideSection {
   id: string;
+  category: "Onboarding & Setup" | "Core Command" | "Records & Continuity" | "Legacy & Security";
+  serial: string;
   icon: React.ElementType;
   color: string;
   bg: string;
@@ -60,13 +62,22 @@ interface GuideSection {
   whoCanAccess: string;
 }
 
+export const GUIDE_CATEGORIES = [
+  "Onboarding & Setup",
+  "Core Command",
+  "Records & Continuity",
+  "Legacy & Security",
+] as const;
+
 // ─── Guide Content ────────────────────────────────────────────────────────────
 const sections: GuideSection[] = [
   // ─────────────────────────────────────────────────────────────────────────────
-  // 0. GETTING STARTED — Full Admin Onboarding Flow
+  // 00. Getting Started — Full Admin Onboarding
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "getting-started",
+    category: "Onboarding & Setup",
+    serial: "00",
     icon: Rocket,
     color: "text-emerald-600 dark:text-emerald-400",
     bg: "bg-emerald-50 dark:bg-emerald-950/50",
@@ -177,14 +188,20 @@ const sections: GuideSection[] = [
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 1. DASHBOARD
+  // ─────────────────────────────────────────────────────────────────────────────,
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 01. 01. Home Dashboard & Life Command Center
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "dashboard",
+    category: "Core Command",
+    serial: "01",
     icon: Home,
     color: "text-emerald-600 dark:text-emerald-400",
     bg: "bg-emerald-50 dark:bg-emerald-950/50",
     border: "border-emerald-200 dark:border-emerald-800/40",
-    title: "Home Dashboard & Life Command Center",
+    title: "01. Home Dashboard & Life Command Center",
     subtitle: "Central command console, My Life Profile, Financial Overview & Quick Actions",
     description:
       "The Life Command Center serves as the central executive console. It provides instantaneous visibility into your personal life profile, live SAR financial net worth overview, quick-access action buttons, continuity & safety monitoring, and urgent deadlines.",
@@ -244,69 +261,195 @@ const sections: GuideSection[] = [
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 2. BUSINESSES
+  // ─────────────────────────────────────────────────────────────────────────────,
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 02. 02. People Directory & Team
   // ─────────────────────────────────────────────────────────────────────────────
   {
-    id: "business",
-    icon: Briefcase,
-    color: "text-cyan-600 dark:text-cyan-400",
-    bg: "bg-cyan-50 dark:bg-cyan-950/50",
-    border: "border-cyan-200 dark:border-cyan-800/40",
-    title: "1. Businesses & Partnerships",
-    subtitle: "Enterprise equity, partner continuity & operational handover",
+    id: "people",
+    category: "Core Command",
+    serial: "02",
+    icon: Users,
+    color: "text-emerald-600 dark:text-emerald-400",
+    bg: "bg-emerald-50 dark:bg-emerald-950/50",
+    border: "border-emerald-200 dark:border-emerald-800/40",
+    title: "02. People Directory & Team",
+    subtitle:
+      "Family, partners, team & Record-Only individuals",
     description:
-      "Manage all corporate entities, partnership equity percentages, corporate bank credentials, operating licenses, and the critical 'If I Am Not Available' business continuity protocol.",
+      "Maintain the core directory of trusted people: Wife, Brother, Children, Parents, Business Partners, Key Employees, and Nominees. Assign granular module permissions and emergency delegation status. The directory also supports Record-Only Persons who don't need login accounts.",
     steps: [
       {
-        title: "Register Enterprise & Ownership Equity",
+        title: "Add Person Profile",
         detail:
-          "Record company name, registration number, trade license, total valuation, your exact shareholding percentage, and capital invested. Include TIN/BIN registration details.",
+          "Enter full name, relationship (Wife, Brother, Partner, Employee), phone number, WhatsApp, email address, physical address, and emergency priority rank.",
       },
       {
-        title: "Map Business Partners & Co-Founders",
+        title: "Record-Only Persons (No Login Account)",
         detail:
-          "Link partners from your People directory, specify their equity stake, designated roles, profit-sharing terms, and signed partnership deed copies.",
+          "Check 'Record-Only Person (No login account)' when adding individuals who do not need system access — such as financial aid recipients, loan borrowers/lenders, external doctors, or dependents. They can be selected across Financial Care, Money Records, and Emergency Contacts without requiring an email or Clerk login. A 'Record Only' badge is displayed on their profile card.",
       },
       {
-        title: "Document Corporate Banking & Signatories",
+        title: "Filter by Relation or Record-Only",
         detail:
-          "Record corporate bank accounts, branch details, routing numbers, and authorized signatories required for emergency payroll and operational continuity.",
+          "Use the top filter pills to quickly view 'All Relations', 'Record Only' individuals, 'Wife', 'Brother', 'Parents', 'Partner', 'Engineer', or 'Staff'. The search bar filters in real-time by name, relation, phone, or email.",
       },
       {
-        title: "Fill 'If I Am Not Available' Checklist",
+        title: "Add Social Links",
         detail:
-          "Step-by-step operating instructions detailing who assumes managerial control, where backup accounts reside, key vendor contacts, client commitments, and handover priorities. This is one of the most critical continuity documents.",
+          "Optionally link their social media accounts: Facebook, Messenger, Instagram, TikTok, Telegram, LinkedIn, YouTube, and personal Website. Only icons with linked accounts appear on their profile — unlinked platforms are hidden completely.",
       },
       {
-        title: "Attach Official Registration Documents",
+        title: "Assign System Role & Account Type",
         detail:
-          "Upload or reference certificates of incorporation, memorandum of association, tax registration (TIN/BIN), board resolutions, and any government-issued operating permits.",
+          "Choose from the 7 built-in system roles: (1) Super Admin (full system ownership and unconstrained override); (2) Administrator (permitted records and day-to-day operations); (3) Guardian (family members, medical directives, emergency consensus activation); (4) Business Staff (assigned operational areas and continuity procedures); (5) Business Partner (shared enterprise accounts, capital & liabilities); (6) Individual User (assigned profile records only); or (7) Read Only (view-only inspection without editing or vault reveal).",
+      },
+      {
+        title: "Record-Only Persons vs Login-Enabled Accounts",
+        detail:
+          "The 'Record-Only Person' switch permanently deactivates login credentials for individuals who are strictly documented for ledger and relationship purposes (such as dependents, minor children, deceased relatives, aid recipients, or loan parties). This prevents credential sprawl and guarantees system boundary integrity.",
+      },
+      {
+        title: "Edit Profile & Access with 2-Step Diff Confirmation",
+        detail:
+          "Admins can open the 'Edit Profile & Access' modal on any person's profile to manage both personal information and permissions in a unified dialog. Step 1 allows toggling module capabilities, role, and note scopes. Clicking 'Review Changes' transitions to Step 2, displaying a side-by-side color-coded audit diff: [+ Permissions Added] in green and [- Permissions Revoked] in red, which is permanently logged in the system audit trail upon confirmation.",
+      },
+      {
+        title: "Set Guardian Status",
+        detail:
+          "Designate whether the person serves as an Emergency Guardian (Primary, Secondary, or Independent) for multi-party consensus unlocking. Guardians can initiate emergency protocol activation.",
+      },
+      {
+        title: "Quick Actions on People List",
+        detail:
+          "The People list shows each person's card with quick action buttons: Call (direct phone dial), WhatsApp (opens WhatsApp chat), and Profile (opens the full profile page). Buttons only appear when the person has a phone number or WhatsApp configured.",
       },
     ],
     tips: [
       {
         type: "tip",
-        text: "Regularly update partner equity and bank signatories whenever corporate restructuring or share dilution takes place.",
+        text: "Use 'Record-Only' for people you lend money to or provide support for, but who do not need access to the LIFE Vault application.",
       },
       {
         type: "security",
-        text: "The 'If I Am Not Available' checklist is one of the most important continuity documents. Ensure your designated partners or managers know where to locate it.",
+        text: "Only grant canRevealVault or canManageAccess to individuals with absolute trust. For employees, grant strictly the modules they need for business continuity.",
+      },
+      {
+        type: "info",
+        text: "Social link icons only appear on the profile when that platform has a URL configured. Empty platforms are completely hidden for a clean, uncluttered interface.",
       },
     ],
     whoCanAccess:
-      "Super Admin, Owner, and users with the canViewBusiness permission.",
+      "Super Admin, Owner, and users with canManageAccess or canViewPersonal permissions.",
   },
 
   // ─────────────────────────────────────────────────────────────────────────────
+  // 9. PERSON PROFILE DEEP DIVE (Owner Life Dossier & 8 Standard Tabs)
+  // ─────────────────────────────────────────────────────────────────────────────,
+
   // ─────────────────────────────────────────────────────────────────────────────
-  // 3. FINANCIAL CARE & ACCOUNTING LEDGER
+  // 02B. 02B. Person Profile & Owner Life Dossier
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    id: "person-profile",
+    category: "Core Command",
+    serial: "02B",
+    icon: UserCircle,
+    color: "text-teal-600 dark:text-teal-400",
+    bg: "bg-teal-50 dark:bg-teal-950/50",
+    border: "border-teal-200 dark:border-teal-800/40",
+    title: "02B. Person Profile & Owner Life Dossier",
+    subtitle:
+      "Master Owner Dossier, Overview, Contact, Instructions, Finance & Access",
+    description:
+      "Each person in the People Directory has a dedicated profile page. When viewing the Owner Profile, an exclusive Owner Life Dossier provides access to all 18 structured life-record areas. For team and family members, 8 structured tabs organize all linked records.",
+    steps: [
+      {
+        title: "Owner Life Dossier (Exclusive Master Tab for Owner)",
+        detail:
+          "When viewing the Owner Profile as an authorized administrator, the 'Owner Life Dossier' tab organizes all 18 core life areas: (1) Personal Information & Identity; (2) Identity Documents (Passports, NID with downloads); (3) Medical History & Health Status; (4) Current Health Conditions; (5) Medicines & Treatments; (6) Allergies & Blood Group; (7) Doctors & Preferred Hospitals; (8) Important Life Events & History; (9) Family Information; (10) Business History & Designation; (11) Personal Financial Records; (12) Private Notes; (13) Assets & Property Registry; (14) Loans, Gifts & Financial Help; (15) Important Relationships; (16) Emergency Safety Information; (17) Wasiyyah & Legacy Directives; (18) Documents Archive. Non-admin users are strictly forbidden from viewing this dossier.",
+      },
+      {
+        title: "Tab 1 → Overview",
+        detail:
+          "Shows a quick summary card: the person's full name, relationship, role, status badge (Active/Locked/Archived), photo, and key contact details. Displays an aggregate count of their linked records across all tabs.",
+      },
+      {
+        title: "Tab 2 → Contact & Social",
+        detail:
+          "Displays the person's Mobile Number with a direct Call button, WhatsApp with a Message button, and Email with an Email button. Below contact cards, displays active social media links (Facebook, Instagram, LinkedIn, etc.) that open in a new tab.",
+      },
+      {
+        title: "Tab 3 → Personal Message",
+        detail:
+          "A private message or letter from the Owner to this person. Only the Owner can write and edit personal messages, and it is strictly visible only to the recipient.",
+      },
+      {
+        title: "Tab 4 → Instructions & Responsibilities",
+        detail:
+          "Lists all instructions and responsibilities assigned to this person from the Instructions module. Displays category, priority, status, and step-by-step procedures.",
+      },
+      {
+        title: "Tab 5 → Financial Care",
+        detail:
+          "Lists all financial support records and money records associated with this person: support programs, given/taken funds, installment progress, and repayment status.",
+      },
+      {
+        title: "Tab 6 → Important Contacts",
+        detail:
+          "Shows all professional contacts (lawyers, doctors, accountants) linked to this person with one-touch Call, WhatsApp, and Email buttons.",
+      },
+      {
+        title: "Tab 7 → Documents",
+        detail:
+          "Lists all critical documents associated with this person — agreements, receipts, identity documents, and contracts with direct view and download links.",
+      },
+      {
+        title: "Tab 8 → Access Information",
+        detail:
+          "Shows the person's permission configuration: module access flags, guardian designation, account type, and login status. Super Admin / Owner can modify access flags from here.",
+      },
+      {
+        title: "Tab 9 → Notes & Secret Emergency Notes",
+        detail:
+          "A comprehensive notes workspace supporting 5 distinct note classifications: (1) Always Visible (standard instructions & notes); (2) Secret Emergency Note (AES encrypted and sealed until authorized release); (3) Internal Admin Only (private operator directives); (4) Manual Release; and (5) Scheduled Release. Features a custom waiting period (default 48 hours). When an authorized person submits an unlock request, a live countdown timer begins. Super Admins receive in-app notifications and can approve immediately, extend the countdown by +24 hours, reject, or cancel. Once released, the assigned person can mark as Read, Acknowledge, flag for Follow-up, mark as Completed, or submit written responses. Super Admins can re-lock the note at any time, and the Version History dialog records all prior revisions with timestamps and editor identities.",
+      },
+    ],
+    tips: [
+      {
+        type: "security",
+        text: "Strict IDOR mitigation prevents unauthorized users from inspecting another person's profile or the Owner Life Dossier. Non-admin users can only view their own assigned profile.",
+      },
+      {
+        type: "tip",
+        text: "The Owner Life Dossier tab provides instant links to Add Health Notes, Manage Doctors, View Asset Registry, and Open the Wasiyyah Hub.",
+      },
+      {
+        type: "info",
+        text: "Tab count badges update automatically in real-time as you add or remove linked records across the platform.",
+      },
+    ],
+    whoCanAccess:
+      "Super Admin and Owner see all tabs and the Owner Life Dossier. Other users see only their own permitted profile tabs.",
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 10. IMPORTANT CONTACTS
+  // ─────────────────────────────────────────────────────────────────────────────,
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 03. 03. Financial Care & Support Ledger
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "finance",
+    category: "Core Command",
+    serial: "03",
     icon: Wallet,
     color: "text-emerald-600 dark:text-emerald-400",
     bg: "bg-emerald-50 dark:bg-emerald-950/50",
     border: "border-emerald-200 dark:border-emerald-800/40",
-    title: "2. Finance & Accounting Ledger",
+    title: "03. Financial Care & Support Ledger",
     subtitle:
       "Real-time ACC.GESN.NET accounting (SAR), personal support & repayments",
     description:
@@ -387,14 +530,20 @@ const sections: GuideSection[] = [
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 4. MONEY OVERVIEW
+  // ─────────────────────────────────────────────────────────────────────────────,
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 03B. 03B. Money Overview & Debt Ledger
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "money",
+    category: "Core Command",
+    serial: "03B",
     icon: Coins,
     color: "text-amber-600 dark:text-amber-400",
     bg: "bg-amber-50 dark:bg-amber-950/50",
     border: "border-amber-200 dark:border-amber-800/40",
-    title: "3. Money Overview & Ledger",
+    title: "03B. Money Overview & Debt Ledger",
     subtitle: "Receivables, payables, investments & net financial standing",
     description:
       "A consolidated double-entry balance sheet detailing all financial obligations and venture capital: Money Given (loans/receivables), Money Taken (borrowings/payables), Investments Made in ventures, External Capital Received, To Receive (due to you), and To Pay (owed to others). Complements the live operational accounting in Finance.",
@@ -440,63 +589,20 @@ const sections: GuideSection[] = [
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 5. ASSETS
-  // ─────────────────────────────────────────────────────────────────────────────
-  {
-    id: "assets",
-    icon: Layers,
-    color: "text-indigo-600 dark:text-indigo-400",
-    bg: "bg-indigo-50 dark:bg-indigo-950/50",
-    border: "border-indigo-200 dark:border-indigo-800/40",
-    title: "4. Assets & Properties",
-    subtitle: "Real estate, bank accounts, vehicles, gold & valuables",
-    description:
-      "Catalog all real estate properties, plots, residential apartments, vehicle registrations, bank deposits, fixed deposits (FDR), gold/jewelry, and physical document storage locations.",
-    steps: [
-      {
-        title: "Select Asset Category",
-        detail:
-          "Choose from Real Estate, Bank Account/FDR, Vehicle, Gold & Valuables, Digital Holdings, or Other Asset types.",
-      },
-      {
-        title: "Record Ownership & Financial Valuation",
-        detail:
-          "Enter purchase value, estimated current market value, purchase date, ownership share percentage, and whether the asset generates monthly rental income.",
-      },
-      {
-        title: "Specify Physical Document Locations",
-        detail:
-          "Clearly document where the original deeds, registration blue books, tax receipts, or keys are physically located (e.g., 'Almirah #2, Bank Safe Locker 4B'). This prevents frantic searches during urgent situations.",
-      },
-      {
-        title: "Designate Primary Nominees",
-        detail:
-          "Link designated beneficiaries from your People directory to define intended inheritance or custody upon emergency activation.",
-      },
-    ],
-    tips: [
-      {
-        type: "tip",
-        text: "Updating estimated market values once or twice a year keeps your overall estate valuation realistic for succession planning.",
-      },
-      {
-        type: "security",
-        text: "Never write bank account PINs or locker master passwords in asset description fields — store all secrets strictly in the Secure Vault.",
-      },
-    ],
-    whoCanAccess:
-      "Super Admin, Owner, and users with canViewFinancial or canViewBusiness permissions.",
-  },
+  // ─────────────────────────────────────────────────────────────────────────────,
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 6. VAULT
+  // 04. 04. Secure Vault (AES-256)
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "vault",
+    category: "Core Command",
+    serial: "04",
     icon: KeyRound,
     color: "text-amber-600 dark:text-amber-400",
     bg: "bg-amber-50 dark:bg-amber-950/50",
     border: "border-amber-200 dark:border-amber-800/40",
-    title: "5. Secure Vault (AES-256)",
+    title: "04. Secure Vault (AES-256)",
     subtitle: "Encrypted passwords, server keys, seed phrases & master PIN",
     description:
       "The most sensitive module in LIFE. Secrets are encrypted using military-grade AES-256 encryption. Plaintext is never stored on disk. Revealing any secret requires entering your Master PIN and is permanently logged in the audit trail.",
@@ -543,14 +649,75 @@ const sections: GuideSection[] = [
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 7. PERSONAL INFORMATION
+  // ─────────────────────────────────────────────────────────────────────────────,
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 05. 05. Responsibilities & Instructions
   // ─────────────────────────────────────────────────────────────────────────────
   {
-    id: "information",
+    id: "instructions",
+    category: "Records & Continuity",
+    serial: "05",
     icon: FileText,
     color: "text-sky-600 dark:text-sky-400",
     bg: "bg-sky-50 dark:bg-sky-950/50",
     border: "border-sky-200 dark:border-sky-800/40",
-    title: "6. Personal Information & Identity",
+    title: "05. Responsibilities & Instructions",
+    subtitle: "Directives, ongoing commitments, tasks & emergency handovers",
+    description:
+      "Clear, actionable instructions for your family, business partners, and employees. Outlines 'What to do', 'Who should do it', step-by-step priority sequences, and ongoing personal obligations.",
+    steps: [
+      {
+        title: "Create Directive or Responsibility",
+        detail:
+          "Give the instruction a clear title, category (Family Welfare, Business Duty, Financial Handover, Religious Directive), and priority level (High, Medium, Normal).",
+      },
+      {
+        title: "Assign to Designated Person",
+        detail:
+          "Select the responsible individual from your People directory so the instruction appears on their portal and their Person Profile → Instructions tab.",
+      },
+      {
+        title: "Detail Step-by-Step Procedure",
+        detail:
+          "Write comprehensive, unambiguous instructions. Include specific account numbers, contacts to call, deadlines, and execution orders. Be as specific as possible to prevent confusion.",
+      },
+      {
+        title: "Track Execution & Status",
+        detail:
+          "Monitor status: Active, In Progress, Completed, or On Hold. Assignees can view their responsibilities and update progress from their personalized portal.",
+      },
+    ],
+    tips: [
+      {
+        type: "tip",
+        text: "Be as specific as possible in your handover instructions. Step-by-step guides prevent confusion and disagreements during stressful transitions.",
+      },
+      {
+        type: "info",
+        text: "Non-owner assignees who sign in see their assigned instructions under 'Responsibilities' on their dashboard and on their Person Profile → Instructions tab.",
+      },
+    ],
+    whoCanAccess:
+      "Super Admin, Owner, and assigned users with the canViewPersonal permission.",
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 13. BENEFICIARIES
+  // ─────────────────────────────────────────────────────────────────────────────,
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 06. 06. Personal Information & Identity
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    id: "information",
+    category: "Records & Continuity",
+    serial: "06",
+    icon: FileText,
+    color: "text-sky-600 dark:text-sky-400",
+    bg: "bg-sky-50 dark:bg-sky-950/50",
+    border: "border-sky-200 dark:border-sky-800/40",
+    title: "06. Personal Information & Identity",
     subtitle: "National ID, passports, blood group, medical data & policies",
     description:
       "A centralized repository for identity records, official government IDs, health and medical directions, insurance policy numbers, and personal emergency directives.",
@@ -592,177 +759,136 @@ const sections: GuideSection[] = [
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 8. PEOPLE DIRECTORY
+  // ─────────────────────────────────────────────────────────────────────────────,
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 07. 07. Businesses & Partnerships
   // ─────────────────────────────────────────────────────────────────────────────
   {
-    id: "people",
-    icon: Users,
-    color: "text-emerald-600 dark:text-emerald-400",
-    bg: "bg-emerald-50 dark:bg-emerald-950/50",
-    border: "border-emerald-200 dark:border-emerald-800/40",
-    title: "7. People Directory & Team",
-    subtitle:
-      "Family, partners, team & Record-Only individuals",
+    id: "business",
+    category: "Records & Continuity",
+    serial: "07",
+    icon: Briefcase,
+    color: "text-cyan-600 dark:text-cyan-400",
+    bg: "bg-cyan-50 dark:bg-cyan-950/50",
+    border: "border-cyan-200 dark:border-cyan-800/40",
+    title: "07. Businesses & Partnerships",
+    subtitle: "Enterprise equity, partner continuity & operational handover",
     description:
-      "Maintain the core directory of trusted people: Wife, Brother, Children, Parents, Business Partners, Key Employees, and Nominees. Assign granular module permissions and emergency delegation status. The directory also supports Record-Only Persons who don't need login accounts.",
+      "Manage all corporate entities, partnership equity percentages, corporate bank credentials, operating licenses, and the critical 'If I Am Not Available' business continuity protocol.",
     steps: [
       {
-        title: "Add Person Profile",
+        title: "Register Enterprise & Ownership Equity",
         detail:
-          "Enter full name, relationship (Wife, Brother, Partner, Employee), phone number, WhatsApp, email address, physical address, and emergency priority rank.",
+          "Record company name, registration number, trade license, total valuation, your exact shareholding percentage, and capital invested. Include TIN/BIN registration details.",
       },
       {
-        title: "Record-Only Persons (No Login Account)",
+        title: "Map Business Partners & Co-Founders",
         detail:
-          "Check 'Record-Only Person (No login account)' when adding individuals who do not need system access — such as financial aid recipients, loan borrowers/lenders, external doctors, or dependents. They can be selected across Financial Care, Money Records, and Emergency Contacts without requiring an email or Clerk login. A 'Record Only' badge is displayed on their profile card.",
+          "Link partners from your People directory, specify their equity stake, designated roles, profit-sharing terms, and signed partnership deed copies.",
       },
       {
-        title: "Filter by Relation or Record-Only",
+        title: "Document Corporate Banking & Signatories",
         detail:
-          "Use the top filter pills to quickly view 'All Relations', 'Record Only' individuals, 'Wife', 'Brother', 'Parents', 'Partner', 'Engineer', or 'Staff'. The search bar filters in real-time by name, relation, phone, or email.",
+          "Record corporate bank accounts, branch details, routing numbers, and authorized signatories required for emergency payroll and operational continuity.",
       },
       {
-        title: "Add Social Links",
+        title: "Fill 'If I Am Not Available' Checklist",
         detail:
-          "Optionally link their social media accounts: Facebook, Messenger, Instagram, TikTok, Telegram, LinkedIn, YouTube, and personal Website. Only icons with linked accounts appear on their profile — unlinked platforms are hidden completely.",
+          "Step-by-step operating instructions detailing who assumes managerial control, where backup accounts reside, key vendor contacts, client commitments, and handover priorities. This is one of the most critical continuity documents.",
       },
       {
-        title: "Assign System Role & Account Type",
+        title: "Attach Official Registration Documents",
         detail:
-          "Choose from the 7 built-in system roles: (1) Super Admin (full system ownership and unconstrained override); (2) Administrator (permitted records and day-to-day operations); (3) Guardian (family members, medical directives, emergency consensus activation); (4) Business Staff (assigned operational areas and continuity procedures); (5) Business Partner (shared enterprise accounts, capital & liabilities); (6) Individual User (assigned profile records only); or (7) Read Only (view-only inspection without editing or vault reveal).",
-      },
-      {
-        title: "Record-Only Persons vs Login-Enabled Accounts",
-        detail:
-          "The 'Record-Only Person' switch permanently deactivates login credentials for individuals who are strictly documented for ledger and relationship purposes (such as dependents, minor children, deceased relatives, aid recipients, or loan parties). This prevents credential sprawl and guarantees system boundary integrity.",
-      },
-      {
-        title: "Edit Profile & Access with 2-Step Diff Confirmation",
-        detail:
-          "Admins can open the 'Edit Profile & Access' modal on any person's profile to manage both personal information and permissions in a unified dialog. Step 1 allows toggling module capabilities, role, and note scopes. Clicking 'Review Changes' transitions to Step 2, displaying a side-by-side color-coded audit diff: [+ Permissions Added] in green and [- Permissions Revoked] in red, which is permanently logged in the system audit trail upon confirmation.",
-      },
-      {
-        title: "Set Guardian Status",
-        detail:
-          "Designate whether the person serves as an Emergency Guardian (Primary, Secondary, or Independent) for multi-party consensus unlocking. Guardians can initiate emergency protocol activation.",
-      },
-      {
-        title: "Quick Actions on People List",
-        detail:
-          "The People list shows each person's card with quick action buttons: Call (direct phone dial), WhatsApp (opens WhatsApp chat), and Profile (opens the full profile page). Buttons only appear when the person has a phone number or WhatsApp configured.",
+          "Upload or reference certificates of incorporation, memorandum of association, tax registration (TIN/BIN), board resolutions, and any government-issued operating permits.",
       },
     ],
     tips: [
       {
         type: "tip",
-        text: "Use 'Record-Only' for people you lend money to or provide support for, but who do not need access to the LIFE Vault application.",
+        text: "Regularly update partner equity and bank signatories whenever corporate restructuring or share dilution takes place.",
       },
       {
         type: "security",
-        text: "Only grant canRevealVault or canManageAccess to individuals with absolute trust. For employees, grant strictly the modules they need for business continuity.",
-      },
-      {
-        type: "info",
-        text: "Social link icons only appear on the profile when that platform has a URL configured. Empty platforms are completely hidden for a clean, uncluttered interface.",
+        text: "The 'If I Am Not Available' checklist is one of the most important continuity documents. Ensure your designated partners or managers know where to locate it.",
       },
     ],
     whoCanAccess:
-      "Super Admin, Owner, and users with canManageAccess or canViewPersonal permissions.",
+      "Super Admin, Owner, and users with the canViewBusiness permission.",
   },
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 9. PERSON PROFILE DEEP DIVE (Owner Life Dossier & 8 Standard Tabs)
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 3. FINANCIAL CARE & ACCOUNTING LEDGER
+  // ─────────────────────────────────────────────────────────────────────────────,
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 08. 08. Assets & Properties
   // ─────────────────────────────────────────────────────────────────────────────
   {
-    id: "person-profile",
-    icon: UserCircle,
-    color: "text-teal-600 dark:text-teal-400",
-    bg: "bg-teal-50 dark:bg-teal-950/50",
-    border: "border-teal-200 dark:border-teal-800/40",
-    title: "Person Profile & Owner Life Dossier",
-    subtitle:
-      "Master Owner Dossier, Overview, Contact, Instructions, Finance & Access",
+    id: "assets",
+    category: "Records & Continuity",
+    serial: "08",
+    icon: Layers,
+    color: "text-indigo-600 dark:text-indigo-400",
+    bg: "bg-indigo-50 dark:bg-indigo-950/50",
+    border: "border-indigo-200 dark:border-indigo-800/40",
+    title: "08. Assets & Properties",
+    subtitle: "Real estate, bank accounts, vehicles, gold & valuables",
     description:
-      "Each person in the People Directory has a dedicated profile page. When viewing the Owner Profile, an exclusive Owner Life Dossier provides access to all 18 structured life-record areas. For team and family members, 8 structured tabs organize all linked records.",
+      "Catalog all real estate properties, plots, residential apartments, vehicle registrations, bank deposits, fixed deposits (FDR), gold/jewelry, and physical document storage locations.",
     steps: [
       {
-        title: "Owner Life Dossier (Exclusive Master Tab for Owner)",
+        title: "Select Asset Category",
         detail:
-          "When viewing the Owner Profile as an authorized administrator, the 'Owner Life Dossier' tab organizes all 18 core life areas: (1) Personal Information & Identity; (2) Identity Documents (Passports, NID with downloads); (3) Medical History & Health Status; (4) Current Health Conditions; (5) Medicines & Treatments; (6) Allergies & Blood Group; (7) Doctors & Preferred Hospitals; (8) Important Life Events & History; (9) Family Information; (10) Business History & Designation; (11) Personal Financial Records; (12) Private Notes; (13) Assets & Property Registry; (14) Loans, Gifts & Financial Help; (15) Important Relationships; (16) Emergency Safety Information; (17) Wasiyyah & Legacy Directives; (18) Documents Archive. Non-admin users are strictly forbidden from viewing this dossier.",
+          "Choose from Real Estate, Bank Account/FDR, Vehicle, Gold & Valuables, Digital Holdings, or Other Asset types.",
       },
       {
-        title: "Tab 1 → Overview",
+        title: "Record Ownership & Financial Valuation",
         detail:
-          "Shows a quick summary card: the person's full name, relationship, role, status badge (Active/Locked/Archived), photo, and key contact details. Displays an aggregate count of their linked records across all tabs.",
+          "Enter purchase value, estimated current market value, purchase date, ownership share percentage, and whether the asset generates monthly rental income.",
       },
       {
-        title: "Tab 2 → Contact & Social",
+        title: "Specify Physical Document Locations",
         detail:
-          "Displays the person's Mobile Number with a direct Call button, WhatsApp with a Message button, and Email with an Email button. Below contact cards, displays active social media links (Facebook, Instagram, LinkedIn, etc.) that open in a new tab.",
+          "Clearly document where the original deeds, registration blue books, tax receipts, or keys are physically located (e.g., 'Almirah #2, Bank Safe Locker 4B'). This prevents frantic searches during urgent situations.",
       },
       {
-        title: "Tab 3 → Personal Message",
+        title: "Designate Primary Nominees",
         detail:
-          "A private message or letter from the Owner to this person. Only the Owner can write and edit personal messages, and it is strictly visible only to the recipient.",
-      },
-      {
-        title: "Tab 4 → Instructions & Responsibilities",
-        detail:
-          "Lists all instructions and responsibilities assigned to this person from the Instructions module. Displays category, priority, status, and step-by-step procedures.",
-      },
-      {
-        title: "Tab 5 → Financial Care",
-        detail:
-          "Lists all financial support records and money records associated with this person: support programs, given/taken funds, installment progress, and repayment status.",
-      },
-      {
-        title: "Tab 6 → Important Contacts",
-        detail:
-          "Shows all professional contacts (lawyers, doctors, accountants) linked to this person with one-touch Call, WhatsApp, and Email buttons.",
-      },
-      {
-        title: "Tab 7 → Documents",
-        detail:
-          "Lists all critical documents associated with this person — agreements, receipts, identity documents, and contracts with direct view and download links.",
-      },
-      {
-        title: "Tab 8 → Access Information",
-        detail:
-          "Shows the person's permission configuration: module access flags, guardian designation, account type, and login status. Super Admin / Owner can modify access flags from here.",
-      },
-      {
-        title: "Tab 9 → Notes & Secret Emergency Notes",
-        detail:
-          "A comprehensive notes workspace supporting 5 distinct note classifications: (1) Always Visible (standard instructions & notes); (2) Secret Emergency Note (AES encrypted and sealed until authorized release); (3) Internal Admin Only (private operator directives); (4) Manual Release; and (5) Scheduled Release. Features a custom waiting period (default 48 hours). When an authorized person submits an unlock request, a live countdown timer begins. Super Admins receive in-app notifications and can approve immediately, extend the countdown by +24 hours, reject, or cancel. Once released, the assigned person can mark as Read, Acknowledge, flag for Follow-up, mark as Completed, or submit written responses. Super Admins can re-lock the note at any time, and the Version History dialog records all prior revisions with timestamps and editor identities.",
+          "Link designated beneficiaries from your People directory to define intended inheritance or custody upon emergency activation.",
       },
     ],
     tips: [
       {
-        type: "security",
-        text: "Strict IDOR mitigation prevents unauthorized users from inspecting another person's profile or the Owner Life Dossier. Non-admin users can only view their own assigned profile.",
-      },
-      {
         type: "tip",
-        text: "The Owner Life Dossier tab provides instant links to Add Health Notes, Manage Doctors, View Asset Registry, and Open the Wasiyyah Hub.",
+        text: "Updating estimated market values once or twice a year keeps your overall estate valuation realistic for succession planning.",
       },
       {
-        type: "info",
-        text: "Tab count badges update automatically in real-time as you add or remove linked records across the platform.",
+        type: "security",
+        text: "Never write bank account PINs or locker master passwords in asset description fields — store all secrets strictly in the Secure Vault.",
       },
     ],
     whoCanAccess:
-      "Super Admin and Owner see all tabs and the Owner Life Dossier. Other users see only their own permitted profile tabs.",
+      "Super Admin, Owner, and users with canViewFinancial or canViewBusiness permissions.",
   },
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 10. IMPORTANT CONTACTS
+  // 6. VAULT
+  // ─────────────────────────────────────────────────────────────────────────────,
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 09. 09. Important Contacts Directory
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "contacts",
+    category: "Records & Continuity",
+    serial: "09",
     icon: Contact,
     color: "text-amber-600 dark:text-amber-400",
     bg: "bg-amber-50 dark:bg-amber-950/50",
     border: "border-amber-200 dark:border-amber-800/40",
-    title: "8. Important Contacts Directory",
+    title: "09. Important Contacts Directory",
     subtitle: "Lawyers, doctors, accountants, bankers & emergency advisors",
     description:
       "A curated directory of your essential professional support network. Categorized by function with one-touch phone call, WhatsApp, and email shortcuts for rapid emergency response.",
@@ -800,14 +926,20 @@ const sections: GuideSection[] = [
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 11. DOCUMENTS
+  // ─────────────────────────────────────────────────────────────────────────────,
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 10. 10. Critical Documents Repository
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "documents",
+    category: "Records & Continuity",
+    serial: "10",
     icon: FolderLock,
     color: "text-purple-600 dark:text-purple-400",
     bg: "bg-purple-50 dark:bg-purple-950/50",
     border: "border-purple-200 dark:border-purple-800/40",
-    title: "9. Critical Documents Repository",
+    title: "10. Critical Documents Repository",
     subtitle:
       "Deeds, contracts, trade licenses, agreements & physical file tags",
     description:
@@ -855,58 +987,15 @@ const sections: GuideSection[] = [
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 12. INSTRUCTIONS
-  // ─────────────────────────────────────────────────────────────────────────────
-  {
-    id: "instructions",
-    icon: FileText,
-    color: "text-sky-600 dark:text-sky-400",
-    bg: "bg-sky-50 dark:bg-sky-950/50",
-    border: "border-sky-200 dark:border-sky-800/40",
-    title: "10. Responsibilities & Instructions",
-    subtitle: "Directives, ongoing commitments, tasks & emergency handovers",
-    description:
-      "Clear, actionable instructions for your family, business partners, and employees. Outlines 'What to do', 'Who should do it', step-by-step priority sequences, and ongoing personal obligations.",
-    steps: [
-      {
-        title: "Create Directive or Responsibility",
-        detail:
-          "Give the instruction a clear title, category (Family Welfare, Business Duty, Financial Handover, Religious Directive), and priority level (High, Medium, Normal).",
-      },
-      {
-        title: "Assign to Designated Person",
-        detail:
-          "Select the responsible individual from your People directory so the instruction appears on their portal and their Person Profile → Instructions tab.",
-      },
-      {
-        title: "Detail Step-by-Step Procedure",
-        detail:
-          "Write comprehensive, unambiguous instructions. Include specific account numbers, contacts to call, deadlines, and execution orders. Be as specific as possible to prevent confusion.",
-      },
-      {
-        title: "Track Execution & Status",
-        detail:
-          "Monitor status: Active, In Progress, Completed, or On Hold. Assignees can view their responsibilities and update progress from their personalized portal.",
-      },
-    ],
-    tips: [
-      {
-        type: "tip",
-        text: "Be as specific as possible in your handover instructions. Step-by-step guides prevent confusion and disagreements during stressful transitions.",
-      },
-      {
-        type: "info",
-        text: "Non-owner assignees who sign in see their assigned instructions under 'Responsibilities' on their dashboard and on their Person Profile → Instructions tab.",
-      },
-    ],
-    whoCanAccess:
-      "Super Admin, Owner, and assigned users with the canViewPersonal permission.",
-  },
+  // ─────────────────────────────────────────────────────────────────────────────,
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 13. BENEFICIARIES
+  // 11. 11. Beneficiaries & Heirs
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "beneficiaries",
+    category: "Records & Continuity",
+    serial: "11",
     icon: HeartHandshake,
     color: "text-rose-600 dark:text-rose-400",
     bg: "bg-rose-50 dark:bg-rose-950/50",
@@ -953,9 +1042,15 @@ const sections: GuideSection[] = [
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 14. LEGACY
+  // ─────────────────────────────────────────────────────────────────────────────,
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 12. 12. Legacy Messages & Final Wishes
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "legacy",
+    category: "Legacy & Security",
+    serial: "12",
     icon: BookOpen,
     color: "text-pink-600 dark:text-pink-400",
     bg: "bg-pink-50 dark:bg-pink-950/50",
@@ -1002,9 +1097,15 @@ const sections: GuideSection[] = [
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 15. GUARDIANS
+  // ─────────────────────────────────────────────────────────────────────────────,
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 13. 13. Trusted Guardians & Emergency Protocol
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "guardians",
+    category: "Legacy & Security",
+    serial: "13",
     icon: ShieldAlert,
     color: "text-red-600 dark:text-red-400",
     bg: "bg-red-50 dark:bg-red-950/50",
@@ -1057,14 +1158,20 @@ const sections: GuideSection[] = [
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 13B. 48-HOUR EMERGENCY RECOVERY & CONTINUITY SYSTEM
+  // ─────────────────────────────────────────────────────────────────────────────,
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 13B. 13B. 48-Hour Emergency Recovery System
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "emergency-recovery",
+    category: "Legacy & Security",
+    serial: "13B",
     icon: Clock,
     color: "text-red-600 dark:text-red-400",
     bg: "bg-red-50 dark:bg-red-950/50",
     border: "border-red-200 dark:border-red-800/40",
-    title: "13B. 48-Hour Emergency Recovery & Continuity System",
+    title: "13B. 48-Hour Emergency Recovery System",
     subtitle:
       "Server-side countdown, Master PIN cancellation, vault lockout protection & predefined continuity policy",
     description:
@@ -1125,9 +1232,15 @@ const sections: GuideSection[] = [
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 16. ACCESS CONTROL
+  // ─────────────────────────────────────────────────────────────────────────────,
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 14. 14. Access Control & Permission Rules
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "permissions",
+    category: "Legacy & Security",
+    serial: "14",
     icon: ShieldCheck,
     color: "text-emerald-600 dark:text-emerald-400",
     bg: "bg-emerald-50 dark:bg-emerald-950/50",
@@ -1195,9 +1308,15 @@ const sections: GuideSection[] = [
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 17. ACTIVITY LOG
+  // ─────────────────────────────────────────────────────────────────────────────,
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 15. 15. Security Audit & Activity Log
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "activity",
+    category: "Legacy & Security",
+    serial: "15",
     icon: History,
     color: "text-violet-600 dark:text-violet-400",
     bg: "bg-violet-50 dark:bg-violet-950/50",
@@ -1244,69 +1363,17 @@ const sections: GuideSection[] = [
   },
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 18. TRASH & RECOVERY
-  // ─────────────────────────────────────────────────────────────────────────────
-  {
-    id: "trash",
-    icon: Trash2,
-    color: "text-orange-600 dark:text-orange-400",
-    bg: "bg-orange-50 dark:bg-orange-950/50",
-    border: "border-orange-200 dark:border-orange-800/40",
-    title: "16. Trash & Recovery System",
-    subtitle:
-      "Soft delete, recovery window & permanent purge",
-    description:
-      "LIFE Vault implements a safe soft-delete system. When you delete a record (Person, Document, or Vault Item), it is not permanently destroyed — it moves to the Trash bin where it can be reviewed and recovered by the Owner.",
-    steps: [
-      {
-        title: "How Soft Delete Works",
-        detail:
-          "When you click 'Delete' on a Person, Document, or Vault Item, the record is marked as deleted but remains in the database. It disappears from all active lists and modules but is preserved in the Trash.",
-      },
-      {
-        title: "Access the Trash Bin",
-        detail:
-          "Go to Settings → Trash. The Trash page shows all soft-deleted records organized by entity type (People, Documents, Vault Items) with the deletion date and the user who deleted them.",
-      },
-      {
-        title: "Recover a Deleted Record",
-        detail:
-          "Click the 'Restore' button next to any trashed record to recover it. The record is immediately restored to its original location with all data intact — nothing is lost.",
-      },
-      {
-        title: "Permanent Purge",
-        detail:
-          "The Owner can permanently delete a trashed record by clicking 'Delete Forever'. Once permanently purged, the record cannot be recovered under any circumstances. Use this only when you are absolutely certain.",
-      },
-    ],
-    tips: [
-      {
-        type: "tip",
-        text: "Always check the Trash before asking for technical support about missing records. Most 'lost' records are simply in the Trash waiting to be recovered.",
-      },
-      {
-        type: "warning",
-        text: "Permanent deletion is irreversible. Only the Owner can perform permanent purges. Standard users can soft-delete but not permanently destroy records.",
-      },
-      {
-        type: "security",
-        text: "All delete and recovery operations are recorded in the Activity Log with actor identification and timestamps.",
-      },
-    ],
-    whoCanAccess:
-      "Owner only. Standard users can soft-delete records they have permission to manage, but only the Owner can access the Trash bin and perform recovery or permanent purge.",
-  },
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // 19. SETTINGS
+  // 16. 16. System Settings, Master PIN & PWA
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "settings",
+    category: "Legacy & Security",
+    serial: "16",
     icon: Settings,
     color: "text-slate-600 dark:text-slate-400",
     bg: "bg-slate-50 dark:bg-slate-900/50",
     border: "border-slate-200 dark:border-slate-800/40",
-    title: "17. System Settings, Master PIN & PWA",
+    title: "16. System Settings, Master PIN & PWA",
     subtitle:
       "Master PIN configuration, encrypted backup & mobile installation",
     description:
@@ -1350,6 +1417,62 @@ const sections: GuideSection[] = [
     ],
     whoCanAccess:
       "Owner only for Master PIN, backup exports, and Trash access. Admins for general settings.",
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 16B. 16B. Trash & Recovery System
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    id: "trash",
+    category: "Legacy & Security",
+    serial: "16B",
+    icon: Trash2,
+    color: "text-orange-600 dark:text-orange-400",
+    bg: "bg-orange-50 dark:bg-orange-950/50",
+    border: "border-orange-200 dark:border-orange-800/40",
+    title: "16B. Trash & Recovery System",
+    subtitle:
+      "Soft delete, recovery window & permanent purge",
+    description:
+      "LIFE Vault implements a safe soft-delete system. When you delete a record (Person, Document, or Vault Item), it is not permanently destroyed — it moves to the Trash bin where it can be reviewed and recovered by the Owner.",
+    steps: [
+      {
+        title: "How Soft Delete Works",
+        detail:
+          "When you click 'Delete' on a Person, Document, or Vault Item, the record is marked as deleted but remains in the database. It disappears from all active lists and modules but is preserved in the Trash.",
+      },
+      {
+        title: "Access the Trash Bin",
+        detail:
+          "Go to Settings → Trash. The Trash page shows all soft-deleted records organized by entity type (People, Documents, Vault Items) with the deletion date and the user who deleted them.",
+      },
+      {
+        title: "Recover a Deleted Record",
+        detail:
+          "Click the 'Restore' button next to any trashed record to recover it. The record is immediately restored to its original location with all data intact — nothing is lost.",
+      },
+      {
+        title: "Permanent Purge",
+        detail:
+          "The Owner can permanently delete a trashed record by clicking 'Delete Forever'. Once permanently purged, the record cannot be recovered under any circumstances. Use this only when you are absolutely certain.",
+      },
+    ],
+    tips: [
+      {
+        type: "tip",
+        text: "Always check the Trash before asking for technical support about missing records. Most 'lost' records are simply in the Trash waiting to be recovered.",
+      },
+      {
+        type: "warning",
+        text: "Permanent deletion is irreversible. Only the Owner can perform permanent purges. Standard users can soft-delete but not permanently destroy records.",
+      },
+      {
+        type: "security",
+        text: "All delete and recovery operations are recorded in the Activity Log with actor identification and timestamps.",
+      },
+    ],
+    whoCanAccess:
+      "Owner only. Standard users can soft-delete records they have permission to manage, but only the Owner can access the Trash bin and perform recovery or permanent purge.",
   },
 ];
 
@@ -1458,53 +1581,67 @@ export function UserGuideClient() {
               </p>
             </div>
           </div>
-          <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
-            {activeIndex + 1}/{sections.length}
+          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
+            {active.serial}
           </span>
         </div>
 
         {/* Section List */}
         <nav
-          className="flex-1 overflow-y-auto p-2 space-y-1"
+          className="flex-1 overflow-y-auto p-2 space-y-4"
           aria-label="Guide modules"
         >
-          {sections.map((section, idx) => {
-            const Icon = section.icon;
-            const isActive = section.id === activeId;
+          {GUIDE_CATEGORIES.map((category) => {
+            const catSections = sections.filter((s) => s.category === category);
+            if (catSections.length === 0) return null;
             return (
-              <button
-                key={section.id}
-                onClick={() => selectSection(section.id)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all text-xs font-medium group relative
-                  ${
-                    isActive
-                      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold shadow-xs"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                  }`}
-                aria-current={isActive ? "page" : undefined}
-              >
-                {isActive && (
-                  <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-emerald-500" />
-                )}
-                <Icon
-                  className={`w-4 h-4 shrink-0 transition-colors ${
-                    isActive
-                      ? "text-emerald-600 dark:text-emerald-400"
-                      : "text-muted-foreground/70 group-hover:text-foreground"
-                  }`}
-                  strokeWidth={isActive ? 2.5 : 2}
-                />
-                <span className="truncate flex-1">{section.title}</span>
-                <span
-                  className={`text-[10px] font-mono shrink-0 ${
-                    isActive
-                      ? "text-emerald-500 font-bold"
-                      : "text-muted-foreground/50"
-                  }`}
-                >
-                  {String(idx + 1).padStart(2, "0")}
-                </span>
-              </button>
+              <div key={category} className="space-y-1">
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground/60 px-3 py-1">
+                  {category}
+                </h3>
+                <div className="space-y-0.5">
+                  {catSections.map((section) => {
+                    const Icon = section.icon;
+                    const isActive = section.id === activeId;
+                    return (
+                      <button
+                        key={section.id}
+                        onClick={() => selectSection(section.id)}
+                        className={`w-full flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl text-left transition-all text-xs font-medium group relative ${
+                          isActive
+                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold shadow-xs"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                        }`}
+                        aria-current={isActive ? "page" : undefined}
+                      >
+                        {isActive && (
+                          <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r-full bg-emerald-500" />
+                        )}
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <Icon
+                            className={`w-4 h-4 shrink-0 transition-colors ${
+                              isActive
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : "text-muted-foreground/70 group-hover:text-foreground"
+                            }`}
+                            strokeWidth={isActive ? 2.5 : 2}
+                          />
+                          <span className="truncate">{section.title}</span>
+                        </div>
+                        <span
+                          className={`text-[10px] font-mono font-bold shrink-0 ${
+                            isActive
+                              ? "text-emerald-500"
+                              : "text-muted-foreground/50"
+                          }`}
+                        >
+                          {section.serial}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             );
           })}
         </nav>
@@ -1535,8 +1672,8 @@ export function UserGuideClient() {
             <span className="max-w-[140px] truncate text-left">
               {active.title}
             </span>
-            <span className="text-[10px] font-mono text-muted-foreground px-1.5 py-0.2 rounded bg-background/80 border border-border/60">
-              {activeIndex + 1}/{sections.length}
+            <span className="text-[10px] font-mono font-bold text-muted-foreground px-1.5 py-0.2 rounded bg-background/80 border border-border/60">
+              {active.serial}
             </span>
           </button>
 
@@ -1589,8 +1726,8 @@ export function UserGuideClient() {
                     >
                       {active.subtitle}
                     </p>
-                    <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-background/80 border border-border text-muted-foreground">
-                      Module {activeIndex + 1} of {sections.length}
+                    <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-background/80 border border-border text-muted-foreground">
+                      Module {active.serial} · {active.category}
                     </span>
                   </div>
                   <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
@@ -1791,36 +1928,56 @@ export function UserGuideClient() {
 
             {/* Topic List */}
             <nav
-              className="flex-1 overflow-y-auto p-2 space-y-1"
+              className="flex-1 overflow-y-auto p-2 space-y-4"
               aria-label="Mobile guide topics"
             >
-              {sections.map((section, idx) => {
-                const Icon = section.icon;
-                const isActive = section.id === activeId;
+              {GUIDE_CATEGORIES.map((category) => {
+                const catSections = sections.filter((s) => s.category === category);
+                if (catSections.length === 0) return null;
                 return (
-                  <button
-                    key={section.id}
-                    onClick={() => selectSection(section.id)}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all text-xs font-medium
-                      ${
-                        isActive
-                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                      }`}
-                  >
-                    <Icon
-                      className={`w-4 h-4 shrink-0 ${
-                        isActive
-                          ? "text-emerald-600 dark:text-emerald-400"
-                          : "text-muted-foreground/70"
-                      }`}
-                      strokeWidth={isActive ? 2.5 : 2}
-                    />
-                    <span className="truncate flex-1">{section.title}</span>
-                    <span className="text-[10px] font-mono text-muted-foreground/50 shrink-0">
-                      {String(idx + 1).padStart(2, "0")}
-                    </span>
-                  </button>
+                  <div key={category} className="space-y-1">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground/60 px-3 py-1">
+                      {category}
+                    </h3>
+                    <div className="space-y-0.5">
+                      {catSections.map((section) => {
+                        const Icon = section.icon;
+                        const isActive = section.id === activeId;
+                        return (
+                          <button
+                            key={section.id}
+                            onClick={() => selectSection(section.id)}
+                            className={`w-full flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl text-left transition-all text-xs font-medium ${
+                              isActive
+                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold"
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <Icon
+                                className={`w-4 h-4 shrink-0 ${
+                                  isActive
+                                    ? "text-emerald-600 dark:text-emerald-400"
+                                    : "text-muted-foreground/70"
+                                }`}
+                                strokeWidth={isActive ? 2.5 : 2}
+                              />
+                              <span className="truncate">{section.title}</span>
+                            </div>
+                            <span
+                              className={`text-[10px] font-mono font-bold shrink-0 ${
+                                isActive
+                                  ? "text-emerald-500"
+                                  : "text-muted-foreground/50"
+                              }`}
+                            >
+                              {section.serial}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 );
               })}
             </nav>

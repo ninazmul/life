@@ -41,12 +41,14 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
           url: "/",
           icon: Home,
           isActive: pathname === "/",
+          serial: "01",
         },
         {
           title: "People & Access",
           url: "/people",
           icon: Users,
           isActive: pathname.startsWith("/people"),
+          serial: "02",
         },
         {
           title: "Financial Care",
@@ -54,12 +56,14 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
           icon: Wallet,
           isActive: pathname.startsWith("/finance") || pathname.startsWith("/money"),
           badge: activeCareCount > 0 ? activeCareCount : undefined,
+          serial: "03",
         },
         {
           title: "Secure Vault",
           url: "/vault",
           icon: KeyRound,
           isActive: pathname.startsWith("/vault"),
+          serial: "04",
         },
       ],
     },
@@ -71,42 +75,49 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
           url: "/instructions",
           icon: FileText,
           isActive: pathname.startsWith("/instructions"),
+          serial: "05",
         },
         {
           title: "Important Information",
           url: "/information",
           icon: FileText,
           isActive: pathname.startsWith("/information"),
+          serial: "06",
         },
         {
           title: "Business & Continuity",
           url: "/business",
           icon: Briefcase,
           isActive: pathname.startsWith("/business"),
+          serial: "07",
         },
         {
           title: "Assets & Properties",
           url: "/assets",
           icon: Layers,
           isActive: pathname.startsWith("/assets"),
+          serial: "08",
         },
         {
           title: "Contact Directory",
           url: "/contacts",
           icon: Contact,
           isActive: pathname.startsWith("/contacts"),
+          serial: "09",
         },
         {
           title: "Documents Library",
           url: "/documents",
           icon: FolderLock,
           isActive: pathname.startsWith("/documents"),
+          serial: "10",
         },
         {
           title: "Beneficiaries",
           url: "/beneficiaries",
           icon: HeartHandshake,
           isActive: pathname.startsWith("/beneficiaries"),
+          serial: "11",
         },
       ],
     },
@@ -118,30 +129,35 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
           url: "/legacy",
           icon: HeartHandshake,
           isActive: pathname.startsWith("/legacy"),
+          serial: "12",
         },
         {
           title: "Emergency & Guardians",
           url: "/guardians",
           icon: ShieldAlert,
           isActive: pathname.startsWith("/guardians"),
+          serial: "13",
         },
         {
           title: "Access & Emergency Control",
           url: "/access",
           icon: ShieldAlert,
           isActive: pathname.startsWith("/access"),
+          serial: "14",
         },
         {
           title: "Activity & Audit",
           url: "/activity",
           icon: History,
           isActive: pathname.startsWith("/activity"),
+          serial: "15",
         },
         {
           title: "Security & Settings",
           url: "/settings",
           icon: Settings,
           isActive: pathname.startsWith("/settings"),
+          serial: "16",
         },
       ],
     },
@@ -153,6 +169,7 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
           url: "/guide",
           icon: BookOpen,
           isActive: pathname.startsWith("/guide"),
+          serial: "17",
         },
       ],
     },
@@ -243,14 +260,18 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
                       <span className="truncate">{item.title}</span>
                     </div>
 
-                    {(item as any).badge !== undefined && (
+                    {(item as any).badge !== undefined ? (
                       <span
                         className="flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-amber-500 text-slate-950 text-[10px] font-extrabold shrink-0"
                         aria-label={`${(item as any).badge} active items`}
                       >
                         {(item as any).badge}
                       </span>
-                    )}
+                    ) : (item as any).serial ? (
+                      <span className="text-[10px] font-mono font-semibold text-sidebar-foreground/35 group-hover:text-sidebar-foreground/70 transition-colors shrink-0">
+                        {(item as any).serial}
+                      </span>
+                    ) : null}
 
                     {item.isActive && (
                       <span
@@ -265,6 +286,7 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
           </nav>
         ))}
       </div>
+
 
       {/* Security Footer Info */}
       <div className="p-3 m-3 rounded-xl bg-sidebar-accent/70 border border-sidebar-border text-[11px] text-sidebar-foreground/60 flex items-center justify-between gap-2">
