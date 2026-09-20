@@ -252,18 +252,11 @@ export function LifeMoreSheet({ open, onOpenChange, userAccess }: LifeMoreSheetP
                     >
                       {item.title}
                     </span>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {(item as any).serial && (
-                        <span className="text-[10px] font-mono font-bold text-muted-foreground/60 px-1.5 py-0.5 rounded bg-muted/60 border border-border/50">
-                          {(item as any).serial}
-                        </span>
-                      )}
-                      {isActive && (
-                        <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-300 px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/25 shrink-0">
-                          Active
-                        </span>
-                      )}
-                    </div>
+                    {isActive && (
+                      <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-300 px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/25 shrink-0">
+                        Active
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-muted-foreground truncate mt-0.5">
                     {item.desc}

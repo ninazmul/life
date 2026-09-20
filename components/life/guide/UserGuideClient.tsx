@@ -1581,9 +1581,7 @@ export function UserGuideClient() {
               </p>
             </div>
           </div>
-          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
-            {active.serial}
-          </span>
+
         </div>
 
         {/* Section List */}
@@ -1628,15 +1626,7 @@ export function UserGuideClient() {
                           />
                           <span className="truncate">{section.title}</span>
                         </div>
-                        <span
-                          className={`text-[10px] font-mono font-bold shrink-0 ${
-                            isActive
-                              ? "text-emerald-500"
-                              : "text-muted-foreground/50"
-                          }`}
-                        >
-                          {section.serial}
-                        </span>
+
                       </button>
                     );
                   })}
@@ -1672,9 +1662,7 @@ export function UserGuideClient() {
             <span className="max-w-[140px] truncate text-left">
               {active.title}
             </span>
-            <span className="text-[10px] font-mono font-bold text-muted-foreground px-1.5 py-0.2 rounded bg-background/80 border border-border/60">
-              {active.serial}
-            </span>
+
           </button>
 
           {/* Quick Prev / Next icons */}
@@ -1726,9 +1714,7 @@ export function UserGuideClient() {
                     >
                       {active.subtitle}
                     </p>
-                    <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-background/80 border border-border text-muted-foreground">
-                      Module {active.serial} · {active.category}
-                    </span>
+
                   </div>
                   <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
                     {active.title}
@@ -1964,15 +1950,7 @@ export function UserGuideClient() {
                               />
                               <span className="truncate">{section.title}</span>
                             </div>
-                            <span
-                              className={`text-[10px] font-mono font-bold shrink-0 ${
-                                isActive
-                                  ? "text-emerald-500"
-                                  : "text-muted-foreground/50"
-                              }`}
-                            >
-                              {section.serial}
-                            </span>
+
                           </button>
                         );
                       })}
