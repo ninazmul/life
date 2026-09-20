@@ -72,8 +72,8 @@ import {
   reorderSubcategories,
   archiveSubcategory,
   deleteSubcategory,
-  MAIN_CATEGORIES,
 } from "@/lib/actions/lifeCategory.actions";
+import { MAIN_CATEGORIES } from "@/lib/config/lifeCategories";
 import toast from "react-hot-toast";
 
 interface LifeDashboardClientProps {
