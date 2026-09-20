@@ -37,8 +37,8 @@ export function LifeHeader({
   const fetchNotifs = useCallback(async () => {
     try {
       const data = await getMyNotifications();
-      setNotifications(data.notifications);
-      setUnreadCount(data.unreadCount);
+      setNotifications(Array.isArray(data?.notifications) ? data.notifications : []);
+      setUnreadCount(data?.unreadCount ?? 0);
     } catch {
       // silent fallback
     }

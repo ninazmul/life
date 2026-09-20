@@ -324,7 +324,7 @@ export function PersonDetailClient({
     setNotesLoading(true);
     try {
       const data = await getPersonNotes(person._id);
-      setNotes(data);
+      setNotes(Array.isArray(data) ? data : []);
     } catch {
       // silent
     } finally {
@@ -2420,7 +2420,7 @@ export function PersonDetailClient({
                         )}
 
                         {/* Tags */}
-                        {note.tags && note.tags.length > 0 && (
+                        {Array.isArray(note.tags) && note.tags.length > 0 && (
                           <div className="flex items-center gap-1 flex-wrap my-2">
                             {note.tags.map((t, idx) => (
                               <span
