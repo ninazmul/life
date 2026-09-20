@@ -137,6 +137,7 @@ export function AccessClient({
     const interval = setInterval(() => {
       setSecondsRemaining((prev) => {
         if (prev <= 1) {
+          clearInterval(interval);
           refreshRecoveryData();
           return 0;
         }

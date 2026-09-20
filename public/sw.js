@@ -2,7 +2,7 @@
 // Life PWA Service Worker (Secure Zero-Cache Policy for Private Data)
 // ============================================================
 
-const CACHE_NAME = "life-pwa-shell-v2";
+const CACHE_NAME = "life-pwa-shell-v3";
 const STATIC_ASSETS = [
   "/manifest.json",
   "/assets/images/logo.png"
@@ -33,46 +33,64 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  const url = new URL(event.request.url);
-
-  // STRICT SECURITY RULE: NEVER cache API routes, Server Actions, Vault, Money, or Documents
-  if (
-    event.request.method !== "GET" ||
-    url.pathname.startsWith("/api") ||
-    url.pathname.startsWith("/vault") ||
-    url.pathname.startsWith("/money") ||
-    url.pathname.startsWith("/documents") ||
-    url.pathname.startsWith("/people") ||
-    url.pathname.startsWith("/information") ||
-    url.pathname.startsWith("/legacy")
-  ) {
-    return; // Pass through directly to network
+  // Only handle GET requests
+  if (event.request.method !== "GET") {
+    return;
   }
 
-  // Network-first strategy for static assets
+  const url = new URL(event.request.url);
+
+  // STRICT BYPASS RULES:
+  // 1. Never intercept Next.js internals, Turbopack, webpack HMR, or chunks
+  if (url.pathname.startsWith("/_next")) {
+    return;
+  }
+
+  // 2. Never intercept RSC router queries (?_rsc=...)
+  if (url.searchParams.has("_rsc")) {
+    return;
+  }
+
+  // 3. Never intercept full page navigations (let browser/Next.js navigate directly)
+  if (event.request.mode === "navigate") {
+    return;
+  }
+
+  // 4. Never intercept API routes or Server Action POSTs
+  if (url.pathname.startsWith("/api") || url.pathname.startsWith("/trpc")) {
+    return;
+  }
+
+  // ONLY intercept and cache designated static assets (images, icons, manifest)
+  const isStaticMedia =
+    url.pathname.startsWith("/assets/") ||
+    url.pathname === "/manifest.json" ||
+    url.pathname.endsWith(".png") ||
+    url.pathname.endsWith(".jpg") ||
+    url.pathname.endsWith(".jpeg") ||
+    url.pathname.endsWith(".ico") ||
+    url.pathname.endsWith(".svg") ||
+    url.pathname.endsWith(".webp");
+
+  if (!isStaticMedia) {
+    return; // Pass through to network directly
+  }
+
+  // Cache-first / Network-fallback for purely static media
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        // Only cache pure static media / icons
-        if (
-          response.status === 200 &&
-          (url.pathname.startsWith("/assets/") || url.pathname.endsWith(".png") || url.pathname.endsWith(".ico"))
-        ) {
-          const responseToCache = response.clone();
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      return fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache);
           });
         }
-        return response;
-      })
-      .catch(() => {
-        return caches.match(event.request).then((cached) => {
-          if (cached) return cached;
-          // Fallback
-          return new Response("Offline — Secure Life Data requires active connectivity.", {
-            headers: { "Content-Type": "text/plain" },
-          });
-        });
-      })
+        return networkResponse;
+      });
+    })
   );
 });

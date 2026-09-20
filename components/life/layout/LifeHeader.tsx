@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Search, Command, ShieldAlert, BookOpen, Bell, Check, ExternalLink, Lock, CheckCircle2, Clock } from "lucide-react";
@@ -33,21 +33,40 @@ export function LifeHeader({
   const [notifications, setNotifications] = useState<ILifeNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifLoading, setNotifLoading] = useState(false);
+  const isFetchingRef = useRef(false);
 
   const fetchNotifs = useCallback(async () => {
+    if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+      return;
+    }
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
     try {
       const data = await getMyNotifications();
       setNotifications(Array.isArray(data?.notifications) ? data.notifications : []);
       setUnreadCount(data?.unreadCount ?? 0);
     } catch {
       // silent fallback
+    } finally {
+      isFetchingRef.current = false;
     }
   }, []);
 
   useEffect(() => {
     fetchNotifs();
-    const interval = setInterval(fetchNotifs, 30000); // 30s polling
-    return () => clearInterval(interval);
+    const interval = setInterval(fetchNotifs, 60000); // 60s polling only when tab is visible
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchNotifs();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [fetchNotifs]);
 
   useEffect(() => {

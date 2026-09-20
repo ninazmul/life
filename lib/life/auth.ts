@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { currentUser, auth } from "@clerk/nextjs/server";
 import { headers } from "next/headers";
 import { connectToDatabase } from "@/lib/database";
@@ -258,7 +259,7 @@ export function hasCrudAccess(
 /**
  * Resolves the authenticated user and their Life authorization profile server-side.
  */
-export async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
+export const getLifeAuthContext = cache(async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
   try {
     const { userId } = await auth();
     if (!userId) return null;
@@ -358,14 +359,21 @@ export async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
     }
 
     if (personDoc) {
-      const updates: Record<string, unknown> = { lastActivity: new Date() };
+      const updates: Record<string, unknown> = {};
+      const lastActivityTime = personDoc.lastActivity ? new Date(personDoc.lastActivity).getTime() : 0;
+      // Only throttle lastActivity updates if more than 5 minutes have elapsed
+      if (Date.now() - lastActivityTime > 5 * 60 * 1000) {
+        updates.lastActivity = new Date();
+      }
       if (!personDoc.clerkUserId) {
         updates.clerkUserId = userId;
       }
       if (!personDoc.lastLogin) {
         updates.lastLogin = new Date();
       }
-      await LifePerson.updateOne({ _id: personDoc._id }, { $set: updates });
+      if (Object.keys(updates).length > 0) {
+        await LifePerson.updateOne({ _id: personDoc._id }, { $set: updates });
+      }
     }
 
     // Check Emergency Protocol state and designated emergency delegation
@@ -510,7 +518,7 @@ export async function getLifeAuthContext(): Promise<LifeAuthContext | null> {
     console.error("Error in getLifeAuthContext:", error);
     return null;
   }
-}
+});
 
 /**
  * Enforces that caller is either the Owner or an Administrator.

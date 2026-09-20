@@ -33,7 +33,7 @@ export const connectToDatabase = async () => {
         bufferCommands: false,
         serverSelectionTimeoutMS: 8000,
         socketTimeoutMS: 30000,
-        maxPoolSize: 10,
+        maxPoolSize: parseInt(process.env.MONGODB_MAX_POOL_SIZE || "20", 10),
       } as ConnectOptions)
       .then((m) => m);
   }

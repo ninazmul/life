@@ -35,7 +35,7 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
   const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
-    // Register Service Worker in all environments (local IP / dev / prod)
+    // Register Service Worker
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("/sw.js")
