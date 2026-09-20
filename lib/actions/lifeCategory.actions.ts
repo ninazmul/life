@@ -10,8 +10,8 @@ import LifeNote from "@/lib/database/models/lifeNote.model";
 import { getLifeAuthContext, logLifeActivity } from "@/lib/life/auth";
 import { MainCategoryKey, ILifeCategory } from "@/types";
 
-// Re-export from shared config so client components can import without "use server" restriction
-export { MAIN_CATEGORIES, type MainCategoryConfig } from "@/lib/config/lifeCategories";
+// MAIN_CATEGORIES is defined in @/lib/config/lifeCategories (not "use server")
+// Client components must import from there directly.
 import { MAIN_CATEGORIES, MainCategoryConfig } from "@/lib/config/lifeCategories";
 
 
