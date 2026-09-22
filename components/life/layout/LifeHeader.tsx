@@ -320,6 +320,26 @@ export function LifeHeader({
               appearance={{
                 elements: {
                   avatarBox: "w-9 h-9 rounded-xl ring-1 ring-border shadow-xs",
+                  // Make the modal overlay fill the screen on mobile
+                  modalContent:
+                    "w-[calc(100vw-24px)] max-w-[900px] min-h-0 max-h-[90dvh] overflow-hidden rounded-2xl sm:rounded-3xl",
+                  // The inner card should flex and scroll properly
+                  card: "w-full h-full min-h-0 flex flex-col sm:flex-row shadow-none rounded-2xl sm:rounded-3xl overflow-hidden",
+                  // Left nav bar: horizontal on mobile, vertical on desktop
+                  navbar:
+                    "flex flex-row sm:flex-col w-full sm:w-52 sm:min-w-[13rem] border-b sm:border-b-0 sm:border-r border-border bg-muted/30 p-2 sm:p-3 gap-1 overflow-x-auto sm:overflow-x-visible shrink-0",
+                  navbarButton:
+                    "text-xs sm:text-sm whitespace-nowrap shrink-0",
+                  // Scrollable content area
+                  pageScrollBox:
+                    "flex-1 overflow-y-auto p-4 sm:p-6 min-h-0",
+                  page: "w-full",
+                  profileSection: "gap-3",
+                  profileSectionTitle: "text-sm font-semibold",
+                  formFieldLabel: "text-xs font-medium",
+                  formFieldInput: "text-sm h-10",
+                  headerTitle: "text-base sm:text-lg font-bold",
+                  headerSubtitle: "text-xs text-muted-foreground",
                 },
               }}
             />

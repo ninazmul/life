@@ -303,7 +303,6 @@ export const getLifeAuthContext = cache(async function getLifeAuthContext(): Pro
         $or: [
           ...(emailRegexes.length > 0 ? [{ email: { $in: emailRegexes } }] : email ? [{ email: new RegExp(`^${email}$`, "i") }] : []),
           { clerkUserId: userId },
-          ...(isSuper ? [{ role: { $in: ["owner", "super_admin"] } }] : []),
         ],
         status: { $ne: "archived" },
       });
