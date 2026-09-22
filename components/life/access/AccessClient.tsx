@@ -819,107 +819,134 @@ const getRoleDefaultPermissions = (role: LifeRole): LifePermission => {
 
       {/* Permissions Matrix for People */}
       <div className="space-y-3">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground px-1">
-          Individual User Access Matrix
-        </h3>
+        <div className="flex items-center justify-between px-1">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+            <Users className="w-3.5 h-3.5" />
+            <span>Individual User Access Matrix</span>
+          </h3>
+          <span className="text-[11px] text-muted-foreground">{people.length} member{people.length === 1 ? "" : "s"}</span>
+        </div>
 
-        <div className="rounded-3xl bg-secondary border border-border divide-y divide-border overflow-hidden">
-          {people.map((p) => (
-            <div
-              key={p._id}
-              className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
-            >
-              <div>
-                <div className="flex items-center gap-2">
-                  <h4 className="font-bold text-sm text-foreground">
-                    {p.name}
-                  </h4>
-                  <span className="text-[11px] text-muted-foreground">
-                    ({p.relation})
-                  </span>
+        <div className="space-y-3">
+          {people.map((p) => {
+            const perms = p.permissions || {} as LifePermission;
+            const PERMISSION_SECTIONS: Array<{
+              key: keyof LifePermission;
+              label: string;
+              sections: string;
+              activeColor: string;
+            }> = [
+              {
+                key: "canViewPersonal",
+                label: "Personal",
+                sections: "People · Information · Contacts · Instructions · LifeNote · Documents · Legacy · Beneficiaries",
+                activeColor: "border-sky-200 dark:border-sky-500/40 bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300",
+              },
+              {
+                key: "canViewBusiness",
+                label: "Business",
+                sections: "Business & Continuity · Assets & Properties",
+                activeColor: "border-cyan-200 dark:border-cyan-500/40 bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300",
+              },
+              {
+                key: "canViewFinancial",
+                label: "Financial",
+                sections: "Financial Care · Money · Assets & Properties · Beneficiaries",
+                activeColor: "border-emerald-200 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300",
+              },
+              {
+                key: "canViewSensitive",
+                label: "Sensitive",
+                sections: "LifeNote · Documents Library · Legacy Messages",
+                activeColor: "border-violet-200 dark:border-violet-500/40 bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300",
+              },
+              {
+                key: "canRevealVault",
+                label: "Vault Reveal",
+                sections: "Secure Vault (credentials, PINs & keys)",
+                activeColor: "border-amber-200 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300",
+              },
+              {
+                key: "canAccessEmergency",
+                label: "Emergency",
+                sections: "Guardians & Emergency Access",
+                activeColor: "border-rose-200 dark:border-rose-500/40 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300",
+              },
+              {
+                key: "canManageAccess",
+                label: "Admin Control",
+                sections: "Activity & Audit Log · Security & Settings · Access & Emergency Control · Guardians",
+                activeColor: "border-red-200 dark:border-red-500/40 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300",
+              },
+            ];
+
+            const activeCount = PERMISSION_SECTIONS.filter((s) => !!(perms as any)[s.key]).length;
+
+            return (
+              <div
+                key={p._id}
+                className="rounded-2xl bg-secondary border border-border overflow-hidden text-xs"
+              >
+                {/* Person header */}
+                <div className="px-4 py-3 flex items-center justify-between gap-3 border-b border-border">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-bold text-sm text-foreground">{p.name}</h4>
+                      <span className="text-[11px] text-muted-foreground">({p.relation})</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+                      {p.email || "No login linked"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${activeCount > 0 ? "border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300" : "border-border text-muted-foreground bg-secondary"}`}>
+                      {activeCount}/{PERMISSION_SECTIONS.length} active
+                    </span>
+                    <select
+                      value={p.role}
+                      onChange={(e) => handleRoleChange(p._id, e.target.value as LifeRole)}
+                      className="h-7 px-2 rounded-lg border border-border bg-card text-foreground text-[11px] font-medium focus:outline-none"
+                    >
+                      <option value="individual">Individual</option>
+                      <option value="guardian">Guardian</option>
+                      <option value="business_staff">Business Staff</option>
+                      <option value="business_partner">Business Partner</option>
+                      <option value="admin">Admin</option>
+                      <option value="super_admin">Super Admin</option>
+                      <option value="read_only">Read Only</option>
+                    </select>
+                  </div>
                 </div>
-                <p className="text-[11px] text-slate-500 font-mono mt-0.5">
-                  {p.email || "No Clerk email linked"}
-                </p>
+
+                {/* Permission grid */}
+                <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {PERMISSION_SECTIONS.map(({ key, label, sections, activeColor }) => {
+                    const isOn = !!(perms as any)[key];
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => handlePermissionChange(p._id, key, isOn)}
+                        className={`w-full text-left px-3 py-2.5 rounded-xl border transition-all duration-150 ${
+                          isOn
+                            ? activeColor
+                            : "border-border bg-card text-muted-foreground hover:bg-secondary"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-0.5">
+                          <span className="font-semibold text-[11px]">{label}</span>
+                          <span className={`text-[10px] font-black ${isOn ? "opacity-100" : "opacity-40"}`}>
+                            {isOn ? "✓ ON" : "✕ OFF"}
+                          </span>
+                        </div>
+                        <p className="text-[10px] opacity-70 leading-snug">{sections}</p>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-
-              {/* Role Select & Permission Toggles */}
-              <div className="flex flex-wrap items-center gap-2">
-                <select
-                  value={p.role}
-                  onChange={(e) =>
-                    handleRoleChange(p._id, e.target.value as LifeRole)
-                  }
-                  className="h-8 px-2.5 rounded-lg border border-border bg-card text-foreground text-xs font-medium focus:outline-none"
-                >
-                  <option value="individual">Individual</option>
-                  <option value="guardian">Guardian</option>
-                  <option value="business_staff">Business Staff</option>
-                  <option value="business_partner">Business Partner</option>
-                  <option value="admin">Admin</option>
-                  <option value="super_admin">Super Admin</option>
-                  <option value="read_only">Read Only</option>
-                </select>
-
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() =>
-                    handlePermissionChange(
-                      p._id,
-                      "canViewFinancial",
-                      p.permissions?.canViewFinancial || false,
-                    )
-                  }
-                  className={`h-7 px-2.5 text-[10px] rounded-lg border ${
-                    p.permissions?.canViewFinancial
-                      ? "border-emerald-200 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300"
-                      : "border-border text-muted-foreground"
-                  }`}
-                >
-                  Financial {p.permissions?.canViewFinancial ? "✓" : "✕"}
-                </Button>
-
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() =>
-                    handlePermissionChange(
-                      p._id,
-                      "canViewBusiness",
-                      p.permissions?.canViewBusiness || false,
-                    )
-                  }
-                  className={`h-7 px-2.5 text-[10px] rounded-lg border ${
-                    p.permissions?.canViewBusiness
-                      ? "border-cyan-200 dark:border-cyan-500/40 bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300"
-                      : "border-border text-muted-foreground"
-                  }`}
-                >
-                  Business {p.permissions?.canViewBusiness ? "✓" : "✕"}
-                </Button>
-
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() =>
-                    handlePermissionChange(
-                      p._id,
-                      "canRevealVault",
-                      p.permissions?.canRevealVault || false,
-                    )
-                  }
-                  className={`h-7 px-2.5 text-[10px] rounded-lg border ${
-                    p.permissions?.canRevealVault
-                      ? "border-amber-200 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300"
-                      : "border-border text-muted-foreground"
-                  }`}
-                >
-                  Vault Reveal {p.permissions?.canRevealVault ? "✓" : "✕"}
-                </Button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
