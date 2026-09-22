@@ -320,12 +320,14 @@ export function LifeHeader({
               appearance={{
                 elements: {
                   avatarBox: "w-9 h-9 rounded-xl ring-1 ring-border shadow-xs",
-                  // Make the modal overlay fill the screen on mobile
+                  // Backdrop: center on desktop, stretch on mobile (CSS handles full-screen)
+                  modalBackdrop: "items-center justify-center",
+                  // Modal content: full-width mobile via CSS, capped at 900px on desktop
                   modalContent:
-                    "w-[calc(100vw-24px)] max-w-[900px] min-h-0 max-h-[90dvh] overflow-hidden rounded-2xl sm:rounded-3xl",
-                  // The inner card should flex and scroll properly
+                    "w-full max-w-[900px] min-h-0 max-h-[90dvh] overflow-hidden rounded-2xl sm:rounded-3xl",
+                  // Inner card: column on mobile, row on desktop
                   card: "w-full h-full min-h-0 flex flex-col sm:flex-row shadow-none rounded-2xl sm:rounded-3xl overflow-hidden",
-                  // Left nav bar: horizontal on mobile, vertical on desktop
+                  // Nav bar: horizontal scroll on mobile, vertical sidebar on desktop
                   navbar:
                     "flex flex-row sm:flex-col w-full sm:w-52 sm:min-w-[13rem] border-b sm:border-b-0 sm:border-r border-border bg-muted/30 p-2 sm:p-3 gap-1 overflow-x-auto sm:overflow-x-visible shrink-0",
                   navbarButton:
