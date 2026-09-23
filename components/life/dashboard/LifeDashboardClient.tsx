@@ -502,39 +502,40 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       {/* 1. Life Command Center Section on Top (Header + Dropdown)   */}
       {/* ============================================================ */}
       <section aria-label="Life Command Center" className="relative">
-        <div className="relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-50/90 via-teal-50/40 to-background dark:from-emerald-950/30 dark:via-background dark:to-background p-5 sm:p-7 shadow-xs">
+        <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-50/90 via-teal-50/40 to-background dark:from-emerald-950/30 dark:via-background dark:to-background p-3.5 sm:p-4.5 lg:p-5 shadow-xs">
           {/* Subtle botanical leaves watermark on top-right */}
-          <div className="pointer-events-none absolute -right-4 -top-6 w-36 h-36 sm:w-48 sm:h-48 text-emerald-600/15 dark:text-emerald-400/10 select-none">
+          <div className="pointer-events-none absolute -right-3 -top-4 w-24 h-24 sm:w-32 sm:h-32 text-emerald-600/10 dark:text-emerald-400/10 select-none">
             <svg viewBox="0 0 200 200" fill="currentColor" className="w-full h-full">
               <path d="M120 15 C80 50, 40 100, 50 160 C70 170, 110 155, 140 120 C170 85, 175 40, 120 15 Z M95 65 C120 90, 130 120, 130 120 C130 120, 105 110, 85 90 C75 80, 85 70, 95 65 Z" />
               <path d="M160 40 C140 70, 120 110, 130 150 C145 155, 170 145, 185 120 C200 95, 195 60, 160 40 Z" opacity="0.6" />
             </svg>
           </div>
 
-          <div className="relative z-10">
-            {/* Top pill badge */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100/80 dark:bg-emerald-950/60 border border-emerald-300/60 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-[11px] sm:text-xs font-semibold mb-2.5 shadow-2xs">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              <span>Personal Legacy & Continuity Active</span>
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 lg:gap-4">
+            {/* Left: Badge, Title & Shortened Subtitle */}
+            <div className="min-w-0">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100/80 dark:bg-emerald-950/60 border border-emerald-300/60 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-[10px] sm:text-[11px] font-semibold mb-1 shadow-2xs max-w-full">
+                <Sparkles className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span className="truncate">Personal Legacy & Continuity Active</span>
+              </div>
+
+              <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
+                Life Command Center
+              </h1>
+              <p className="text-xs text-muted-foreground font-medium mt-0.5">
+                Private wealth, continuity & legacy organized.
+              </p>
             </div>
 
-            {/* Title & Subtitle */}
-            <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
-              Life Command Center
-            </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground font-medium mt-1 mb-4 sm:mb-5 max-w-xl">
-              Private wealth, continuity, and legacy—securely organized.
-            </p>
-
-            {/* Action Buttons: Quick Actions Dropdown + People Directory */}
-            <div className="flex items-center justify-between md:justify-start gap-2 sm:gap-3 flex-wrap">
+            {/* Right: Action Buttons */}
+            <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 flex-wrap">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="inline-flex items-center gap-2 px-2.5 py-2 rounded-md bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-900 text-white font-bold text-xs sm:text-sm shadow-sm hover:shadow transition-all cursor-pointer"
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-900 text-white font-bold text-xs sm:text-sm shadow-sm hover:shadow transition-all cursor-pointer"
                   >
-                    <Zap className="w-4 h-4 text-emerald-300 fill-emerald-300/30 shrink-0" />
+                    <Zap className="w-3.5 h-3.5 text-emerald-300 fill-emerald-300/30 shrink-0" />
                     <span>Quick Actions</span>
                     <ChevronDown className="w-3.5 h-3.5 text-emerald-200 shrink-0 ml-0.5" />
                   </button>
@@ -542,7 +543,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                 <DropdownMenuContent
                   align="start"
                   sideOffset={8}
-                  className="w-72 sm:w-80 p-2 rounded-2xl bg-popover/95 backdrop-blur-md border border-border shadow-xl z-50 animate-in fade-in-50 zoom-in-95"
+                  className="w-72 sm:w-80 max-w-[calc(100vw-2rem)] p-2 rounded-2xl bg-popover/95 backdrop-blur-md border border-border shadow-xl z-50 animate-in fade-in-50 zoom-in-95"
                 >
                   <div className="px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground flex items-center justify-between">
                     <span>Quick Actions Navigation</span>
@@ -616,9 +617,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
 
               <Link
                 href="/people"
-                className="inline-flex items-center gap-2 px-2.5 py-2 rounded-md bg-card border border-border/80 hover:bg-secondary text-foreground font-bold text-xs sm:text-sm shadow-2xs hover:shadow-xs transition-all"
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl bg-card border border-border/80 hover:bg-secondary text-foreground font-bold text-xs sm:text-sm shadow-2xs hover:shadow-xs transition-all"
               >
-                <Users className="w-4 h-4 text-muted-foreground shrink-0" />
+                <Users className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                 <span>People Directory</span>
               </Link>
             </div>
@@ -627,68 +628,76 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       </section>
 
       {/* ============================================================ */}
-      {/* 2. My Life Profile — Primary Card (4 Cards Only)             */}
+      {/* 2. My Life Profile & Financial Overview Card                 */}
       {/* ============================================================ */}
-      <section aria-label="My Life Profile Card">
-        <div
-          onClick={() => router.push(ownerProfileUrl)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              router.push(ownerProfileUrl);
-            }
-          }}
-          role="button"
-          tabIndex={0}
-          aria-label="Open My Life Profile"
-          className="group relative overflow-hidden rounded-3xl border border-border bg-card p-4 sm:p-6 shadow-sm hover:shadow-md hover:border-emerald-500/40 transition-all cursor-pointer ring-1 ring-border/50"
-        >
+      <section aria-label="My Life Profile and Financial Overview">
+        <div className="rounded-2xl sm:rounded-3xl border border-border bg-card p-3.5 sm:p-6 shadow-sm ring-1 ring-border/50">
+          {/* Profile Header & Details */}
+          <div
+            onClick={() => router.push(ownerProfileUrl)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                router.push(ownerProfileUrl);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Open My Life Profile"
+            className="group/profile cursor-pointer"
+          >
+            {/* User Details Row */}
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+              {ownerAvatar ? (
+                <img
+                  src={ownerAvatar}
+                  alt={ownerName}
+                  className="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl sm:rounded-3xl object-cover border border-emerald-300/60 dark:border-emerald-800/60 shadow-xs shrink-0 group-hover/profile:border-emerald-500/60 transition-colors"
+                />
+              ) : (
+                <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 flex items-center justify-center text-white shrink-0 shadow-md group-hover/profile:scale-105 transition-transform">
+                  <User className="w-7 h-7 sm:w-10 sm:h-10" />
+                </div>
+              )}
 
-          {/* User Details Row */}
-          <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
-            {ownerAvatar ? (
-              <img
-                src={ownerAvatar}
-                alt={ownerName}
-                className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl sm:rounded-3xl object-cover border border-emerald-300/60 dark:border-emerald-800/60 shadow-xs shrink-0"
-              />
-            ) : (
-              <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 flex items-center justify-center text-white shrink-0 shadow-md group-hover:scale-105 transition-transform">
-                <User className="w-8 h-8 sm:w-10 sm:h-10" />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <h2 className="text-lg sm:text-2xl font-black text-foreground tracking-tight group-hover/profile:text-emerald-600 dark:group-hover/profile:text-emerald-400 transition-colors truncate uppercase font-heading">
+                    {ownerName}
+                  </h2>
+                  <div className="flex items-center gap-1 text-xs font-semibold text-muted-foreground group-hover/profile:text-emerald-600 dark:group-hover/profile:text-emerald-400 transition-colors shrink-0">
+                    <span className="hidden sm:inline">View Profile</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover/profile:translate-x-0.5 transition-transform" />
+                  </div>
+                </div>
+
+                <p className="text-xs sm:text-sm italic text-muted-foreground font-medium truncate mt-0.5">
+                  Personal · Medical · Life History
+                </p>
               </div>
-            )}
-
-            <div className="min-w-0">
-              <Link
-                href={ownerProfileUrl}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <h2 className="text-xl sm:text-2xl font-black text-foreground tracking-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate uppercase font-heading">
-                  {ownerName}
-                </h2>
-              </Link>
-
-              <p className="text-xs sm:text-sm italic text-muted-foreground font-medium truncate mt-0.5">
-                Personal · Medical · Life History
-              </p>
             </div>
-          </div>
 
-          {/* Exactly 4 Cards on Profile */}
-          <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3">
-            {/* 1. Profile Completion */}
-            <div className="p-3 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
-              <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
-                <User className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <span className="text-[11px] font-semibold truncate">
-                  Profile Completion
-                </span>
-              </div>
-              <div className="my-1">
-                <span className="text-sm sm:text-base font-extrabold text-foreground font-mono">
-                  {stats.ownerProfile?.profileCompletion ?? 35}%
-                </span>
-                <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
+            {/* Profile Completion */}
+            <div className="mt-2.5 sm:mt-3.5">
+              <div className="p-2.5 sm:p-3 rounded-2xl bg-secondary/40 border border-border/70 group-hover/profile:border-emerald-500/30 transition-colors flex flex-col gap-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <User className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span className="text-[11px] sm:text-xs font-semibold text-muted-foreground truncate">
+                      Profile Completion
+                    </span>
+                  </div>
+                  <span className="text-xs sm:text-sm font-extrabold text-foreground font-mono shrink-0">
+                    {stats.ownerProfile?.profileCompletion ?? 35}%
+                  </span>
+                </div>
+                <div className="w-full h-1.5 bg-border/80 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                    style={{ width: `${stats.ownerProfile?.profileCompletion ?? 35}%` }}
+                  />
+                </div>
+                <p className="text-[10px] text-muted-foreground truncate" suppressHydrationWarning>
                   Updated{" "}
                   {stats.ownerProfile?.lastUpdated
                     ? new Date(stats.ownerProfile.lastUpdated).toLocaleDateString("en-US", {
@@ -698,183 +707,122 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                     : "Sep 12"}
                 </p>
               </div>
-              <div className="w-full h-1.5 bg-border/80 rounded-full overflow-hidden mt-1">
-                <div
-                  className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-                  style={{ width: `${stats.ownerProfile?.profileCompletion ?? 35}%` }}
-                />
-              </div>
-            </div>
-
-            {/* 2. Medical & Emergency */}
-            <div className="p-3 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
-              <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
-                <Heart className="w-4 h-4 text-rose-500 shrink-0" />
-                <span className="text-[11px] font-semibold truncate">
-                  Medical & Emergency
-                </span>
-              </div>
-              <div className="my-1">
-                <span className="text-sm sm:text-base font-extrabold text-foreground truncate block">
-                  {stats.ownerProfile?.medicalInfoStatus || "Pending Records"}
-                </span>
-                <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
-                  Protocols Configured
-                </p>
-              </div>
-            </div>
-
-            {/* 3. Documents */}
-            <div className="p-3 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
-              <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
-                <FolderLock className="w-4 h-4 text-purple-500 shrink-0" />
-                <span className="text-[11px] font-semibold truncate">
-                  Documents
-                </span>
-              </div>
-              <div className="my-1">
-                <span className="text-sm sm:text-base font-extrabold text-foreground font-mono">
-                  {stats.ownerProfile?.documentsAddedCount || stats.documentsCount || 0} Files
-                </span>
-                <p className="text-[10px] text-purple-600 dark:text-purple-400 font-medium mt-0.5 truncate">
-                  Encrypted Vault
-                </p>
-              </div>
-            </div>
-
-            {/* 4. Private Records */}
-            <div className="p-3 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
-              <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
-                <FileText className="w-4 h-4 text-sky-500 shrink-0" />
-                <span className="text-[11px] font-semibold truncate">
-                  Private Records
-                </span>
-              </div>
-              <div className="my-1">
-                <span className="text-sm sm:text-base font-extrabold text-foreground font-mono">
-                  {stats.ownerProfile?.privateRecordsCount || stats.infoCount || 0} Records
-                </span>
-                <p className="text-[10px] text-sky-600 dark:text-sky-400 font-medium mt-0.5 truncate">
-                  Confidential Notes
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================================ */}
-      {/* 3. Financial Overview — 4 Cards + Action Buttons             */}
-      {/* ============================================================ */}
-      <section aria-label="Financial Overview">
-        <div className="rounded-3xl border border-border bg-card p-4 sm:p-6 shadow-sm ring-1 ring-border/50">
-          <div className="flex items-center justify-between mb-3 px-0.5">
-            <div className="flex items-center gap-1.5">
-              <BarChart3 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              <h2 className="text-sm sm:text-base font-bold text-foreground">
-                Financial Overview
-              </h2>
-            </div>
-            <Link
-              href="/finance"
-              className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 flex items-center gap-1"
-            >
-              <span>All Finances</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
-            {/* 1. Total Income Received */}
-            <div className="p-3 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
-              <div className="flex items-center gap-1.5 mb-1.5 text-muted-foreground">
-                <Coins className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <span className="text-[11px] font-medium truncate">
-                  Total Income Received
-                </span>
-              </div>
-              <div>
-                <span className="text-sm sm:text-base font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">
-                  {totalIncomeReceived.toLocaleString()}{" "}
-                  <span className="text-xs font-normal text-muted-foreground">SAR</span>
-                </span>
-              </div>
-            </div>
-
-            {/* 2. Available Cash */}
-            <div className="p-3 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
-              <div className="flex items-center gap-1.5 mb-1.5 text-muted-foreground">
-                <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <span className="text-[11px] font-medium truncate">
-                  Available Cash
-                </span>
-              </div>
-              <div>
-                <span className="text-sm sm:text-base font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">
-                  {availableCash.toLocaleString()}{" "}
-                  <span className="text-xs font-normal text-muted-foreground">SAR</span>
-                </span>
-              </div>
-            </div>
-
-            {/* 3. Assets & Investments */}
-            <div className="p-3 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
-              <div className="flex items-center gap-1.5 mb-1.5 text-muted-foreground">
-                <TrendingUp className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
-                <span className="text-[11px] font-medium truncate">
-                  Assets & Investments
-                </span>
-              </div>
-              <div>
-                <span className="text-sm sm:text-base font-extrabold text-amber-700 dark:text-amber-400 font-mono">
-                  {assetsAndInvestments.toLocaleString()}{" "}
-                  <span className="text-xs font-normal text-muted-foreground">SAR</span>
-                </span>
-              </div>
-            </div>
-
-            {/* 4. Total Net Worth */}
-            <div className="p-3 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
-              <div className="flex items-center gap-1.5 mb-1.5 text-muted-foreground">
-                <Gem className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
-                <span className="text-[11px] font-medium truncate">
-                  Total Net Worth
-                </span>
-              </div>
-              <div>
-                <span className="text-sm sm:text-base font-extrabold text-sky-700 dark:text-sky-400 font-mono">
-                  {totalNetWorth.toLocaleString()}{" "}
-                  <span className="text-xs font-normal text-muted-foreground">SAR</span>
-                </span>
-              </div>
             </div>
           </div>
 
-          {/* Bottom Action Row */}
-          <div className="mt-3.5 pt-3.5 border-t border-border flex items-center justify-start sm:justify-center gap-2.5 flex-wrap">
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="h-9 px-4 rounded-xl border-border bg-background hover:bg-secondary text-foreground text-xs font-semibold gap-1.5 shadow-2xs"
-            >
-              <Link href="/information">
-                <Plus className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Add Information</span>
+          {/* Separator Line */}
+          <div className="my-3.5 sm:my-5 border-t border-border" />
+
+          {/* Financial Overview */}
+          <div>
+            <div className="flex items-center justify-between mb-2.5 sm:mb-3 px-0.5">
+              <div className="flex items-center gap-1.5">
+                <BarChart3 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <h2 className="text-sm sm:text-base font-bold text-foreground">
+                  Financial Overview
+                </h2>
+              </div>
+              <Link
+                href="/finance"
+                className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 flex items-center gap-1"
+              >
+                <span>All Finances</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
-            </Button>
+            </div>
 
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="h-9 px-4 rounded-xl border-border bg-background hover:bg-secondary text-foreground text-xs font-semibold gap-1.5 shadow-2xs"
-            >
-              <Link href="/finance">
-                <Coins className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Add Income</span>
-              </Link>
-            </Button>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+              {/* 1. Total Income Received */}
+              <div className="p-2.5 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
+                <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
+                  <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span className="text-[10px] sm:text-[11px] font-medium truncate">
+                    Total Income
+                  </span>
+                </div>
+                <div className="truncate">
+                  <span className="text-xs sm:text-base font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">
+                    {totalIncomeReceived.toLocaleString()}{" "}
+                    <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">SAR</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* 2. Available Cash */}
+              <div className="p-2.5 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
+                <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
+                  <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span className="text-[10px] sm:text-[11px] font-medium truncate">
+                    Available Cash
+                  </span>
+                </div>
+                <div className="truncate">
+                  <span className="text-xs sm:text-base font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">
+                    {availableCash.toLocaleString()}{" "}
+                    <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">SAR</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* 3. Assets & Investments */}
+              <div className="p-2.5 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
+                <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
+                  <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                  <span className="text-[10px] sm:text-[11px] font-medium truncate">
+                    Investments
+                  </span>
+                </div>
+                <div className="truncate">
+                  <span className="text-xs sm:text-base font-extrabold text-amber-700 dark:text-amber-400 font-mono">
+                    {assetsAndInvestments.toLocaleString()}{" "}
+                    <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">SAR</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* 4. Total Net Worth */}
+              <div className="p-2.5 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
+                <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
+                  <Gem className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-600 dark:text-sky-400 shrink-0" />
+                  <span className="text-[10px] sm:text-[11px] font-medium truncate">
+                    Net Worth
+                  </span>
+                </div>
+                <div className="truncate">
+                  <span className="text-xs sm:text-base font-extrabold text-sky-700 dark:text-sky-400 font-mono">
+                    {totalNetWorth.toLocaleString()}{" "}
+                    <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">SAR</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Action Row */}
+            <div className="mt-3 sm:mt-3.5 pt-3 sm:pt-3.5 border-t border-border flex items-center justify-start sm:justify-center gap-2 sm:gap-2.5 flex-wrap">
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="flex-1 sm:flex-initial h-8 sm:h-9 px-3 sm:px-4 rounded-xl border-border bg-background hover:bg-secondary text-foreground text-xs font-semibold gap-1.5 shadow-2xs"
+              >
+                <Link href="/information">
+                  <Plus className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Add Information</span>
+                </Link>
+              </Button>
+
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="flex-1 sm:flex-initial h-8 sm:h-9 px-3 sm:px-4 rounded-xl border-border bg-background hover:bg-secondary text-foreground text-xs font-semibold gap-1.5 shadow-2xs"
+              >
+                <Link href="/finance">
+                  <Coins className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Add Income</span>
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
@@ -1576,7 +1524,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                     <p className="text-foreground font-medium truncate">
                       {act.details}
                     </p>
-                    <span className="text-[11px] text-muted-foreground truncate block">
+                    <span className="text-[11px] text-muted-foreground truncate block" suppressHydrationWarning>
                       By {act.actorEmail} •{" "}
                       {new Date(act.createdAt).toLocaleTimeString([], {
                         hour: "2-digit",
@@ -1615,11 +1563,10 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               <button
                 key={mc.key}
                 onClick={() => setSelectedMainCat(mc.key)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${
-                  selectedMainCat === mc.key
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${selectedMainCat === mc.key
                     ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
                     : "bg-secondary text-muted-foreground border-border hover:bg-accent"
-                }`}
+                  }`}
               >
                 {mc.title}
               </button>
@@ -1641,11 +1588,10 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               (subcategories[selectedMainCat] || []).map((cat, idx) => (
                 <div
                   key={cat._id}
-                  className={`flex items-center gap-2 p-2.5 rounded-2xl border transition-all ${
-                    cat.isArchived
+                  className={`flex items-center gap-2 p-2.5 rounded-2xl border transition-all ${cat.isArchived
                       ? "bg-secondary/50 border-border/60 opacity-60"
                       : "bg-card border-border hover:border-emerald-500/30"
-                  }`}
+                    }`}
                 >
                   {/* Reorder Controls */}
                   <div className="flex flex-col gap-0.5">

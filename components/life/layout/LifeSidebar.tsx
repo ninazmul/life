@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -20,6 +21,8 @@ import {
   BookOpen,
   Coins,
   NotebookPen,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import { canAccessModule, UserModuleAccess } from "@/lib/life/module-access";
 
@@ -32,6 +35,41 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
   const pathname = usePathname();
   const { isOwner, isAdmin, permissions } = userAccess;
   const isSuperUser = isOwner || isAdmin;
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("life-sidebar-collapsed");
+      if (saved !== null) {
+        setIsCollapsed(saved === "true");
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const toggleCollapse = () => {
+    setIsCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("life-sidebar-collapsed", String(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "b") {
+        e.preventDefault();
+        toggleCollapse();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const sections = [
     {
@@ -177,47 +215,76 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
 
   return (
     <aside
-      className="hidden md:flex flex-col w-64 border-r border-sidebar-border bg-sidebar-background shrink-0 h-screen sticky top-0 overflow-y-auto"
+      className={`hidden md:flex flex-col border-r border-sidebar-border bg-sidebar-background shrink-0 h-screen sticky top-0 overflow-y-auto transition-[width] duration-300 ease-in-out ${
+        isCollapsed ? "w-16" : "w-64"
+      }`}
       aria-label="Main navigation"
     >
       {/* Brand Header */}
-      <div className="p-4 border-b border-sidebar-border flex items-center gap-3">
-        <div className="relative w-10 h-10 shrink-0">
-          <Image
-            src="/assets/images/logo.png"
-            alt="Life Official Logo"
-            fill
-            className="object-contain"
-            priority
-            sizes="40px"
-          />
-        </div>
-        <div className="flex flex-col min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span className="font-extrabold text-base tracking-tight text-sidebar-foreground/95">
-              Life
-            </span>
-            <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
-              PWA
-            </span>
+      <div
+        className={`p-3.5 border-b border-sidebar-border flex items-center transition-all ${
+          isCollapsed ? "flex-col gap-2.5 justify-center px-2" : "justify-between"
+        }`}
+      >
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="relative w-8 h-8 shrink-0">
+            <Image
+              src="/assets/images/logo.png"
+              alt="Life Official Logo"
+              fill
+              className="object-contain"
+              priority
+              sizes="32px"
+            />
           </div>
-          <span className="text-[11px] text-sidebar-foreground/70 font-medium truncate">
-            Legacy & Continuity
-          </span>
+          {!isCollapsed && (
+            <div className="flex flex-col min-w-0 animate-in fade-in duration-150">
+              <div className="flex items-center gap-1.5">
+                <span className="font-extrabold text-base tracking-tight text-sidebar-foreground/95">
+                  Life
+                </span>
+                <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
+                  PWA
+                </span>
+              </div>
+              <span className="text-[11px] text-sidebar-foreground/70 font-medium truncate">
+                Legacy & Continuity
+              </span>
+            </div>
+          )}
         </div>
+
+        {/* Collapse / Expand Toggle Button */}
+        <button
+          type="button"
+          onClick={toggleCollapse}
+          className="p-1.5 rounded-xl text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/80 transition-colors shrink-0 cursor-pointer"
+          title={isCollapsed ? "Expand sidebar (Ctrl+B)" : "Collapse sidebar (Ctrl+B)"}
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {isCollapsed ? (
+            <PanelLeftOpen className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          ) : (
+            <PanelLeftClose className="w-4 h-4" />
+          )}
+        </button>
       </div>
 
       {/* Navigation Sections */}
-      <div className="flex-1 py-4 px-3 space-y-6">
-        {filteredSections.map((section) => (
+      <div className={`flex-1 py-4 space-y-5 overflow-y-auto overflow-x-hidden ${isCollapsed ? "px-2" : "px-3"}`}>
+        {filteredSections.map((section, sIdx) => (
           <nav
             key={section.title}
             className="space-y-1"
             aria-label={section.title}
           >
-            <h3 className="text-[10px] font-bold uppercase tracking-[0.16em] text-sidebar-foreground/50 px-3 mb-1.5">
-              {section.title}
-            </h3>
+            {isCollapsed ? (
+              sIdx > 0 && <div className="my-2 border-t border-sidebar-border/60 mx-1" />
+            ) : (
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.16em] text-sidebar-foreground/50 px-3 mb-1.5">
+                {section.title}
+              </h3>
+            )}
             <div className="space-y-0.5">
               {section.items.map((item) => {
                 const Icon = item.icon;
@@ -225,7 +292,12 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
                   <Link
                     key={item.url}
                     href={item.url}
-                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all group relative ${
+                    title={isCollapsed ? item.title : undefined}
+                    className={`flex items-center rounded-xl text-xs font-medium transition-all group relative ${
+                      isCollapsed
+                        ? "justify-center p-2.5"
+                        : "justify-between px-3 py-2"
+                    } ${
                       item.isActive
                         ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold border border-emerald-500/20 shadow-xs"
                         : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
@@ -237,7 +309,7 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
                     }
                     aria-current={item.isActive ? "page" : undefined}
                   >
-                    <div className="flex items-center gap-2.5 min-w-0">
+                    <div className={`flex items-center min-w-0 ${isCollapsed ? "justify-center" : "gap-2.5"}`}>
                       <Icon
                         className={`w-4 h-4 transition-transform group-hover:scale-110 shrink-0 ${
                           item.isActive
@@ -247,16 +319,23 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
                         strokeWidth={2}
                         aria-hidden="true"
                       />
-                      <span className="truncate">{item.title}</span>
+                      {!isCollapsed && <span className="truncate">{item.title}</span>}
                     </div>
 
-                    {(item as any).badge !== undefined && (
+                    {!isCollapsed && (item as any).badge !== undefined && (
                       <span
                         className="flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-amber-500 text-slate-950 text-[10px] font-extrabold shrink-0"
                         aria-label={`${(item as any).badge} active items`}
                       >
                         {(item as any).badge}
                       </span>
+                    )}
+
+                    {isCollapsed && (item as any).badge !== undefined && (
+                      <span
+                        className="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-sidebar-background shrink-0"
+                        aria-label={`${(item as any).badge} active items`}
+                      />
                     )}
 
                     {item.isActive && (
@@ -273,21 +352,31 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
         ))}
       </div>
 
-
-
       {/* Security Footer Info */}
-      <div className="p-3 m-3 rounded-xl bg-sidebar-accent/70 border border-sidebar-border text-[11px] text-sidebar-foreground/60 flex items-center justify-between gap-2">
-        <span className="flex items-center gap-1.5 font-medium">
+      {isCollapsed ? (
+        <div
+          className="p-2.5 m-2 rounded-xl bg-sidebar-accent/70 border border-sidebar-border flex items-center justify-center"
+          title="Vault AES-256 · v1.0 PWA"
+        >
           <span
-            className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"
+            className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"
             aria-hidden="true"
           />
-          Vault AES-256
-        </span>
-        <span className="text-[10px] font-mono text-sidebar-foreground/50 shrink-0">
-          v1.0 PWA
-        </span>
-      </div>
+        </div>
+      ) : (
+        <div className="p-3 m-3 rounded-xl bg-sidebar-accent/70 border border-sidebar-border text-[11px] text-sidebar-foreground/60 flex items-center justify-between gap-2">
+          <span className="flex items-center gap-1.5 font-medium">
+            <span
+              className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"
+              aria-hidden="true"
+            />
+            Vault AES-256
+          </span>
+          <span className="text-[10px] font-mono text-sidebar-foreground/50 shrink-0">
+            v1.0 PWA
+          </span>
+        </div>
+      )}
     </aside>
   );
 }
