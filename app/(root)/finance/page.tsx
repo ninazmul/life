@@ -19,15 +19,25 @@ export const metadata = {
 export default async function FinancePage() {
   const authContext = await requireModuleAccess("/finance");
 
+  const isOwner = Boolean(authContext?.isOwner);
+  const isAdmin = Boolean(authContext?.isAdmin);
+  const isSuperAdmin = authContext?.role === "super_admin" || isOwner;
+  const canAccessLiveAccounting = Boolean(
+    isOwner ||
+    isAdmin ||
+    isSuperAdmin ||
+    authContext?.role === "admin" ||
+    authContext?.role === "administrator"
+  );
+
   const [records, people, businesses, gesnReportsRes] = await Promise.all([
     getFinancialSupports(),
     getPeople({ status: "active" }),
     getBusinesses(),
-    getGesnReports({ period: "thisMonth" }),
+    canAccessLiveAccounting
+      ? getGesnReports({ period: "thisMonth" })
+      : Promise.resolve(null),
   ]);
-
-  const isOwner = Boolean(authContext?.isOwner);
-  const isAdmin = Boolean(authContext?.isAdmin);
 
   const [ownerDashboard, userSummary] = await Promise.all([
     isOwner ? getOwnerFinancialDashboard() : null,
@@ -43,6 +53,7 @@ export default async function FinancePage() {
       userSummary={userSummary}
       isOwner={isOwner}
       isAdmin={isAdmin}
+      canAccessLiveAccounting={canAccessLiveAccounting}
       initialGesnReports={gesnReportsRes?.data || null}
       initialGesnError={gesnReportsRes?.error || null}
     />

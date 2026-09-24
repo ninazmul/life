@@ -21,33 +21,92 @@ export async function getMoneyOverview() {
   if (!auth) return null;
 
   if (!auth.isOwner && !auth.isAdmin && !auth.permissions.canViewFinancial) {
-    return null;
+    if (!auth.personId) return null;
   }
 
-  const [aggregations, recentTransactions, activeCareCount] = await Promise.all([
-    LifeMoneyRecord.aggregate([
-      {
-        $group: {
-          _id: "$type",
-          totalAmount: { $sum: "$amount" },
-          paidAmount: { $sum: "$paidAmount" },
-          remainingAmount: { $sum: "$remainingAmount" },
-          count: { $sum: 1 },
-        },
-      },
-    ]),
-    LifeTransaction.find()
-      .populate("personId", "name relation")
-      .populate("businessId", "name")
-      .sort({ date: -1, createdAt: -1 })
-      .limit(8)
-      .lean(),
-    LifeMoneyRecord.countDocuments({
-      status: { $in: ["active", "partially_returned", "overdue"] },
-    }),
-  ]);
+  const isPrivileged = auth.isOwner || auth.isAdmin;
 
-  const stats: Record<string, { total: number; paid: number; remaining: number; count: number }> = {
+  const aggMatch: Record<string, any> = {};
+  const txMatch: Record<string, any> = {};
+  const countMatch: Record<string, any> = {
+    status: { $in: ["active", "partially_returned", "overdue"] },
+  };
+
+  if (!isPrivileged) {
+    const allowedPersonIds: string[] = [];
+    if (auth.personId) allowedPersonIds.push(String(auth.personId));
+    if (auth.permissions?.allowedPersonIds?.length) {
+      allowedPersonIds.push(...auth.permissions.allowedPersonIds.map(String));
+    }
+
+    const businessOr: any[] = [];
+    if (auth.personId) {
+      businessOr.push({ "partners.personId": auth.personId });
+      businessOr.push({ "engineerContact.personId": auth.personId });
+    }
+    if (auth.permissions?.allowedBusinessIds?.length) {
+      businessOr.push({ _id: { $in: auth.permissions.allowedBusinessIds } });
+    }
+
+    let allowedBusinessIds: string[] = [];
+    if (businessOr.length > 0) {
+      try {
+        const LifeBusiness = (
+          await import("@/lib/database/models/lifeBusiness.model")
+        ).default;
+        const connected = await LifeBusiness.find({ $or: businessOr })
+          .select("_id")
+          .lean();
+        allowedBusinessIds = connected.map((b: any) => String(b._id));
+      } catch (e) {
+        console.error(
+          "Error querying connected businesses for money overview:",
+          e,
+        );
+      }
+    }
+
+    const or: any[] = [];
+    if (allowedPersonIds.length > 0)
+      or.push({ personId: { $in: allowedPersonIds } });
+    if (allowedBusinessIds.length > 0)
+      or.push({ businessId: { $in: allowedBusinessIds } });
+    if (or.length === 0) return null;
+
+    aggMatch.$or = or;
+    txMatch.$or = or;
+    countMatch.$or = or;
+  }
+
+  const aggPipeline: any[] = [];
+  if (Object.keys(aggMatch).length > 0) aggPipeline.push({ $match: aggMatch });
+  aggPipeline.push({
+    $group: {
+      _id: "$type",
+      totalAmount: { $sum: "$amount" },
+      paidAmount: { $sum: "$paidAmount" },
+      remainingAmount: { $sum: "$remainingAmount" },
+      count: { $sum: 1 },
+    },
+  });
+
+  const [aggregations, recentTransactions, activeCareCount] = await Promise.all(
+    [
+      LifeMoneyRecord.aggregate(aggPipeline),
+      LifeTransaction.find(Object.keys(txMatch).length > 0 ? txMatch : {})
+        .populate("personId", "name relation")
+        .populate("businessId", "name")
+        .sort({ date: -1, createdAt: -1 })
+        .limit(8)
+        .lean(),
+      LifeMoneyRecord.countDocuments(countMatch),
+    ],
+  );
+
+  const stats: Record<
+    string,
+    { total: number; paid: number; remaining: number; count: number }
+  > = {
     given: { total: 0, paid: 0, remaining: 0, count: 0 },
     taken: { total: 0, paid: 0, remaining: 0, count: 0 },
     invest_made: { total: 0, paid: 0, remaining: 0, count: 0 },
@@ -94,14 +153,58 @@ export async function getMoneyRecords(params?: {
   if (params?.personId) query.personId = params.personId;
   if (params?.businessId) query.businessId = params.businessId;
 
-  // Non-owner individual access check
-  if (!auth.isOwner && !auth.isAdmin) {
-    if (!auth.permissions.canViewFinancial) {
-      if (auth.personId) {
-        query.personId = auth.personId;
-      } else {
-        return [];
+  const isPrivileged = auth.isOwner || auth.isAdmin;
+
+  if (!isPrivileged) {
+    const allowedPersonIds: string[] = [];
+    if (auth.personId) allowedPersonIds.push(String(auth.personId));
+    if (auth.permissions?.allowedPersonIds?.length) {
+      allowedPersonIds.push(...auth.permissions.allowedPersonIds.map(String));
+    }
+
+    const businessOr: any[] = [];
+    if (auth.personId) {
+      businessOr.push({ "partners.personId": auth.personId });
+      businessOr.push({ "engineerContact.personId": auth.personId });
+    }
+    if (auth.permissions?.allowedBusinessIds?.length) {
+      businessOr.push({ _id: { $in: auth.permissions.allowedBusinessIds } });
+    }
+
+    let allowedBusinessIds: string[] = [];
+    if (businessOr.length > 0) {
+      try {
+        const LifeBusiness = (
+          await import("@/lib/database/models/lifeBusiness.model")
+        ).default;
+        const connected = await LifeBusiness.find({ $or: businessOr })
+          .select("_id")
+          .lean();
+        allowedBusinessIds = connected.map((b: any) => String(b._id));
+      } catch (e) {
+        console.error(
+          "Error querying connected businesses for money records:",
+          e,
+        );
       }
+    }
+
+    const or: any[] = [];
+    if (allowedPersonIds.length > 0)
+      or.push({ personId: { $in: allowedPersonIds } });
+    if (allowedBusinessIds.length > 0)
+      or.push({ businessId: { $in: allowedBusinessIds } });
+
+    if (or.length === 0) return [];
+
+    if (Object.keys(query).length > 0) {
+      (query as any).$and = [{ ...query }, { $or: or }];
+      // Remove the top-level keys since they're in $and now
+      for (const k of Object.keys(query)) {
+        if (k !== "$and") delete (query as any)[k];
+      }
+    } else {
+      query.$or = or;
     }
   }
 
@@ -113,7 +216,9 @@ export async function getMoneyRecords(params?: {
 
   // Populate settlements for each record
   const recordIds = records.map((r) => r._id);
-  const settlements = await LifeSettlement.find({ moneyRecordId: { $in: recordIds } })
+  const settlements = await LifeSettlement.find({
+    moneyRecordId: { $in: recordIds },
+  })
     .sort({ date: -1 })
     .lean();
 
@@ -151,14 +256,19 @@ export async function createMoneyRecord(data: {
   await connectToDatabase();
   const auth = await getLifeAuthContext();
   if (!auth || (!auth.isOwner && !auth.isAdmin)) {
-    throw new Error("Forbidden: Only Owners/Admins can record financial loans or investments.");
+    throw new Error(
+      "Forbidden: Only Owners/Admins can record financial loans or investments.",
+    );
   }
 
   let finalPersonName = data.personName || "";
-  const cleanPersonId = data.personId && data.personId !== "none" ? data.personId : undefined;
+  const cleanPersonId =
+    data.personId && data.personId !== "none" ? data.personId : undefined;
 
   if (cleanPersonId) {
-    const p = (await LifePerson.findById(cleanPersonId).lean()) as (ILifePerson & { _id: unknown }) | null;
+    const p = (await LifePerson.findById(cleanPersonId).lean()) as
+      | (ILifePerson & { _id: unknown })
+      | null;
     if (p) finalPersonName = p.name;
   }
 
@@ -170,12 +280,17 @@ export async function createMoneyRecord(data: {
     personId: cleanPersonId,
     personName: finalPersonName,
     organization: data.organization || "",
-    businessId: data.businessId && data.businessId !== "none" ? data.businessId : undefined,
+    businessId:
+      data.businessId && data.businessId !== "none"
+        ? data.businessId
+        : undefined,
     amount,
     currency: data.currency || "BDT",
     date: recordDate,
     purpose: data.purpose || "",
-    expectedReturnDate: data.expectedReturnDate ? new Date(data.expectedReturnDate) : undefined,
+    expectedReturnDate: data.expectedReturnDate
+      ? new Date(data.expectedReturnDate)
+      : undefined,
     interestRate: data.interestRate || "",
     profitShare: data.profitShare || "",
     ownershipPercentage: Number(data.ownershipPercentage) || 0,
@@ -197,8 +312,12 @@ export async function createMoneyRecord(data: {
     date: recordDate,
     personId: cleanPersonId,
     personName: finalPersonName,
-    businessId: data.businessId && data.businessId !== "none" ? data.businessId : undefined,
-    category: data.type === "given" || data.type === "taken" ? "Loan" : "Investment",
+    businessId:
+      data.businessId && data.businessId !== "none"
+        ? data.businessId
+        : undefined,
+    category:
+      data.type === "given" || data.type === "taken" ? "Loan" : "Investment",
     paymentMethod: "Bank Transfer",
     notes: data.purpose || `Initial ${data.type.replace("_", " ")} record`,
     relatedRecordId: String(record._id),
@@ -276,8 +395,8 @@ export async function recordSettlement(data: {
     moneyRecord.type === "given"
       ? "loan_repayment"
       : moneyRecord.type === "taken"
-      ? "loan_repayment"
-      : "invest_return";
+        ? "loan_repayment"
+        : "invest_return";
 
   await LifeTransaction.create({
     amount: settlementAmount,
@@ -289,7 +408,9 @@ export async function recordSettlement(data: {
     category: "Settlement",
     paymentMethod: data.paymentMethod || "Cash",
     reference: data.reference || "",
-    notes: data.notes || `Settlement repayment of ৳${settlementAmount.toLocaleString()}`,
+    notes:
+      data.notes ||
+      `Settlement repayment of ৳${settlementAmount.toLocaleString()}`,
     relatedRecordId: String(moneyRecord._id),
     relatedRecordType: "LifeSettlement",
   });
@@ -320,6 +441,59 @@ export async function getTransactions(params?: {
   const query: Record<string, unknown> = {};
   if (params?.type && params.type !== "all") {
     query.type = params.type;
+  }
+
+  const isPrivileged = auth.isOwner || auth.isAdmin;
+
+  if (!isPrivileged) {
+    const allowedPersonIds: string[] = [];
+    if (auth.personId) allowedPersonIds.push(String(auth.personId));
+    if (auth.permissions?.allowedPersonIds?.length) {
+      allowedPersonIds.push(...auth.permissions.allowedPersonIds.map(String));
+    }
+
+    const businessOr: any[] = [];
+    if (auth.personId) {
+      businessOr.push({ "partners.personId": auth.personId });
+      businessOr.push({ "engineerContact.personId": auth.personId });
+    }
+    if (auth.permissions?.allowedBusinessIds?.length) {
+      businessOr.push({ _id: { $in: auth.permissions.allowedBusinessIds } });
+    }
+
+    let allowedBusinessIds: string[] = [];
+    if (businessOr.length > 0) {
+      try {
+        const LifeBusiness = (
+          await import("@/lib/database/models/lifeBusiness.model")
+        ).default;
+        const connected = await LifeBusiness.find({ $or: businessOr })
+          .select("_id")
+          .lean();
+        allowedBusinessIds = connected.map((b: any) => String(b._id));
+      } catch (e) {
+        console.error(
+          "Error querying connected businesses for transactions:",
+          e,
+        );
+      }
+    }
+
+    const or: any[] = [];
+    if (allowedPersonIds.length > 0)
+      or.push({ personId: { $in: allowedPersonIds } });
+    if (allowedBusinessIds.length > 0)
+      or.push({ businessId: { $in: allowedBusinessIds } });
+    if (or.length === 0) return [];
+
+    if (Object.keys(query).length > 0) {
+      (query as any).$and = [{ ...query }, { $or: or }];
+      for (const k of Object.keys(query)) {
+        if (k !== "$and") delete (query as any)[k];
+      }
+    } else {
+      query.$or = or;
+    }
   }
 
   const transactions = await LifeTransaction.find(query)

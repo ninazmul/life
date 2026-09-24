@@ -22,6 +22,145 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
   await connectToDatabase();
   const _auth = await getLifeAuthContext();
 
+  const isPrivileged = _auth?.isOwner || _auth?.isAdmin;
+
+  const allowedPersonIds: string[] = [];
+  if (_auth?.personId) allowedPersonIds.push(String(_auth.personId));
+  if (_auth?.permissions?.allowedPersonIds?.length) {
+    allowedPersonIds.push(..._auth.permissions.allowedPersonIds.map(String));
+  }
+
+  const businessOr: any[] = [];
+  if (_auth?.personId) {
+    businessOr.push({ "partners.personId": _auth.personId });
+    businessOr.push({ "engineerContact.personId": _auth.personId });
+  }
+  if (_auth?.permissions?.allowedBusinessIds?.length) {
+    businessOr.push({ _id: { $in: _auth.permissions.allowedBusinessIds } });
+  }
+
+  let allowedBusinessIds: string[] = [];
+  if (businessOr.length > 0) {
+    try {
+      const connected = await LifeBusiness.find({ $or: businessOr })
+        .select("_id")
+        .lean();
+      allowedBusinessIds = connected.map((b: any) => String(b._id));
+    } catch (e) {
+      console.error("Error querying connected businesses for dashboard:", e);
+    }
+  }
+
+  const peopleQuery: Record<string, any> = { status: "active" };
+  const businessQuery: Record<string, any> = { status: "active" };
+  const infoQuery: Record<string, any> = { visibility: { $ne: "hidden" } };
+  const contactsQuery: Record<string, any> = { status: { $ne: "archived" } };
+  const documentsQuery: Record<string, any> = { status: { $ne: "archived" } };
+  const legacyQuery: Record<string, any> = { status: { $ne: "archived" } };
+  const instructionsQuery: Record<string, any> = {
+    status: { $ne: "archived" },
+  };
+  const personalInfoQuery: Record<string, any> = { category: "personal" };
+  const beneficiariesQuery: Record<string, any> = {
+    $or: [{ role: "beneficiary" }, { userRole: "beneficiary" }],
+    status: { $ne: "archived" },
+  };
+  const fsQuery: Record<string, any> = {};
+  const assetQuery: Record<string, any> = { status: "active" };
+  const moneyAggMatch: Record<string, any> = {};
+  const overdueRecordsQuery: Record<string, any> = {
+    expectedReturnDate: { $lt: new Date() },
+    remainingAmount: { $gt: 0 },
+    status: { $in: ["active", "partially_returned", "overdue"] },
+  };
+
+  if (!isPrivileged) {
+    if (allowedPersonIds.length > 0) {
+      peopleQuery._id = { $in: allowedPersonIds };
+      infoQuery.$or = [{ relatedPersonId: { $in: allowedPersonIds } }];
+      documentsQuery.$or = [
+        { relatedPersonId: { $in: allowedPersonIds } },
+        { assignedToPersonIds: { $in: allowedPersonIds } },
+      ];
+      legacyQuery.$or = [{ recipientPersonId: { $in: allowedPersonIds } }];
+      instructionsQuery.$or = [
+        { assignedPersonId: { $in: allowedPersonIds } },
+        { backupPersonId: { $in: allowedPersonIds } },
+      ];
+      beneficiariesQuery._id = { $in: allowedPersonIds };
+      personalInfoQuery.$or = [{ relatedPersonId: { $in: allowedPersonIds } }];
+      assetQuery.$or = [{ relatedPersonId: { $in: allowedPersonIds } }];
+      moneyAggMatch.$or = [{ personId: { $in: allowedPersonIds } }];
+      overdueRecordsQuery.$or = [{ personId: { $in: allowedPersonIds } }];
+      contactsQuery.$or = [{ relatedPersonId: { $in: allowedPersonIds } }];
+
+      fsQuery.$or = [{ recipientPersonId: { $in: allowedPersonIds } }];
+      if (_auth?.userId) fsQuery.$or.push({ createdBy: _auth.userId });
+      if (_auth?.name) fsQuery.$or.push({ createdBy: _auth.name });
+    } else {
+      fsQuery.$or = [];
+    }
+    if (allowedBusinessIds.length > 0) {
+      businessQuery._id = { $in: allowedBusinessIds };
+      if (allowedPersonIds.length === 0) {
+        contactsQuery.$or = [
+          { relatedBusinessId: { $in: allowedBusinessIds } },
+        ];
+      } else {
+        (contactsQuery.$or as any[]).push({
+          relatedBusinessId: { $in: allowedBusinessIds },
+        });
+      }
+      assetQuery.$or = assetQuery.$or
+        ? [
+            ...(assetQuery.$or as any[]),
+            { relatedBusinessId: { $in: allowedBusinessIds } },
+          ]
+        : [{ relatedBusinessId: { $in: allowedBusinessIds } }];
+      moneyAggMatch.$or = moneyAggMatch.$or
+        ? [
+            ...(moneyAggMatch.$or as any[]),
+            { businessId: { $in: allowedBusinessIds } },
+          ]
+        : [{ businessId: { $in: allowedBusinessIds } }];
+      overdueRecordsQuery.$or = overdueRecordsQuery.$or
+        ? [
+            ...(overdueRecordsQuery.$or as any[]),
+            { businessId: { $in: allowedBusinessIds } },
+          ]
+        : [{ businessId: { $in: allowedBusinessIds } }];
+
+      fsQuery.$or = fsQuery.$or
+        ? [
+            ...(fsQuery.$or as any[]),
+            { relatedBusinessId: { $in: allowedBusinessIds } },
+          ]
+        : [{ relatedBusinessId: { $in: allowedBusinessIds } }];
+    }
+
+    if (allowedPersonIds.length === 0 && allowedBusinessIds.length === 0) {
+      peopleQuery._id = { $in: [] };
+      businessQuery._id = { $in: [] };
+    }
+  }
+
+  const moneyAggPipeline: any[] = [];
+  if (Object.keys(moneyAggMatch).length > 0) {
+    moneyAggPipeline.push({ $match: moneyAggMatch });
+  }
+  moneyAggPipeline.push({
+    $group: {
+      _id: "$type",
+      totalAmount: { $sum: "$amount" },
+      remainingAmount: { $sum: "$remainingAmount" },
+    },
+  });
+
+  const assetAggPipeline: any[] = [
+    { $match: assetQuery },
+    { $group: { _id: null, total: { $sum: "$value" } } },
+  ];
+
   const [
     peopleCount,
     infoCount,
@@ -31,22 +170,11 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     recentActivities,
     emergencyState,
   ] = await Promise.all([
-    LifePerson.countDocuments({ status: "active" }),
-    LifeInformation.countDocuments({ visibility: { $ne: "hidden" } }),
-    LifeBusiness.countDocuments({ status: "active" }),
-    LifeAsset.aggregate([
-      { $match: { status: "active" } },
-      { $group: { _id: null, total: { $sum: "$value" } } },
-    ]),
-    LifeMoneyRecord.aggregate([
-      {
-        $group: {
-          _id: "$type",
-          totalAmount: { $sum: "$amount" },
-          remainingAmount: { $sum: "$remainingAmount" },
-        },
-      },
-    ]),
+    LifePerson.countDocuments(peopleQuery),
+    LifeInformation.countDocuments(infoQuery),
+    LifeBusiness.countDocuments(businessQuery),
+    LifeAsset.aggregate(assetAggPipeline),
+    LifeMoneyRecord.aggregate(moneyAggPipeline),
     LifeActivityLog.find().sort({ createdAt: -1 }).limit(6).lean(),
     LifeEmergencyAccess.findOne().lean() as Promise<ILifeEmergencyAccess | null>,
   ]);
@@ -69,45 +197,50 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
   ] = await Promise.all([
     connectToDatabase().then(() =>
       import("@/lib/database/models/lifeGuardian.model").then((m) =>
-        m.default.countDocuments({ isActive: true })
-      )
+        m.default.countDocuments({ isActive: true }),
+      ),
     ),
     connectToDatabase().then(() =>
       import("@/lib/database/models/lifeEmergencyRequest.model").then((m) =>
-        m.default.countDocuments({ status: "pending_approval" })
-      )
+        m.default.countDocuments({ status: "pending_approval" }),
+      ),
     ),
     connectToDatabase().then(() =>
       import("@/lib/database/models/lifeResponsibility.model").then((m) =>
-        m.default.countDocuments({ completionStatus: { $in: ["not_started", "in_progress", "waiting"] } })
-      )
+        m.default.countDocuments({
+          completionStatus: { $in: ["not_started", "in_progress", "waiting"] },
+        }),
+      ),
     ),
     connectToDatabase().then(() =>
       import("@/lib/database/models/lifeFinancialSupport.model").then((m) =>
-        m.default.find().lean()
-      )
+        Object.keys(fsQuery).length > 0 && (fsQuery.$or as any[])?.length === 0
+          ? Promise.resolve([])
+          : m.default.find(fsQuery).lean(),
+      ),
     ),
     LifeActivityLog.findOne({ action: { $regex: /backup/i } })
       .sort({ createdAt: -1 })
       .lean(),
-    LifeSettings.findOne().select("vaultPinHash").lean() as Promise<{ vaultPinHash?: string } | null>,
-    LifeContact.countDocuments({ status: { $ne: "archived" } }),
-    LifeDocument.countDocuments({ status: { $ne: "archived" } }),
-    LifeLegacyMessage.countDocuments({ status: { $ne: "archived" } }),
-    LifeInstruction.countDocuments({ status: { $ne: "archived" } }),
-    LifePerson.countDocuments({
-      $or: [{ role: "beneficiary" }, { userRole: "beneficiary" }],
-      status: { $ne: "archived" },
-    }),
-    LifeInformation.countDocuments({
-      category: "personal",
-    }),
-    getGesnReports({ period: "thisMonth" }).catch(() => null),
+    LifeSettings.findOne().select("vaultPinHash").lean() as Promise<{
+      vaultPinHash?: string;
+    } | null>,
+    LifeContact.countDocuments(contactsQuery),
+    LifeDocument.countDocuments(documentsQuery),
+    LifeLegacyMessage.countDocuments(legacyQuery),
+    LifeInstruction.countDocuments(instructionsQuery),
+    LifePerson.countDocuments(beneficiariesQuery),
+    LifeInformation.countDocuments(personalInfoQuery),
+    isPrivileged
+      ? getGesnReports({ period: "thisMonth" }).catch(() => null)
+      : Promise.resolve(null),
   ]);
 
-
   // Multi-currency calculation (§17, §24)
-  const currencyTotals: Record<string, { given: number; repaid: number; remaining: number }> = {};
+  const currencyTotals: Record<
+    string,
+    { given: number; repaid: number; remaining: number }
+  > = {};
   let upcomingPaymentsCount = 0;
   let overduePaymentsCount = 0;
   let supportGivenTotal = 0;
@@ -145,7 +278,8 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
 
   // Combine financial supports with legacy money records
   const moneyGivenTotal = (moneyMap["given"]?.total || 0) + supportGivenTotal;
-  const moneyGivenRemaining = (moneyMap["given"]?.remaining || 0) + supportRemainingTotal;
+  const moneyGivenRemaining =
+    (moneyMap["given"]?.remaining || 0) + supportRemainingTotal;
   const moneyTakenTotal = moneyMap["taken"]?.total || 0;
   const moneyTakenRemaining = moneyMap["taken"]?.remaining || 0;
   const investedTotal = moneyMap["invest_made"]?.total || 0;
@@ -163,7 +297,8 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
           totalIncome: gesnReportRes.data.summary.totalIncome || 0,
           totalExpenses: gesnReportRes.data.summary.totalExpenses || 0,
           netProfit: gesnReportRes.data.summary.netProfit || 0,
-          profitMarginPercent: gesnReportRes.data.summary.profitMarginPercent || 0,
+          profitMarginPercent:
+            gesnReportRes.data.summary.profitMarginPercent || 0,
           incomeCount: gesnReportRes.data.summary.incomeCount || 0,
           expenseCount: gesnReportRes.data.summary.expenseCount || 0,
           topCategories: (gesnReportRes.data.categories || [])
@@ -175,7 +310,9 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
               type: c.category?.type || "Expense",
               total: c.total || 0,
               count: c.count || 0,
-              color: c.category?.color || (c.category?.type === "Income" ? "#10b981" : "#ef4444"),
+              color:
+                c.category?.color ||
+                (c.category?.type === "Income" ? "#10b981" : "#ef4444"),
             })),
         }
       : null;
@@ -196,11 +333,7 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
   }
 
   // Overdue money records
-  const overdueRecords = await LifeMoneyRecord.find({
-    expectedReturnDate: { $lt: now },
-    remainingAmount: { $gt: 0 },
-    status: { $in: ["active", "partially_returned", "overdue"] },
-  })
+  const overdueRecords = await LifeMoneyRecord.find(overdueRecordsQuery)
     .limit(4)
     .lean();
 
@@ -224,12 +357,17 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
   });
 
   // Critical continuity steps not yet completed
-  const businesses = await LifeBusiness.find({ status: "active" })
+  const businesses = await LifeBusiness.find(businessQuery)
     .select("name continuitySteps")
     .lean();
 
   businesses.forEach((b) => {
-    const pendingSteps = ((b.continuitySteps || []) as Array<{ isCompleted?: boolean; title?: string }>).filter((s) => !s.isCompleted);
+    const pendingSteps = (
+      (b.continuitySteps || []) as Array<{
+        isCompleted?: boolean;
+        title?: string;
+      }>
+    ).filter((s) => !s.isCompleted);
     if (pendingSteps.length > 0) {
       urgentItems.push({
         id: `biz-${b._id}`,
@@ -249,7 +387,10 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
   else if (activeGuardiansCount === 1) continuityScore += 12;
 
   // 2. Emergency delegate configured = 25 pts
-  if (emergencyState?.primaryAdminEmail && emergencyState.primaryAdminEmail.trim().length > 0) {
+  if (
+    emergencyState?.primaryAdminEmail &&
+    emergencyState.primaryAdminEmail.trim().length > 0
+  ) {
     continuityScore += 25;
   }
 
@@ -296,20 +437,27 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
   if (settingsDoc?.vaultPinHash) completionScore += 15;
   completionScore = Math.min(100, completionScore);
 
-  const medicalStatus = personalInfoCount > 0 ? "Recorded & Active" : "Pending Records";
+  const medicalStatus =
+    personalInfoCount > 0 ? "Recorded & Active" : "Pending Records";
   const emergencyInfoStatus = emergencyState?.isEmergencyActive
     ? "Emergency Active"
     : activeGuardiansCount > 0
-    ? `${activeGuardiansCount} Guardians Ready`
-    : "Protocols Configured";
+      ? `${activeGuardiansCount} Guardians Ready`
+      : "Protocols Configured";
 
   const ownerProfile = {
     name: ownerPerson?.name || _auth?.name || "Nazmul Islam",
     email: ownerPerson?.email || _auth?.email || "",
     phone: ownerPerson?.phone || "",
-    avatarUrl: ownerPerson?.profilePhoto || ownerPerson?.avatarUrl || _auth?.avatarUrl || "",
+    avatarUrl:
+      ownerPerson?.profilePhoto ||
+      ownerPerson?.avatarUrl ||
+      _auth?.avatarUrl ||
+      "",
     role: ownerPerson?.role || _auth?.role || "super_admin",
-    personId: ownerPerson?._id ? String(ownerPerson._id) : (_auth?.personId || undefined),
+    personId: ownerPerson?._id
+      ? String(ownerPerson._id)
+      : _auth?.personId || undefined,
     profileCompletion: completionScore,
     medicalInfoStatus: medicalStatus,
     documentsAddedCount: documentsCount,
@@ -333,11 +481,17 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     payablesTotal,
     urgentItems: urgentItems.slice(0, 6),
     recentActivities: JSON.parse(JSON.stringify(recentActivities)),
-    ownerSafetyStatus: (emergencyState as any)?.ownerSafetyStatus || (emergencyState?.isEmergencyActive ? "emergency" : "safe"),
-    emergencyModeStatus: emergencyState?.isEmergencyActive ? "Active" : "Normal",
+    ownerSafetyStatus:
+      (emergencyState as any)?.ownerSafetyStatus ||
+      (emergencyState?.isEmergencyActive ? "emergency" : "safe"),
+    emergencyModeStatus: emergencyState?.isEmergencyActive
+      ? "Active"
+      : "Normal",
     recoveryState: (emergencyState?.recoveryState as any) || "NORMAL",
     isVaultLocked: Boolean(emergencyState?.isVaultLocked),
-    activeRecoveryPending: emergencyState?.recoveryState === "EMERGENCY_PENDING" || emergencyState?.vaultRecoveryState === "VAULT_LOCKED_PENDING",
+    activeRecoveryPending:
+      emergencyState?.recoveryState === "EMERGENCY_PENDING" ||
+      emergencyState?.vaultRecoveryState === "VAULT_LOCKED_PENDING",
     trustedGuardiansCount: activeGuardiansCount,
     pendingAccessRequestsCount: pendingRequestsCount,
     pendingResponsibilitiesCount: pendingRespCount,
@@ -365,7 +519,9 @@ export interface GlobalSearchResult {
   url: string;
 }
 
-export async function searchLifeGlobally(query: string): Promise<GlobalSearchResult[]> {
+export async function searchLifeGlobally(
+  query: string,
+): Promise<GlobalSearchResult[]> {
   if (!query || query.trim().length < 2) return [];
 
   await connectToDatabase();
@@ -374,14 +530,51 @@ export async function searchLifeGlobally(query: string): Promise<GlobalSearchRes
 
   const regex = new RegExp(query.trim(), "i");
   const results: GlobalSearchResult[] = [];
+  const isPrivileged = auth.isOwner || auth.isAdmin;
+
+  const allowedPersonIds: string[] = [];
+  if (auth.personId) allowedPersonIds.push(String(auth.personId));
+  if (auth.permissions?.allowedPersonIds?.length) {
+    allowedPersonIds.push(...auth.permissions.allowedPersonIds.map(String));
+  }
+
+  const businessOr: any[] = [];
+  if (auth.personId) {
+    businessOr.push({ "partners.personId": auth.personId });
+    businessOr.push({ "engineerContact.personId": auth.personId });
+  }
+  if (auth.permissions?.allowedBusinessIds?.length) {
+    businessOr.push({ _id: { $in: auth.permissions.allowedBusinessIds } });
+  }
+
+  let allowedBusinessIds: string[] = [];
+  if (businessOr.length > 0) {
+    try {
+      const connected = await LifeBusiness.find({ $or: businessOr })
+        .select("_id")
+        .lean();
+      allowedBusinessIds = connected.map((b: any) => String(b._id));
+    } catch (e) {
+      console.error("Error querying connected businesses for search:", e);
+    }
+  }
 
   // Search People
-  const people = await LifePerson.find({
-    $or: [{ name: regex }, { relation: regex }, { phone: regex }, { email: regex }],
+  const peopleBaseQuery: Record<string, any> = {
+    $or: [
+      { name: regex },
+      { relation: regex },
+      { phone: regex },
+      { email: regex },
+    ],
     status: { $ne: "archived" },
-  })
-    .limit(4)
-    .lean();
+  };
+  if (!isPrivileged && allowedPersonIds.length > 0) {
+    peopleBaseQuery._id = { $in: allowedPersonIds };
+  } else if (!isPrivileged) {
+    peopleBaseQuery._id = { $in: [] };
+  }
+  const people = await LifePerson.find(peopleBaseQuery).limit(4).lean();
 
   people.forEach((p) => {
     results.push({
@@ -394,12 +587,25 @@ export async function searchLifeGlobally(query: string): Promise<GlobalSearchRes
   });
 
   // Search Information
-  const info = await LifeInformation.find({
-    $or: [{ title: regex }, { summary: regex }, { tags: regex }],
+  let infoBaseQuery: Record<string, any> = {
     visibility: { $ne: "hidden" },
-  })
-    .limit(4)
-    .lean();
+  };
+  const infoTextMatch = {
+    $or: [{ title: regex }, { summary: regex }, { tags: regex }],
+  };
+  if (!isPrivileged) {
+    const infoAccessOr: any[] = [];
+    if (allowedPersonIds.length > 0)
+      infoAccessOr.push({ relatedPersonId: { $in: allowedPersonIds } });
+    if (infoAccessOr.length === 0) {
+      infoBaseQuery._id = { $in: [] };
+    } else {
+      infoBaseQuery.$and = [infoTextMatch, { $or: infoAccessOr }];
+    }
+  } else {
+    infoBaseQuery = { ...infoBaseQuery, ...infoTextMatch };
+  }
+  const info = await LifeInformation.find(infoBaseQuery).limit(4).lean();
 
   info.forEach((i) => {
     results.push({
@@ -412,11 +618,15 @@ export async function searchLifeGlobally(query: string): Promise<GlobalSearchRes
   });
 
   // Search Business
-  const businesses = await LifeBusiness.find({
+  const businessBaseQuery: Record<string, any> = {
     $or: [{ name: regex }, { legalName: regex }],
-  })
-    .limit(3)
-    .lean();
+  };
+  if (!isPrivileged && allowedBusinessIds.length > 0) {
+    businessBaseQuery._id = { $in: allowedBusinessIds };
+  } else if (!isPrivileged) {
+    businessBaseQuery._id = { $in: [] };
+  }
+  const businesses = await LifeBusiness.find(businessBaseQuery).limit(3).lean();
 
   businesses.forEach((b) => {
     results.push({
@@ -430,11 +640,25 @@ export async function searchLifeGlobally(query: string): Promise<GlobalSearchRes
 
   // Search Money
   if (auth.isOwner || auth.permissions.canViewFinancial) {
-    const money = await LifeMoneyRecord.find({
+    let moneyBaseQuery: Record<string, any> = {};
+    const moneyTextMatch = {
       $or: [{ personName: regex }, { purpose: regex }, { organization: regex }],
-    })
-      .limit(4)
-      .lean();
+    };
+    if (!isPrivileged) {
+      const moneyOr: any[] = [];
+      if (allowedPersonIds.length > 0)
+        moneyOr.push({ personId: { $in: allowedPersonIds } });
+      if (allowedBusinessIds.length > 0)
+        moneyOr.push({ businessId: { $in: allowedBusinessIds } });
+      if (moneyOr.length === 0) {
+        moneyBaseQuery._id = { $in: [] };
+      } else {
+        moneyBaseQuery.$and = [moneyTextMatch, { $or: moneyOr }];
+      }
+    } else {
+      moneyBaseQuery = moneyTextMatch;
+    }
+    const money = await LifeMoneyRecord.find(moneyBaseQuery).limit(4).lean();
 
     money.forEach((m) => {
       results.push({
@@ -448,11 +672,25 @@ export async function searchLifeGlobally(query: string): Promise<GlobalSearchRes
   }
 
   // Search Contacts
-  const contacts = await LifeContact.find({
+  let contactsBaseQuery: Record<string, any> = {};
+  const contactsTextMatch = {
     $or: [{ name: regex }, { phone: regex }, { company: regex }],
-  })
-    .limit(4)
-    .lean();
+  };
+  if (!isPrivileged) {
+    const contactsOr: any[] = [];
+    if (allowedPersonIds.length > 0)
+      contactsOr.push({ relatedPersonId: { $in: allowedPersonIds } });
+    if (allowedBusinessIds.length > 0)
+      contactsOr.push({ relatedBusinessId: { $in: allowedBusinessIds } });
+    if (contactsOr.length === 0) {
+      contactsBaseQuery._id = { $in: [] };
+    } else {
+      contactsBaseQuery.$and = [contactsTextMatch, { $or: contactsOr }];
+    }
+  } else {
+    contactsBaseQuery = contactsTextMatch;
+  }
+  const contacts = await LifeContact.find(contactsBaseQuery).limit(4).lean();
 
   contacts.forEach((c) => {
     results.push({

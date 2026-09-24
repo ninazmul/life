@@ -13,9 +13,20 @@ export async function getBusinesses(): Promise<ILifeBusiness[]> {
 
   const query: Record<string, unknown> = {};
 
-  // If non-admin, check business access
-  if (!auth.isOwner && !auth.isAdmin && !auth.permissions.canViewBusiness) {
-    return [];
+  if (!auth.isOwner && !auth.isAdmin) {
+    if (!auth.permissions.canViewBusiness) {
+      return [];
+    }
+    const businessOr: any[] = [];
+    if (auth.personId) {
+      businessOr.push({ "partners.personId": auth.personId });
+      businessOr.push({ "engineerContact.personId": auth.personId });
+    }
+    if (auth.permissions?.allowedBusinessIds?.length) {
+      businessOr.push({ _id: { $in: auth.permissions.allowedBusinessIds } });
+    }
+    if (businessOr.length === 0) return [];
+    query.$or = businessOr;
   }
 
   const businesses = await LifeBusiness.find(query)

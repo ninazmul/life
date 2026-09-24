@@ -16,8 +16,74 @@ import {
 } from "@/types";
 
 /**
+ * Builds a query for non-admin callers to only view:
+ * 1. Their own data (recipientPersonId === personId or createdBy === userId/name)
+ * 2. Data of persons assigned to them (allowedPersonIds)
+ * 3. Data of businesses they are connected to (partners, engineerContact, allowedBusinessIds)
+ */
+async function buildNonAdminFinancialQuery(context: any, filterPersonId?: string) {
+  const allowedPersonIds: string[] = [];
+  if (context.personId) allowedPersonIds.push(String(context.personId));
+  if (context.permissions?.allowedPersonIds?.length) {
+    allowedPersonIds.push(...context.permissions.allowedPersonIds.map(String));
+  }
+
+  // Check businesses connected to user
+  const businessOr: any[] = [];
+  if (context.personId) {
+    businessOr.push({ "partners.personId": context.personId });
+    businessOr.push({ "engineerContact.personId": context.personId });
+  }
+  if (context.permissions?.allowedBusinessIds?.length) {
+    businessOr.push({ _id: { $in: context.permissions.allowedBusinessIds } });
+  }
+
+  let connectedBusinessIds: string[] = [];
+  if (businessOr.length > 0) {
+    try {
+      const LifeBusiness = (await import("@/lib/database/models/lifeBusiness.model")).default;
+      const businesses = await LifeBusiness.find({ $or: businessOr }).select("_id").lean();
+      connectedBusinessIds = businesses.map((b) => String(b._id));
+    } catch (e) {
+      console.error("Error querying connected businesses:", e);
+    }
+  }
+
+  if (filterPersonId) {
+    if (allowedPersonIds.includes(String(filterPersonId))) {
+      return { recipientPersonId: filterPersonId };
+    }
+    return null;
+  }
+
+  const orConditions: any[] = [];
+
+  if (allowedPersonIds.length > 0) {
+    orConditions.push({ recipientPersonId: { $in: allowedPersonIds } });
+  }
+
+  if (context.userId) {
+    orConditions.push({ createdBy: context.userId });
+  }
+
+  if (context.name) {
+    orConditions.push({ createdBy: context.name });
+  }
+
+  if (connectedBusinessIds.length > 0) {
+    orConditions.push({ relatedBusinessId: { $in: connectedBusinessIds } });
+  }
+
+  if (orConditions.length === 0) {
+    return null;
+  }
+
+  return { $or: orConditions };
+}
+
+/**
  * Gets financial support records with strict person-wise privacy (§13, §30 item 1, 11).
- * Non-owner can ONLY retrieve records assigned to themselves.
+ * Non-admins can ONLY retrieve their own records and records they are connected or assigned to.
  */
 export async function getFinancialSupports(filterPersonId?: string) {
   try {
@@ -26,11 +92,12 @@ export async function getFinancialSupports(filterPersonId?: string) {
 
     await connectToDatabase();
 
-    const query: Record<string, any> = {};
+    let query: Record<string, any> = {};
 
     if (!context.isOwner && !context.isAdmin) {
-      if (!context.personId) return [];
-      query.recipientPersonId = context.personId;
+      const nonAdminQuery = await buildNonAdminFinancialQuery(context, filterPersonId);
+      if (!nonAdminQuery) return [];
+      query = nonAdminQuery;
     } else if (filterPersonId) {
       query.recipientPersonId = filterPersonId;
     }
@@ -63,12 +130,37 @@ export async function getFinancialSupportById(id: string) {
 
     // Strict privacy enforcement (§13)
     const recAny = record as any;
-    if (
-      !context.isOwner &&
-      !context.isAdmin &&
-      String(recAny.recipientPersonId?._id || recAny.recipientPersonId) !== String(context.personId)
-    ) {
-      throw new Error("Access Denied: You cannot view financial records of other people.");
+    if (!context.isOwner && !context.isAdmin) {
+      const recipientId = String(recAny.recipientPersonId?._id || recAny.recipientPersonId || "");
+      const createdBy = String(recAny.createdBy || "");
+      const businessId = String(recAny.relatedBusinessId?._id || recAny.relatedBusinessId || "");
+
+      const allowedPersonIds = [
+        ...(context.personId ? [String(context.personId)] : []),
+        ...(context.permissions?.allowedPersonIds?.map(String) || []),
+      ];
+
+      let isConnectedBusiness = false;
+      if (businessId && (context.personId || context.permissions?.allowedBusinessIds?.length)) {
+        const LifeBusiness = (await import("@/lib/database/models/lifeBusiness.model")).default;
+        const biz = await LifeBusiness.findOne({
+          _id: businessId,
+          $or: [
+            ...(context.personId ? [{ "partners.personId": context.personId }, { "engineerContact.personId": context.personId }] : []),
+            ...(context.permissions?.allowedBusinessIds?.length ? [{ _id: { $in: context.permissions.allowedBusinessIds } }] : []),
+          ],
+        }).lean();
+        if (biz) isConnectedBusiness = true;
+      }
+
+      const isAllowed =
+        (recipientId && allowedPersonIds.includes(recipientId)) ||
+        (createdBy && (createdBy === String(context.userId) || createdBy === String(context.name))) ||
+        isConnectedBusiness;
+
+      if (!isAllowed) {
+        throw new Error("Access Denied: You cannot view financial records of other people.");
+      }
     }
 
     const installments = await LifeInstallment.find({ financialSupportId: id })
@@ -550,12 +642,19 @@ export async function getFinancialSummaryForUser(targetPersonId?: string) {
     const context = await getLifeAuthContext();
     if (!context) throw new Error("Unauthorized");
 
-    await connectToDatabase();
+    let query: Record<string, any> = {};
 
-    const personId = !context.isOwner && !context.isAdmin ? context.personId : targetPersonId || context.personId;
-    if (!personId) return null;
+    if (!context.isOwner && !context.isAdmin) {
+      const nonAdminQuery = await buildNonAdminFinancialQuery(context, targetPersonId);
+      if (!nonAdminQuery) return null;
+      query = nonAdminQuery;
+    } else {
+      const personId = targetPersonId || context.personId;
+      if (!personId) return null;
+      query = { recipientPersonId: personId };
+    }
 
-    const records = await LifeFinancialSupport.find({ recipientPersonId: personId }).lean();
+    const records = await LifeFinancialSupport.find(query).lean();
 
     let totalReceived = 0;
     let repayableAmount = 0;

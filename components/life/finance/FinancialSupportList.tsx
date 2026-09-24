@@ -57,6 +57,7 @@ interface FinancialSupportListProps {
   userSummary?: any;
   isOwner?: boolean;
   isAdmin?: boolean;
+  canAccessLiveAccounting?: boolean;
   initialGesnReports?: IGesnReportsData | null;
   initialGesnError?: string | null;
 }
@@ -69,11 +70,19 @@ export function FinancialSupportList({
   userSummary,
   isOwner = false,
   isAdmin = false,
+  canAccessLiveAccounting: canAccessLiveAccountingProp,
   initialGesnReports = null,
   initialGesnError = null,
 }: FinancialSupportListProps) {
+  const canAccessLiveAccounting =
+    canAccessLiveAccountingProp !== undefined
+      ? canAccessLiveAccountingProp
+      : Boolean(isOwner || isAdmin);
+
   const [records, setRecords] = useState(initialRecords);
-  const [mainView, setMainView] = useState<"acc_transactions" | "personal_support">("acc_transactions");
+  const [mainView, setMainView] = useState<"acc_transactions" | "personal_support">(
+    canAccessLiveAccounting ? "acc_transactions" : "personal_support"
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [personalPage, setPersonalPage] = useState<number>(1);
@@ -207,44 +216,61 @@ export function FinancialSupportList({
         )}
       </div>
 
-      {/* Main View Switcher Tabs */}
-      <div className="flex border-b border-border gap-2 overflow-x-auto scrollbar-none">
-        <button
-          onClick={() => setMainView("acc_transactions")}
-          className={`pb-3 px-3 sm:px-4 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all whitespace-nowrap ${
-            mainView === "acc_transactions"
-              ? "border-emerald-600 text-emerald-600 dark:text-emerald-400"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <Building2 className="w-4 h-4" />
-          <span>ACC.GESN.NET Live Accounting</span>
-          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Live Sync
-          </span>
-        </button>
-
-        <button
-          onClick={() => setMainView("personal_support")}
-          className={`pb-3 px-3 sm:px-4 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all whitespace-nowrap ${
-            mainView === "personal_support"
-              ? "border-emerald-600 text-emerald-600 dark:text-emerald-400"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <Wallet className="w-4 h-4" />
-          <span>Personal Support & Commitments</span>
-          {records.length > 0 && (
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-semibold border border-border">
-              {records.length}
+      {/* Main View Switcher Tabs / Section Header */}
+      {canAccessLiveAccounting ? (
+        <div className="flex border-b border-border gap-2 overflow-x-auto scrollbar-none">
+          <button
+            onClick={() => setMainView("acc_transactions")}
+            className={`pb-3 px-3 sm:px-4 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all whitespace-nowrap ${
+              mainView === "acc_transactions"
+                ? "border-emerald-600 text-emerald-600 dark:text-emerald-400"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Building2 className="w-4 h-4" />
+            <span>ACC.GESN.NET Live Accounting</span>
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Live Sync
             </span>
-          )}
-        </button>
-      </div>
+          </button>
+
+          <button
+            onClick={() => setMainView("personal_support")}
+            className={`pb-3 px-3 sm:px-4 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all whitespace-nowrap ${
+              mainView === "personal_support"
+                ? "border-emerald-600 text-emerald-600 dark:text-emerald-400"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Wallet className="w-4 h-4" />
+            <span>Personal Support & Commitments</span>
+            {records.length > 0 && (
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-semibold border border-border">
+                {records.length}
+              </span>
+            )}
+          </button>
+        </div>
+      ) : (
+        <div className="flex border-b border-border pb-3 items-center justify-between">
+          <div className="flex items-center gap-2 text-sm font-bold text-emerald-600 dark:text-emerald-400">
+            <Wallet className="w-4 h-4" />
+            <span>Personal Support & Commitments</span>
+            {records.length > 0 && (
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-semibold border border-border">
+                {records.length}
+              </span>
+            )}
+          </div>
+          <span className="text-xs text-muted-foreground hidden sm:inline">
+            Your personal & assigned financial records
+          </span>
+        </div>
+      )}
 
       {/* View Content */}
-      {mainView === "acc_transactions" ? (
+      {canAccessLiveAccounting && mainView === "acc_transactions" ? (
         <GesnTransactionsView
           initialData={initialGesnReports}
           initialError={initialGesnError}

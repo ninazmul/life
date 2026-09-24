@@ -1,6 +1,7 @@
 "use server";
 
 import { IGesnReportsResponse } from "@/types/gesnReports";
+import { getLifeAuthContext } from "@/lib/life/auth";
 
 export interface FetchGesnReportsParams {
   period?: string;
@@ -14,10 +15,34 @@ export interface FetchGesnReportsParams {
 /**
  * Server-side proxy action to fetch real-time accounting and transaction data from ACC.GESN.NET
  * Ensures API credentials remain strictly server-side.
+ * Strictly restricted to Admin and Super Admin / Owner.
  */
 export async function getGesnReports(
   params: FetchGesnReportsParams = { period: "thisMonth" }
 ): Promise<IGesnReportsResponse> {
+  const context = await getLifeAuthContext();
+  if (!context) {
+    return {
+      success: false,
+      error: "Unauthorized: Please log in.",
+    };
+  }
+
+  const isPrivileged = Boolean(
+    context.isOwner ||
+    context.isAdmin ||
+    context.role === "super_admin" ||
+    context.role === "admin" ||
+    context.role === "administrator"
+  );
+
+  if (!isPrivileged) {
+    return {
+      success: false,
+      error: "Access Denied: Only Admin and Super Admin can access ACC.GESN.NET Live Accounting.",
+    };
+  }
+
   const apiUrl =
     process.env.GESN_REPORTS_API_URL || "https://acc.gesn.net/api/reports";
   const apiOwner = process.env.GESN_REPORTS_API_OWNER || "SHOUROV";

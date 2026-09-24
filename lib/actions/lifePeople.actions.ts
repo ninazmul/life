@@ -13,9 +13,19 @@ import LifeResponsibility from "@/lib/database/models/lifeResponsibility.model";
 import LifeLegacyMessage from "@/lib/database/models/lifeLegacyMessage.model";
 import LifeAsset from "@/lib/database/models/lifeAsset.model";
 import Admin from "@/lib/database/models/admin.model";
-import { getLifeAuthContext, logLifeActivity, DEFAULT_OWNER_PERMS } from "@/lib/life/auth";
+import {
+  getLifeAuthContext,
+  logLifeActivity,
+  DEFAULT_OWNER_PERMS,
+} from "@/lib/life/auth";
 import { createInAppNotification } from "./lifeNotification.actions";
-import { ILifePerson, PersonStatus, LifeRole, AccountStatus, LifePermission } from "@/types";
+import {
+  ILifePerson,
+  PersonStatus,
+  LifeRole,
+  AccountStatus,
+  LifePermission,
+} from "@/types";
 
 export async function getPeople(params?: {
   search?: string;
@@ -40,13 +50,22 @@ export async function getPeople(params?: {
 
   if (params?.search) {
     const regex = new RegExp(params.search.trim(), "i");
-    query.$or = [{ name: regex }, { relation: regex }, { phone: regex }, { email: regex }];
+    query.$or = [
+      { name: regex },
+      { relation: regex },
+      { phone: regex },
+      { email: regex },
+    ];
   }
 
-  // Strict tenant scoping: If caller is not Owner or Admin, they can ONLY retrieve their own profile
   if (!auth.isOwner && !auth.isAdmin) {
-    if (!auth.personId) return [];
-    query._id = auth.personId;
+    const allowedIds: string[] = [];
+    if (auth.personId) allowedIds.push(String(auth.personId));
+    if (auth.permissions?.allowedPersonIds?.length) {
+      allowedIds.push(...auth.permissions.allowedPersonIds.map(String));
+    }
+    if (allowedIds.length === 0) return [];
+    query._id = { $in: allowedIds };
   }
 
   const people = await LifePerson.find(query)
@@ -64,54 +83,84 @@ export async function getPersonById(id: string) {
   // Strict IDOR mitigation: Individual user can NEVER inspect another person's private profile
   if (!auth.isOwner && !auth.isAdmin) {
     if (!auth.personId || String(auth.personId) !== String(id)) {
-      throw new Error("Forbidden: You are only authorized to access your own private profile.");
+      throw new Error(
+        "Forbidden: You are only authorized to access your own private profile.",
+      );
     }
   }
 
   const person = (await LifePerson.findById(id).lean()) as any;
   if (!person) return null;
 
-  const isOwnerOrSuper = person.role === "owner" || person.role === "super_admin";
+  const isOwnerOrSuper =
+    person.role === "owner" || person.role === "super_admin";
   const canViewOwnerDetails = auth.isOwner || auth.isAdmin;
 
   // Fetch related records linked strictly to this person (or comprehensive owner records if viewing owner)
-  const [financialCare, moneyRecords, documents, contacts, notes, instructions, responsibilities, messages, assets] =
-    await Promise.all([
-      LifeFinancialSupport.find(isOwnerOrSuper && canViewOwnerDetails ? {} : { recipientPersonId: id }).sort({ givenDate: -1 }).lean(),
-      LifeMoneyRecord.find(isOwnerOrSuper && canViewOwnerDetails ? {} : { personId: id }).sort({ date: -1 }).lean(),
-      LifeDocument.find(
-        isOwnerOrSuper && canViewOwnerDetails
-          ? {}
-          : { $or: [{ relatedPersonId: id }, { assignedToPersonIds: id }] }
-      ).lean(),
-      LifeContact.find(isOwnerOrSuper && canViewOwnerDetails ? {} : { relatedPersonId: id }).lean(),
-      LifeInformation.find(
-        isOwnerOrSuper && canViewOwnerDetails
-          ? { $or: [{ relatedPersonId: id }, { category: { $in: ["personal", "emergency", "instruction"] } }] }
-          : { relatedPersonId: id }
-      ).lean(),
-      LifeInstruction.find(
-        isOwnerOrSuper && canViewOwnerDetails
-          ? {}
-          : { $or: [{ assignedPersonId: id }, { backupPersonId: id }] }
-      ).lean(),
-      LifeResponsibility.find(
-        isOwnerOrSuper && canViewOwnerDetails
-          ? {}
-          : { $or: [{ assignedPersonId: id }, { backupPersonId: id }] }
-      ).lean(),
-      (isOwnerOrSuper && canViewOwnerDetails)
-        ? LifeLegacyMessage.find().lean()
-        : LifeLegacyMessage.find({ recipientPersonId: id }).lean(),
-      (isOwnerOrSuper && canViewOwnerDetails)
-        ? LifeAsset.find({ status: { $ne: "disposed" } }).lean()
-        : LifeAsset.find({ relatedPersonId: id }).lean(),
-    ]);
+  const [
+    financialCare,
+    moneyRecords,
+    documents,
+    contacts,
+    notes,
+    instructions,
+    responsibilities,
+    messages,
+    assets,
+  ] = await Promise.all([
+    LifeFinancialSupport.find(
+      isOwnerOrSuper && canViewOwnerDetails ? {} : { recipientPersonId: id },
+    )
+      .sort({ givenDate: -1 })
+      .lean(),
+    LifeMoneyRecord.find(
+      isOwnerOrSuper && canViewOwnerDetails ? {} : { personId: id },
+    )
+      .sort({ date: -1 })
+      .lean(),
+    LifeDocument.find(
+      isOwnerOrSuper && canViewOwnerDetails
+        ? {}
+        : { $or: [{ relatedPersonId: id }, { assignedToPersonIds: id }] },
+    ).lean(),
+    LifeContact.find(
+      isOwnerOrSuper && canViewOwnerDetails ? {} : { relatedPersonId: id },
+    ).lean(),
+    LifeInformation.find(
+      isOwnerOrSuper && canViewOwnerDetails
+        ? {
+            $or: [
+              { relatedPersonId: id },
+              { category: { $in: ["personal", "emergency", "instruction"] } },
+            ],
+          }
+        : { relatedPersonId: id },
+    ).lean(),
+    LifeInstruction.find(
+      isOwnerOrSuper && canViewOwnerDetails
+        ? {}
+        : { $or: [{ assignedPersonId: id }, { backupPersonId: id }] },
+    ).lean(),
+    LifeResponsibility.find(
+      isOwnerOrSuper && canViewOwnerDetails
+        ? {}
+        : { $or: [{ assignedPersonId: id }, { backupPersonId: id }] },
+    ).lean(),
+    isOwnerOrSuper && canViewOwnerDetails
+      ? LifeLegacyMessage.find().lean()
+      : LifeLegacyMessage.find({ recipientPersonId: id }).lean(),
+    isOwnerOrSuper && canViewOwnerDetails
+      ? LifeAsset.find({ status: { $ne: "disposed" } }).lean()
+      : LifeAsset.find({ relatedPersonId: id }).lean(),
+  ]);
 
   // If caller is an individual, filter unreleased legacy messages
-  const filteredMessages = (!auth.isOwner && !auth.isAdmin)
-    ? messages.filter((m: any) => m.isReleased || m.visibility === "visible_now")
-    : messages;
+  const filteredMessages =
+    !auth.isOwner && !auth.isAdmin
+      ? messages.filter(
+          (m: any) => m.isReleased || m.visibility === "visible_now",
+        )
+      : messages;
 
   return {
     person: JSON.parse(JSON.stringify(person)),
@@ -148,7 +197,9 @@ export async function createPerson(data: {
   await connectToDatabase();
   const auth = await getLifeAuthContext();
   if (!auth || (!auth.isOwner && !auth.isAdmin)) {
-    throw new Error("Forbidden: Only Owners/Admins can add new People profiles.");
+    throw new Error(
+      "Forbidden: Only Owners/Admins can add new People profiles.",
+    );
   }
 
   const isSuper = data.role === "super_admin" || data.role === "owner";
@@ -198,7 +249,7 @@ export async function createPerson(data: {
           isActive: true,
         },
       },
-      { upsert: true }
+      { upsert: true },
     ).catch(() => {});
   }
 
@@ -243,7 +294,7 @@ export async function updatePerson(
       youtube?: string;
       website?: string;
     };
-  }>
+  }>,
 ) {
   await connectToDatabase();
   const auth = await getLifeAuthContext();
@@ -253,7 +304,9 @@ export async function updatePerson(
   const isSelf = auth.personId && String(auth.personId) === String(id);
 
   if (!isOwnerOrAdmin && !isSelf) {
-    throw new Error("Forbidden: You are not authorized to modify this profile.");
+    throw new Error(
+      "Forbidden: You are not authorized to modify this profile.",
+    );
   }
 
   // If self-user (non-owner/admin), only allow updating contact and social links
@@ -271,10 +324,15 @@ export async function updatePerson(
     // Only permit safe contact and social fields for self
     if (data.phone !== undefined) updateData.phone = data.phone;
     if (data.whatsapp !== undefined) updateData.whatsapp = data.whatsapp;
-    if (data.socialLinks !== undefined) updateData.socialLinks = data.socialLinks;
+    if (data.socialLinks !== undefined)
+      updateData.socialLinks = data.socialLinks;
   }
 
-  const updated = (await LifePerson.findByIdAndUpdate(id, { $set: updateData }, { new: true }).lean()) as (ILifePerson & { _id: unknown }) | null;
+  const updated = (await LifePerson.findByIdAndUpdate(
+    id,
+    { $set: updateData },
+    { new: true },
+  ).lean()) as (ILifePerson & { _id: unknown }) | null;
   if (!updated) throw new Error("Person not found.");
 
   if (updated.email) {
@@ -290,12 +348,16 @@ export async function updatePerson(
             isActive: updated.status === "active",
           },
         },
-        { upsert: true }
+        { upsert: true },
       ).catch(() => {});
-    } else if (data.role && data.role !== "super_admin" && data.role !== "admin") {
+    } else if (
+      data.role &&
+      data.role !== "super_admin" &&
+      data.role !== "admin"
+    ) {
       await Admin.findOneAndUpdate(
         { email: new RegExp(`^${targetEmail}$`, "i") },
-        { $set: { isActive: false } }
+        { $set: { isActive: false } },
       ).catch(() => {});
     }
   }
@@ -318,13 +380,15 @@ export async function archivePerson(id: string) {
   await connectToDatabase();
   const auth = await getLifeAuthContext();
   if (!auth || (!auth.isOwner && !auth.isAdmin)) {
-    throw new Error("Forbidden: Only Owners/Admins can archive People profiles.");
+    throw new Error(
+      "Forbidden: Only Owners/Admins can archive People profiles.",
+    );
   }
 
   const archived = (await LifePerson.findByIdAndUpdate(
     id,
     { status: "archived", accountStatus: "archived", isLoginEnabled: false },
-    { new: true }
+    { new: true },
   ).lean()) as (ILifePerson & { _id: unknown }) | null;
 
   if (archived) {
@@ -344,7 +408,7 @@ export async function archivePerson(id: string) {
 
 export async function setPersonAccountStatus(
   id: string,
-  newStatus: AccountStatus
+  newStatus: AccountStatus,
 ) {
   await connectToDatabase();
   const auth = await getLifeAuthContext();
@@ -372,7 +436,7 @@ export async function setPersonAccountStatus(
       ...(newStatus === "archived" ? { status: "archived" } : {}),
       isLoginEnabled,
     },
-    { new: true }
+    { new: true },
   ).lean()) as (ILifePerson & { _id: unknown }) | null;
 
   if (!updated) throw new Error("Person not found.");
@@ -415,7 +479,7 @@ export async function updatePersonAccessAndPermissions(
     permissions: LifePermission;
     addedDiffSummary?: string[];
     removedDiffSummary?: string[];
-  }
+  },
 ) {
   await connectToDatabase();
   const auth = await getLifeAuthContext();
@@ -427,9 +491,12 @@ export async function updatePersonAccessAndPermissions(
   if (!person) throw new Error("Person profile not found.");
 
   // Super Admin cannot modify Owner's account unless caller is Owner
-  const isTargetOwner = person.role === "owner" || person.role === "super_admin";
+  const isTargetOwner =
+    person.role === "owner" || person.role === "super_admin";
   if (isTargetOwner && !auth.isOwner) {
-    throw new Error("Forbidden: Super Admins cannot modify Owner-level control.");
+    throw new Error(
+      "Forbidden: Super Admins cannot modify Owner-level control.",
+    );
   }
 
   const isSuper = data.role === "super_admin" || data.role === "owner";
@@ -456,18 +523,22 @@ export async function updatePersonAccessAndPermissions(
 
   if (data.name !== undefined) updateFields.name = data.name.trim();
   if (data.relation !== undefined) updateFields.relation = data.relation.trim();
-  if (data.designation !== undefined) updateFields.designation = data.designation.trim();
+  if (data.designation !== undefined)
+    updateFields.designation = data.designation.trim();
   if (data.phone !== undefined) updateFields.phone = data.phone.trim();
   if (data.whatsapp !== undefined) updateFields.whatsapp = data.whatsapp.trim();
-  if (data.email !== undefined) updateFields.email = isRecordOnly ? "" : data.email.toLowerCase().trim();
+  if (data.email !== undefined)
+    updateFields.email = isRecordOnly ? "" : data.email.toLowerCase().trim();
   if (data.status !== undefined) updateFields.status = data.status;
-  if (data.accountStatus !== undefined) updateFields.accountStatus = data.accountStatus;
-  if (data.emergencyPriority !== undefined) updateFields.emergencyPriority = Number(data.emergencyPriority) || 0;
+  if (data.accountStatus !== undefined)
+    updateFields.accountStatus = data.accountStatus;
+  if (data.emergencyPriority !== undefined)
+    updateFields.emergencyPriority = Number(data.emergencyPriority) || 0;
 
   const updated = (await LifePerson.findByIdAndUpdate(
     personId,
     { $set: updateFields },
-    { new: true }
+    { new: true },
   ).lean()) as (ILifePerson & { _id: unknown }) | null;
 
   if (!updated) throw new Error("Failed to update person.");
@@ -483,15 +554,16 @@ export async function updatePersonAccessAndPermissions(
             email: targetEmail,
             name: updated.name,
             role: updated.role === "super_admin" ? "super_admin" : "admin",
-            isActive: updated.status === "active" && updated.isLoginEnabled !== false,
+            isActive:
+              updated.status === "active" && updated.isLoginEnabled !== false,
           },
         },
-        { upsert: true }
+        { upsert: true },
       ).catch(() => {});
     } else {
       await Admin.findOneAndUpdate(
         { email: new RegExp(`^${targetEmail}$`, "i") },
-        { $set: { isActive: false } }
+        { $set: { isActive: false } },
       ).catch(() => {});
     }
   }
