@@ -704,92 +704,71 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               </div>
             </div>
 
-            {/* ── 4 Quick-Action Icons replacing Profile Completion ── */}
-            <div className="mt-2.5 sm:mt-3.5">
-              <div className="grid grid-cols-4 gap-2">
-                {/* 1. Request Center */}
-                <Link
-                  href="/requests"
-                  className="group relative flex flex-col items-center justify-center gap-1.5 p-2.5 sm:p-3 rounded-2xl bg-secondary/40 border border-border hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all"
-                  title={isSuperUser ? "Requests Inbox" : "Request Center"}
-                >
-                  {/* Badge */}
-                  {(stats.dashboardBadges?.requestsCount ?? 0) > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 flex h-4.5 min-w-[18px] items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white px-1 shadow-sm z-10">
-                      {(stats.dashboardBadges?.requestsCount ?? 0) > 9 ? "9+" : stats.dashboardBadges?.requestsCount}
-                    </span>
-                  )}
-                  <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20 group-hover:bg-emerald-500/20 transition-colors">
-                    {isSuperUser
-                      ? <Inbox className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                      : <ClipboardList className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
-                  </div>
-                  <span className="text-[10px] font-semibold text-muted-foreground group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors text-center leading-tight">
-                    {isSuperUser ? "Inbox" : "Requests"}
+            {/* ── 4 Quick-Action Icons ── */}
+            <div className="mt-3.5 flex items-center justify-around sm:justify-start sm:gap-8 px-1">
+              {/* 1. Requests */}
+              <Link
+                href="/requests"
+                title={isSuperUser ? "Requests Inbox" : "Request Center"}
+                aria-label={isSuperUser ? "Requests Inbox" : "Request Center"}
+                className="group relative inline-flex items-center justify-center text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 transition-all hover:scale-110 active:scale-95"
+              >
+                {(stats.dashboardBadges?.requestsCount ?? 0) > 0 && (
+                  <span className="absolute -top-1 -right-2 flex min-w-4 h-4 px-1 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white shadow-xs z-10">
+                    {(stats.dashboardBadges?.requestsCount ?? 0) > 9 ? "9+" : stats.dashboardBadges?.requestsCount}
                   </span>
-                </Link>
+                )}
+                {isSuperUser
+                  ? <Inbox className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.8]" />
+                  : <ClipboardList className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.8]" />}
+              </Link>
 
-                {/* 2. Messages */}
-                <Link
-                  href="/requests?tab=messages"
-                  className="group relative flex flex-col items-center justify-center gap-1.5 p-2.5 sm:p-3 rounded-2xl bg-secondary/40 border border-border hover:border-blue-500/40 hover:bg-blue-500/5 transition-all"
-                  title="Messages"
-                >
-                  {/* Badge */}
-                  {(stats.dashboardBadges?.messagesCount ?? 0) > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 flex h-4.5 min-w-[18px] items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white px-1 shadow-sm z-10">
-                      {(stats.dashboardBadges?.messagesCount ?? 0) > 9 ? "9+" : stats.dashboardBadges?.messagesCount}
-                    </span>
-                  )}
-                  <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-blue-500/10 border border-blue-500/20 group-hover:bg-blue-500/20 transition-colors">
-                    <MessageCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <span className="text-[10px] font-semibold text-muted-foreground group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors text-center leading-tight">
-                    Messages
+              {/* 2. Messages */}
+              <Link
+                href="/requests?tab=messages"
+                title="Messages"
+                aria-label="Messages"
+                className="group relative inline-flex items-center justify-center text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-all hover:scale-110 active:scale-95"
+              >
+                {(stats.dashboardBadges?.messagesCount ?? 0) > 0 && (
+                  <span className="absolute -top-1 -right-2 flex min-w-4 h-4 px-1 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white shadow-xs z-10">
+                    {(stats.dashboardBadges?.messagesCount ?? 0) > 9 ? "9+" : stats.dashboardBadges?.messagesCount}
                   </span>
-                </Link>
+                )}
+                <MessageCircle className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.8]" />
+              </Link>
 
-                {/* 3. Notes */}
-                <Link
-                  href="/lifenote"
-                  className="group relative flex flex-col items-center justify-center gap-1.5 p-2.5 sm:p-3 rounded-2xl bg-secondary/40 border border-border hover:border-violet-500/40 hover:bg-violet-500/5 transition-all"
-                  title="Notes & Directives"
-                >
-                  {/* Badge */}
-                  {(stats.dashboardBadges?.notesCount ?? 0) > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 flex h-4.5 min-w-[18px] items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white px-1 shadow-sm z-10">
-                      {(stats.dashboardBadges?.notesCount ?? 0) > 9 ? "9+" : stats.dashboardBadges?.notesCount}
-                    </span>
-                  )}
-                  <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-violet-500/10 border border-violet-500/20 group-hover:bg-violet-500/20 transition-colors">
-                    <NotebookPen className="w-4 h-4 text-violet-600 dark:text-violet-400" />
-                  </div>
-                  <span className="text-[10px] font-semibold text-muted-foreground group-hover:text-violet-700 dark:group-hover:text-violet-300 transition-colors text-center leading-tight">
-                    Notes
+              {/* 3. Notes */}
+              <Link
+                href="/lifenote"
+                title="Notes & Directives"
+                aria-label="Notes & Directives"
+                className="group relative inline-flex items-center justify-center text-violet-600 dark:text-violet-400 hover:text-violet-500 dark:hover:text-violet-300 transition-all hover:scale-110 active:scale-95"
+              >
+                {(stats.dashboardBadges?.notesCount ?? 0) > 0 && (
+                  <span className="absolute -top-1 -right-2 flex min-w-4 h-4 px-1 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white shadow-xs z-10">
+                    {(stats.dashboardBadges?.notesCount ?? 0) > 9 ? "9+" : stats.dashboardBadges?.notesCount}
                   </span>
-                </Link>
+                )}
+                <NotebookPen className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.8]" />
+              </Link>
 
-                {/* 4. Financial Overview */}
-                <Link
-                  href="/finance"
-                  className="group relative flex flex-col items-center justify-center gap-1.5 p-2.5 sm:p-3 rounded-2xl bg-secondary/40 border border-border hover:border-amber-500/40 hover:bg-amber-500/5 transition-all"
-                  title="Financial Overview"
-                >
-                  {/* Badge */}
-                  {(stats.dashboardBadges?.financialCount ?? 0) > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 flex h-4.5 min-w-[18px] items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white px-1 shadow-sm z-10">
-                      {(stats.dashboardBadges?.financialCount ?? 0) > 9 ? "9+" : stats.dashboardBadges?.financialCount}
-                    </span>
-                  )}
-                  <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 group-hover:bg-amber-500/20 transition-colors">
-                    <CircleDollarSign className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                  </div>
-                  <span className="text-[10px] font-semibold text-muted-foreground group-hover:text-amber-700 dark:group-hover:text-amber-300 transition-colors text-center leading-tight">
-                    Finance
+              {/* 4. Financial Overview */}
+              <Link
+                href="/finance"
+                title="Financial Overview"
+                aria-label="Financial Overview"
+                className="group relative inline-flex items-center justify-center text-amber-600 dark:text-amber-400 hover:text-amber-500 dark:hover:text-amber-300 transition-all hover:scale-110 active:scale-95"
+              >
+                {(stats.dashboardBadges?.financialCount ?? 0) > 0 && (
+                  <span className="absolute -top-1 -right-2 flex min-w-4 h-4 px-1 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white shadow-xs z-10">
+                    {(stats.dashboardBadges?.financialCount ?? 0) > 9 ? "9+" : stats.dashboardBadges?.financialCount}
                   </span>
-                </Link>
-              </div>
+                )}
+                <CircleDollarSign className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.8]" />
+              </Link>
             </div>
+
           </div>
 
           {/* Separator Line */}
