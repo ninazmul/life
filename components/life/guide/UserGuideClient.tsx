@@ -34,6 +34,7 @@ import {
   UserCircle,
   Clock,
   NotebookPen,
+  ClipboardList,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -215,7 +216,7 @@ const sections: GuideSection[] = [
       {
         title: "2. My Life Profile & Embedded Financial Overview",
         detail:
-          "Positioned directly below the title, My Life Profile serves as the central personal information hub. Features the Owner's mint squircle avatar, SUPER ADMIN and ACTIVE badges, and 6 live metrics: Profile Completion (with animated progress bar), Medical Information Status, Documents Added, Private Records, Emergency Information Status, and Last Updated timestamp. Integrated directly within the card is the real-time 4-Card Financial Overview: Total Income Received, Available Cash, Assets & Investments, and Total Net Worth (all denominated in SAR with clean muted suffixes). Includes direct action buttons: 'View My Profile' (opens the full Owner Life Dossier), '+ Add Information' (opens the information logger), and '+ Add Income' (quick shortcut to finance).",
+          "Positioned directly below the title, My Life Profile serves as the central personal information hub. Owners and Super Admins see profile metrics and the real-time four-card Financial Overview: Total Income Received, Available Cash, Assets & Investments, and Total Net Worth. Other users see only their personal support and commitment summary, never the Owner's accounting overview. Use 'View My Profile', '+ Add Information', and '+ Add Income' for the related personal workflows.",
       },
       {
         title: "3. ⚡ Quick Actions & Dynamic Subcategories",
@@ -223,17 +224,22 @@ const sections: GuideSection[] = [
           "Directly below My Life Profile, six balanced quick action cards provide one-touch navigation to the major life-management modules with real-time live summaries: (1) Financial Care — active support & due installments; (2) Estate & Wasiyyah — testament completion percentage; (3) Roles & Responsibilities — assigned life directives; (4) Emergency Contacts & Help — verified emergency contacts; (5) Security & Access — active access rules and security status; (6) Instructions & Messages — saved legacy instructions. Furthermore, Super Admins can click 'Manage Subcategories' inside the Quick Actions dropdown to launch the Subcategory Management Console — offering full reordering (up/down), inline editing, archiving, and deletion safeguards across all 6 main categories.",
       },
       {
-        title: "4. Continuity & Safety State",
+        title: "4. Profile Quick Actions",
+        detail:
+          "The circular icons under My Life Profile open Requests or Requests Inbox, Messages, LifeNote, and Financial Overview. Their badges show pending requests, unread messages, assigned notes, or financial items. The Requests icon is labeled 'Requests Inbox' for Owners and Super Admins and 'Request Center' for other users.",
+      },
+      {
+        title: "5. Continuity & Safety State",
         detail:
           "Positioned directly beneath the Six Quick Actions, this monitoring layer details owner safety check-in status, emergency protocol readiness, number of trusted guardians configured, pending responsibilities, and overall business continuity readiness. A green status confirms all protocols are active and healthy.",
       },
       {
-        title: "5. Urgent Attention Alerts & Money Snapshot",
+        title: "6. Urgent Attention Alerts & Money Snapshot",
         detail:
           "Automatically highlights overdue financial support installments, upcoming payments, pending tasks, and critical security items requiring prompt action. Also displays aggregate totals for Money Given, Money Taken, Investments, Receivables, and Payables in real-time.",
       },
       {
-        title: "6. Permitted Modules Directory & Recent Activity",
+        title: "7. Permitted Modules Directory & Recent Activity",
         detail:
           "Displays quick-access cards to all your active modules with live counts and status badges. Non-admin users only see the modules they have permission to access. Includes a live audit feed of recent life activities.",
       },
@@ -704,7 +710,7 @@ const sections: GuideSection[] = [
   },
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 05B. LIFENOTE — Personal Notes, Locked Messages & Emergency Releases
+  // 05B. LIFENOTE — Released Notes & Recipient Support
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "lifenote",
@@ -714,20 +720,20 @@ const sections: GuideSection[] = [
     color: "text-violet-600 dark:text-violet-400",
     bg: "bg-violet-50 dark:bg-violet-950/50",
     border: "border-violet-200 dark:border-violet-800/40",
-    title: "05B. LifeNote — Personal Notes & Locked Messages",
-    subtitle: "Private notes, timed releases, secret messages & emergency unlock flows",
+    title: "05B. LifeNote — Personal Notes & Directives",
+    subtitle: "Released notes, designated-person directives & recipient support",
     description:
-      "LifeNote is your private note vault. Write notes for specific people that unlock only when you choose — immediately, on a schedule, or triggered by an emergency. From simple reminders to sealed final messages, LifeNote gives you full control over what gets shared, when, and with whom.",
+      "LifeNote is the private note vault for notes that are available now. Owners and Super Admins create and manage directives for specific people; recipients use it to read released notes and ask the Owner for help. Future and protected notes are handled separately in Request Center until access is granted.",
     steps: [
       {
         title: "Create a Note",
         detail:
-          "Give the note a title, write your content, and choose a note type: Always Visible (shared immediately), Manual Release (you decide when to unlock), Scheduled Release (auto-unlocks on a date), Secret Emergency (unlocks only after guardian approval), or Internal Admin (never visible to the assigned person).",
+          "Give the note a title, write the content, assign a person, and choose its note type. Always Visible notes are available immediately. Manual, Scheduled, and Secret Emergency notes stay protected until released through their future-note access flow. Internal Admin notes remain private to management.",
       },
       {
         title: "Assign to a Person",
         detail:
-          "Select the recipient from your People directory. The note appears on their portal only when released. Until then, only you (Owner/Admin) can see it. The assigned person receives an in-app notification once their note is unlocked.",
+          "Select the recipient from your People directory. Released notes appear in that person's LifeNote view. Protected notes do not expose their content there; the recipient can find and request them in Request Center. The recipient receives an in-app notification after approval or release.",
       },
       {
         title: "Set Priority & Category",
@@ -735,14 +741,14 @@ const sections: GuideSection[] = [
           "Assign a priority level (Low, Medium, High, Critical) and an optional category or tags to organize your notes. Pinned notes always appear at the top of the list.",
       },
       {
-        title: "Lock & Release Controls",
+        title: "Read a Note or Ask for Help",
         detail:
-          "For Manual Release notes: use the 'Release Now' button to unlock immediately, or 'Re-lock' to seal it again. For Scheduled Release: set a future date — the system auto-releases it at midnight on that date. For Secret Emergency: the assigned person must submit an unlock request, which triggers a waiting period before access is granted.",
+          "Recipients can open a released note with View. Opening it records that it has been seen. Use Need Help to send the Owner a question or assistance request; this creates a linked conversation in Request Center.",
       },
       {
-        title: "Emergency Unlock Flow",
+        title: "Manage Released Secret Notes",
         detail:
-          "When a Secret Emergency note unlock is requested, a countdown (configurable hours) begins. You can approve or cancel it before the deadline. If not cancelled, access is auto-granted. All actions are logged immutably in Activity & Audit Log.",
+          "Owners and Super Admins can review the release state of secret notes and relock a released secret note when needed. Access requests, approvals, rejections, and releases are recorded in the note history and Activity Log.",
       },
     ],
     tips: [
@@ -752,7 +758,7 @@ const sections: GuideSection[] = [
       },
       {
         type: "info",
-        text: "Assigned users see their notes under LifeNote on their portal. They can acknowledge, respond, and mark follow-ups from their view.",
+        text: "LifeNote contains released notes only. A protected note's title and access controls appear in Request Center, while its content remains hidden until it is released.",
       },
       {
         type: "warning",
@@ -761,6 +767,66 @@ const sections: GuideSection[] = [
     ],
     whoCanAccess:
       "Owner and Super Admin can create and manage all notes. Assigned users with canViewPersonal or canViewSensitive permission can view their released notes.",
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 05C. REQUEST CENTER — Requests, Messages & Future Note Access
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    id: "request-center",
+    category: "Records & Continuity",
+    serial: "05C",
+    icon: ClipboardList,
+    color: "text-emerald-600 dark:text-emerald-400",
+    bg: "bg-emerald-50 dark:bg-emerald-950/50",
+    border: "border-emerald-200 dark:border-emerald-800/40",
+    title: "05C. Request Center — Requests, Messages & Future Notes",
+    subtitle: "Submit requests, communicate with the Owner & request protected-note access",
+    description:
+      "Request Center is available to every signed-in user. It is where users submit general requests, exchange messages with the Owner, and request access to future or protected LifeNotes. Owners and Super Admins use the same area as Requests Inbox to review and resolve incoming work.",
+    steps: [
+      {
+        title: "Submit a General Request",
+        detail:
+          "Choose New Request, select a category, add a clear title and description, then submit. Track it under All Requests, Active, and Resolved; open a request to read the full conversation and add messages.",
+      },
+      {
+        title: "Find Future & Protected Notes",
+        detail:
+          "Open the Future Notes tab to see notes and directives assigned to you but not yet released. It shows only safe metadata such as title, assignment, status, and waiting period; the protected content remains unavailable.",
+      },
+      {
+        title: "Request Note Access",
+        detail:
+          "Select Request Access, optionally explain why access is needed, and submit. Request Center creates a linked access request, notifies the Owner, and starts the note's configured waiting period.",
+      },
+      {
+        title: "Monitor Approval or Rejection",
+        detail:
+          "During the waiting period, the Future Notes card displays the deadline and waiting status. The Owner or Super Admin can approve, reject, or otherwise resolve the linked request. Once approved or released, the full note becomes available in LifeNote.",
+      },
+      {
+        title: "Owner and Super Admin Review",
+        detail:
+          "Owners and Super Admins see Requests Inbox. They can open a request, reply in its message thread, and update its status. Approving a linked LifeNote access request releases that note to the requesting person's LifeNote view; rejecting it keeps the content protected.",
+      },
+    ],
+    tips: [
+      {
+        type: "info",
+        text: "Use Request Center for future and protected notes. Use LifeNote for notes that have already been released to you.",
+      },
+      {
+        type: "tip",
+        text: "A Need Help message from a released LifeNote also opens a linked Request Center conversation, so questions and follow-up stay in one place.",
+      },
+      {
+        type: "security",
+        text: "Future Notes show limited metadata only. The note content remains protected until the Owner approves access or the configured release process completes.",
+      },
+    ],
+    whoCanAccess:
+      "All authenticated users can use Request Center. Owners and Super Admins see Requests Inbox and can resolve incoming requests.",
   },
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -1325,7 +1391,7 @@ const sections: GuideSection[] = [
       {
         title: "Module Permission Flags & Notes Scopes",
         detail:
-          "Assign specific permission flags to people: canViewPersonal (identity, contacts), canViewBusiness (companies, partners), canViewFinancial (money, assets, finance), canViewSensitive (restricted data), canRevealVault (decrypt secrets), canManageAccess (edit permissions), canAccessEmergency (guardian duties), and canManageSecretNotes. Also configure Notes Access Scope: All Notes, Assigned Notes Only, or None.",
+          "Assign specific permission flags to people: canViewPersonal (identity, contacts), canViewBusiness (companies, partners), canViewFinancial (money, assets, finance), canViewSensitive (restricted data), canRevealVault (decrypt secrets), canManageAccess (edit permissions), canAccessEmergency (guardian duties), and canManageSecretNotes. Business accounting remains restricted to Owners and Super Admins, while permitted users see only their scoped Personal Financial Care. Also configure Notes Access Scope: All Notes, Assigned Notes Only, or None.",
       },
       {
         title: "Real-Time In-App Notification Center",
@@ -1340,7 +1406,7 @@ const sections: GuideSection[] = [
       {
         title: "Personalized Dashboard Views",
         detail:
-          "Non-admin users see an 'Authorized Access Portal' displaying only their permitted directory cards, action buttons, and assigned responsibilities. Financial figures and secrets are hidden.",
+          "Non-admin users see an 'Authorized Access Portal' displaying only their permitted directory cards, action buttons, assigned responsibilities, and personal support or commitment information. Owner accounting figures, business accounting, secrets, and unauthorized modules remain hidden.",
       },
       {
         title: "Server-Side Route Protection (IDOR Prevention)",
