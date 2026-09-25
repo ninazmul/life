@@ -705,22 +705,22 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
             </div>
 
             {/* ── 4 Quick-Action Icons ── */}
-            <div className="mt-3.5 flex items-center justify-around sm:justify-start sm:gap-8 px-1">
+            <div className="mt-3.5 flex items-center justify-around sm:justify-start sm:gap-6 px-1">
               {/* 1. Requests */}
               <Link
                 href="/requests"
                 title={isSuperUser ? "Requests Inbox" : "Request Center"}
                 aria-label={isSuperUser ? "Requests Inbox" : "Request Center"}
-                className="group relative inline-flex items-center justify-center text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 transition-all hover:scale-110 active:scale-95"
+                className="group relative flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400 hover:bg-emerald-500/20 dark:hover:bg-emerald-500/25 transition-all hover:scale-105 active:scale-95"
               >
                 {(stats.dashboardBadges?.requestsCount ?? 0) > 0 && (
-                  <span className="absolute -top-1 -right-2 flex min-w-4 h-4 px-1 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white shadow-xs z-10">
+                  <span className="absolute -top-0.5 -right-0.5 flex min-w-4 h-4 px-1 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white shadow-xs z-10">
                     {(stats.dashboardBadges?.requestsCount ?? 0) > 9 ? "9+" : stats.dashboardBadges?.requestsCount}
                   </span>
                 )}
                 {isSuperUser
-                  ? <Inbox className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.8]" />
-                  : <ClipboardList className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.8]" />}
+                  ? <Inbox className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[1.9]" />
+                  : <ClipboardList className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[1.9]" />}
               </Link>
 
               {/* 2. Messages */}
@@ -728,14 +728,14 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                 href="/requests?tab=messages"
                 title="Messages"
                 aria-label="Messages"
-                className="group relative inline-flex items-center justify-center text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-all hover:scale-110 active:scale-95"
+                className="group relative flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-blue-500/10 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400 hover:bg-blue-500/20 dark:hover:bg-blue-500/25 transition-all hover:scale-105 active:scale-95"
               >
                 {(stats.dashboardBadges?.messagesCount ?? 0) > 0 && (
-                  <span className="absolute -top-1 -right-2 flex min-w-4 h-4 px-1 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white shadow-xs z-10">
+                  <span className="absolute -top-0.5 -right-0.5 flex min-w-4 h-4 px-1 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white shadow-xs z-10">
                     {(stats.dashboardBadges?.messagesCount ?? 0) > 9 ? "9+" : stats.dashboardBadges?.messagesCount}
                   </span>
                 )}
-                <MessageCircle className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.8]" />
+                <MessageCircle className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[1.9]" />
               </Link>
 
               {/* 3. Notes */}
@@ -743,14 +743,14 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                 href="/lifenote"
                 title="Notes & Directives"
                 aria-label="Notes & Directives"
-                className="group relative inline-flex items-center justify-center text-violet-600 dark:text-violet-400 hover:text-violet-500 dark:hover:text-violet-300 transition-all hover:scale-110 active:scale-95"
+                className="group relative flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-violet-500/10 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400 hover:bg-violet-500/20 dark:hover:bg-violet-500/25 transition-all hover:scale-105 active:scale-95"
               >
                 {(stats.dashboardBadges?.notesCount ?? 0) > 0 && (
-                  <span className="absolute -top-1 -right-2 flex min-w-4 h-4 px-1 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white shadow-xs z-10">
+                  <span className="absolute -top-0.5 -right-0.5 flex min-w-4 h-4 px-1 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white shadow-xs z-10">
                     {(stats.dashboardBadges?.notesCount ?? 0) > 9 ? "9+" : stats.dashboardBadges?.notesCount}
                   </span>
                 )}
-                <NotebookPen className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.8]" />
+                <NotebookPen className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[1.9]" />
               </Link>
 
               {/* 4. Financial Overview */}
@@ -758,14 +758,14 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                 href="/finance"
                 title="Financial Overview"
                 aria-label="Financial Overview"
-                className="group relative inline-flex items-center justify-center text-amber-600 dark:text-amber-400 hover:text-amber-500 dark:hover:text-amber-300 transition-all hover:scale-110 active:scale-95"
+                className="group relative flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400 hover:bg-amber-500/20 dark:hover:bg-amber-500/25 transition-all hover:scale-105 active:scale-95"
               >
                 {(stats.dashboardBadges?.financialCount ?? 0) > 0 && (
-                  <span className="absolute -top-1 -right-2 flex min-w-4 h-4 px-1 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white shadow-xs z-10">
+                  <span className="absolute -top-0.5 -right-0.5 flex min-w-4 h-4 px-1 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white shadow-xs z-10">
                     {(stats.dashboardBadges?.financialCount ?? 0) > 9 ? "9+" : stats.dashboardBadges?.financialCount}
                   </span>
                 )}
-                <CircleDollarSign className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.8]" />
+                <CircleDollarSign className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[1.9]" />
               </Link>
             </div>
 
