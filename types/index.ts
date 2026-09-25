@@ -612,6 +612,13 @@ export interface LifeDashboardStats {
     currency: string;
     recordsCount: number;
   } | null;
+  /** Badge counts for the 4 quick-action icons on the profile card */
+  dashboardBadges?: {
+    requestsCount: number;   // unresolved requests (admin: all new; user: their own pending)
+    messagesCount: number;   // unread message threads
+    notesCount: number;      // unread / new notes for user
+    financialCount: number;  // unacknowledged financial updates for user
+  } | null;
 }
 
 // ------------------------------------------------------------
@@ -1155,6 +1162,10 @@ export type NotificationType =
   | "note_released"
   | "instruction_completed"
   | "access_changed"
+  | "new_request"
+  | "new_message"
+  | "request_status_changed"
+  | "financial_update"
   | "system";
 
 export interface ILifeNotification {
@@ -1171,3 +1182,61 @@ export interface ILifeNotification {
 
 export * from "./gesnReports";
 
+// ============================================================
+// Request Center & Messaging (§request)
+// ============================================================
+export type RequestCategory =
+  | "access_request"
+  | "financial_care"
+  | "document_access"
+  | "note_access"
+  | "information_request"
+  | "responsibility_request"
+  | "general_inquiry"
+  | "other";
+
+export type RequestStatus =
+  | "pending"
+  | "in_review"
+  | "approved"
+  | "rejected"
+  | "completed"
+  | "cancelled";
+
+export interface IRequestMessage {
+  _id?: string;
+  senderId: string;
+  senderName: string;
+  senderRole: string;
+  message: string;
+  attachments?: string[];
+  isRead: boolean;
+  readAt?: Date | string;
+  createdAt: Date | string;
+}
+
+export interface ILifeRequest {
+  _id: string;
+  submittedByPersonId?: string;
+  submittedByUserId: string;
+  submittedByName: string;
+  submittedByEmail: string;
+  submittedByRole: string;
+  category: RequestCategory;
+  title: string;
+  description: string;
+  attachments?: string[];
+  relatedRecordId?: string;
+  relatedRecordType?: string;
+  relatedRecordName?: string;
+  status: RequestStatus;
+  adminResponse?: string;
+  resolvedBy?: string;
+  resolvedAt?: Date | string;
+  messages: IRequestMessage[];
+  unreadByAdmin: number;
+  unreadByUser: number;
+  isNewForAdmin: boolean;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}

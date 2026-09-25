@@ -48,6 +48,10 @@ import {
   ChevronUp,
   NotebookPen,
   Receipt,
+  ClipboardList,
+  MessageCircle,
+  CircleDollarSign,
+  Inbox,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -518,7 +522,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
             </svg>
           </div>
 
-          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 lg:gap-4">
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
             {/* Left: Badge, Title & Shortened Subtitle */}
             <div className="min-w-0">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100/80 dark:bg-emerald-950/60 border border-emerald-300/60 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-[10px] sm:text-[11px] font-semibold mb-1 shadow-2xs max-w-full">
@@ -534,13 +538,13 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               </p>
             </div>
 
-            {/* Right: Action Buttons */}
-            <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 flex-wrap">
+            {/* Right: Action Buttons - All three stay on one line with matching UI */}
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 flex-nowrap overflow-x-auto no-scrollbar">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-900 text-white font-bold text-xs sm:text-sm shadow-sm hover:shadow transition-all cursor-pointer"
+                    className="inline-flex items-center justify-center gap-1.5 h-8 sm:h-9 px-2.5 sm:px-3.5 rounded-xl bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-900 text-white font-bold text-xs shadow-xs hover:shadow transition-all shrink-0 whitespace-nowrap cursor-pointer"
                   >
                     <Zap className="w-3.5 h-3.5 text-emerald-300 fill-emerald-300/30 shrink-0" />
                     <span>Quick Actions</span>
@@ -548,7 +552,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                  align="start"
+                  align="end"
                   sideOffset={8}
                   className="w-72 sm:w-80 max-w-[calc(100vw-2rem)] p-2 rounded-2xl bg-popover/95 backdrop-blur-md border border-border shadow-xl z-50 animate-in fade-in-50 zoom-in-95"
                 >
@@ -622,13 +626,29 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <Link
-                href="/people"
-                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl bg-card border border-border/80 hover:bg-secondary text-foreground font-bold text-xs sm:text-sm shadow-2xs hover:shadow-xs transition-all"
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-xl border-border/80 bg-background/90 hover:bg-secondary text-foreground text-xs font-semibold gap-1.5 shadow-2xs hover:shadow-xs transition-all shrink-0 whitespace-nowrap"
               >
-                <Users className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                <span>People Directory</span>
-              </Link>
+                <Link href="/information">
+                  <Plus className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" strokeWidth={2.5} />
+                  <span>Info.</span>
+                </Link>
+              </Button>
+
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-xl border-border/80 bg-background/90 hover:bg-secondary text-foreground text-xs font-semibold gap-1.5 shadow-2xs hover:shadow-xs transition-all shrink-0 whitespace-nowrap"
+              >
+                <Link href="/finance">
+                  <Coins className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span>Income</span>
+                </Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -684,35 +704,90 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               </div>
             </div>
 
-            {/* Profile Completion */}
+            {/* ── 4 Quick-Action Icons replacing Profile Completion ── */}
             <div className="mt-2.5 sm:mt-3.5">
-              <div className="p-2.5 sm:p-3 rounded-2xl bg-secondary/40 border border-border/70 group-hover/profile:border-emerald-500/30 transition-colors flex flex-col gap-1.5">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <User className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    <span className="text-[11px] sm:text-xs font-semibold text-muted-foreground truncate">
-                      Profile Completion
+              <div className="grid grid-cols-4 gap-2">
+                {/* 1. Request Center */}
+                <Link
+                  href="/requests"
+                  className="group relative flex flex-col items-center justify-center gap-1.5 p-2.5 sm:p-3 rounded-2xl bg-secondary/40 border border-border hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all"
+                  title={isSuperUser ? "Requests Inbox" : "Request Center"}
+                >
+                  {/* Badge */}
+                  {(stats.dashboardBadges?.requestsCount ?? 0) > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 flex h-4.5 min-w-[18px] items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white px-1 shadow-sm z-10">
+                      {(stats.dashboardBadges?.requestsCount ?? 0) > 9 ? "9+" : stats.dashboardBadges?.requestsCount}
                     </span>
+                  )}
+                  <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20 group-hover:bg-emerald-500/20 transition-colors">
+                    {isSuperUser
+                      ? <Inbox className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      : <ClipboardList className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
                   </div>
-                  <span className="text-xs sm:text-sm font-extrabold text-foreground font-mono shrink-0">
-                    {stats.ownerProfile?.profileCompletion ?? 35}%
+                  <span className="text-[10px] font-semibold text-muted-foreground group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors text-center leading-tight">
+                    {isSuperUser ? "Inbox" : "Requests"}
                   </span>
-                </div>
-                <div className="w-full h-1.5 bg-border/80 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-                    style={{ width: `${stats.ownerProfile?.profileCompletion ?? 35}%` }}
-                  />
-                </div>
-                <p className="text-[10px] text-muted-foreground truncate" suppressHydrationWarning>
-                  Updated{" "}
-                  {stats.ownerProfile?.lastUpdated
-                    ? new Date(stats.ownerProfile.lastUpdated).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    })
-                    : "Sep 12"}
-                </p>
+                </Link>
+
+                {/* 2. Messages */}
+                <Link
+                  href="/requests?tab=messages"
+                  className="group relative flex flex-col items-center justify-center gap-1.5 p-2.5 sm:p-3 rounded-2xl bg-secondary/40 border border-border hover:border-blue-500/40 hover:bg-blue-500/5 transition-all"
+                  title="Messages"
+                >
+                  {/* Badge */}
+                  {(stats.dashboardBadges?.messagesCount ?? 0) > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 flex h-4.5 min-w-[18px] items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white px-1 shadow-sm z-10">
+                      {(stats.dashboardBadges?.messagesCount ?? 0) > 9 ? "9+" : stats.dashboardBadges?.messagesCount}
+                    </span>
+                  )}
+                  <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-blue-500/10 border border-blue-500/20 group-hover:bg-blue-500/20 transition-colors">
+                    <MessageCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-muted-foreground group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors text-center leading-tight">
+                    Messages
+                  </span>
+                </Link>
+
+                {/* 3. Notes */}
+                <Link
+                  href="/lifenote"
+                  className="group relative flex flex-col items-center justify-center gap-1.5 p-2.5 sm:p-3 rounded-2xl bg-secondary/40 border border-border hover:border-violet-500/40 hover:bg-violet-500/5 transition-all"
+                  title="Notes & Directives"
+                >
+                  {/* Badge */}
+                  {(stats.dashboardBadges?.notesCount ?? 0) > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 flex h-4.5 min-w-[18px] items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white px-1 shadow-sm z-10">
+                      {(stats.dashboardBadges?.notesCount ?? 0) > 9 ? "9+" : stats.dashboardBadges?.notesCount}
+                    </span>
+                  )}
+                  <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-violet-500/10 border border-violet-500/20 group-hover:bg-violet-500/20 transition-colors">
+                    <NotebookPen className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-muted-foreground group-hover:text-violet-700 dark:group-hover:text-violet-300 transition-colors text-center leading-tight">
+                    Notes
+                  </span>
+                </Link>
+
+                {/* 4. Financial Overview */}
+                <Link
+                  href="/finance"
+                  className="group relative flex flex-col items-center justify-center gap-1.5 p-2.5 sm:p-3 rounded-2xl bg-secondary/40 border border-border hover:border-amber-500/40 hover:bg-amber-500/5 transition-all"
+                  title="Financial Overview"
+                >
+                  {/* Badge */}
+                  {(stats.dashboardBadges?.financialCount ?? 0) > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 flex h-4.5 min-w-[18px] items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white px-1 shadow-sm z-10">
+                      {(stats.dashboardBadges?.financialCount ?? 0) > 9 ? "9+" : stats.dashboardBadges?.financialCount}
+                    </span>
+                  )}
+                  <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 group-hover:bg-amber-500/20 transition-colors">
+                    <CircleDollarSign className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-muted-foreground group-hover:text-amber-700 dark:group-hover:text-amber-300 transition-colors text-center leading-tight">
+                    Finance
+                  </span>
+                </Link>
               </div>
             </div>
           </div>
@@ -1802,8 +1877,8 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                 key={mc.key}
                 onClick={() => setSelectedMainCat(mc.key)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${selectedMainCat === mc.key
-                    ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
-                    : "bg-secondary text-muted-foreground border-border hover:bg-accent"
+                  ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                  : "bg-secondary text-muted-foreground border-border hover:bg-accent"
                   }`}
               >
                 {mc.title}
@@ -1827,8 +1902,8 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                 <div
                   key={cat._id}
                   className={`flex items-center gap-2 p-2.5 rounded-2xl border transition-all ${cat.isArchived
-                      ? "bg-secondary/50 border-border/60 opacity-60"
-                      : "bg-card border-border hover:border-emerald-500/30"
+                    ? "bg-secondary/50 border-border/60 opacity-60"
+                    : "bg-card border-border hover:border-emerald-500/30"
                     }`}
                 >
                   {/* Reorder Controls */}

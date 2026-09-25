@@ -27,6 +27,7 @@ export type ModulePath =
   | "/access"
   | "/information"
   | "/lifenote"
+  | "/requests"
   | "/guide";
 
 /**
@@ -83,6 +84,9 @@ const MODULE_PERMISSION_MAP: Record<string, (p: LifePermission) => boolean> = {
   "/activity": (p) => p.canManageAccess,
   "/settings": (p) => p.canManageAccess,
   "/access": (p) => p.canManageAccess,
+
+  // Request Center & Messaging — accessible to all authenticated users
+  "/requests": () => true,
 };
 
 /**

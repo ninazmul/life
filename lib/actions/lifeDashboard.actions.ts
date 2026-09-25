@@ -20,6 +20,9 @@ import {
   getFinancialSummaryForUser,
   buildNonAdminFinancialQuery,
 } from "@/lib/actions/lifeFinancialSupport.actions";
+import LifeRequest from "@/lib/database/models/lifeRequest.model";
+import LifeNote from "@/lib/database/models/lifeNote.model";
+import LifeNotification from "@/lib/database/models/lifeNotification.model";
 import { LifeDashboardStats, ILifeEmergencyAccess } from "@/types";
 
 export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
@@ -481,6 +484,63 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     ? await getFinancialSummaryForUser().catch(() => null)
     : null;
 
+  // ── Dashboard badge counts for the 4 quick-action icons ──
+  let dashboardBadges: LifeDashboardStats["dashboardBadges"] = null;
+  try {
+    if (_auth) {
+      const userEmail = _auth.email.toLowerCase().trim();
+      if (isPrivileged) {
+        // Admin: new requests, threads with unread messages, unread notifications
+        const [reqCount, msgCount] = await Promise.all([
+          LifeRequest.countDocuments({ isNewForAdmin: true }),
+          LifeRequest.countDocuments({ unreadByAdmin: { $gt: 0 } }),
+        ]);
+        dashboardBadges = {
+          requestsCount: reqCount,
+          messagesCount: msgCount,
+          notesCount: 0,
+          financialCount: 0,
+        };
+      } else {
+        // Non-admin: their own pending requests, unread messages from admin,
+        // unread notifications of type note_released/note_shared
+        const notifQuery = {
+          $or: [
+            { recipientEmail: userEmail },
+            ...((_auth as any).personId ? [{ recipientPersonId: (_auth as any).personId }] : []),
+          ],
+          isRead: false,
+        };
+        const [reqCount, msgCount, noteNotifCount, financialNotifCount] = await Promise.all([
+          LifeRequest.countDocuments({
+            submittedByEmail: userEmail,
+            status: { $in: ["pending", "in_review"] },
+          }),
+          LifeRequest.countDocuments({
+            submittedByEmail: userEmail,
+            unreadByUser: { $gt: 0 },
+          }),
+          LifeNotification.countDocuments({
+            ...notifQuery,
+            type: { $in: ["note_shared", "note_released", "scheduled_release"] },
+          }),
+          LifeNotification.countDocuments({
+            ...notifQuery,
+            type: { $in: ["financial_update", "request_approved"] },
+          }),
+        ]);
+        dashboardBadges = {
+          requestsCount: reqCount,
+          messagesCount: msgCount,
+          notesCount: noteNotifCount,
+          financialCount: financialNotifCount,
+        };
+      }
+    }
+  } catch (e) {
+    console.error("Error computing dashboardBadges:", e);
+  }
+
   return {
     peopleCount,
     infoCount,
@@ -524,6 +584,7 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     beneficiariesCount,
     ownerProfile,
     personalFinancialSummary,
+    dashboardBadges,
   };
 }
 
