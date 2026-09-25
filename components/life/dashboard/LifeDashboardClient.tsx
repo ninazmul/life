@@ -704,8 +704,11 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               </div>
             </div>
 
+            {/* Separator */}
+            <div className="my-3.5 sm:my-4 border-t border-border" />
+
             {/* ── 4 Quick-Action Icons ── */}
-            <div className="mt-3.5 flex items-center justify-around sm:justify-start sm:gap-6 px-1">
+            <div className="flex items-center justify-around sm:justify-start sm:gap-6 px-1">
               {/* 1. Requests */}
               <Link
                 href="/requests"
@@ -857,33 +860,6 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                     </span>
                   </div>
                 </div>
-              </div>
-
-              {/* Bottom Action Row */}
-              <div className="mt-3 sm:mt-3.5 pt-3 sm:pt-3.5 border-t border-border flex items-center justify-start sm:justify-center gap-2 sm:gap-2.5 flex-wrap">
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 sm:flex-initial h-8 sm:h-9 px-3 sm:px-4 rounded-xl border-border bg-background hover:bg-secondary text-foreground text-xs font-semibold gap-1.5 shadow-2xs"
-                >
-                  <Link href="/information">
-                    <Plus className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Add Information</span>
-                  </Link>
-                </Button>
-
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 sm:flex-initial h-8 sm:h-9 px-3 sm:px-4 rounded-xl border-border bg-background hover:bg-secondary text-foreground text-xs font-semibold gap-1.5 shadow-2xs"
-                >
-                  <Link href="/finance">
-                    <Coins className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Add Income</span>
-                  </Link>
-                </Button>
               </div>
             </div>
           ) : (
