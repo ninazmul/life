@@ -1170,8 +1170,8 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
         </section>
       )}
 
-      {/* Financial Care & Cash Flow Command Overview - Only shown to Admin and Super Admin users */}
-      {isSuperUser && (hasMoneyAccess || hasFinanceAccess) && (
+      {/* Financial Care & Cash Flow Command Overview - Admin sees Business & Personal, other users only see Personal */}
+      {(hasMoneyAccess || hasFinanceAccess || Boolean(stats.personalFinancialSummary && (stats.personalFinancialSummary.recordsCount ?? 0) > 0)) && (
         <section className="space-y-4" aria-label="Financial and cash flow overview">
           {/* Section Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
@@ -1182,59 +1182,70 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                   strokeWidth={2}
                   aria-hidden="true"
                 />
-                <span className="truncate">Financial & Cash Flow Overview</span>
+                <span className="truncate">
+                  {isSuperUser ? "Financial & Cash Flow Overview" : "Personal Financial Care & Mutual Assistance"}
+                </span>
               </h2>
 
-              {/* Real-time sync badge */}
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                </span>
-                <span>ACC.GESN.NET Live</span>
-              </div>
+              {/* Real-time sync badge (Admin / Super Admin only) */}
+              {isSuperUser ? (
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                  </span>
+                  <span>ACC.GESN.NET Live</span>
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                  <HeartHandshake className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span>Personal & Connected Records</span>
+                </div>
+              )}
             </div>
 
             {/* View Filter Segmented Controls & Link */}
             <div className="flex items-center gap-2 shrink-0 flex-wrap">
-              <div className="inline-flex p-1 rounded-xl bg-secondary/80 border border-border text-xs font-semibold">
-                <button
-                  type="button"
-                  onClick={() => setFinanceTab("business")}
-                  className={`px-3 py-1 rounded-lg transition-all ${financeTab === "business"
-                    ? "bg-background text-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                    }`}
-                >
-                  Accounting & Cash Flow
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFinanceTab("personal")}
-                  className={`px-3 py-1 rounded-lg transition-all ${financeTab === "personal"
-                    ? "bg-background text-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                    }`}
-                >
-                  Personal Care
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFinanceTab("combined")}
-                  className={`px-3 py-1 rounded-lg transition-all ${financeTab === "combined"
-                    ? "bg-background text-foreground shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                    }`}
-                >
-                  All
-                </button>
-              </div>
+              {isSuperUser && (
+                <div className="inline-flex p-1 rounded-xl bg-secondary/80 border border-border text-xs font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => setFinanceTab("business")}
+                    className={`px-3 py-1 rounded-lg transition-all ${financeTab === "business"
+                      ? "bg-background text-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                      }`}
+                  >
+                    Accounting & Cash Flow
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFinanceTab("personal")}
+                    className={`px-3 py-1 rounded-lg transition-all ${financeTab === "personal"
+                      ? "bg-background text-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                      }`}
+                  >
+                    Personal Care
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFinanceTab("combined")}
+                    className={`px-3 py-1 rounded-lg transition-all ${financeTab === "combined"
+                      ? "bg-background text-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                      }`}
+                  >
+                    All
+                  </button>
+                </div>
+              )}
 
               <Link
                 href="/finance"
                 className="text-xs font-semibold text-emerald-700 hover:text-emerald-600 dark:text-emerald-300 dark:hover:text-emerald-200 flex items-center gap-1 shrink-0 whitespace-nowrap pl-1"
               >
-                Detailed Ledger{" "}
+                {isSuperUser ? "Detailed Ledger" : "View All Records"}{" "}
                 <ArrowRight
                   className="w-3.5 h-3.5 shrink-0"
                   strokeWidth={2}
@@ -1244,8 +1255,8 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
             </div>
           </div>
 
-          {/* 1. Real-time Accounting & Cash Flow Section (ACC.GESN.NET) */}
-          {(financeTab === "business" || financeTab === "combined") && (
+          {/* 1. Real-time Accounting & Cash Flow Section (ACC.GESN.NET) - Strictly Admin & Super Admin */}
+          {isSuperUser && (financeTab === "business" || financeTab === "combined") && (
             <div className="space-y-3 p-4 sm:p-5 rounded-3xl bg-card border border-border shadow-xs">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1 border-b border-border/60">
                 <div className="flex items-center gap-2">
@@ -1426,13 +1437,13 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
           )}
 
           {/* 2. Personal Financial Care & Support Section (LIFE Vault) */}
-          {(financeTab === "personal" || financeTab === "combined") && (
+          {(!isSuperUser || financeTab === "personal" || financeTab === "combined") && (
             <div className="space-y-3 p-4 sm:p-5 rounded-3xl bg-card border border-border shadow-xs">
               <div className="flex items-center justify-between pb-1 border-b border-border/60">
                 <div className="flex items-center gap-2">
                   <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <span className="text-xs font-bold text-foreground">
-                    Personal Financial Care & Mutual Assistance
+                    {isSuperUser ? "Personal Financial Care & Mutual Assistance" : "Mutual Assistance & Support Commitments"}
                   </span>
                 </div>
                 <span className="text-[11px] font-medium text-muted-foreground">
@@ -1440,108 +1451,215 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                {/* 1. Care Provided */}
-                <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border shadow-2xs flex flex-col justify-between min-h-[104px]">
-                  <span className="text-[11px] font-medium text-muted-foreground">
-                    Financial Care Provided
-                  </span>
-                  <div className="my-1">
-                    <span className="text-lg sm:text-xl font-extrabold text-foreground font-mono">
-                      ৳{stats.moneyGivenTotal.toLocaleString()}
+              {isSuperUser ? (
+                /* Admin & Super Admin view: Full personal financial ledger & balances */
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                  {/* 1. Care Provided */}
+                  <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border shadow-2xs flex flex-col justify-between min-h-[104px]">
+                    <span className="text-[11px] font-medium text-muted-foreground">
+                      Financial Care Provided
+                    </span>
+                    <div className="my-1">
+                      <span className="text-lg sm:text-xl font-extrabold text-foreground font-mono">
+                        ৳{stats.moneyGivenTotal.toLocaleString()}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-medium truncate">
+                      Remaining: ৳{stats.moneyGivenRemaining.toLocaleString()}
                     </span>
                   </div>
-                  <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-medium truncate">
-                    Remaining: ৳{stats.moneyGivenRemaining.toLocaleString()}
-                  </span>
-                </div>
 
-                {/* 2. Receivable Due */}
-                <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 shadow-2xs flex flex-col justify-between min-h-[104px]">
-                  <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
-                    <ArrowDownLeft
-                      className="w-3 h-3 text-emerald-600 dark:text-emerald-300 shrink-0"
-                      strokeWidth={2}
-                      aria-hidden="true"
-                    />
-                    Receivable
-                  </span>
-                  <div className="my-1">
-                    <span className="text-lg sm:text-xl font-extrabold text-emerald-800 dark:text-emerald-200 font-mono break-all">
-                      ৳{stats.receivablesTotal.toLocaleString()}
+                  {/* 2. Receivable Due */}
+                  <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 shadow-2xs flex flex-col justify-between min-h-[104px]">
+                    <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
+                      <ArrowDownLeft
+                        className="w-3 h-3 text-emerald-600 dark:text-emerald-300 shrink-0"
+                        strokeWidth={2}
+                        aria-hidden="true"
+                      />
+                      Receivable
+                    </span>
+                    <div className="my-1">
+                      <span className="text-lg sm:text-xl font-extrabold text-emerald-800 dark:text-emerald-200 font-mono break-all">
+                        ৳{stats.receivablesTotal.toLocaleString()}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-emerald-700/80 dark:text-emerald-300/80 font-medium truncate">
+                      Due to me
                     </span>
                   </div>
-                  <span className="text-[10px] text-emerald-700/80 dark:text-emerald-300/80 font-medium truncate">
-                    Due to me
-                  </span>
-                </div>
 
-                {/* 3. Repaid / Returned so far */}
-                <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border shadow-2xs flex flex-col justify-between min-h-[104px]">
-                  <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3 text-teal-600 dark:text-teal-400 shrink-0" />
-                    Recovered / Repaid
-                  </span>
-                  <div className="my-1">
-                    <span className="text-lg sm:text-xl font-extrabold text-teal-700 dark:text-teal-300 font-mono">
-                      ৳{(stats.supportRepaidTotal || 0).toLocaleString()}
+                  {/* 3. Repaid / Returned so far */}
+                  <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border shadow-2xs flex flex-col justify-between min-h-[104px]">
+                    <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3 text-teal-600 dark:text-teal-400 shrink-0" />
+                      Recovered / Repaid
+                    </span>
+                    <div className="my-1">
+                      <span className="text-lg sm:text-xl font-extrabold text-teal-700 dark:text-teal-300 font-mono">
+                        ৳{(stats.supportRepaidTotal || 0).toLocaleString()}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground font-medium truncate">
+                      Collected back
                     </span>
                   </div>
-                  <span className="text-[10px] text-muted-foreground font-medium truncate">
-                    Collected back
-                  </span>
-                </div>
 
-                {/* 4. Care Received */}
-                <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border shadow-2xs flex flex-col justify-between min-h-[104px]">
-                  <span className="text-[11px] font-medium text-muted-foreground">
-                    Care Received
-                  </span>
-                  <div className="my-1">
-                    <span className="text-lg sm:text-xl font-extrabold text-amber-700 dark:text-amber-300 font-mono">
-                      ৳{stats.moneyTakenTotal.toLocaleString()}
+                  {/* 4. Care Received */}
+                  <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border shadow-2xs flex flex-col justify-between min-h-[104px]">
+                    <span className="text-[11px] font-medium text-muted-foreground">
+                      Care Received
+                    </span>
+                    <div className="my-1">
+                      <span className="text-lg sm:text-xl font-extrabold text-amber-700 dark:text-amber-300 font-mono">
+                        ৳{stats.moneyTakenTotal.toLocaleString()}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground font-medium truncate">
+                      Outstanding: ৳{stats.moneyTakenRemaining.toLocaleString()}
                     </span>
                   </div>
-                  <span className="text-[10px] text-muted-foreground font-medium truncate">
-                    Outstanding: ৳{stats.moneyTakenRemaining.toLocaleString()}
-                  </span>
-                </div>
 
-                {/* 5. Payable */}
-                <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/25 shadow-2xs flex flex-col justify-between min-h-[104px]">
-                  <span className="text-[11px] font-medium text-rose-700 dark:text-rose-300 flex items-center gap-1">
-                    <ArrowUpRight
-                      className="w-3 h-3 text-rose-600 dark:text-rose-300 shrink-0"
-                      strokeWidth={2}
-                      aria-hidden="true"
-                    />
-                    Payable
-                  </span>
-                  <div className="my-1">
-                    <span className="text-lg sm:text-xl font-extrabold text-rose-800 dark:text-rose-200 font-mono break-all">
-                      ৳{stats.payablesTotal.toLocaleString()}
+                  {/* 5. Payable */}
+                  <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/25 shadow-2xs flex flex-col justify-between min-h-[104px]">
+                    <span className="text-[11px] font-medium text-rose-700 dark:text-rose-300 flex items-center gap-1">
+                      <ArrowUpRight
+                        className="w-3 h-3 text-rose-600 dark:text-rose-300 shrink-0"
+                        strokeWidth={2}
+                        aria-hidden="true"
+                      />
+                      Payable
+                    </span>
+                    <div className="my-1">
+                      <span className="text-lg sm:text-xl font-extrabold text-rose-800 dark:text-rose-200 font-mono break-all">
+                        ৳{stats.payablesTotal.toLocaleString()}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-rose-700/80 dark:text-rose-300/80 font-medium truncate">
+                      I need to return
                     </span>
                   </div>
-                  <span className="text-[10px] text-rose-700/80 dark:text-rose-300/80 font-medium truncate">
-                    I need to return
-                  </span>
-                </div>
 
-                {/* 6. Active Investments */}
-                <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border shadow-2xs flex flex-col justify-between min-h-[104px]">
-                  <span className="text-[11px] font-medium text-muted-foreground">
-                    Investment Made
-                  </span>
-                  <div className="my-1">
-                    <span className="text-lg sm:text-xl font-extrabold text-cyan-700 dark:text-cyan-300 font-mono">
-                      ৳{stats.investedTotal.toLocaleString()}
+                  {/* 6. Active Investments */}
+                  <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border shadow-2xs flex flex-col justify-between min-h-[104px]">
+                    <span className="text-[11px] font-medium text-muted-foreground">
+                      Investment Made
+                    </span>
+                    <div className="my-1">
+                      <span className="text-lg sm:text-xl font-extrabold text-cyan-700 dark:text-cyan-300 font-mono">
+                        ৳{stats.investedTotal.toLocaleString()}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground font-medium truncate">
+                      Active ventures
                     </span>
                   </div>
-                  <span className="text-[10px] text-muted-foreground font-medium truncate">
-                    Active ventures
-                  </span>
                 </div>
-              </div>
+              ) : (
+                /* Non-admin view: Only his own data or data assigned / connected to him */
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                  {/* 1. Support Received / Allocated */}
+                  <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border shadow-2xs flex flex-col justify-between min-h-[104px]">
+                    <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                      <Coins className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      Support Received
+                    </span>
+                    <div className="my-1">
+                      <span className="text-lg sm:text-xl font-extrabold text-foreground font-mono">
+                        {stats.personalFinancialSummary?.currency || "BDT"}{" "}
+                        {(stats.personalFinancialSummary?.totalReceived || 0).toLocaleString()}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground font-medium truncate">
+                      {stats.personalFinancialSummary?.recordsCount || 0} Connected record{(stats.personalFinancialSummary?.recordsCount || 0) === 1 ? "" : "s"}
+                    </span>
+                  </div>
+
+                  {/* 2. Repayable Commitment */}
+                  <div className="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/25 shadow-2xs flex flex-col justify-between min-h-[104px]">
+                    <span className="text-[11px] font-medium text-blue-700 dark:text-blue-300 flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-blue-600 dark:text-blue-400 shrink-0" />
+                      Repayable Support
+                    </span>
+                    <div className="my-1">
+                      <span className="text-lg sm:text-xl font-extrabold text-blue-800 dark:text-blue-200 font-mono">
+                        {stats.personalFinancialSummary?.currency || "BDT"}{" "}
+                        {(stats.personalFinancialSummary?.repayableAmount || 0).toLocaleString()}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-blue-700/80 dark:text-blue-300/80 font-medium truncate">
+                      Returnable commitment
+                    </span>
+                  </div>
+
+                  {/* 3. Total Returned */}
+                  <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 shadow-2xs flex flex-col justify-between min-h-[104px]">
+                    <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      Total Returned
+                    </span>
+                    <div className="my-1">
+                      <span className="text-lg sm:text-xl font-extrabold text-emerald-800 dark:text-emerald-200 font-mono">
+                        {stats.personalFinancialSummary?.currency || "BDT"}{" "}
+                        {(stats.personalFinancialSummary?.totalRepaid || 0).toLocaleString()}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-emerald-700/80 dark:text-emerald-300/80 font-medium truncate">
+                      Settled so far
+                    </span>
+                  </div>
+
+                  {/* 4. Remaining to Return */}
+                  <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 shadow-2xs flex flex-col justify-between min-h-[104px]">
+                    <span className="text-[11px] font-medium text-amber-700 dark:text-amber-300 flex items-center gap-1">
+                      <ArrowUpRight className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />
+                      Remaining Balance
+                    </span>
+                    <div className="my-1">
+                      <span className="text-lg sm:text-xl font-extrabold text-amber-800 dark:text-amber-200 font-mono">
+                        {stats.personalFinancialSummary?.currency || "BDT"}{" "}
+                        {(stats.personalFinancialSummary?.remainingBalance || 0).toLocaleString()}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-amber-700/80 dark:text-amber-300/80 font-medium truncate">
+                      Pending to return
+                    </span>
+                  </div>
+
+                  {/* 5. Gift & Grant Allocations */}
+                  <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/25 shadow-2xs flex flex-col justify-between min-h-[104px]">
+                    <span className="text-[11px] font-medium text-purple-700 dark:text-purple-300 flex items-center gap-1">
+                      <Gift className="w-3 h-3 text-purple-600 dark:text-purple-400 shrink-0" />
+                      Gift & Grant Care
+                    </span>
+                    <div className="my-1">
+                      <span className="text-lg sm:text-xl font-extrabold text-purple-800 dark:text-purple-200 font-mono">
+                        {stats.personalFinancialSummary?.currency || "BDT"}{" "}
+                        {(stats.personalFinancialSummary?.giftAmount || 0).toLocaleString()}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-purple-700/80 dark:text-purple-300/80 font-medium truncate">
+                      Non-repayable assistance
+                    </span>
+                  </div>
+
+                  {/* 6. Active Commitments / Due Status */}
+                  <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border shadow-2xs flex flex-col justify-between min-h-[104px]">
+                    <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                      <HeartHandshake className="w-3 h-3 text-teal-600 dark:text-teal-400 shrink-0" />
+                      Commitment Status
+                    </span>
+                    <div className="my-1">
+                      <span className="text-base sm:text-lg font-bold text-foreground">
+                        {stats.upcomingPaymentsCount || 0} Active
+                      </span>
+                    </div>
+                    <span className={`text-[10px] font-medium truncate ${(stats.overduePaymentsCount || 0) > 0 ? "text-rose-600 dark:text-rose-400 font-bold" : "text-muted-foreground"}`}>
+                      {(stats.overduePaymentsCount || 0) > 0 ? `${stats.overduePaymentsCount} Overdue` : "All on schedule"}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </section>

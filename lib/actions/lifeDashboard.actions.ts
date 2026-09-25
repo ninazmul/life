@@ -16,7 +16,10 @@ import LifeDocument from "@/lib/database/models/lifeDocument.model";
 import LifeInstruction from "@/lib/database/models/lifeInstruction.model";
 import { getLifeAuthContext } from "@/lib/life/auth";
 import { getGesnReports } from "@/lib/actions/gesnReports.actions";
-import { getFinancialSummaryForUser } from "@/lib/actions/lifeFinancialSupport.actions";
+import {
+  getFinancialSummaryForUser,
+  buildNonAdminFinancialQuery,
+} from "@/lib/actions/lifeFinancialSupport.actions";
 import { LifeDashboardStats, ILifeEmergencyAccess } from "@/types";
 
 export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
@@ -213,13 +216,19 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
         }),
       ),
     ),
-    connectToDatabase().then(() =>
-      import("@/lib/database/models/lifeFinancialSupport.model").then((m) =>
-        Object.keys(fsQuery).length > 0 && (fsQuery.$or as any[])?.length === 0
-          ? Promise.resolve([])
-          : m.default.find(fsQuery).lean(),
-      ),
-    ),
+    connectToDatabase().then(async () => {
+      const LifeFinancialSupport = (
+        await import("@/lib/database/models/lifeFinancialSupport.model")
+      ).default;
+      if (!isPrivileged) {
+        const nonAdminQuery = await buildNonAdminFinancialQuery(_auth);
+        if (!nonAdminQuery) return [];
+        return LifeFinancialSupport.find(nonAdminQuery).lean();
+      }
+      return Object.keys(fsQuery).length > 0 && (fsQuery.$or as any[])?.length === 0
+        ? []
+        : LifeFinancialSupport.find(fsQuery).lean();
+    }),
     LifeActivityLog.findOne({ action: { $regex: /backup/i } })
       .sort({ createdAt: -1 })
       .lean(),

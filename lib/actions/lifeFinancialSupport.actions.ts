@@ -21,7 +21,7 @@ import {
  * 2. Data of persons assigned to them (allowedPersonIds)
  * 3. Data of businesses they are connected to (partners, engineerContact, allowedBusinessIds)
  */
-async function buildNonAdminFinancialQuery(context: any, filterPersonId?: string) {
+export async function buildNonAdminFinancialQuery(context: any, filterPersonId?: string) {
   const allowedPersonIds: string[] = [];
   if (context.personId) allowedPersonIds.push(String(context.personId));
   if (context.permissions?.allowedPersonIds?.length) {
