@@ -16,6 +16,7 @@ import LifeDocument from "@/lib/database/models/lifeDocument.model";
 import LifeInstruction from "@/lib/database/models/lifeInstruction.model";
 import { getLifeAuthContext } from "@/lib/life/auth";
 import { getGesnReports } from "@/lib/actions/gesnReports.actions";
+import { getFinancialSummaryForUser } from "@/lib/actions/lifeFinancialSupport.actions";
 import { LifeDashboardStats, ILifeEmergencyAccess } from "@/types";
 
 export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
@@ -466,6 +467,11 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     lastUpdated: ownerPerson?.updatedAt || new Date(),
   };
 
+  // Personal financial support & commitment summary for non-admins
+  const personalFinancialSummary = !isPrivileged
+    ? await getFinancialSummaryForUser().catch(() => null)
+    : null;
+
   return {
     peopleCount,
     infoCount,
@@ -508,6 +514,7 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     instructionsCount,
     beneficiariesCount,
     ownerProfile,
+    personalFinancialSummary,
   };
 }
 

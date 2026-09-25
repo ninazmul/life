@@ -47,6 +47,7 @@ import {
   X,
   ChevronUp,
   NotebookPen,
+  Receipt,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -84,7 +85,13 @@ interface LifeDashboardClientProps {
 
 export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientProps) {
   const router = useRouter();
-  const isSuperUser = userAccess ? userAccess.isOwner || userAccess.isAdmin : true;
+  const isSuperUser = Boolean(
+    userAccess?.isOwner ||
+    userAccess?.isAdmin ||
+    userAccess?.role === "super_admin" ||
+    userAccess?.role === "admin" ||
+    userAccess?.role === "administrator"
+  );
   const [subcatModalOpen, setSubcatModalOpen] = useState(false);
   const [subcategories, setSubcategories] = useState<Record<string, ILifeCategory[]>>({});
   const [subcatLoading, setSubcatLoading] = useState(false);
@@ -713,117 +720,230 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
           {/* Separator Line */}
           <div className="my-3.5 sm:my-5 border-t border-border" />
 
-          {/* Financial Overview */}
-          <div>
-            <div className="flex items-center justify-between mb-2.5 sm:mb-3 px-0.5">
-              <div className="flex items-center gap-1.5">
-                <BarChart3 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <h2 className="text-sm sm:text-base font-bold text-foreground">
-                  Financial Overview
-                </h2>
-              </div>
-              <Link
-                href="/finance"
-                className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 flex items-center gap-1"
-              >
-                <span>All Finances</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-              {/* 1. Total Income Received */}
-              <div className="p-2.5 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
-                <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
-                  <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                  <span className="text-[10px] sm:text-[11px] font-medium truncate">
-                    Total Income
-                  </span>
+          {/* Financial Overview for Admin/Super Admin OR Personal Support & Commitments for other users */}
+          {isSuperUser ? (
+            <div>
+              <div className="flex items-center justify-between mb-2.5 sm:mb-3 px-0.5">
+                <div className="flex items-center gap-1.5">
+                  <BarChart3 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <h2 className="text-sm sm:text-base font-bold text-foreground">
+                    Financial Overview
+                  </h2>
                 </div>
-                <div className="truncate">
-                  <span className="text-xs sm:text-base font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">
-                    {totalIncomeReceived.toLocaleString()}{" "}
-                    <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">SAR</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* 2. Available Cash */}
-              <div className="p-2.5 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
-                <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
-                  <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                  <span className="text-[10px] sm:text-[11px] font-medium truncate">
-                    Available Cash
-                  </span>
-                </div>
-                <div className="truncate">
-                  <span className="text-xs sm:text-base font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">
-                    {availableCash.toLocaleString()}{" "}
-                    <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">SAR</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* 3. Assets & Investments */}
-              <div className="p-2.5 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
-                <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
-                  <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 dark:text-amber-400 shrink-0" />
-                  <span className="text-[10px] sm:text-[11px] font-medium truncate">
-                    Investments
-                  </span>
-                </div>
-                <div className="truncate">
-                  <span className="text-xs sm:text-base font-extrabold text-amber-700 dark:text-amber-400 font-mono">
-                    {assetsAndInvestments.toLocaleString()}{" "}
-                    <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">SAR</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* 4. Total Net Worth */}
-              <div className="p-2.5 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
-                <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
-                  <Gem className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-600 dark:text-sky-400 shrink-0" />
-                  <span className="text-[10px] sm:text-[11px] font-medium truncate">
-                    Net Worth
-                  </span>
-                </div>
-                <div className="truncate">
-                  <span className="text-xs sm:text-base font-extrabold text-sky-700 dark:text-sky-400 font-mono">
-                    {totalNetWorth.toLocaleString()}{" "}
-                    <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">SAR</span>
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Action Row */}
-            <div className="mt-3 sm:mt-3.5 pt-3 sm:pt-3.5 border-t border-border flex items-center justify-start sm:justify-center gap-2 sm:gap-2.5 flex-wrap">
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-                className="flex-1 sm:flex-initial h-8 sm:h-9 px-3 sm:px-4 rounded-xl border-border bg-background hover:bg-secondary text-foreground text-xs font-semibold gap-1.5 shadow-2xs"
-              >
-                <Link href="/information">
-                  <Plus className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Add Information</span>
+                <Link
+                  href="/finance"
+                  className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 flex items-center gap-1"
+                >
+                  <span>All Finances</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
-              </Button>
+              </div>
 
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-                className="flex-1 sm:flex-initial h-8 sm:h-9 px-3 sm:px-4 rounded-xl border-border bg-background hover:bg-secondary text-foreground text-xs font-semibold gap-1.5 shadow-2xs"
-              >
-                <Link href="/finance">
-                  <Coins className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Add Income</span>
-                </Link>
-              </Button>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+                {/* 1. Total Income Received */}
+                <div className="p-2.5 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
+                  <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
+                    <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span className="text-[10px] sm:text-[11px] font-medium truncate">
+                      Total Income
+                    </span>
+                  </div>
+                  <div className="truncate">
+                    <span className="text-xs sm:text-base font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">
+                      {totalIncomeReceived.toLocaleString()}{" "}
+                      <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">SAR</span>
+                    </span>
+                  </div>
+                </div>
+
+                {/* 2. Available Cash */}
+                <div className="p-2.5 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
+                  <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
+                    <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span className="text-[10px] sm:text-[11px] font-medium truncate">
+                      Available Cash
+                    </span>
+                  </div>
+                  <div className="truncate">
+                    <span className="text-xs sm:text-base font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">
+                      {availableCash.toLocaleString()}{" "}
+                      <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">SAR</span>
+                    </span>
+                  </div>
+                </div>
+
+                {/* 3. Assets & Investments */}
+                <div className="p-2.5 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
+                  <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
+                    <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                    <span className="text-[10px] sm:text-[11px] font-medium truncate">
+                      Investments
+                    </span>
+                  </div>
+                  <div className="truncate">
+                    <span className="text-xs sm:text-base font-extrabold text-amber-700 dark:text-amber-400 font-mono">
+                      {assetsAndInvestments.toLocaleString()}{" "}
+                      <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">SAR</span>
+                    </span>
+                  </div>
+                </div>
+
+                {/* 4. Total Net Worth */}
+                <div className="p-2.5 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
+                  <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
+                    <Gem className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-600 dark:text-sky-400 shrink-0" />
+                    <span className="text-[10px] sm:text-[11px] font-medium truncate">
+                      Net Worth
+                    </span>
+                  </div>
+                  <div className="truncate">
+                    <span className="text-xs sm:text-base font-extrabold text-sky-700 dark:text-sky-400 font-mono">
+                      {totalNetWorth.toLocaleString()}{" "}
+                      <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">SAR</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Action Row */}
+              <div className="mt-3 sm:mt-3.5 pt-3 sm:pt-3.5 border-t border-border flex items-center justify-start sm:justify-center gap-2 sm:gap-2.5 flex-wrap">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 sm:flex-initial h-8 sm:h-9 px-3 sm:px-4 rounded-xl border-border bg-background hover:bg-secondary text-foreground text-xs font-semibold gap-1.5 shadow-2xs"
+                >
+                  <Link href="/information">
+                    <Plus className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Add Information</span>
+                  </Link>
+                </Button>
+
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 sm:flex-initial h-8 sm:h-9 px-3 sm:px-4 rounded-xl border-border bg-background hover:bg-secondary text-foreground text-xs font-semibold gap-1.5 shadow-2xs"
+                >
+                  <Link href="/finance">
+                    <Coins className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Add Income</span>
+                  </Link>
+                </Button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div>
+              <div className="flex items-center justify-between mb-2.5 sm:mb-3 px-0.5">
+                <div className="flex items-center gap-1.5">
+                  <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <h2 className="text-sm sm:text-base font-bold text-foreground">
+                    Personal Support & Commitments
+                  </h2>
+                </div>
+                <Link
+                  href="/finance"
+                  className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 flex items-center gap-1"
+                >
+                  <span>View Details</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+                {/* 1. Total Support Received */}
+                <div className="p-2.5 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
+                  <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
+                    <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span className="text-[10px] sm:text-[11px] font-medium truncate">
+                      Total Received
+                    </span>
+                  </div>
+                  <div className="truncate">
+                    <span className="text-xs sm:text-base font-extrabold text-foreground font-mono">
+                      {stats.personalFinancialSummary?.currency || "BDT"}{" "}
+                      {(stats.personalFinancialSummary?.totalReceived || 0).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 2. Repayable Commitment */}
+                <div className="p-2.5 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
+                  <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
+                    <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                    <span className="text-[10px] sm:text-[11px] font-medium truncate">
+                      Repayable Support
+                    </span>
+                  </div>
+                  <div className="truncate">
+                    <span className="text-xs sm:text-base font-extrabold text-blue-600 dark:text-blue-400 font-mono">
+                      {stats.personalFinancialSummary?.currency || "BDT"}{" "}
+                      {(stats.personalFinancialSummary?.repayableAmount || 0).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 3. Total Returned */}
+                <div className="p-2.5 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
+                  <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
+                    <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span className="text-[10px] sm:text-[11px] font-medium truncate">
+                      Total Returned
+                    </span>
+                  </div>
+                  <div className="truncate">
+                    <span className="text-xs sm:text-base font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
+                      {stats.personalFinancialSummary?.currency || "BDT"}{" "}
+                      {(stats.personalFinancialSummary?.totalRepaid || 0).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 4. Remaining Balance */}
+                <div className="p-2.5 sm:p-3.5 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col justify-between">
+                  <div className="flex items-center gap-1.5 mb-1 text-muted-foreground">
+                    <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                    <span className="text-[10px] sm:text-[11px] font-medium truncate">
+                      Remaining to Return
+                    </span>
+                  </div>
+                  <div className="truncate">
+                    <span className="text-xs sm:text-base font-extrabold text-amber-600 dark:text-amber-400 font-mono">
+                      {stats.personalFinancialSummary?.currency || "BDT"}{" "}
+                      {(stats.personalFinancialSummary?.remainingBalance || 0).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Action Row */}
+              <div className="mt-3 sm:mt-3.5 pt-3 sm:pt-3.5 border-t border-border flex items-center justify-start sm:justify-center gap-2 sm:gap-2.5 flex-wrap">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 sm:flex-initial h-8 sm:h-9 px-3 sm:px-4 rounded-xl border-border bg-background hover:bg-secondary text-foreground text-xs font-semibold gap-1.5 shadow-2xs"
+                >
+                  <Link href="/finance">
+                    <Wallet className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>View Financial Support</span>
+                  </Link>
+                </Button>
+
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 sm:flex-initial h-8 sm:h-9 px-3 sm:px-4 rounded-xl border-border bg-background hover:bg-secondary text-foreground text-xs font-semibold gap-1.5 shadow-2xs"
+                >
+                  <Link href="/information">
+                    <Plus className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>My Information</span>
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -1050,8 +1170,8 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
         </section>
       )}
 
-      {/* Financial Care & Cash Flow Command Overview - Only shown to users with Financial or Super Admin access */}
-      {(hasMoneyAccess || hasFinanceAccess) && (
+      {/* Financial Care & Cash Flow Command Overview - Only shown to Admin and Super Admin users */}
+      {isSuperUser && (hasMoneyAccess || hasFinanceAccess) && (
         <section className="space-y-4" aria-label="Financial and cash flow overview">
           {/* Section Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">

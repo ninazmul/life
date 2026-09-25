@@ -603,6 +603,15 @@ export interface LifeDashboardStats {
     emergencyInfoStatus: string;
     lastUpdated?: Date | string;
   };
+  personalFinancialSummary?: {
+    totalReceived: number;
+    repayableAmount: number;
+    giftAmount: number;
+    totalRepaid: number;
+    remainingBalance: number;
+    currency: string;
+    recordsCount: number;
+  } | null;
 }
 
 // ------------------------------------------------------------
