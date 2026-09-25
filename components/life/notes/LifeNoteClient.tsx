@@ -30,6 +30,8 @@ import {
   ShieldCheck,
   X,
   Sparkles,
+  HelpCircle,
+  MessageSquare,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
@@ -61,6 +63,8 @@ import {
   cancelNoteUnlock,
   extendNoteUnlock,
   relockNote,
+  markNoteSeen,
+  requestNoteHelp,
 } from "@/lib/actions/lifeNote.actions";
 import { ILifeNote, ILifePerson, NoteType, NoteStatus } from "@/types";
 
@@ -109,7 +113,60 @@ export function LifeNoteClient({
   const [rejectModalNote, setRejectModalNote] = useState<ILifeNote | null>(null);
   const [rejectReason, setRejectReason] = useState("");
 
+  // Viewing & Need Help Modals
+  const [viewingNote, setViewingNote] = useState<ILifeNote | null>(null);
+  const [helpModalNote, setHelpModalNote] = useState<ILifeNote | null>(null);
+  const [helpMessage, setHelpMessage] = useState("");
+
   const canManage = isOwner || isAdmin;
+
+  // Open full note view and record seen status for Owner
+  const handleOpenView = (note: ILifeNote) => {
+    setViewingNote(note);
+    if (!note.userActions?.readAt) {
+      markNoteSeen(note._id).then((res) => {
+        if (res.success && res.readAt) {
+          setNotes((prev) =>
+            prev.map((n) =>
+              n._id === note._id
+                ? { ...n, userActions: { ...n.userActions, readAt: res.readAt } }
+                : n
+            )
+          );
+        }
+      });
+    }
+  };
+
+  // Open Help dialog
+  const handleOpenHelp = (note: ILifeNote) => {
+    setHelpModalNote(note);
+    setHelpMessage("");
+  };
+
+  // Submit Help message to Owner
+  const handleSubmitHelp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!helpModalNote) return;
+    if (!helpMessage.trim()) {
+      toast.error("Please describe what assistance you need.");
+      return;
+    }
+    startTransition(async () => {
+      try {
+        const res = await requestNoteHelp(helpModalNote._id, helpMessage.trim());
+        if (res.success) {
+          toast.success("Help request sent to Owner! A message thread has been opened in Request Center.");
+          setHelpModalNote(null);
+          setHelpMessage("");
+        } else {
+          toast.error(res.error || "Failed to send help request");
+        }
+      } catch (err: any) {
+        toast.error(err.message || "Failed to send help request");
+      }
+    });
+  };
 
   // Open modal for new note
   const handleOpenCreate = () => {
@@ -589,17 +646,23 @@ export function LifeNoteClient({
                   </div>
 
                   {/* Note Title */}
-                  <h3 className="text-sm font-bold text-foreground mb-1 leading-snug group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+                  <h3
+                    onClick={() => handleOpenView(note)}
+                    className="text-sm font-bold text-foreground mb-1 leading-snug group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors cursor-pointer"
+                  >
                     {note.title}
                   </h3>
 
                   {/* Content Preview */}
-                  <div className="mt-2 text-xs text-muted-foreground whitespace-pre-wrap line-clamp-4 leading-relaxed bg-muted/20 p-2.5 rounded-xl border border-border/40 font-mono text-[11px]">
+                  <div
+                    onClick={() => handleOpenView(note)}
+                    className="mt-2 text-xs text-muted-foreground whitespace-pre-wrap line-clamp-4 leading-relaxed bg-muted/20 p-2.5 rounded-xl border border-border/40 font-mono text-[11px] cursor-pointer hover:bg-muted/30 transition-colors"
+                  >
                     {note.content}
                   </div>
 
-                  {/* Secret Emergency Countdown Alert */}
-                  {isSecret && isCountdown && (
+                  {/* Secret Emergency Countdown Alert (Admin Manage Mode) */}
+                  {canManage && isSecret && isCountdown && (
                     <div className="mt-2.5 p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 text-xs flex items-center justify-between gap-2">
                       <div className="flex items-center gap-1.5 min-w-0">
                         <Clock className="w-3.5 h-3.5 shrink-0 animate-spin" />
@@ -607,22 +670,20 @@ export function LifeNoteClient({
                           Unlock in progress ({note.waitingPeriodHours}h waiting period)
                         </span>
                       </div>
-                      {canManage && (
-                        <div className="flex items-center gap-1 shrink-0">
-                          <button
-                            onClick={() => handleApproveUnlock(note._id)}
-                            className="px-2 py-0.5 bg-emerald-600 text-white rounded text-[10px] font-bold"
-                          >
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => setRejectModalNote(note)}
-                            className="px-2 py-0.5 bg-rose-600 text-white rounded text-[10px] font-bold"
-                          >
-                            Reject
-                          </button>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={() => handleApproveUnlock(note._id)}
+                          className="px-2 py-0.5 bg-emerald-600 text-white rounded text-[10px] font-bold"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => setRejectModalNote(note)}
+                          className="px-2 py-0.5 bg-rose-600 text-white rounded text-[10px] font-bold"
+                        >
+                          Reject
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -660,19 +721,29 @@ export function LifeNoteClient({
 
                 {/* Card Bottom Actions */}
                 <div className="mt-4 pt-3 border-t border-border/40 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1">
-                    {/* Secret Unlock Request Button */}
-                    {isLocked && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleRequestUnlock(note)}
-                        className="h-7 px-2.5 rounded-lg text-xs font-semibold text-rose-600 border-rose-500/30 hover:bg-rose-500/10 gap-1"
-                      >
-                        <KeyRound className="w-3 h-3" />
-                        <span>Request Unlock</span>
-                      </Button>
-                    )}
+                  <div className="flex items-center gap-1.5">
+                    {/* View Full Note Button */}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleOpenView(note)}
+                      className="h-7 px-2.5 rounded-lg text-xs font-semibold border-violet-500/30 text-violet-600 dark:text-violet-400 hover:bg-violet-500/10 gap-1"
+                    >
+                      <Eye className="w-3 h-3" />
+                      <span>View</span>
+                    </Button>
+
+                    {/* Need Help Button */}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleOpenHelp(note)}
+                      className="h-7 px-2 rounded-lg text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 gap-1"
+                      title="Need assistance or have questions regarding this note?"
+                    >
+                      <HelpCircle className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Need Help</span>
+                    </Button>
 
                     {/* Admin Relock Button */}
                     {isSecret && (note.isReleased || note.status === "released") && canManage && (
@@ -1038,6 +1109,126 @@ export function LifeNoteClient({
               Confirm Veto / Reject
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── View Full Note Dialog ── */}
+      <Dialog open={Boolean(viewingNote)} onOpenChange={() => setViewingNote(null)}>
+        <DialogContent className="sm:max-w-xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20">
+                {viewingNote?.noteType.replace("_", " ")}
+              </span>
+              {viewingNote?.category && (
+                <span className="text-[10px] font-semibold text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
+                  {viewingNote.category}
+                </span>
+              )}
+              {viewingNote?.userActions?.readAt && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                  <CheckCircle2 className="w-3 h-3" />
+                  <span>Seen {new Date(viewingNote.userActions.readAt).toLocaleDateString()}</span>
+                </span>
+              )}
+            </div>
+            <DialogTitle className="text-lg font-bold text-foreground">
+              {viewingNote?.title}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Assigned to: {viewingNote?.assignedPersonName || "Designated Recipient"}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-3 space-y-4">
+            <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 text-xs sm:text-sm text-foreground whitespace-pre-wrap leading-relaxed font-sans font-medium">
+              {viewingNote?.content}
+            </div>
+
+            {viewingNote?.tags && viewingNote.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {viewingNote.tags.map((t, idx) => (
+                  <span key={idx} className="px-2 py-0.5 rounded bg-muted text-muted-foreground text-xs">
+                    #{t}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2 pt-4 border-t border-border/50 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (viewingNote) handleOpenHelp(viewingNote);
+              }}
+              className="rounded-xl text-xs font-semibold text-blue-600 border-blue-500/30 hover:bg-blue-500/10 gap-1.5"
+            >
+              <HelpCircle className="w-4 h-4" />
+              <span>Need Help with this Note?</span>
+            </Button>
+
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={() => setViewingNote(null)}
+              className="rounded-xl text-xs"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Need Help Dialog ── */}
+      <Dialog open={Boolean(helpModalNote)} onOpenChange={() => setHelpModalNote(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold flex items-center gap-2">
+              <HelpCircle className="w-5 h-5 text-blue-500" />
+              <span>Need Help with Note</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Send a message to the Owner regarding "{helpModalNote?.title}". This creates a linked inquiry thread in your Request Center.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSubmitHelp} className="space-y-3 pt-2">
+            <div>
+              <Label className="text-xs font-semibold">Your Question or Assistance Request *</Label>
+              <Textarea
+                value={helpMessage}
+                onChange={(e) => setHelpMessage(e.target.value)}
+                placeholder="What part of this note or directive do you need assistance with?"
+                className="mt-1 min-h-[90px] rounded-xl text-xs"
+                required
+              />
+            </div>
+
+            <DialogFooter className="gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setHelpModalNote(null)}
+                className="rounded-xl text-xs"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isPending}
+                className="rounded-xl text-xs bg-blue-600 hover:bg-blue-700 text-white gap-1.5"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>Send to Owner</span>
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

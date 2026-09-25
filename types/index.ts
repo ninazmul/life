@@ -1160,6 +1160,7 @@ export type NotificationType =
   | "request_rejected"
   | "request_cancelled"
   | "note_released"
+  | "note_seen"
   | "instruction_completed"
   | "access_changed"
   | "new_request"
@@ -1167,6 +1168,21 @@ export type NotificationType =
   | "request_status_changed"
   | "financial_update"
   | "system";
+
+export interface IFutureNoteItem {
+  noteId: string;
+  title: string;
+  assignedPersonName?: string;
+  status: NoteStatus;
+  waitingPeriodHours: number;
+  unlockRequestedAt?: Date | string;
+  unlockDeadline?: Date | string;
+  scheduledReleaseDate?: Date | string;
+  noteType: NoteType;
+  linkedRequestId?: string;
+  requestStatus?: RequestStatus;
+  hasAccessRequested?: boolean;
+}
 
 export interface ILifeNotification {
   _id: string;

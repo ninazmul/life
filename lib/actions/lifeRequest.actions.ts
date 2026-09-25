@@ -11,6 +11,8 @@ import {
   RequestCategory,
   RequestStatus,
 } from "@/types";
+import LifeNote from "@/lib/database/models/lifeNote.model";
+import { checkAndAutoReleaseNotes } from "@/lib/actions/lifeNote.actions";
 
 // ─────────────────────────────────────────────
 // HELPERS
@@ -95,6 +97,9 @@ export async function getMyRequests(): Promise<ILifeRequest[]> {
     if (!auth) return [];
 
     await connectToDatabase();
+
+    // Run auto-release check so any expired waiting periods are released
+    await checkAndAutoReleaseNotes();
 
     let query: Record<string, any> = {};
     if (!auth.isOwner && !auth.isAdmin) {
@@ -311,24 +316,74 @@ export async function updateRequestStatus(
 
     await request.save();
 
-    // Notify submitter
-    const notifType =
-      status === "approved"
-        ? "request_approved"
-        : status === "rejected"
-        ? "request_rejected"
-        : "request_status_changed";
+    // Sync linked LifeNote if this is a note access request
+    if (request.relatedRecordType === "LifeNote" && request.relatedRecordId) {
+      try {
+        const note = await LifeNote.findById(request.relatedRecordId);
+        if (note) {
+          if (status === "approved") {
+            note.isReleased = true;
+            note.status = "released";
+            note.releasedAt = new Date();
+            note.releasedBy = `${auth.name} (${auth.email})`;
+            note.history = note.history || [];
+            note.history.push({
+              changedAt: new Date(),
+              changedBy: `${auth.name} (${auth.email})`,
+              action: "approved_via_request_center",
+            });
+            await note.save();
 
-    await createInAppNotification({
-      recipientEmail: request.submittedByEmail,
-      recipientPersonId: request.submittedByPersonId?.toString(),
-      title: `Request ${status}: ${request.title}`,
-      message:
-        adminResponse ||
-        `Your request "${request.title}" has been ${status}.`,
-      type: notifType as any,
-      link: `/requests?id=${requestId}`,
-    });
+            // Notify user that note is released and in their notes section
+            await createInAppNotification({
+              recipientEmail: request.submittedByEmail,
+              recipientPersonId: request.submittedByPersonId?.toString(),
+              title: `Note Released: ${note.title}`,
+              message: `Your request for "${note.title}" has been approved. The note is now available in your Notes section.`,
+              type: "note_released",
+              link: "/lifenote",
+            });
+          } else if (status === "rejected") {
+            note.status = "request_rejected";
+            note.isReleased = false;
+            note.history = note.history || [];
+            note.history.push({
+              changedAt: new Date(),
+              changedBy: `${auth.name} (${auth.email})`,
+              action: `rejected_via_request_center: ${adminResponse || "No reason"}`,
+            });
+            await note.save();
+          } else if (status === "cancelled") {
+            note.status = "request_cancelled";
+            note.isReleased = false;
+            await note.save();
+          }
+        }
+      } catch (e) {
+        console.error("Error syncing linked LifeNote on request status update:", e);
+      }
+    }
+
+    // Notify submitter (if not already notified for note release above)
+    if (request.relatedRecordType !== "LifeNote" || status !== "approved") {
+      const notifType =
+        status === "approved"
+          ? "request_approved"
+          : status === "rejected"
+          ? "request_rejected"
+          : "request_status_changed";
+
+      await createInAppNotification({
+        recipientEmail: request.submittedByEmail,
+        recipientPersonId: request.submittedByPersonId?.toString(),
+        title: `Request ${status}: ${request.title}`,
+        message:
+          adminResponse ||
+          `Your request "${request.title}" has been ${status}.`,
+        type: notifType as any,
+        link: `/requests?id=${requestId}`,
+      });
+    }
 
     await logLifeActivity({
       action: "REQUEST_STATUS_UPDATED",
@@ -339,6 +394,7 @@ export async function updateRequestStatus(
     });
 
     revalidatePath("/requests");
+    revalidatePath("/lifenote");
     revalidatePath("/");
     return { success: true };
   } catch (error: any) {
@@ -371,6 +427,18 @@ export async function cancelRequest(requestId: string) {
 
     request.status = "cancelled";
     await request.save();
+
+    // Sync linked LifeNote if any
+    if (request.relatedRecordType === "LifeNote" && request.relatedRecordId) {
+      try {
+        await LifeNote.updateOne(
+          { _id: request.relatedRecordId },
+          { $set: { status: "request_cancelled", isReleased: false } }
+        );
+      } catch (e) {
+        console.error("Error updating LifeNote on request cancellation:", e);
+      }
+    }
 
     await logLifeActivity({
       action: "REQUEST_CANCELLED",
