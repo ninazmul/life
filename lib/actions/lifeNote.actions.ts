@@ -979,6 +979,20 @@ export async function requestNoteHelp(noteId: string, helpMessage: string) {
       });
     }
 
+    // Post directly into User <-> Super Admin conversation with Note reference
+    try {
+      const { postNoteHelpToConversation } = await import(
+        "@/lib/actions/lifeConversation.actions"
+      );
+      await postNoteHelpToConversation({
+        noteId: String(note._id),
+        noteTitle: note.title,
+        helpMessage: desc,
+      });
+    } catch (convErr) {
+      console.error("Error posting note help to conversation:", convErr);
+    }
+
     await logLifeActivity({
       action: "NOTE_HELP_REQUESTED",
       resourceType: "note",

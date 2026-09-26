@@ -780,53 +780,53 @@ const sections: GuideSection[] = [
     color: "text-emerald-600 dark:text-emerald-400",
     bg: "bg-emerald-50 dark:bg-emerald-950/50",
     border: "border-emerald-200 dark:border-emerald-800/40",
-    title: "05C. Request Center — Requests, Messages & Future Notes",
-    subtitle: "Submit requests, communicate with the Owner & request protected-note access",
+    title: "05C. Request Center & Direct Messaging",
+    subtitle: "Isolated 1-on-1 messaging, user threads, and protected note access",
     description:
-      "Request Center is available to every signed-in user. It is where users submit general requests, exchange messages with the Owner, and request access to future or protected LifeNotes. Owners and Super Admins use the same area as Requests Inbox to review and resolve incoming work.",
+      "Request Center features an isolated 1-on-1 conversation system alongside inquiry tickets and future note controls. A regular User only ever sees their private conversation with the Super Admin. The Super Admin manages an individual message thread for each user with file attachments, seen status, and note references.",
     steps: [
       {
-        title: "Submit a General Request",
+        title: "Private 1-on-1 Messaging (Regular User)",
         detail:
-          "Choose New Request, select a category, add a clear title and description, then submit. Track it under All Requests, Active, and Resolved; open a request to read the full conversation and add messages.",
+          "Open the Direct Messages tab or tap the Messages icon on your dashboard to access your private channel with the Super Admin. You can exchange text messages, upload file attachments (up to 8MB), and check delivery and seen status with timestamps.",
       },
       {
-        title: "Find Future & Protected Notes",
+        title: "Super Admin User Directory",
         detail:
-          "Open the Future Notes tab to see notes and directives assigned to you but not yet released. It shows only safe metadata such as title, assignment, status, and waiting period; the protected content remains unavailable.",
+          "Super Admins and Owners see a separate conversation list for every registered user, complete with search, unread badge counters, and latest activity timestamps. Clicking any user's name opens only that user's private individual thread with zero cross-user crosstalk.",
       },
       {
-        title: "Request Note Access",
+        title: "Need Help Directives Integration",
         detail:
-          "Select Request Access, optionally explain why access is needed, and submit. Request Center creates a linked access request, notifies the Owner, and starts the note's configured waiting period.",
+          "When a recipient clicks 'Need Help' on any assigned LifeNote, the message is automatically posted into their private conversation thread with a prominent, clickable card referencing the exact Note title and link.",
       },
       {
-        title: "Monitor Approval or Rejection",
+        title: "Strict User Isolation & Access Control",
         detail:
-          "During the waiting period, the Future Notes card displays the deadline and waiting status. The Owner or Super Admin can approve, reject, or otherwise resolve the linked request. Once approved or released, the full note becomes available in LifeNote.",
+          "Conversations are strictly isolated by authenticated email and identity. Non-admin users are technically blocked from querying, reading, or sending into another user's conversation thread.",
       },
       {
-        title: "Owner and Super Admin Review",
+        title: "Future & Protected Note Access",
         detail:
-          "Owners and Super Admins see Requests Inbox. They can open a request, reply in its message thread, and update its status. Approving a linked LifeNote access request releases that note to the requesting person's LifeNote view; rejecting it keeps the content protected.",
+          "View protected continuity directives under Future Notes. Request access when needed to trigger owner review or countdown timers before release into LifeNote.",
       },
     ],
     tips: [
       {
-        type: "info",
-        text: "Use Request Center for future and protected notes. Use LifeNote for notes that have already been released to you.",
+        type: "security",
+        text: "Strict User Isolation: Regular users can only ever access their private 1-on-1 conversation with the Super Admin. Cross-user access is blocked at the database and API level.",
       },
       {
         type: "tip",
-        text: "A Need Help message from a released LifeNote also opens a linked Request Center conversation, so questions and follow-up stay in one place.",
+        text: "Attachments & Seen Receipts: Both users and Super Admins can attach files and preview images. Sent messages display '✓ Sent' when delivered and '✓✓ Seen' once read by the recipient.",
       },
       {
-        type: "security",
-        text: "Future Notes show limited metadata only. The note content remains protected until the Owner approves access or the configured release process completes.",
+        type: "info",
+        text: "Need Help messages from LifeNotes link directly to the note, giving the Super Admin full context to respond immediately.",
       },
     ],
     whoCanAccess:
-      "All authenticated users can use Request Center. Owners and Super Admins see Requests Inbox and can resolve incoming requests.",
+      "All authenticated users can message the Super Admin. Super Admins and Owners can view and manage all individual user conversation threads.",
   },
 
   // ─────────────────────────────────────────────────────────────────────────────

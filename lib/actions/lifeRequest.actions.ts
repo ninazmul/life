@@ -12,6 +12,7 @@ import {
   RequestStatus,
 } from "@/types";
 import LifeNote from "@/lib/database/models/lifeNote.model";
+import LifeConversation from "@/lib/database/models/lifeConversation.model";
 import { checkAndAutoReleaseNotes } from "@/lib/actions/lifeNote.actions";
 
 // ─────────────────────────────────────────────
@@ -470,17 +471,23 @@ export async function getRequestBadgeCounts(): Promise<{
 
     await connectToDatabase();
 
-    if (auth.isOwner || auth.isAdmin) {
-      // Admin: count new/unread requests & unread messages
-      const [requestsCount, messagesCount] = await Promise.all([
+    const isSuper = auth.isOwner || auth.isAdmin || auth.role === "super_admin";
+
+    if (isSuper) {
+      // Admin: count new/unread requests & unread messages across requests & conversations
+      const [requestsCount, reqMsgCount, convMsgDocs] = await Promise.all([
         LifeRequest.countDocuments({ isNewForAdmin: true }),
         LifeRequest.countDocuments({ unreadByAdmin: { $gt: 0 } }),
+        LifeConversation.aggregate([
+          { $group: { _id: null, total: { $sum: "$unreadByAdmin" } } },
+        ]),
       ]);
-      return { requestsCount, messagesCount };
+      const convMsgCount = convMsgDocs[0]?.total || 0;
+      return { requestsCount, messagesCount: reqMsgCount + convMsgCount };
     } else {
-      // Regular user
+      // Regular user: their own pending requests and unread conversation/request messages
       const email = auth.email.toLowerCase().trim();
-      const [requestsCount, messagesCount] = await Promise.all([
+      const [requestsCount, reqMsgCount, userConv] = await Promise.all([
         LifeRequest.countDocuments({
           submittedByEmail: email,
           status: { $in: ["pending", "in_review"] },
@@ -489,8 +496,10 @@ export async function getRequestBadgeCounts(): Promise<{
           submittedByEmail: email,
           unreadByUser: { $gt: 0 },
         }),
+        LifeConversation.findOne({ userEmail: email }).select("unreadByUser").lean(),
       ]);
-      return { requestsCount, messagesCount };
+      const convMsgCount = (userConv as any)?.unreadByUser || 0;
+      return { requestsCount, messagesCount: reqMsgCount + convMsgCount };
     }
   } catch (error) {
     console.error("Error in getRequestBadgeCounts:", error);

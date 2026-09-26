@@ -36,6 +36,8 @@ import {
   RequestCategory,
   RequestStatus,
   IFutureNoteItem,
+  ILifeConversation,
+  IConversationListItem,
 } from "@/types";
 import {
   createRequest,
@@ -45,6 +47,7 @@ import {
   cancelRequest,
 } from "@/lib/actions/lifeRequest.actions";
 import { requestFutureNoteAccess } from "@/lib/actions/lifeNote.actions";
+import { ConversationClient } from "@/components/life/messaging/ConversationClient";
 import { useRouter } from "next/navigation";
 
 // ─── helpers ───────────────────────────────────────────────
@@ -132,6 +135,11 @@ interface Props {
   currentUserName: string;
   currentUserRole: string;
   currentPersonId?: string;
+  initialTab?: "all" | "pending" | "future_notes" | "resolved" | "messages";
+  initialUserConversation?: ILifeConversation | null;
+  initialAdminConversations?: IConversationListItem[];
+  initialSelectedUserEmail?: string;
+  unreadMessagesCount?: number;
 }
 
 // ─── Main Component ─────────────────────────────────────────
@@ -144,6 +152,11 @@ export function RequestCenterClient({
   currentUserName,
   currentUserRole,
   currentPersonId,
+  initialTab = "all",
+  initialUserConversation,
+  initialAdminConversations = [],
+  initialSelectedUserEmail,
+  unreadMessagesCount = 0,
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -151,8 +164,14 @@ export function RequestCenterClient({
   const [requests] = useState<ILifeRequest[]>(initialRequests);
   const [futureNotes, setFutureNotes] = useState<IFutureNoteItem[]>(initialFutureNotes);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [tab, setTab] = useState<"all" | "pending" | "future_notes" | "resolved">(
-    initialRequests.length === 0 && initialFutureNotes.length > 0 ? "future_notes" : "all"
+  const [tab, setTab] = useState<
+    "all" | "pending" | "future_notes" | "resolved" | "messages"
+  >(
+    initialTab === "messages"
+      ? "messages"
+      : initialRequests.length === 0 && initialFutureNotes.length > 0
+      ? "future_notes"
+      : initialTab || "all"
   );
   const [showNewForm, setShowNewForm] = useState(false);
 
@@ -338,6 +357,23 @@ export function RequestCenterClient({
         <div className="inline-flex p-1 rounded-xl bg-secondary/80 border border-border text-xs font-semibold flex-wrap gap-1">
           <button
             type="button"
+            onClick={() => setTab("messages")}
+            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all ${
+              tab === "messages"
+                ? "bg-background text-foreground shadow-xs font-bold text-blue-600 dark:text-blue-400"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <MessageCircle className="w-3.5 h-3.5" />
+            <span>Direct Messages</span>
+            {unreadMessagesCount > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-rose-500 text-white shadow-2xs">
+                {unreadMessagesCount}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
             onClick={() => setTab("all")}
             className={`px-3 py-1 rounded-lg transition-all ${
               tab === "all"
@@ -388,8 +424,19 @@ export function RequestCenterClient({
           </button>
         </div>
 
-        {/* ── Future Notes Tab View ── */}
-        {tab === "future_notes" ? (
+        {/* ── Direct Messages Tab View ── */}
+        {tab === "messages" ? (
+          <ConversationClient
+            isAdmin={isAdmin}
+            currentUserId={currentUserId}
+            currentUserEmail={currentUserEmail}
+            currentUserName={currentUserName}
+            currentUserRole={currentUserRole}
+            initialUserConversation={initialUserConversation}
+            initialAdminConversations={initialAdminConversations}
+            initialSelectedUserEmail={initialSelectedUserEmail}
+          />
+        ) : tab === "future_notes" ? (
           <div className="space-y-4">
             <div className="p-4 rounded-2xl bg-card border border-border/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>

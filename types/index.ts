@@ -1256,3 +1256,60 @@ export interface ILifeRequest {
   createdAt: Date | string;
   updatedAt: Date | string;
 }
+
+export interface IConversationAttachment {
+  name: string;
+  url: string;
+  type?: string;
+  size?: number;
+}
+
+export interface IConversationMessage {
+  _id?: string;
+  senderId: string;
+  senderEmail: string;
+  senderName: string;
+  senderRole: string;
+  message: string;
+  attachments?: IConversationAttachment[];
+  isRead: boolean;
+  readAt?: Date | string;
+  noteRef?: {
+    noteId: string;
+    noteTitle: string;
+  };
+  createdAt: Date | string;
+}
+
+export interface ILifeConversation {
+  _id: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  userRole?: string;
+  personId?: string;
+  messages: IConversationMessage[];
+  unreadByAdmin: number;
+  unreadByUser: number;
+  lastMessageText?: string;
+  lastMessageAt?: Date | string;
+  lastMessageSenderRole?: string;
+  isPinned?: boolean;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface IConversationListItem {
+  _id: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  userRole?: string;
+  personId?: string;
+  avatarUrl?: string;
+  unreadCount: number;
+  lastMessageText?: string;
+  lastMessageAt?: Date | string;
+  lastMessageSenderRole?: string;
+  totalMessages: number;
+}

@@ -23,6 +23,7 @@ import {
 import LifeRequest from "@/lib/database/models/lifeRequest.model";
 import LifeNote from "@/lib/database/models/lifeNote.model";
 import LifeNotification from "@/lib/database/models/lifeNotification.model";
+import LifeConversation from "@/lib/database/models/lifeConversation.model";
 import { LifeDashboardStats, ILifeEmergencyAccess } from "@/types";
 
 export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
@@ -491,13 +492,17 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
       const userEmail = _auth.email.toLowerCase().trim();
       if (isPrivileged) {
         // Admin: new requests, threads with unread messages, unread notifications
-        const [reqCount, msgCount] = await Promise.all([
+        const [reqCount, reqMsgCount, convMsgDocs] = await Promise.all([
           LifeRequest.countDocuments({ isNewForAdmin: true }),
           LifeRequest.countDocuments({ unreadByAdmin: { $gt: 0 } }),
+          LifeConversation.aggregate([
+            { $group: { _id: null, total: { $sum: "$unreadByAdmin" } } },
+          ]),
         ]);
+        const convMsgCount = convMsgDocs[0]?.total || 0;
         dashboardBadges = {
           requestsCount: reqCount,
-          messagesCount: msgCount,
+          messagesCount: reqMsgCount + convMsgCount,
           notesCount: 0,
           financialCount: 0,
         };
@@ -511,7 +516,7 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
           ],
           isRead: false,
         };
-        const [reqCount, msgCount, noteNotifCount, financialNotifCount] = await Promise.all([
+        const [reqCount, reqMsgCount, userConv, noteNotifCount, financialNotifCount] = await Promise.all([
           LifeRequest.countDocuments({
             submittedByEmail: userEmail,
             status: { $in: ["pending", "in_review"] },
@@ -520,6 +525,7 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
             submittedByEmail: userEmail,
             unreadByUser: { $gt: 0 },
           }),
+          LifeConversation.findOne({ userEmail: userEmail }).select("unreadByUser").lean(),
           LifeNotification.countDocuments({
             ...notifQuery,
             type: { $in: ["note_shared", "note_released", "scheduled_release"] },
@@ -529,9 +535,10 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
             type: { $in: ["financial_update", "request_approved"] },
           }),
         ]);
+        const convMsgCount = (userConv as any)?.unreadByUser || 0;
         dashboardBadges = {
           requestsCount: reqCount,
-          messagesCount: msgCount,
+          messagesCount: reqMsgCount + convMsgCount,
           notesCount: noteNotifCount,
           financialCount: financialNotifCount,
         };
