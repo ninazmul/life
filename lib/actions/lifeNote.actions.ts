@@ -18,7 +18,12 @@ import { NoteType, NoteStatus, ILifeNote, IFutureNoteItem } from "@/types";
  */
 function canViewNote(
   note: any,
-  auth: { isOwner: boolean; isAdmin: boolean; personId?: string; role?: string }
+  auth: {
+    isOwner: boolean;
+    isAdmin: boolean;
+    personId?: string;
+    role?: string;
+  },
 ): { allowed: boolean; maskSecret: boolean } {
   if (auth.isOwner || auth.role === "super_admin") {
     return { allowed: true, maskSecret: false };
@@ -26,7 +31,8 @@ function canViewNote(
 
   const isAssigned =
     Boolean(auth.personId) &&
-    String(note.assignedPersonId?._id || note.assignedPersonId) === String(auth.personId);
+    String(note.assignedPersonId?._id || note.assignedPersonId) ===
+      String(auth.personId);
 
   // Internal admin notes are never visible to normal users
   if (note.noteType === "internal_admin") {
@@ -106,15 +112,19 @@ export async function checkAndAutoReleaseNotes() {
         {
           $set: {
             status: "approved",
-            adminResponse: "Automatically approved upon waiting period completion.",
+            adminResponse:
+              "Automatically approved upon waiting period completion.",
             resolvedBy: "System (Auto-Release)",
             resolvedAt: now,
           },
           $inc: { unreadByUser: 1 },
-        }
+        },
       );
     } catch (e) {
-      console.error("Error updating linked requests for auto-released note:", e);
+      console.error(
+        "Error updating linked requests for auto-released note:",
+        e,
+      );
     }
 
     // Send in-app notification to assigned user
@@ -150,7 +160,11 @@ export async function getPersonNotes(personId: string): Promise<ILifeNote[]> {
   if (!auth) return [];
 
   // IDOR check: non-admin can only access own notes
-  if (!auth.isOwner && !auth.isAdmin && String(auth.personId) !== String(personId)) {
+  if (
+    !auth.isOwner &&
+    !auth.isAdmin &&
+    String(auth.personId) !== String(personId)
+  ) {
     return [];
   }
 
@@ -188,15 +202,28 @@ export async function getPersonNotes(personId: string): Promise<ILifeNote[]> {
 export async function createNote(data: {
   title: string;
   content: string;
+  instructions?: string;
   noteType: NoteType;
   assignedPersonId: string;
-  priority?: "low" | "medium" | "high" | "critical";
+  priority?:
+    | "low"
+    | "medium"
+    | "high"
+    | "critical"
+    | "normal"
+    | "important"
+    | "emergency";
   category?: string;
   tags?: string[];
+  attachments?: string[];
   isPinned?: boolean;
   waitingPeriodHours?: number;
   scheduledReleaseDate?: string;
   securityPin?: string;
+  deliveryType?: "immediate" | "future";
+  needHelpAllowed?: boolean;
+  confirmReadRequired?: boolean;
+  isDraft?: boolean;
 }) {
   await connectToDatabase();
   const auth = await getLifeAuthContext();
@@ -205,7 +232,9 @@ export async function createNote(data: {
   // Re-verify Master PIN if creating a Secret Note
   if (data.noteType === "secret_emergency") {
     if (!data.securityPin) {
-      throw new Error("Master PIN verification required to create a Secret Note.");
+      throw new Error(
+        "Master PIN verification required to create a Secret Note.",
+      );
     }
     const settings = (await LifeSettings.findOne().lean()) as any;
     const pinHash = settings?.masterPinHash;
@@ -215,60 +244,76 @@ export async function createNote(data: {
     }
   }
 
-  const assignedPerson = (await LifePerson.findById(data.assignedPersonId).lean()) as any;
+  const assignedPerson = (await LifePerson.findById(
+    data.assignedPersonId,
+  ).lean()) as any;
   if (!assignedPerson) throw new Error("Assigned person not found.");
 
-  const isReleasedByDefault =
-    data.noteType === "always_visible" || data.noteType === "internal_admin";
+  const isFuture =
+    data.deliveryType === "future" || Boolean(data.scheduledReleaseDate);
+  const isImmediate =
+    data.deliveryType === "immediate" ||
+    (!isFuture && !data.isDraft && data.noteType !== "secret_emergency");
+  const isReleasedByDefault = isImmediate;
 
-  const initialStatus: NoteStatus =
-    data.noteType === "secret_emergency"
+  const initialStatus: NoteStatus = data.isDraft
+    ? "locked"
+    : isFuture
       ? "locked"
-      : isReleasedByDefault
-      ? "released"
-      : "locked";
+      : data.noteType === "secret_emergency"
+        ? "locked"
+        : "released";
+
+  const noteType =
+    data.noteType || (isFuture ? "scheduled_release" : "always_visible");
+  const now = new Date();
 
   const note = await LifeNote.create({
     title: data.title.trim(),
     content: data.content,
-    noteType: data.noteType,
+    instructions: (data as any).instructions || "",
+    deliveryType: isFuture ? "future" : "immediate",
+    noteType: noteType,
     assignedPersonId: data.assignedPersonId,
     assignedPersonName: assignedPerson.name,
     createdBy: auth.email,
     createdByName: auth.name,
-    priority: data.priority || "medium",
+    priority: data.priority || "normal",
     category: data.category || "General",
     tags: data.tags || [],
+    attachments: (data as any).attachments || [],
     isPinned: Boolean(data.isPinned),
     status: initialStatus,
     waitingPeriodHours: data.waitingPeriodHours || 48,
     scheduledReleaseDate: data.scheduledReleaseDate
       ? new Date(data.scheduledReleaseDate)
       : undefined,
+    needHelpAllowed: (data as any).needHelpAllowed !== false,
+    confirmReadRequired: Boolean((data as any).confirmReadRequired),
     isReleased: isReleasedByDefault,
-    releasedAt: isReleasedByDefault ? new Date() : undefined,
+    releasedAt: isReleasedByDefault ? now : undefined,
     releasedBy: isReleasedByDefault ? auth.email : undefined,
     history: [
       {
-        changedAt: new Date(),
+        changedAt: now,
         changedBy: `${auth.name} (${auth.email})`,
-        action: "created",
+        action: `created_${isFuture ? "future" : "immediate"}`,
         newContent: data.content,
-        newNoteType: data.noteType,
+        newNoteType: noteType,
         newWaitingPeriod: data.waitingPeriodHours || 48,
       },
     ],
   });
 
-  // Notify assigned user if shared and visible
-  if (data.noteType === "always_visible" && assignedPerson.email) {
+  // Notify assigned user if immediate release
+  if (isReleasedByDefault && assignedPerson.email) {
     await createInAppNotification({
       recipientEmail: assignedPerson.email,
       recipientPersonId: String(assignedPerson._id),
-      title: "New Note Shared with You",
-      message: `${auth.name} shared a note: "${data.title}"`,
+      title: "New Note Assigned",
+      message: `${auth.name} assigned a note to you: "${data.title}"`,
       type: "note_shared",
-      link: `/people/${assignedPerson._id}?tab=notes`,
+      link: "/lifenote",
     });
   }
 
@@ -277,10 +322,16 @@ export async function createNote(data: {
     resourceType: "note",
     resourceId: String(note._id),
     resourceName: note.title,
-    details: `Created ${data.noteType} note "${note.title}" for ${assignedPerson.name}`,
-    metadata: { noteType: data.noteType, assignedPersonId: data.assignedPersonId },
+    details: `${auth.name} created ${isFuture ? "future" : "immediate"} note "${note.title}" for ${assignedPerson.name}. Delivery: ${isFuture ? "Future" : "Immediate"}.`,
+    metadata: {
+      noteType: noteType,
+      assignedPersonId: data.assignedPersonId,
+      deliveryType: isFuture ? "future" : "immediate",
+    },
   });
 
+  revalidatePath("/lifenote");
+  revalidatePath("/requests");
   revalidatePath(`/people/${data.assignedPersonId}`);
   return JSON.parse(JSON.stringify(note));
 }
@@ -293,15 +344,28 @@ export async function updateNote(
   data: Partial<{
     title: string;
     content: string;
-    priority: "low" | "medium" | "high" | "critical";
+    instructions: string;
+    assignedPersonId: string;
+    deliveryType: "immediate" | "future";
+    priority:
+      | "low"
+      | "medium"
+      | "high"
+      | "critical"
+      | "normal"
+      | "important"
+      | "emergency";
     category: string;
     tags: string[];
+    attachments: string[];
     isPinned: boolean;
     noteType: NoteType;
     waitingPeriodHours: number;
     scheduledReleaseDate?: string;
+    needHelpAllowed: boolean;
+    confirmReadRequired: boolean;
   }>,
-  securityPin?: string
+  securityPin?: string,
 ) {
   await connectToDatabase();
   const auth = await getLifeAuthContext();
@@ -311,7 +375,10 @@ export async function updateNote(
   if (!note) throw new Error("Note not found.");
 
   // PIN re-verification if editing Secret Note
-  if (note.noteType === "secret_emergency" || data.noteType === "secret_emergency") {
+  if (
+    note.noteType === "secret_emergency" ||
+    data.noteType === "secret_emergency"
+  ) {
     if (!securityPin) {
       throw new Error("Master PIN required to modify a Secret Note.");
     }
@@ -338,17 +405,66 @@ export async function updateNote(
 
   if (data.title !== undefined) note.title = data.title.trim();
   if (data.content !== undefined) note.content = data.content;
+  if (data.instructions !== undefined) note.instructions = data.instructions;
   if (data.priority !== undefined) note.priority = data.priority;
   if (data.category !== undefined) note.category = data.category.trim();
   if (data.tags !== undefined) note.tags = data.tags;
+  if (data.attachments !== undefined) note.attachments = data.attachments;
   if (data.isPinned !== undefined) note.isPinned = data.isPinned;
   if (data.noteType !== undefined) note.noteType = data.noteType;
-  if (data.waitingPeriodHours !== undefined) note.waitingPeriodHours = data.waitingPeriodHours;
+  if (data.waitingPeriodHours !== undefined)
+    note.waitingPeriodHours = data.waitingPeriodHours;
+  if (data.needHelpAllowed !== undefined)
+    note.needHelpAllowed = data.needHelpAllowed;
+  if (data.confirmReadRequired !== undefined)
+    note.confirmReadRequired = data.confirmReadRequired;
+
+  // Delivery type / scheduled release handling
+  if (data.deliveryType === "immediate" && !note.isReleased) {
+    note.isReleased = true;
+    note.status = "released";
+    note.releasedAt = new Date();
+    note.releasedBy = auth.email;
+    note.deliveryType = "immediate";
+  } else if (data.deliveryType === "future") {
+    note.deliveryType = "future";
+  }
+
   if (data.scheduledReleaseDate !== undefined) {
     note.scheduledReleaseDate = data.scheduledReleaseDate
       ? new Date(data.scheduledReleaseDate)
       : undefined;
   }
+
+  // Reassignment handling
+  if (
+    data.assignedPersonId &&
+    String(data.assignedPersonId) !== String(note.assignedPersonId)
+  ) {
+    const newPerson = (await LifePerson.findById(
+      data.assignedPersonId,
+    ).lean()) as any;
+    if (newPerson) {
+      const prevName = note.assignedPersonName || String(note.assignedPersonId);
+      note.assignedPersonId = newPerson._id;
+      note.assignedPersonName = newPerson.name;
+
+      await logLifeActivity({
+        action: "NOTE_REASSIGNED",
+        resourceType: "note",
+        resourceId: id,
+        resourceName: note.title,
+        details: `${auth.name} reassigned note "${note.title}" from ${prevName} to ${newPerson.name}.`,
+      });
+    }
+  }
+
+  // Mark as updated if note is already released
+  if (note.isReleased) {
+    note.isUpdated = true;
+    note.updatedBadgeAt = new Date();
+  }
+
   note.lastEditedBy = auth.email;
 
   await note.save();
@@ -363,6 +479,7 @@ export async function updateNote(
     newValue: historyEntry.newContent,
   });
 
+  revalidatePath("/lifenote");
   revalidatePath(`/people/${note.assignedPersonId}`);
   return JSON.parse(JSON.stringify(note));
 }
@@ -407,7 +524,9 @@ export async function requestNoteUnlock(noteId: string) {
   await note.save();
 
   // Notify Super Admin
-  const adminDoc = (await LifePerson.findOne({ role: { $in: ["super_admin", "owner"] } }).lean()) as any;
+  const adminDoc = (await LifePerson.findOne({
+    role: { $in: ["super_admin", "owner"] },
+  }).lean()) as any;
   if (adminDoc?.email) {
     await createInAppNotification({
       recipientEmail: adminDoc.email,
@@ -438,7 +557,9 @@ export async function approveNoteUnlock(noteId: string) {
   await connectToDatabase();
   const auth = await getLifeAuthContext();
   if (!auth || (!auth.isOwner && !auth.isAdmin)) {
-    throw new Error("Forbidden: Only Owners or Admins can approve unlock requests.");
+    throw new Error(
+      "Forbidden: Only Owners or Admins can approve unlock requests.",
+    );
   }
 
   const note = await LifeNote.findById(noteId);
@@ -474,14 +595,16 @@ export async function approveNoteUnlock(noteId: string) {
           resolvedAt: now,
         },
         $inc: { unreadByUser: 1 },
-      }
+      },
     );
   } catch (e) {
     console.error("Error updating linked request on note approval:", e);
   }
 
   // Notify assigned user
-  const assigned = (await LifePerson.findById(note.assignedPersonId).lean()) as any;
+  const assigned = (await LifePerson.findById(
+    note.assignedPersonId,
+  ).lean()) as any;
   if (assigned?.email) {
     await createInAppNotification({
       recipientEmail: assigned.email,
@@ -514,7 +637,9 @@ export async function rejectNoteUnlock(noteId: string, reason: string = "") {
   await connectToDatabase();
   const auth = await getLifeAuthContext();
   if (!auth || (!auth.isOwner && !auth.isAdmin)) {
-    throw new Error("Forbidden: Only Owners or Admins can reject unlock requests.");
+    throw new Error(
+      "Forbidden: Only Owners or Admins can reject unlock requests.",
+    );
   }
 
   const note = await LifeNote.findById(noteId);
@@ -549,14 +674,16 @@ export async function rejectNoteUnlock(noteId: string, reason: string = "") {
           resolvedAt: now,
         },
         $inc: { unreadByUser: 1 },
-      }
+      },
     );
   } catch (e) {
     console.error("Error updating linked request on note rejection:", e);
   }
 
   // Notify assigned user
-  const assigned = (await LifePerson.findById(note.assignedPersonId).lean()) as any;
+  const assigned = (await LifePerson.findById(
+    note.assignedPersonId,
+  ).lean()) as any;
   if (assigned?.email) {
     await createInAppNotification({
       recipientEmail: assigned.email,
@@ -594,7 +721,8 @@ export async function cancelNoteUnlock(noteId: string) {
   if (!note) throw new Error("Note not found.");
 
   const isAssigned =
-    Boolean(auth.personId) && String(note.assignedPersonId) === String(auth.personId);
+    Boolean(auth.personId) &&
+    String(note.assignedPersonId) === String(auth.personId);
 
   if (!auth.isOwner && !auth.isAdmin && !isAssigned) {
     throw new Error("Forbidden: You cannot cancel this unlock request.");
@@ -627,7 +755,7 @@ export async function cancelNoteUnlock(noteId: string) {
           resolvedBy: auth.name,
           resolvedAt: now,
         },
-      }
+      },
     );
   } catch (e) {
     console.error("Error updating linked request on note cancellation:", e);
@@ -650,11 +778,16 @@ export async function cancelNoteUnlock(noteId: string) {
 /**
  * Extends the waiting-period countdown deadline for a Secret Note.
  */
-export async function extendNoteUnlock(noteId: string, additionalHours: number) {
+export async function extendNoteUnlock(
+  noteId: string,
+  additionalHours: number,
+) {
   await connectToDatabase();
   const auth = await getLifeAuthContext();
   if (!auth || (!auth.isOwner && !auth.isAdmin)) {
-    throw new Error("Forbidden: Only Owners or Admins can extend waiting periods.");
+    throw new Error(
+      "Forbidden: Only Owners or Admins can extend waiting periods.",
+    );
   }
 
   const note = await LifeNote.findById(noteId);
@@ -665,7 +798,9 @@ export async function extendNoteUnlock(noteId: string, additionalHours: number) 
   }
 
   const currentDeadline = new Date(note.unlockDeadline);
-  const newDeadline = new Date(currentDeadline.getTime() + additionalHours * 3600 * 1000);
+  const newDeadline = new Date(
+    currentDeadline.getTime() + additionalHours * 3600 * 1000,
+  );
   note.unlockDeadline = newDeadline;
 
   note.history = note.history || [];
@@ -696,7 +831,9 @@ export async function relockNote(noteId: string, securityPin?: string) {
   await connectToDatabase();
   const auth = await getLifeAuthContext();
   if (!auth || (!auth.isOwner && auth.role !== "super_admin")) {
-    throw new Error("Forbidden: Only Owner or Super Admin can re-lock sensitive information.");
+    throw new Error(
+      "Forbidden: Only Owner or Super Admin can re-lock sensitive information.",
+    );
   }
 
   if (securityPin) {
@@ -744,7 +881,7 @@ export async function relockNote(noteId: string, securityPin?: string) {
 export async function recordNoteUserAction(
   noteId: string,
   action: "read" | "acknowledge" | "followup" | "completed" | "response",
-  responseMessage?: string
+  responseMessage?: string,
 ) {
   await connectToDatabase();
   const auth = await getLifeAuthContext();
@@ -765,7 +902,8 @@ export async function recordNoteUserAction(
   } else if (action === "completed") {
     note.userActions.completedAt = now;
   } else if (action === "response") {
-    if (!responseMessage?.trim()) throw new Error("Response message cannot be empty.");
+    if (!responseMessage?.trim())
+      throw new Error("Response message cannot be empty.");
     note.userActions.responses = note.userActions.responses || [];
     note.userActions.responses.push({
       respondedAt: now,
@@ -801,7 +939,7 @@ export async function archiveNote(noteId: string) {
   const note = await LifeNote.findByIdAndUpdate(
     noteId,
     { $set: { isArchived: true, status: "archived" } },
-    { new: true }
+    { new: true },
   );
 
   if (note) {
@@ -820,47 +958,192 @@ export async function archiveNote(noteId: string) {
 }
 
 /**
- * Retrieves all notes accessible to the current user across all people for /lifenote.
- * STRICT RULE: The Notes/LifeNote Section must never contain a Locked Note.
- * Any Note that appears in the user's Notes Section must already be released and fully viewable.
+ * Retrieves all released notes assigned to the current authenticated User.
+ * STRICT RULE: The User Notes Section must NEVER contain a Locked Note.
+ * Any note appearing in the User Notes Section must be released and currently available.
+ */
+export async function getUserNotes(): Promise<ILifeNote[]> {
+  await connectToDatabase();
+  const auth = await getLifeAuthContext();
+  if (!auth) return [];
+
+  // Run auto-release engine first
+  await checkAndAutoReleaseNotes();
+
+  let personId = auth.personId;
+  if (!personId) {
+    const person = await LifePerson.findOne({
+      email: { $regex: new RegExp(`^${auth.email}$`, "i") },
+    })
+      .select("_id")
+      .lean();
+    if (person) personId = String((person as any)._id);
+  }
+
+  if (!personId) return [];
+
+  const notes = await LifeNote.find({
+    assignedPersonId: personId,
+    isReleased: true, // Strict: Released notes only!
+    isArchived: false,
+  })
+    .populate(
+      "assignedPersonId",
+      "name email relation role profilePhoto avatarUrl",
+    )
+    .sort({ isPinned: -1, releasedAt: -1, createdAt: -1 })
+    .lean();
+
+  return JSON.parse(JSON.stringify(notes));
+}
+
+/**
+ * Retrieves all notes for the Super Admin Notes Management screen with live statistics.
+ * STRICT RULE: Super Admin access only.
+ */
+export async function getSuperAdminNotes(): Promise<{
+  notes: ILifeNote[];
+  stats: {
+    totalNotes: number;
+    unseenNotes: number;
+    needHelpCount: number;
+  };
+}> {
+  await connectToDatabase();
+  const auth = await getLifeAuthContext();
+  if (
+    !auth ||
+    (!auth.isOwner && !auth.isAdmin && auth.role !== "super_admin")
+  ) {
+    throw new Error("Forbidden: Super Admin access required.");
+  }
+
+  // Run auto-release engine
+  await checkAndAutoReleaseNotes();
+
+  const notes = await LifeNote.find({ isArchived: false })
+    .populate(
+      "assignedPersonId",
+      "name email relation role profilePhoto avatarUrl",
+    )
+    .sort({ isPinned: -1, createdAt: -1 })
+    .lean();
+
+  let unseenNotes = 0;
+  let needHelpCount = 0;
+
+  for (const n of notes as any[]) {
+    if (!n.userActions?.readAt) unseenNotes++;
+    if (n.hasNeedHelp) needHelpCount++;
+  }
+
+  return {
+    notes: JSON.parse(JSON.stringify(notes)),
+    stats: {
+      totalNotes: notes.length,
+      unseenNotes,
+      needHelpCount,
+    },
+  };
+}
+
+/**
+ * Retrieves a single note by ID with strict permission verification.
+ * Non-admins can only view their own released, non-archived notes.
+ */
+export async function getNoteById(id: string): Promise<ILifeNote | null> {
+  await connectToDatabase();
+  const auth = await getLifeAuthContext();
+  if (!auth) throw new Error("Unauthorized");
+
+  const note = await LifeNote.findById(id)
+    .populate(
+      "assignedPersonId",
+      "name email relation role profilePhoto avatarUrl",
+    )
+    .lean();
+  if (!note || (note as any).isArchived) return null;
+
+  const isSuper = auth.isOwner || auth.isAdmin || auth.role === "super_admin";
+  if (!isSuper) {
+    const assignedId = String(
+      (note as any).assignedPersonId?._id || (note as any).assignedPersonId,
+    );
+    const myPersonId = String(auth.personId || "");
+    const emailMatch =
+      (note as any).assignedPersonId?.email?.toLowerCase() ===
+      auth.email?.toLowerCase();
+
+    if (assignedId !== myPersonId && !emailMatch) {
+      throw new Error("Forbidden: You cannot access another user's note.");
+    }
+    if (!(note as any).isReleased) {
+      throw new Error("Forbidden: This note is not yet released.");
+    }
+  }
+
+  return JSON.parse(JSON.stringify(note));
+}
+
+/**
+ * Returns badge count of new or updated notes for the current user.
+ */
+export async function getUserNotesBadgeCount(): Promise<number> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth) return 0;
+
+    let personId = auth.personId;
+    if (!personId) {
+      const person = await LifePerson.findOne({
+        email: { $regex: new RegExp(`^${auth.email}$`, "i") },
+      })
+        .select("_id")
+        .lean();
+      if (person) personId = String((person as any)._id);
+    }
+
+    if (!personId) return 0;
+
+    return await LifeNote.countDocuments({
+      assignedPersonId: personId,
+      isReleased: true,
+      isArchived: false,
+      $or: [
+        { "userActions.readAt": { $exists: false } },
+        { "userActions.readAt": null },
+        { isUpdated: true },
+      ],
+    });
+  } catch (error) {
+    console.error("Error in getUserNotesBadgeCount:", error);
+    return 0;
+  }
+}
+
+/**
+ * Backward compatibility: Retrieves all released notes for regular users or all notes for Super Admin.
  */
 export async function getAllNotes(): Promise<ILifeNote[]> {
   await connectToDatabase();
   const auth = await getLifeAuthContext();
   if (!auth) return [];
 
-  // Run auto-release engine so newly expired waiting periods are released
   await checkAndAutoReleaseNotes();
 
-  const query: Record<string, unknown> = {
-    isArchived: false,
-  };
-
-  // If not owner or admin, restrict to notes assigned to current person AND strictly isReleased: true
-  if (!auth.isOwner && !auth.isAdmin) {
-    if (!auth.personId) return [];
-    query.assignedPersonId = auth.personId;
-    query.isReleased = true; // Strict separation: only released notes in Notes section!
+  const isSuper = auth.isOwner || auth.isAdmin || auth.role === "super_admin";
+  if (isSuper) {
+    const data = await getSuperAdminNotes();
+    return data.notes;
   }
 
-  const notes = await LifeNote.find(query)
-    .populate("assignedPersonId", "name email relation role profilePhoto avatarUrl")
-    .sort({ isPinned: -1, createdAt: -1 })
-    .lean();
-
-  const results: any[] = [];
-  for (const n of notes as any[]) {
-    const { allowed } = canViewNote(n, auth);
-    if (!allowed) continue;
-    results.push(n);
-  }
-
-  return JSON.parse(JSON.stringify(results));
+  return getUserNotes();
 }
 
 /**
  * Records that a user has opened and viewed an assigned Note for the first time.
- * Triggers a "Seen" notification to the Owner.
+ * Triggers a "Seen" notification to the Super Admin and logs audit trail.
  */
 export async function markNoteSeen(noteId: string) {
   try {
@@ -871,19 +1154,22 @@ export async function markNoteSeen(noteId: string) {
     const note = await LifeNote.findById(noteId);
     if (!note) return { success: false, error: "Note not found." };
 
-    // If owner or super admin opens it, don't generate seen notification to themselves
+    // Super Admin viewing note doesn't notify themselves
     if (auth.isOwner || auth.role === "super_admin") {
       return { success: true, alreadySeen: true };
     }
 
-    // Check if already seen
-    if (note.userActions?.readAt) {
+    // Check if already seen and not updated
+    if (note.userActions?.readAt && !note.isUpdated) {
       return { success: true, alreadySeen: true };
     }
 
     const now = new Date();
     note.userActions = note.userActions || {};
     note.userActions.readAt = now;
+    if (note.isUpdated) {
+      note.isUpdated = false;
+    }
     await note.save();
 
     // Find Owner / Super Admin email
@@ -907,9 +1193,10 @@ export async function markNoteSeen(noteId: string) {
       resourceType: "note",
       resourceId: noteId,
       resourceName: note.title,
-      details: `${auth.name} opened note "${note.title}" for the first time.`,
+      details: `${auth.name} (User ID: ${auth.userId}) viewed note "${note.title}" on ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}`,
     });
 
+    revalidatePath("/lifenote");
     return { success: true, readAt: now };
   } catch (error: any) {
     console.error("Error in markNoteSeen:", error);
@@ -918,9 +1205,262 @@ export async function markNoteSeen(noteId: string) {
 }
 
 /**
+ * Acknowledges / confirms read of a note.
+ */
+export async function acknowledgeNote(noteId: string) {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth) return { success: false, error: "Unauthorized" };
+
+    const note = await LifeNote.findById(noteId);
+    if (!note) return { success: false, error: "Note not found." };
+
+    if (note.userActions?.acknowledgedAt) {
+      return {
+        success: true,
+        alreadyAcknowledged: true,
+        acknowledgedAt: note.userActions.acknowledgedAt,
+      };
+    }
+
+    const now = new Date();
+    note.userActions = note.userActions || {};
+    note.userActions.acknowledgedAt = now;
+    await note.save();
+
+    const ownerDoc = (await LifePerson.findOne({
+      role: { $in: ["owner", "super_admin"] },
+      status: { $ne: "archived" },
+    }).lean()) as any;
+
+    if (ownerDoc?.email) {
+      await createInAppNotification({
+        recipientEmail: ownerDoc.email,
+        title: `Note Confirmed Read: ${note.title}`,
+        message: `${auth.name} confirmed read and acknowledged note "${note.title}".`,
+        type: "instruction_completed",
+        link: `/lifenote`,
+      });
+    }
+
+    await logLifeActivity({
+      action: "NOTE_ACKNOWLEDGED",
+      resourceType: "note",
+      resourceId: noteId,
+      resourceName: note.title,
+      details: `${auth.name} (User ID: ${auth.userId}) confirmed read note "${note.title}" on ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}`,
+    });
+
+    revalidatePath("/lifenote");
+    return { success: true, acknowledgedAt: now };
+  } catch (error: any) {
+    console.error("Error in acknowledgeNote:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Super Admin manually releases a note early.
+ */
+export async function releaseNoteNow(noteId: string) {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (
+      !auth ||
+      (!auth.isOwner && !auth.isAdmin && auth.role !== "super_admin")
+    ) {
+      throw new Error("Forbidden: Super Admin only.");
+    }
+
+    const note = await LifeNote.findById(noteId).populate(
+      "assignedPersonId",
+      "name email",
+    );
+    if (!note) throw new Error("Note not found.");
+
+    const now = new Date();
+    note.isReleased = true;
+    note.status = "released";
+    note.releasedAt = now;
+    note.releasedBy = auth.email;
+
+    note.history = note.history || [];
+    note.history.push({
+      changedAt: now,
+      changedBy: `${auth.name} (${auth.email})`,
+      action: "manually_released",
+    });
+
+    await note.save();
+
+    // Auto-approve linked request in Request Center
+    try {
+      await LifeRequest.updateMany(
+        {
+          relatedRecordId: String(note._id),
+          relatedRecordType: "LifeNote",
+          status: { $in: ["pending", "in_review"] },
+        },
+        {
+          $set: {
+            status: "approved",
+            adminResponse: "Approved and released by Super Admin.",
+            resolvedBy: auth.name,
+            resolvedAt: now,
+          },
+          $inc: { unreadByUser: 1 },
+        },
+      );
+    } catch (e) {
+      console.error("Error updating linked requests on manual release:", e);
+    }
+
+    const assigned = note.assignedPersonId as any;
+    if (assigned?.email) {
+      await createInAppNotification({
+        recipientEmail: assigned.email,
+        recipientPersonId: String(assigned._id || note.assignedPersonId),
+        title: "Note Released",
+        message: `Your note "${note.title}" has been released and is now available in your Notes section.`,
+        type: "note_released",
+        link: "/lifenote",
+      });
+    }
+
+    await logLifeActivity({
+      action: "NOTE_MANUALLY_RELEASED",
+      resourceType: "note",
+      resourceId: noteId,
+      resourceName: note.title,
+      details: `${auth.name} manually released note "${note.title}" for ${assigned?.name || "assigned user"}.`,
+    });
+
+    revalidatePath("/lifenote");
+    revalidatePath("/requests");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error in releaseNoteNow:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Super Admin cancels a future scheduled release.
+ */
+export async function cancelFutureRelease(noteId: string) {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (
+      !auth ||
+      (!auth.isOwner && !auth.isAdmin && auth.role !== "super_admin")
+    ) {
+      throw new Error("Forbidden: Super Admin only.");
+    }
+
+    const note = await LifeNote.findById(noteId);
+    if (!note) throw new Error("Note not found.");
+
+    note.status = "request_cancelled";
+    note.isArchived = true;
+    await note.save();
+
+    await LifeRequest.updateMany(
+      {
+        relatedRecordId: String(note._id),
+        relatedRecordType: "LifeNote",
+        status: { $in: ["pending", "in_review"] },
+      },
+      {
+        $set: {
+          status: "cancelled",
+          adminResponse: "Future release cancelled by Super Admin.",
+          resolvedBy: auth.name,
+          resolvedAt: new Date(),
+        },
+      },
+    );
+
+    await logLifeActivity({
+      action: "FUTURE_RELEASE_CANCELLED",
+      resourceType: "note",
+      resourceId: noteId,
+      resourceName: note.title,
+      details: `${auth.name} cancelled future release for note "${note.title}".`,
+    });
+
+    revalidatePath("/lifenote");
+    revalidatePath("/requests");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error in cancelFutureRelease:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Super Admin reassigns a note to a different user.
+ */
+export async function reassignNote(noteId: string, newPersonId: string) {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (
+      !auth ||
+      (!auth.isOwner && !auth.isAdmin && auth.role !== "super_admin")
+    ) {
+      throw new Error("Forbidden: Super Admin only.");
+    }
+
+    const [note, newPerson] = await Promise.all([
+      LifeNote.findById(noteId),
+      LifePerson.findById(newPersonId).lean(),
+    ]);
+
+    if (!note) throw new Error("Note not found.");
+    if (!newPerson) throw new Error("New assigned person not found.");
+
+    const prevPersonName =
+      note.assignedPersonName || String(note.assignedPersonId);
+    const prevPersonId = String(note.assignedPersonId);
+
+    const newPersonDoc = newPerson as any;
+    note.assignedPersonId = newPersonDoc._id;
+    note.assignedPersonName = newPersonDoc.name;
+    note.isUpdated = true;
+    note.updatedBadgeAt = new Date();
+
+    note.history = note.history || [];
+    note.history.push({
+      changedAt: new Date(),
+      changedBy: `${auth.name} (${auth.email})`,
+      action: `reassigned: from ${prevPersonName} to ${newPersonDoc.name}`,
+    });
+
+    await note.save();
+
+    await logLifeActivity({
+      action: "NOTE_REASSIGNED",
+      resourceType: "note",
+      resourceId: noteId,
+      resourceName: note.title,
+      details: `${auth.name} reassigned note "${note.title}" from ${prevPersonName} (${prevPersonId}) to ${newPersonDoc.name} (${newPersonDoc._id}) on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`,
+    });
+
+    revalidatePath("/lifenote");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error in reassignNote:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
  * Provides a "Need Help" action when viewing a note.
- * Sends a message to the Owner containing the relevant Note Reference
- * so the Owner knows exactly which Note the user needs help with.
+ * Sends a message to the Super Admin containing the relevant Note Reference
+ * so the Super Admin knows exactly which Note the user needs help with.
  */
 export async function requestNoteHelp(noteId: string, helpMessage: string) {
   try {
@@ -934,6 +1474,10 @@ export async function requestNoteHelp(noteId: string, helpMessage: string) {
     const desc =
       helpMessage?.trim() ||
       `User requested assistance with note "${note.title}".`;
+
+    note.hasNeedHelp = true;
+    note.needHelpAt = new Date();
+    await note.save();
 
     const request = await LifeRequest.create({
       submittedByPersonId: auth.personId || undefined,
@@ -981,9 +1525,8 @@ export async function requestNoteHelp(noteId: string, helpMessage: string) {
 
     // Post directly into User <-> Super Admin conversation with Note reference
     try {
-      const { postNoteHelpToConversation } = await import(
-        "@/lib/actions/lifeConversation.actions"
-      );
+      const { postNoteHelpToConversation } =
+        await import("@/lib/actions/lifeConversation.actions");
       await postNoteHelpToConversation({
         noteId: String(note._id),
         noteTitle: note.title,
@@ -998,7 +1541,7 @@ export async function requestNoteHelp(noteId: string, helpMessage: string) {
       resourceType: "note",
       resourceId: noteId,
       resourceName: note.title,
-      details: `${auth.name} requested help for note "${note.title}": ${desc}`,
+      details: `${auth.name} (User ID: ${auth.userId}) requested help for note "${note.title}": ${desc}`,
     });
 
     revalidatePath("/requests");
@@ -1043,7 +1586,9 @@ export async function getFutureNotesForUser(): Promise<IFutureNoteItem[]> {
 
   // Only project safe metadata! DO NOT select content, attachments, tags, etc.
   const notes = await LifeNote.find(query)
-    .select("_id title assignedPersonName status waitingPeriodHours unlockRequestedAt unlockDeadline scheduledReleaseDate noteType")
+    .select(
+      "_id title assignedPersonName status waitingPeriodHours unlockRequestedAt unlockDeadline scheduledReleaseDate noteType",
+    )
     .sort({ createdAt: -1 })
     .lean();
 
@@ -1054,7 +1599,9 @@ export async function getFutureNotesForUser(): Promise<IFutureNoteItem[]> {
   const linkedRequests = await LifeRequest.find({
     relatedRecordId: { $in: noteIds },
     relatedRecordType: "LifeNote",
-    ...(isPrivileged ? {} : { submittedByEmail: auth.email.toLowerCase().trim() }),
+    ...(isPrivileged
+      ? {}
+      : { submittedByEmail: auth.email.toLowerCase().trim() }),
   })
     .select("_id relatedRecordId status")
     .lean();
@@ -1078,7 +1625,11 @@ export async function getFutureNotesForUser(): Promise<IFutureNoteItem[]> {
       noteType: n.noteType,
       linkedRequestId: linkedReq?._id ? String(linkedReq._id) : undefined,
       requestStatus: linkedReq?.status,
-      hasAccessRequested: Boolean(linkedReq || n.status === "countdown_active" || n.status === "unlock_requested"),
+      hasAccessRequested: Boolean(
+        linkedReq ||
+        n.status === "countdown_active" ||
+        n.status === "unlock_requested",
+      ),
     };
   });
 }
@@ -1099,11 +1650,14 @@ export async function requestFutureNoteAccess(noteId: string, reason?: string) {
   if (!note) throw new Error("Note not found.");
 
   if (note.isReleased) {
-    throw new Error("This note is already released and available in your Notes section.");
+    throw new Error(
+      "This note is already released and available in your Notes section.",
+    );
   }
 
   const isAssigned =
-    Boolean(auth.personId) && String(note.assignedPersonId) === String(auth.personId);
+    Boolean(auth.personId) &&
+    String(note.assignedPersonId) === String(auth.personId);
 
   if (!auth.isOwner && !auth.isAdmin && !isAssigned) {
     throw new Error("You are not authorized to request access to this note.");

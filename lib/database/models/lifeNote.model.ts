@@ -4,13 +4,15 @@ import { NoteType, NoteStatus, INoteHistoryEntry, INoteUserResponse } from "@/ty
 export interface ILifeNoteDoc extends Document {
   title: string;
   content: string;
+  instructions?: string;
+  deliveryType?: "immediate" | "future";
   noteType: NoteType;
   assignedPersonId: mongoose.Types.ObjectId;
   assignedPersonName?: string;
   createdBy: string;
   createdByName?: string;
   lastEditedBy?: string;
-  priority: "low" | "medium" | "high" | "critical";
+  priority: "low" | "medium" | "high" | "critical" | "normal" | "important" | "emergency";
   category?: string;
   tags?: string[];
   isPinned: boolean;
@@ -18,6 +20,12 @@ export interface ILifeNoteDoc extends Document {
   isArchived: boolean;
   status: NoteStatus;
   waitingPeriodHours: number;
+  needHelpAllowed?: boolean;
+  confirmReadRequired?: boolean;
+  hasNeedHelp?: boolean;
+  needHelpAt?: Date;
+  isUpdated?: boolean;
+  updatedBadgeAt?: Date;
   unlockRequestedAt?: Date;
   unlockRequestedBy?: string;
   unlockDeadline?: Date;
@@ -61,14 +69,21 @@ const LifeNoteSchema = new Schema<ILifeNoteDoc>(
       required: true,
       index: true,
     },
+    instructions: { type: String, default: "" },
+    deliveryType: {
+      type: String,
+      enum: ["immediate", "future"],
+      default: "immediate",
+      index: true,
+    },
     assignedPersonName: { type: String, default: "" },
     createdBy: { type: String, required: true },
     createdByName: { type: String, default: "" },
     lastEditedBy: { type: String, default: "" },
     priority: {
       type: String,
-      enum: ["low", "medium", "high", "critical"],
-      default: "medium",
+      enum: ["low", "medium", "high", "critical", "normal", "important", "emergency"],
+      default: "normal",
       index: true,
     },
     category: { type: String, default: "General", trim: true },
@@ -93,6 +108,12 @@ const LifeNoteSchema = new Schema<ILifeNoteDoc>(
       index: true,
     },
     waitingPeriodHours: { type: Number, default: 48 },
+    needHelpAllowed: { type: Boolean, default: true },
+    confirmReadRequired: { type: Boolean, default: false },
+    hasNeedHelp: { type: Boolean, default: false, index: true },
+    needHelpAt: { type: Date },
+    isUpdated: { type: Boolean, default: false },
+    updatedBadgeAt: { type: Date },
     unlockRequestedAt: { type: Date },
     unlockRequestedBy: { type: String, default: "" },
     unlockDeadline: { type: Date, index: true },

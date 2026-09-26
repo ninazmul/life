@@ -29,7 +29,7 @@ const ConversationAttachmentSchema = new Schema<IConversationAttachment>(
     type: { type: String },
     size: { type: Number },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const ConversationMessageSchema = new Schema<IConversationMessage>(
@@ -48,7 +48,7 @@ const ConversationMessageSchema = new Schema<IConversationMessage>(
     },
     createdAt: { type: Date, default: Date.now },
   },
-  { timestamps: false }
+  { timestamps: false },
 );
 
 const LifeConversationSchema = new Schema<ILifeConversationDoc>(
@@ -57,10 +57,8 @@ const LifeConversationSchema = new Schema<ILifeConversationDoc>(
     userEmail: {
       type: String,
       required: true,
-      unique: true,
       lowercase: true,
       trim: true,
-      index: true,
     },
     userName: { type: String, required: true, trim: true },
     userRole: { type: String, default: "individual" },
@@ -77,7 +75,7 @@ const LifeConversationSchema = new Schema<ILifeConversationDoc>(
     lastMessageSenderRole: { type: String },
     isPinned: { type: Boolean, default: false },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 LifeConversationSchema.index({ userEmail: 1 }, { unique: true });
@@ -85,6 +83,9 @@ LifeConversationSchema.index({ lastMessageAt: -1 });
 
 const LifeConversation =
   mongoose.models.LifeConversation ||
-  mongoose.model<ILifeConversationDoc>("LifeConversation", LifeConversationSchema);
+  mongoose.model<ILifeConversationDoc>(
+    "LifeConversation",
+    LifeConversationSchema,
+  );
 
 export default LifeConversation;

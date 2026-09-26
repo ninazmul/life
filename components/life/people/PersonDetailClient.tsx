@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -30,27 +30,20 @@ import {
   Share2,
   HeartPulse,
   Stethoscope,
-  Calendar,
   Sparkles,
   ScrollText,
   StickyNote,
   Plus,
   Pin,
-  Eye,
-  EyeOff,
   Archive,
-  MessageSquare,
   History,
-  ChevronDown,
   Timer,
   ShieldAlert,
-  Send,
-  RotateCcw,
-  Tag,
-  BookOpen,
   Check,
   X,
-  Layers,
+  Paperclip,
+  Calendar,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -240,25 +233,41 @@ interface PersonDetailClientProps {
   };
 }
 
+interface PersonNoteAttachment {
+  name: string;
+  url: string;
+  type: string;
+  size?: number;
+}
+
 export function PersonDetailClient({
   personData,
   currentUser,
 }: PersonDetailClientProps) {
-  const isOwnerProfile = personData.person.role === "owner" || personData.person.role === "super_admin";
+  const isOwnerProfile =
+    personData.person.role === "owner" ||
+    personData.person.role === "super_admin";
   const [person, setPerson] = useState(personData.person);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState(isOwnerProfile ? "owner_dossier" : "contact_social");
+  const [activeTab, setActiveTab] = useState(
+    isOwnerProfile ? "owner_dossier" : "contact_social",
+  );
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [savingEdit, setSavingEdit] = useState(false);
 
   const isSuperUser = Boolean(currentUser?.isOwner || currentUser?.isAdmin);
-  const isSelf = Boolean(currentUser?.personId && String(currentUser.personId) === String(person._id));
+  const isSelf = Boolean(
+    currentUser?.personId &&
+    String(currentUser.personId) === String(person._id),
+  );
   const canEdit = isSuperUser || isSelf;
 
   // Profile & Access Management Modal state
   const [accessModalOpen, setAccessModalOpen] = useState(false);
   const [accessStep, setAccessStep] = useState<"edit" | "review">("edit");
-  const [allCategories, setAllCategories] = useState<Record<string, ILifeCategory[]>>({});
+  const [allCategories, setAllCategories] = useState<
+    Record<string, ILifeCategory[]>
+  >({});
   const [accessSaving, setAccessSaving] = useState(false);
   const [accessForm, setAccessForm] = useState({
     name: person.name || "",
@@ -302,6 +311,7 @@ export function PersonDetailClient({
 
   // Notes state
   const [notes, setNotes] = useState<ILifeNote[]>([]);
+
   const [notesLoading, setNotesLoading] = useState(false);
   const [noteModalOpen, setNoteModalOpen] = useState(false);
   const [noteSaving, setNoteSaving] = useState(false);
@@ -310,14 +320,32 @@ export function PersonDetailClient({
   const [noteForm, setNoteForm] = useState({
     title: "",
     content: "",
+    instructions: "",
     noteType: "always_visible" as NoteType,
-    priority: "medium" as "low" | "medium" | "high" | "critical",
+    priority: "normal" as
+      | "normal"
+      | "important"
+      | "emergency"
+      | "low"
+      | "medium"
+      | "high"
+      | "critical",
     category: "",
     tags: "",
     isPinned: false,
     waitingPeriodHours: 48,
+    deliveryType: "immediate" as "immediate" | "future",
+    scheduledReleaseDate: "" as string,
+    needHelpAllowed: true,
+    confirmReadRequired: false,
   });
-  const [noteHistoryModal, setNoteHistoryModal] = useState<ILifeNote | null>(null);
+  const [pendingNoteAttachments, setPendingNoteAttachments] = useState<
+    PersonNoteAttachment[]
+  >([]);
+  const noteFileInputRef = useRef<HTMLInputElement | null>(null);
+  const [noteHistoryModal, setNoteHistoryModal] = useState<ILifeNote | null>(
+    null,
+  );
   const [noteResponseText, setNoteResponseText] = useState("");
 
   const loadNotes = async () => {
@@ -381,14 +409,46 @@ export function PersonDetailClient({
       if (prevVal && !newVal) removed.push(label);
     };
 
-    checkPerm("View Personal Data", Boolean(prevPerms.canViewPersonal), accessForm.canViewPersonal);
-    checkPerm("View Business Continuity", Boolean(prevPerms.canViewBusiness), accessForm.canViewBusiness);
-    checkPerm("View Financial Care", Boolean(prevPerms.canViewFinancial), accessForm.canViewFinancial);
-    checkPerm("View Sensitive Records", Boolean(prevPerms.canViewSensitive), accessForm.canViewSensitive);
-    checkPerm("Reveal Vault Secrets", Boolean(prevPerms.canRevealVault), accessForm.canRevealVault);
-    checkPerm("Manage Access Control", Boolean(prevPerms.canManageAccess), accessForm.canManageAccess);
-    checkPerm("Access Emergency Mode", Boolean(prevPerms.canAccessEmergency), accessForm.canAccessEmergency);
-    checkPerm("Manage Secret Notes", Boolean(prevPerms.canManageSecretNotes), accessForm.canManageSecretNotes);
+    checkPerm(
+      "View Personal Data",
+      Boolean(prevPerms.canViewPersonal),
+      accessForm.canViewPersonal,
+    );
+    checkPerm(
+      "View Business Continuity",
+      Boolean(prevPerms.canViewBusiness),
+      accessForm.canViewBusiness,
+    );
+    checkPerm(
+      "View Financial Care",
+      Boolean(prevPerms.canViewFinancial),
+      accessForm.canViewFinancial,
+    );
+    checkPerm(
+      "View Sensitive Records",
+      Boolean(prevPerms.canViewSensitive),
+      accessForm.canViewSensitive,
+    );
+    checkPerm(
+      "Reveal Vault Secrets",
+      Boolean(prevPerms.canRevealVault),
+      accessForm.canRevealVault,
+    );
+    checkPerm(
+      "Manage Access Control",
+      Boolean(prevPerms.canManageAccess),
+      accessForm.canManageAccess,
+    );
+    checkPerm(
+      "Access Emergency Mode",
+      Boolean(prevPerms.canAccessEmergency),
+      accessForm.canAccessEmergency,
+    );
+    checkPerm(
+      "Manage Secret Notes",
+      Boolean(prevPerms.canManageSecretNotes),
+      accessForm.canManageSecretNotes,
+    );
 
     if (person.role !== accessForm.role) {
       added.push(`Role upgraded/changed to ${accessForm.role.toUpperCase()}`);
@@ -401,7 +461,8 @@ export function PersonDetailClient({
     }
 
     if (Boolean(person.isRecordOnly) !== accessForm.isRecordOnly) {
-      if (accessForm.isRecordOnly) added.push("Set to Record-Only (Reference Only)");
+      if (accessForm.isRecordOnly)
+        added.push("Set to Record-Only (Reference Only)");
       else removed.push("Record-Only status removed");
     }
 
@@ -481,6 +542,41 @@ export function PersonDetailClient({
     }
   };
 
+  const handlePersonNoteAttachmentChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    const maxSize = 8 * 1024 * 1024;
+    Array.from(files).forEach((file) => {
+      if (file.size > maxSize) {
+        toast.error(`File "${file.name}" exceeds 8MB limit.`);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const url = event.target?.result as string;
+        if (url) {
+          setPendingNoteAttachments((prev) => [
+            ...prev,
+            {
+              name: file.name,
+              url,
+              type: file.type || "application/octet-stream",
+              size: file.size,
+            },
+          ]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+    if (noteFileInputRef.current) noteFileInputRef.current.value = "";
+  };
+
+  const removePersonNoteAttachment = (index: number) => {
+    setPendingNoteAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSaveNote = async () => {
     if (!noteForm.title.trim() || !noteForm.content.trim()) {
       toast.error("Title and content are required.");
@@ -488,30 +584,48 @@ export function PersonDetailClient({
     }
     setNoteSaving(true);
     try {
-      const tagsArr = noteForm.tags ? noteForm.tags.split(",").map(t => t.trim()).filter(Boolean) : [];
+      const tagsArr = noteForm.tags
+        ? noteForm.tags
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean)
+        : [];
+      const attachmentUrls = pendingNoteAttachments.map((a) => a.url);
       if (editingNote) {
         await updateNote(editingNote._id, {
           title: noteForm.title,
           content: noteForm.content,
+          instructions: noteForm.instructions,
           noteType: noteForm.noteType,
           priority: noteForm.priority,
           category: noteForm.category,
           tags: tagsArr,
+          attachments: attachmentUrls,
           isPinned: noteForm.isPinned,
           waitingPeriodHours: noteForm.waitingPeriodHours,
+          deliveryType: noteForm.deliveryType,
+          scheduledReleaseDate: noteForm.scheduledReleaseDate || undefined,
+          needHelpAllowed: noteForm.needHelpAllowed,
+          confirmReadRequired: noteForm.confirmReadRequired,
         });
         toast.success("Note updated.");
       } else {
         await createNote({
           title: noteForm.title,
           content: noteForm.content,
+          instructions: noteForm.instructions,
           noteType: noteForm.noteType,
           assignedPersonId: person._id,
           priority: noteForm.priority,
           category: noteForm.category,
           tags: tagsArr,
+          attachments: attachmentUrls,
           isPinned: noteForm.isPinned,
           waitingPeriodHours: noteForm.waitingPeriodHours,
+          deliveryType: noteForm.deliveryType,
+          scheduledReleaseDate: noteForm.scheduledReleaseDate || undefined,
+          needHelpAllowed: noteForm.needHelpAllowed,
+          confirmReadRequired: noteForm.confirmReadRequired,
         });
         toast.success("Note created.");
       }
@@ -530,31 +644,66 @@ export function PersonDetailClient({
     setNoteForm({
       title: "",
       content: "",
+      instructions: "",
       noteType: "always_visible",
-      priority: "medium",
+      priority: "normal",
       category: "",
       tags: "",
       isPinned: false,
       waitingPeriodHours: 48,
+      deliveryType: "immediate",
+      scheduledReleaseDate: "",
+      needHelpAllowed: true,
+      confirmReadRequired: false,
     });
+    setPendingNoteAttachments([]);
   };
 
   const openEditNote = (note: ILifeNote) => {
     setEditingNote(note);
+    const existing: PersonNoteAttachment[] = Array.isArray(
+      (note as any).attachments,
+    )
+      ? (note as any).attachments
+          .map((a: any) =>
+            typeof a === "string"
+              ? { name: "attachment", url: a, type: "application/octet-stream" }
+              : {
+                  name: a?.name || "attachment",
+                  url: a?.url || "",
+                  type: a?.type || "application/octet-stream",
+                },
+          )
+          .filter((a: PersonNoteAttachment) => a.url)
+      : [];
     setNoteForm({
       title: note.title,
       content: note.content,
+      instructions: (note as any).instructions || "",
       noteType: note.noteType,
-      priority: note.priority,
+      priority: note.priority || "normal",
       category: note.category || "",
       tags: (note.tags || []).join(", "),
       isPinned: note.isPinned,
       waitingPeriodHours: note.waitingPeriodHours,
+      deliveryType:
+        (note as any).deliveryType ||
+        (note.noteType === "scheduled_release" ? "future" : "immediate"),
+      scheduledReleaseDate: note.scheduledReleaseDate
+        ? new Date(note.scheduledReleaseDate).toISOString().slice(0, 16)
+        : "",
+      needHelpAllowed: (note as any).needHelpAllowed !== false,
+      confirmReadRequired: Boolean((note as any).confirmReadRequired),
     });
+    setPendingNoteAttachments(existing);
     setNoteModalOpen(true);
   };
 
-  const handleNoteAction = async (noteId: string, action: string, text?: string) => {
+  const handleNoteAction = async (
+    noteId: string,
+    action: string,
+    text?: string,
+  ) => {
     try {
       switch (action) {
         case "request_unlock":
@@ -636,7 +785,9 @@ export function PersonDetailClient({
       relocked: "bg-slate-500/10 text-slate-600 border-slate-500/20",
       archived: "bg-slate-500/10 text-slate-500 border-slate-500/20",
     };
-    return colors[status] || "bg-slate-500/10 text-slate-600 border-slate-500/20";
+    return (
+      colors[status] || "bg-slate-500/10 text-slate-600 border-slate-500/20"
+    );
   };
 
   const getNoteTypeLabel = (noteType: NoteType) => {
@@ -649,7 +800,6 @@ export function PersonDetailClient({
     };
     return labels[noteType] || noteType;
   };
-
 
   const handleToggleLock = async () => {
     const newStatus = person.status === "locked" ? "active" : "locked";
@@ -667,10 +817,11 @@ export function PersonDetailClient({
       toast.success(
         newStatus === "locked"
           ? `${person.name} access has been locked.`
-          : `${person.name} access has been unlocked.`
+          : `${person.name} access has been unlocked.`,
       );
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to update status.";
+      const msg =
+        err instanceof Error ? err.message : "Failed to update status.";
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -691,10 +842,11 @@ export function PersonDetailClient({
       toast.success(
         newLoginState
           ? `Login enabled for ${person.name}.`
-          : `Login disabled for ${person.name}.`
+          : `Login disabled for ${person.name}.`,
       );
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to update login status.";
+      const msg =
+        err instanceof Error ? err.message : "Failed to update login status.";
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -708,12 +860,18 @@ export function PersonDetailClient({
       setPerson((prev) => ({
         ...prev,
         accountStatus: newStatus,
-        status: newStatus === "archived" ? "archived" : newStatus === "locked" ? "locked" : "active",
+        status:
+          newStatus === "archived"
+            ? "archived"
+            : newStatus === "locked"
+              ? "locked"
+              : "active",
         isLoginEnabled: newStatus === "active",
       }));
       toast.success(`Account status set to ${newStatus.replace("_", " ")}.`);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to update status.";
+      const msg =
+        err instanceof Error ? err.message : "Failed to update status.";
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -848,8 +1006,8 @@ export function PersonDetailClient({
   ];
 
   // STRICT RULE: Only show an icon/link when that information exists.
-  const activeSocials = socialPlatforms.filter(
-    (p) => Boolean(p.value && p.value.trim() !== "")
+  const activeSocials = socialPlatforms.filter((p) =>
+    Boolean(p.value && p.value.trim() !== ""),
   );
 
   const isSuperAdmin =
@@ -859,7 +1017,8 @@ export function PersonDetailClient({
 
   const getSubTitle = () => {
     if (person.designation) return person.designation;
-    if (person.role === "super_admin" || person.role === "owner") return "Super Admin";
+    if (person.role === "super_admin" || person.role === "owner")
+      return "Super Admin";
     if (person.role === "admin") return "Administrator";
     if (person.role === "guardian") return "Guardian";
     if (person.relation) return person.relation;
@@ -997,12 +1156,17 @@ export function PersonDetailClient({
             )}
 
             <span
-              className={`text-[10px] uppercase font-extrabold px-2.5 py-0.5 rounded-full border ${person.status === "active" || person.accountStatus === "active"
+              className={`text-[10px] uppercase font-extrabold px-2.5 py-0.5 rounded-full border ${
+                person.status === "active" || person.accountStatus === "active"
                   ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60"
                   : "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400 border-red-200 dark:border-red-800/60"
-                }`}
+              }`}
             >
-              {(person.accountStatus || person.status || "active").toUpperCase()}
+              {(
+                person.accountStatus ||
+                person.status ||
+                "active"
+              ).toUpperCase()}
             </span>
           </div>
         </div>
@@ -1106,7 +1270,8 @@ export function PersonDetailClient({
                       <span>My Life Profile Dossier</span>
                     </h2>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Personal · Medical · Life History · Private Records · Wasiyyah · Assets
+                      Personal · Medical · Life History · Private Records ·
+                      Wasiyyah · Assets
                     </p>
                   </div>
                 </div>
@@ -1150,37 +1315,59 @@ export function PersonDetailClient({
                 </div>
                 <div className="space-y-2 text-xs">
                   <p className="flex justify-between border-b border-border/50 pb-1.5">
-                    <span className="text-muted-foreground">Full Legal Name:</span>
-                    <span className="font-bold text-foreground">{person.name}</span>
+                    <span className="text-muted-foreground">
+                      Full Legal Name:
+                    </span>
+                    <span className="font-bold text-foreground">
+                      {person.name}
+                    </span>
                   </p>
                   <p className="flex justify-between border-b border-border/50 pb-1.5">
-                    <span className="text-muted-foreground">Designation / Role:</span>
+                    <span className="text-muted-foreground">
+                      Designation / Role:
+                    </span>
                     <span className="font-semibold text-foreground">
                       {person.designation || person.relation || "Account Owner"}
                     </span>
                   </p>
                   <p className="flex justify-between border-b border-border/50 pb-1.5">
-                    <span className="text-muted-foreground">Primary Mobile:</span>
-                    <span className="font-mono text-foreground">{person.phone || "Not provided"}</span>
+                    <span className="text-muted-foreground">
+                      Primary Mobile:
+                    </span>
+                    <span className="font-mono text-foreground">
+                      {person.phone || "Not provided"}
+                    </span>
                   </p>
                   <p className="flex justify-between border-b border-border/50 pb-1.5">
                     <span className="text-muted-foreground">WhatsApp:</span>
-                    <span className="font-mono text-foreground">{person.whatsapp || person.phone || "Not provided"}</span>
+                    <span className="font-mono text-foreground">
+                      {person.whatsapp || person.phone || "Not provided"}
+                    </span>
                   </p>
                   <p className="flex justify-between border-b border-border/50 pb-1.5">
-                    <span className="text-muted-foreground">Primary Email:</span>
-                    <span className="font-mono text-foreground break-all">{person.email || "Not linked"}</span>
+                    <span className="text-muted-foreground">
+                      Primary Email:
+                    </span>
+                    <span className="font-mono text-foreground break-all">
+                      {person.email || "Not linked"}
+                    </span>
                   </p>
                   {person.address && (
                     <p className="flex justify-between border-b border-border/50 pb-1.5">
-                      <span className="text-muted-foreground">Residential Address:</span>
-                      <span className="font-medium text-foreground text-right">{person.address}</span>
+                      <span className="text-muted-foreground">
+                        Residential Address:
+                      </span>
+                      <span className="font-medium text-foreground text-right">
+                        {person.address}
+                      </span>
                     </p>
                   )}
                   {person.country && (
                     <p className="flex justify-between border-b border-border/50 pb-1.5">
                       <span className="text-muted-foreground">Country:</span>
-                      <span className="font-medium text-foreground">{person.country}</span>
+                      <span className="font-medium text-foreground">
+                        {person.country}
+                      </span>
                     </p>
                   )}
                 </div>
@@ -1189,13 +1376,19 @@ export function PersonDetailClient({
                 <div className="pt-2">
                   <p className="text-[11px] font-bold text-foreground mb-1.5 flex items-center justify-between">
                     <span>Identity Documents & Proofs</span>
-                    <Link href="/documents" className="text-emerald-600 hover:underline text-[10px]">
+                    <Link
+                      href="/documents"
+                      className="text-emerald-600 hover:underline text-[10px]"
+                    >
                       View All
                     </Link>
                   </p>
-                  {personData.documents?.filter((d) => d.category === "identity").length === 0 ? (
+                  {personData.documents?.filter(
+                    (d) => d.category === "identity",
+                  ).length === 0 ? (
                     <p className="text-[11px] text-muted-foreground italic bg-secondary/50 p-2.5 rounded-xl border border-border">
-                      No identity documents added yet. Upload passport or national ID in Documents.
+                      No identity documents added yet. Upload passport or
+                      national ID in Documents.
                     </p>
                   ) : (
                     <div className="space-y-1.5">
@@ -1207,7 +1400,9 @@ export function PersonDetailClient({
                             key={doc._id}
                             className="p-2 rounded-xl bg-secondary/50 border border-border flex items-center justify-between text-xs"
                           >
-                            <span className="font-medium truncate max-w-[200px]">{doc.title}</span>
+                            <span className="font-medium truncate max-w-[200px]">
+                              {doc.title}
+                            </span>
                             <a
                               href={doc.fileUrl}
                               target="_blank"
@@ -1230,7 +1425,10 @@ export function PersonDetailClient({
                     <HeartPulse className="w-3.5 h-3.5 text-rose-500" />
                     <span>Medical & Health Records</span>
                   </h3>
-                  <Link href="/information" className="text-emerald-600 hover:underline text-[10px] font-bold">
+                  <Link
+                    href="/information"
+                    className="text-emerald-600 hover:underline text-[10px] font-bold"
+                  >
                     + Add Health Note
                   </Link>
                 </div>
@@ -1242,8 +1440,9 @@ export function PersonDetailClient({
                       Blood Group
                     </p>
                     <p className="text-sm font-extrabold text-foreground mt-0.5">
-                      {personData.notes?.find((n) => n.title.toLowerCase().includes("blood"))?.content ||
-                        "On Record"}
+                      {personData.notes?.find((n) =>
+                        n.title.toLowerCase().includes("blood"),
+                      )?.content || "On Record"}
                     </p>
                   </div>
                   <div className="p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-center">
@@ -1251,24 +1450,28 @@ export function PersonDetailClient({
                       Allergies Status
                     </p>
                     <p className="text-sm font-extrabold text-foreground mt-0.5">
-                      {personData.notes?.find((n) => n.title.toLowerCase().includes("allergy"))?.content ||
-                        "Documented"}
+                      {personData.notes?.find((n) =>
+                        n.title.toLowerCase().includes("allergy"),
+                      )?.content || "Documented"}
                     </p>
                   </div>
                 </div>
 
                 {/* Current Health Conditions & Medicines */}
                 <div className="space-y-2 text-xs">
-                  <p className="font-bold text-foreground text-[11px]">Current Health & Treatments</p>
+                  <p className="font-bold text-foreground text-[11px]">
+                    Current Health & Treatments
+                  </p>
                   {personData.notes?.filter(
                     (n) =>
                       n.category === "personal" &&
                       (n.title.toLowerCase().includes("medic") ||
                         n.title.toLowerCase().includes("health") ||
-                        n.tags?.includes("medical"))
+                        n.tags?.includes("medical")),
                   ).length === 0 ? (
                     <p className="text-[11px] text-muted-foreground italic bg-secondary/50 p-2.5 rounded-xl border border-border">
-                      No active medical conditions or medication logs recorded. Add via Personal Information.
+                      No active medical conditions or medication logs recorded.
+                      Add via Personal Information.
                     </p>
                   ) : (
                     <div className="space-y-1.5">
@@ -1278,7 +1481,7 @@ export function PersonDetailClient({
                             n.category === "personal" &&
                             (n.title.toLowerCase().includes("medic") ||
                               n.title.toLowerCase().includes("health") ||
-                              n.tags?.includes("medical"))
+                              n.tags?.includes("medical")),
                         )
                         .slice(0, 3)
                         .map((note) => (
@@ -1286,8 +1489,12 @@ export function PersonDetailClient({
                             key={note._id}
                             className="p-2.5 rounded-xl bg-secondary/50 border border-border space-y-1"
                           >
-                            <p className="font-bold text-foreground text-xs">{note.title}</p>
-                            <p className="text-xs text-muted-foreground line-clamp-2">{note.content}</p>
+                            <p className="font-bold text-foreground text-xs">
+                              {note.title}
+                            </p>
+                            <p className="text-xs text-muted-foreground line-clamp-2">
+                              {note.content}
+                            </p>
                           </div>
                         ))}
                     </div>
@@ -1301,18 +1508,39 @@ export function PersonDetailClient({
                       <Stethoscope className="w-3.5 h-3.5 text-blue-500" />
                       <span>Doctors & Preferred Hospitals</span>
                     </span>
-                    <Link href="/contacts" className="text-emerald-600 hover:underline text-[10px]">
-                      Manage ({personData.contacts?.filter((c) => c.category === "doctor" || (c.category as string) === "medical" || c.role?.toLowerCase().includes("doctor")).length || 0})
+                    <Link
+                      href="/contacts"
+                      className="text-emerald-600 hover:underline text-[10px]"
+                    >
+                      Manage (
+                      {personData.contacts?.filter(
+                        (c) =>
+                          c.category === "doctor" ||
+                          (c.category as string) === "medical" ||
+                          c.role?.toLowerCase().includes("doctor"),
+                      ).length || 0}
+                      )
                     </Link>
                   </p>
-                  {personData.contacts?.filter((c) => c.category === "doctor" || (c.category as string) === "medical" || c.role?.toLowerCase().includes("doctor")).length === 0 ? (
+                  {personData.contacts?.filter(
+                    (c) =>
+                      c.category === "doctor" ||
+                      (c.category as string) === "medical" ||
+                      c.role?.toLowerCase().includes("doctor"),
+                  ).length === 0 ? (
                     <p className="text-[11px] text-muted-foreground italic bg-secondary/50 p-2 rounded-xl border border-border">
-                      No doctors or hospitals linked. Add doctor contacts in Important Contacts.
+                      No doctors or hospitals linked. Add doctor contacts in
+                      Important Contacts.
                     </p>
                   ) : (
                     <div className="space-y-1.5">
                       {personData.contacts
-                        ?.filter((c) => c.category === "doctor" || (c.category as string) === "medical" || c.role?.toLowerCase().includes("doctor"))
+                        ?.filter(
+                          (c) =>
+                            c.category === "doctor" ||
+                            (c.category as string) === "medical" ||
+                            c.role?.toLowerCase().includes("doctor"),
+                        )
                         .slice(0, 2)
                         .map((doc) => (
                           <div
@@ -1320,8 +1548,12 @@ export function PersonDetailClient({
                             className="p-2 rounded-xl bg-secondary/50 border border-border flex items-center justify-between text-xs"
                           >
                             <div>
-                              <p className="font-bold text-foreground">{doc.name}</p>
-                              <p className="text-[11px] text-muted-foreground">{doc.role || doc.company || "Medical"}</p>
+                              <p className="font-bold text-foreground">
+                                {doc.name}
+                              </p>
+                              <p className="text-[11px] text-muted-foreground">
+                                {doc.role || doc.company || "Medical"}
+                              </p>
                             </div>
                             <a
                               href={`tel:${doc.phone}`}
@@ -1343,14 +1575,18 @@ export function PersonDetailClient({
                     <Building2 className="w-3.5 h-3.5 text-emerald-600" />
                     <span>Assets & Properties</span>
                   </h3>
-                  <Link href="/assets" className="text-emerald-600 hover:underline text-[10px] font-bold">
+                  <Link
+                    href="/assets"
+                    className="text-emerald-600 hover:underline text-[10px] font-bold"
+                  >
                     View Registry ({personData.assets?.length || 0})
                   </Link>
                 </div>
 
                 {personData.assets?.length === 0 ? (
                   <p className="text-[11px] text-muted-foreground italic bg-secondary/50 p-3 rounded-xl border border-border">
-                    No physical or financial assets registered. Add properties, bank accounts, or investments in Assets.
+                    No physical or financial assets registered. Add properties,
+                    bank accounts, or investments in Assets.
                   </p>
                 ) : (
                   <div className="space-y-2">
@@ -1360,14 +1596,22 @@ export function PersonDetailClient({
                         className="p-2.5 rounded-xl bg-secondary/50 border border-border flex items-center justify-between text-xs"
                       >
                         <div>
-                          <p className="font-bold text-foreground">{asset.name}</p>
-                          <p className="text-[10px] text-muted-foreground uppercase">{asset.category} {asset.location ? `· ${asset.location}` : ""}</p>
+                          <p className="font-bold text-foreground">
+                            {asset.name}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground uppercase">
+                            {asset.category}{" "}
+                            {asset.location ? `· ${asset.location}` : ""}
+                          </p>
                         </div>
                         <div className="text-right">
                           <p className="font-bold text-emerald-600">
-                            {asset.currency || "BDT"} {Number(asset.value || 0).toLocaleString()}
+                            {asset.currency || "BDT"}{" "}
+                            {Number(asset.value || 0).toLocaleString()}
                           </p>
-                          <span className="text-[10px] text-muted-foreground">{asset.ownershipPercentage || 100}% ownership</span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {asset.ownershipPercentage || 100}% ownership
+                          </span>
                         </div>
                       </div>
                     ))}
@@ -1382,20 +1626,27 @@ export function PersonDetailClient({
                     <Wallet className="w-3.5 h-3.5 text-blue-600" />
                     <span>Loans, Gifts & Financial Care</span>
                   </h3>
-                  <Link href="/finance" className="text-emerald-600 hover:underline text-[10px] font-bold">
+                  <Link
+                    href="/finance"
+                    className="text-emerald-600 hover:underline text-[10px] font-bold"
+                  >
                     Open Finance Hub
                   </Link>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-center">
                   <div className="p-2.5 rounded-2xl bg-secondary/50 border border-border">
-                    <p className="text-[10px] font-bold uppercase text-muted-foreground">Support Programs</p>
+                    <p className="text-[10px] font-bold uppercase text-muted-foreground">
+                      Support Programs
+                    </p>
                     <p className="text-base font-extrabold text-foreground mt-0.5">
                       {personData.financialCare?.length || 0}
                     </p>
                   </div>
                   <div className="p-2.5 rounded-2xl bg-secondary/50 border border-border">
-                    <p className="text-[10px] font-bold uppercase text-muted-foreground">Money Records</p>
+                    <p className="text-[10px] font-bold uppercase text-muted-foreground">
+                      Money Records
+                    </p>
                     <p className="text-base font-extrabold text-foreground mt-0.5">
                       {personData.moneyRecords?.length || 0}
                     </p>
@@ -1409,11 +1660,16 @@ export function PersonDetailClient({
                       className="p-2 rounded-xl bg-secondary/50 border border-border flex items-center justify-between"
                     >
                       <div>
-                        <span className="font-bold capitalize text-foreground">{record.type?.replace("_", " ")}</span>
-                        <p className="text-[10px] text-muted-foreground">{record.notes || "Financial transaction"}</p>
+                        <span className="font-bold capitalize text-foreground">
+                          {record.type?.replace("_", " ")}
+                        </span>
+                        <p className="text-[10px] text-muted-foreground">
+                          {record.notes || "Financial transaction"}
+                        </p>
                       </div>
                       <span className="font-bold text-foreground">
-                        {record.currency || "BDT"} {Number(record.amount || 0).toLocaleString()}
+                        {record.currency || "BDT"}{" "}
+                        {Number(record.amount || 0).toLocaleString()}
                       </span>
                     </div>
                   ))}
@@ -1427,7 +1683,10 @@ export function PersonDetailClient({
                     <Calendar className="w-3.5 h-3.5 text-purple-500" />
                     <span>Life Events & Family History</span>
                   </h3>
-                  <Link href="/people" className="text-emerald-600 hover:underline text-[10px] font-bold">
+                  <Link
+                    href="/people"
+                    className="text-emerald-600 hover:underline text-[10px] font-bold"
+                  >
                     People Directory
                   </Link>
                 </div>
@@ -1436,13 +1695,17 @@ export function PersonDetailClient({
                   <div className="p-2.5 rounded-xl bg-secondary/50 border border-border space-y-1">
                     <p className="font-bold text-foreground">Family Circle</p>
                     <p className="text-muted-foreground text-xs">
-                      Family records and trusted relations registered across the Life platform.
+                      Family records and trusted relations registered across the
+                      Life platform.
                     </p>
                   </div>
                   <div className="p-2.5 rounded-xl bg-secondary/50 border border-border space-y-1">
-                    <p className="font-bold text-foreground">Important Relationships</p>
+                    <p className="font-bold text-foreground">
+                      Important Relationships
+                    </p>
                     <p className="text-muted-foreground text-xs">
-                      Key advisors, legal counsel, and business partners designated for continuity.
+                      Key advisors, legal counsel, and business partners
+                      designated for continuity.
                     </p>
                   </div>
                 </div>
@@ -1462,19 +1725,34 @@ export function PersonDetailClient({
 
                 <div className="space-y-2 text-xs">
                   <p className="flex justify-between border-b border-border/50 pb-1.5">
-                    <span className="text-muted-foreground">Emergency Protocols:</span>
-                    <span className="font-semibold text-foreground">Active & Configured</span>
-                  </p>
-                  <p className="flex justify-between border-b border-border/50 pb-1.5">
-                    <span className="text-muted-foreground">Critical Instructions:</span>
-                    <span className="font-bold text-foreground">
-                      {personData.instructions?.filter((i: any) => i.priority === "critical" || i.isEmergency).length || 0} logged
+                    <span className="text-muted-foreground">
+                      Emergency Protocols:
+                    </span>
+                    <span className="font-semibold text-foreground">
+                      Active & Configured
                     </span>
                   </p>
                   <p className="flex justify-between border-b border-border/50 pb-1.5">
-                    <span className="text-muted-foreground">Verified Emergency Contacts:</span>
+                    <span className="text-muted-foreground">
+                      Critical Instructions:
+                    </span>
                     <span className="font-bold text-foreground">
-                      {personData.contacts?.filter((c: any) => c.category === "emergency" || c.whenToContact).length || 0} designated
+                      {personData.instructions?.filter(
+                        (i: any) => i.priority === "critical" || i.isEmergency,
+                      ).length || 0}{" "}
+                      logged
+                    </span>
+                  </p>
+                  <p className="flex justify-between border-b border-border/50 pb-1.5">
+                    <span className="text-muted-foreground">
+                      Verified Emergency Contacts:
+                    </span>
+                    <span className="font-bold text-foreground">
+                      {personData.contacts?.filter(
+                        (c: any) =>
+                          c.category === "emergency" || c.whenToContact,
+                      ).length || 0}{" "}
+                      designated
                     </span>
                   </p>
                 </div>
@@ -1487,18 +1765,23 @@ export function PersonDetailClient({
                     <ScrollText className="w-3.5 h-3.5 text-amber-600" />
                     <span>Estate, Wasiyyah & Legacy</span>
                   </h3>
-                  <Link href="/legacy" className="text-emerald-600 hover:underline text-[10px] font-bold">
+                  <Link
+                    href="/legacy"
+                    className="text-emerald-600 hover:underline text-[10px] font-bold"
+                  >
                     Open Wasiyyah Hub ({personData.messages?.length || 0})
                   </Link>
                 </div>
 
                 <div className="space-y-2 text-xs">
                   <p className="text-muted-foreground">
-                    Confidential testamentary directives, final wishes, and time-locked beneficiary messages.
+                    Confidential testamentary directives, final wishes, and
+                    time-locked beneficiary messages.
                   </p>
                   {personData.messages?.length === 0 ? (
                     <p className="text-[11px] text-muted-foreground italic bg-secondary/50 p-2.5 rounded-xl border border-border">
-                      No legacy messages created yet. Draft Wasiyyah notes in Estate & Wasiyyah.
+                      No legacy messages created yet. Draft Wasiyyah notes in
+                      Estate & Wasiyyah.
                     </p>
                   ) : (
                     <div className="space-y-1.5">
@@ -1507,7 +1790,9 @@ export function PersonDetailClient({
                           key={msg._id}
                           className="p-2 rounded-xl bg-secondary/50 border border-border flex items-center justify-between"
                         >
-                          <span className="font-bold text-foreground truncate max-w-[200px]">{msg.title}</span>
+                          <span className="font-bold text-foreground truncate max-w-[200px]">
+                            {msg.title}
+                          </span>
                           <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600">
                             {msg.visibility || "Protected"}
                           </span>
@@ -1533,19 +1818,28 @@ export function PersonDetailClient({
                 <div className="space-y-2 text-xs">
                   {person.notes && (
                     <div className="p-2.5 rounded-xl bg-secondary/50 border border-border space-y-1">
-                      <p className="font-bold text-foreground text-[11px]">Personal Profile Note</p>
-                      <p className="text-muted-foreground text-xs">{person.notes}</p>
+                      <p className="font-bold text-foreground text-[11px]">
+                        Personal Profile Note
+                      </p>
+                      <p className="text-muted-foreground text-xs">
+                        {person.notes}
+                      </p>
                     </div>
                   )}
                   {person.generalNotes && (
                     <div className="p-2.5 rounded-xl bg-secondary/50 border border-border space-y-1">
-                      <p className="font-bold text-foreground text-[11px]">General Directive</p>
-                      <p className="text-muted-foreground text-xs">{person.generalNotes}</p>
+                      <p className="font-bold text-foreground text-[11px]">
+                        General Directive
+                      </p>
+                      <p className="text-muted-foreground text-xs">
+                        {person.generalNotes}
+                      </p>
                     </div>
                   )}
                   {!person.notes && !person.generalNotes && (
                     <p className="text-[11px] text-muted-foreground italic bg-secondary/50 p-3 rounded-xl border border-border">
-                      No private notes recorded. Use Private Information to document confidential accounts or instructions.
+                      No private notes recorded. Use Private Information to
+                      document confidential accounts or instructions.
                     </p>
                   )}
                 </div>
@@ -1567,10 +1861,14 @@ export function PersonDetailClient({
               <div className="space-y-2.5 text-xs">
                 <p className="flex justify-between border-b border-border/50 pb-2">
                   <span className="text-muted-foreground">Full Name:</span>
-                  <span className="font-bold text-foreground">{person.name}</span>
+                  <span className="font-bold text-foreground">
+                    {person.name}
+                  </span>
                 </p>
                 <p className="flex justify-between border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">Relation / Role:</span>
+                  <span className="text-muted-foreground">
+                    Relation / Role:
+                  </span>
                   <span className="font-semibold text-foreground">
                     {person.relation}
                   </span>
@@ -1594,7 +1892,9 @@ export function PersonDetailClient({
                   </span>
                 </p>
                 <p className="flex justify-between border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">Emergency Priority:</span>
+                  <span className="text-muted-foreground">
+                    Emergency Priority:
+                  </span>
                   <span className="font-bold text-amber-600">
                     {getPriorityLabel(person.emergencyPriority)}
                   </span>
@@ -1617,39 +1917,51 @@ export function PersonDetailClient({
               </h3>
               <div className="space-y-2.5 text-xs">
                 <p className="flex justify-between border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">Social Links Active:</span>
+                  <span className="text-muted-foreground">
+                    Social Links Active:
+                  </span>
                   <span className="font-bold text-foreground">
                     {activeSocials.length}
                   </span>
                 </p>
                 <p className="flex justify-between border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">Financial Care Records:</span>
+                  <span className="text-muted-foreground">
+                    Financial Care Records:
+                  </span>
                   <span className="font-bold text-foreground">
                     {(personData.financialCare?.length || 0) +
                       (personData.moneyRecords?.length || 0)}
                   </span>
                 </p>
                 <p className="flex justify-between border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">Assigned Documents:</span>
+                  <span className="text-muted-foreground">
+                    Assigned Documents:
+                  </span>
                   <span className="font-bold text-foreground">
                     {personData.documents?.length || 0}
                   </span>
                 </p>
                 <p className="flex justify-between border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">Assigned Instructions:</span>
+                  <span className="text-muted-foreground">
+                    Assigned Instructions:
+                  </span>
                   <span className="font-bold text-foreground">
                     {(personData.instructions?.length || 0) +
                       (person.responsibilities?.length || 0)}
                   </span>
                 </p>
                 <p className="flex justify-between border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">Important Contacts:</span>
+                  <span className="text-muted-foreground">
+                    Important Contacts:
+                  </span>
                   <span className="font-bold text-foreground">
                     {personData.contacts?.length || 0}
                   </span>
                 </p>
                 <p className="flex justify-between border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">Guardian Status:</span>
+                  <span className="text-muted-foreground">
+                    Guardian Status:
+                  </span>
                   <span className="font-bold text-foreground">
                     {person.guardianStatus
                       ? `${person.guardianType || "Active"} Guardian`
@@ -1764,7 +2076,8 @@ export function PersonDetailClient({
               {/* Fallback if no contact info */}
               {!person.phone && !person.whatsapp && !person.email && (
                 <div className="p-6 text-center text-xs text-muted-foreground">
-                  No contact information provided yet. Click below to add details.
+                  No contact information provided yet. Click below to add
+                  details.
                 </div>
               )}
             </div>
@@ -1773,7 +2086,9 @@ export function PersonDetailClient({
           {/* 2. Social Links Card */}
           <div className="space-y-2">
             <div className="flex items-center justify-between px-1">
-              <h3 className="text-sm font-bold text-foreground">Social Links</h3>
+              <h3 className="text-sm font-bold text-foreground">
+                Social Links
+              </h3>
               <span className="text-[11px] text-muted-foreground flex items-center gap-1 font-medium">
                 <Lock className="w-3 h-3 text-muted-foreground/70" />
                 <span>Visible to assigned users</span>
@@ -1788,7 +2103,8 @@ export function PersonDetailClient({
                   No social profiles linked yet
                 </p>
                 <p className="text-[11px]">
-                  Add Facebook, Instagram, TikTok, Messenger, LinkedIn or Website links.
+                  Add Facebook, Instagram, TikTok, Messenger, LinkedIn or
+                  Website links.
                 </p>
               </div>
             ) : (
@@ -1877,7 +2193,7 @@ export function PersonDetailClient({
               <span>Assigned Instructions & Duties</span>
             </h3>
             {personData.instructions?.length > 0 ||
-              person.responsibilities?.length ? (
+            person.responsibilities?.length ? (
               <div className="space-y-2.5">
                 {personData.instructions?.map((inst: any) => (
                   <div
@@ -1919,8 +2235,9 @@ export function PersonDetailClient({
         {/* TAB 5: FINANCIAL CARE                                        */}
         {/* ============================================================ */}
         <TabsContent value="financial_care" className="outline-none space-y-3">
-          {(!personData.financialCare || personData.financialCare.length === 0) &&
-            (!personData.moneyRecords || personData.moneyRecords.length === 0) ? (
+          {(!personData.financialCare ||
+            personData.financialCare.length === 0) &&
+          (!personData.moneyRecords || personData.moneyRecords.length === 0) ? (
             <div className="p-8 text-center rounded-3xl border border-dashed border-border text-xs text-muted-foreground">
               No financial care records associated with {person.name}.
             </div>
@@ -1948,10 +2265,11 @@ export function PersonDetailClient({
                     </p>
                   </div>
                   <span
-                    className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${rec.status === "active"
+                    className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${
+                      rec.status === "active"
                         ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                         : "bg-secondary text-muted-foreground border-border"
-                      }`}
+                    }`}
                   >
                     {(rec.status || "active").replace("_", " ")}
                   </span>
@@ -2091,7 +2409,9 @@ export function PersonDetailClient({
             {isSuperUser && (
               <div className="p-4 rounded-2xl bg-secondary/80 border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <p className="font-bold text-foreground">Login Access Control</p>
+                  <p className="font-bold text-foreground">
+                    Login Access Control
+                  </p>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
                     Toggle whether this account can log in via Clerk.
                   </p>
@@ -2122,10 +2442,11 @@ export function PersonDetailClient({
                     size="sm"
                     onClick={handleToggleLock}
                     disabled={loading}
-                    className={`h-8 rounded-xl text-xs font-medium gap-1.5 ${person.status === "locked"
+                    className={`h-8 rounded-xl text-xs font-medium gap-1.5 ${
+                      person.status === "locked"
                         ? "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
                         : "border-red-200 text-red-700 hover:bg-red-50"
-                      }`}
+                    }`}
                   >
                     {person.status === "locked" ? (
                       <>
@@ -2218,7 +2539,14 @@ export function PersonDetailClient({
               <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Filter:
               </span>
-              {["all", "pinned", "always_visible", "secret_emergency", "internal_admin", "archived"].map((f) => (
+              {[
+                "all",
+                "pinned",
+                "always_visible",
+                "secret_emergency",
+                "internal_admin",
+                "archived",
+              ].map((f) => (
                 <button
                   key={f}
                   onClick={() => setNoteFilter(f)}
@@ -2231,14 +2559,14 @@ export function PersonDetailClient({
                   {f === "all"
                     ? "All"
                     : f === "pinned"
-                    ? "Pinned"
-                    : f === "always_visible"
-                    ? "Always Visible"
-                    : f === "secret_emergency"
-                    ? "Secret Notes"
-                    : f === "internal_admin"
-                    ? "Internal Admin"
-                    : "Archived"}
+                      ? "Pinned"
+                      : f === "always_visible"
+                        ? "Always Visible"
+                        : f === "secret_emergency"
+                          ? "Secret Notes"
+                          : f === "internal_admin"
+                            ? "Internal Admin"
+                            : "Archived"}
                 </button>
               ))}
             </div>
@@ -2266,9 +2594,12 @@ export function PersonDetailClient({
           ) : notes.length === 0 ? (
             <div className="text-center py-16 p-6 rounded-3xl border border-dashed border-border bg-card/50">
               <StickyNote className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-              <h3 className="text-sm font-bold text-foreground">No notes recorded</h3>
+              <h3 className="text-sm font-bold text-foreground">
+                No notes recorded
+              </h3>
               <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
-                Keep vital instructions, directives, and secret emergency notes tied to this person.
+                Keep vital instructions, directives, and secret emergency notes
+                tied to this person.
               </p>
               {canEdit && (
                 <Button
@@ -2291,16 +2622,23 @@ export function PersonDetailClient({
               {notes
                 .filter((n) => {
                   if (noteFilter === "pinned") return n.isPinned;
-                  if (noteFilter === "always_visible") return n.noteType === "always_visible";
-                  if (noteFilter === "secret_emergency") return n.noteType === "secret_emergency";
-                  if (noteFilter === "internal_admin") return n.noteType === "internal_admin";
-                  if (noteFilter === "archived") return n.isArchived || n.status === "archived";
+                  if (noteFilter === "always_visible")
+                    return n.noteType === "always_visible";
+                  if (noteFilter === "secret_emergency")
+                    return n.noteType === "secret_emergency";
+                  if (noteFilter === "internal_admin")
+                    return n.noteType === "internal_admin";
+                  if (noteFilter === "archived")
+                    return n.isArchived || n.status === "archived";
                   return !n.isArchived && n.status !== "archived";
                 })
                 .map((note) => {
                   const isSecret = note.noteType === "secret_emergency";
-                  const isLocked = isSecret && !note.isReleased && note.status !== "approved";
-                  const isCountdown = note.status === "unlock_requested" || note.status === "countdown_active";
+                  const isLocked =
+                    isSecret && !note.isReleased && note.status !== "approved";
+                  const isCountdown =
+                    note.status === "unlock_requested" ||
+                    note.status === "countdown_active";
 
                   return (
                     <div
@@ -2327,12 +2665,16 @@ export function PersonDetailClient({
                                   : "bg-teal-500/10 text-teal-600 border-teal-500/20"
                               }`}
                             >
-                              {isSecret ? <Lock className="w-2.5 h-2.5" /> : <Eye className="w-2.5 h-2.5" />}
+                              {isSecret ? (
+                                <Lock className="w-2.5 h-2.5" />
+                              ) : (
+                                <Eye className="w-2.5 h-2.5" />
+                              )}
                               {getNoteTypeLabel(note.noteType)}
                             </span>
                             <span
                               className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase border ${getNoteStatusColor(
-                                note.status
+                                note.status,
                               )}`}
                             >
                               {note.status.replace("_", " ")}
@@ -2359,13 +2701,17 @@ export function PersonDetailClient({
                               Confidential / Emergency Sealed Note
                             </p>
                             <p className="text-[11px] text-muted-foreground">
-                              Content is encrypted and concealed until authorized release or emergency protocol activation.
+                              Content is encrypted and concealed until
+                              authorized release or emergency protocol
+                              activation.
                             </p>
 
                             {isCountdown && note.unlockDeadline && (
                               <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400 text-xs font-bold">
                                 <Timer className="w-4 h-4 animate-spin" />
-                                <span>{formatCountdown(note.unlockDeadline)}</span>
+                                <span>
+                                  {formatCountdown(note.unlockDeadline)}
+                                </span>
                               </div>
                             )}
 
@@ -2374,7 +2720,9 @@ export function PersonDetailClient({
                               {!isCountdown && (
                                 <Button
                                   size="sm"
-                                  onClick={() => handleNoteAction(note._id, "request_unlock")}
+                                  onClick={() =>
+                                    handleNoteAction(note._id, "request_unlock")
+                                  }
                                   className="h-7 px-3 text-[11px] rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold"
                                 >
                                   <Unlock className="w-3 h-3 mr-1" />
@@ -2386,7 +2734,9 @@ export function PersonDetailClient({
                                 <>
                                   <Button
                                     size="sm"
-                                    onClick={() => handleNoteAction(note._id, "approve")}
+                                    onClick={() =>
+                                      handleNoteAction(note._id, "approve")
+                                    }
                                     className="h-7 px-2.5 text-[11px] rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
                                   >
                                     Approve Release
@@ -2395,7 +2745,9 @@ export function PersonDetailClient({
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      onClick={() => handleNoteAction(note._id, "extend")}
+                                      onClick={() =>
+                                        handleNoteAction(note._id, "extend")
+                                      }
                                       className="h-7 px-2 text-[11px] rounded-xl"
                                     >
                                       +24h
@@ -2404,7 +2756,9 @@ export function PersonDetailClient({
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    onClick={() => handleNoteAction(note._id, "cancel")}
+                                    onClick={() =>
+                                      handleNoteAction(note._id, "cancel")
+                                    }
                                     className="h-7 px-2 text-[11px] rounded-xl text-rose-600 border-rose-200 dark:border-rose-900"
                                   >
                                     Cancel
@@ -2440,29 +2794,41 @@ export function PersonDetailClient({
                               onClick={() => handleNoteAction(note._id, "read")}
                               className="px-2 py-1 rounded-lg bg-secondary hover:bg-accent text-[10px] font-semibold text-muted-foreground transition-colors flex items-center gap-1"
                             >
-                              <Check className="w-2.5 h-2.5 text-emerald-600" /> Read
+                              <Check className="w-2.5 h-2.5 text-emerald-600" />{" "}
+                              Read
                             </button>
                             <button
-                              onClick={() => handleNoteAction(note._id, "acknowledge")}
+                              onClick={() =>
+                                handleNoteAction(note._id, "acknowledge")
+                              }
                               className="px-2 py-1 rounded-lg bg-secondary hover:bg-accent text-[10px] font-semibold text-muted-foreground transition-colors flex items-center gap-1"
                             >
-                              <CheckCircle2 className="w-2.5 h-2.5 text-blue-600" /> Acknowledge
+                              <CheckCircle2 className="w-2.5 h-2.5 text-blue-600" />{" "}
+                              Acknowledge
                             </button>
                             <button
-                              onClick={() => handleNoteAction(note._id, "followup")}
+                              onClick={() =>
+                                handleNoteAction(note._id, "followup")
+                              }
                               className="px-2 py-1 rounded-lg bg-secondary hover:bg-accent text-[10px] font-semibold text-muted-foreground transition-colors flex items-center gap-1"
                             >
-                              <Clock className="w-2.5 h-2.5 text-amber-600" /> Follow-up
+                              <Clock className="w-2.5 h-2.5 text-amber-600" />{" "}
+                              Follow-up
                             </button>
                             <button
-                              onClick={() => handleNoteAction(note._id, "completed")}
+                              onClick={() =>
+                                handleNoteAction(note._id, "completed")
+                              }
                               className="px-2 py-1 rounded-lg bg-secondary hover:bg-accent text-[10px] font-semibold text-muted-foreground transition-colors flex items-center gap-1"
                             >
-                              <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" /> Completed
+                              <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" />{" "}
+                              Completed
                             </button>
                             {isSuperUser && isSecret && note.isReleased && (
                               <button
-                                onClick={() => handleNoteAction(note._id, "relock")}
+                                onClick={() =>
+                                  handleNoteAction(note._id, "relock")
+                                }
                                 className="px-2 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-[10px] font-semibold text-rose-600 transition-colors flex items-center gap-1 ml-auto"
                               >
                                 <Lock className="w-2.5 h-2.5" /> Re-lock
@@ -2498,7 +2864,9 @@ export function PersonDetailClient({
                                 <Pencil className="w-3.5 h-3.5" />
                               </button>
                               <button
-                                onClick={() => handleNoteAction(note._id, "archive")}
+                                onClick={() =>
+                                  handleNoteAction(note._id, "archive")
+                                }
                                 className="p-1 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
                                 title="Archive Note"
                               >
@@ -2528,7 +2896,10 @@ export function PersonDetailClient({
             </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleSaveContactSocial} className="space-y-4 pt-2 text-xs">
+          <form
+            onSubmit={handleSaveContactSocial}
+            className="space-y-4 pt-2 text-xs"
+          >
             {/* Direct Contact Fields */}
             <div className="space-y-3 pb-3 border-b border-border">
               <h4 className="font-bold text-xs text-foreground uppercase tracking-wider text-muted-foreground">
@@ -2543,7 +2914,10 @@ export function PersonDetailClient({
                     placeholder="+8801700000000"
                     value={editForm.phone}
                     onChange={(e) =>
-                      setEditForm((prev) => ({ ...prev, phone: e.target.value }))
+                      setEditForm((prev) => ({
+                        ...prev,
+                        phone: e.target.value,
+                      }))
                     }
                     className="h-9 rounded-xl text-xs"
                   />
@@ -2782,25 +3156,38 @@ export function PersonDetailClient({
 
           <div className="space-y-4 pt-2 text-xs">
             <div className="space-y-1">
-              <label className="font-semibold text-muted-foreground">Title *</label>
+              <label className="font-semibold text-muted-foreground">
+                Title *
+              </label>
               <Input
                 placeholder="Note title or directive subject..."
                 value={noteForm.title}
-                onChange={(e) => setNoteForm((prev) => ({ ...prev, title: e.target.value }))}
+                onChange={(e) =>
+                  setNoteForm((prev) => ({ ...prev, title: e.target.value }))
+                }
                 className="h-9 rounded-xl text-xs"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="font-semibold text-muted-foreground">Note Type</label>
+                <label className="font-semibold text-muted-foreground">
+                  Note Type
+                </label>
                 <select
                   value={noteForm.noteType}
-                  onChange={(e) => setNoteForm((prev) => ({ ...prev, noteType: e.target.value as NoteType }))}
+                  onChange={(e) =>
+                    setNoteForm((prev) => ({
+                      ...prev,
+                      noteType: e.target.value as NoteType,
+                    }))
+                  }
                   className="w-full h-9 px-3 rounded-xl border border-border bg-secondary text-foreground text-xs focus:outline-none"
                 >
                   <option value="always_visible">Always Visible</option>
-                  <option value="secret_emergency">Secret Emergency Note (Sealed)</option>
+                  <option value="secret_emergency">
+                    Secret Emergency Note (Sealed)
+                  </option>
                   <option value="internal_admin">Internal Admin Only</option>
                   <option value="manual_release">Manual Release</option>
                   <option value="scheduled_release">Scheduled Release</option>
@@ -2808,19 +3195,100 @@ export function PersonDetailClient({
               </div>
 
               <div className="space-y-1">
-                <label className="font-semibold text-muted-foreground">Priority</label>
+                <label className="font-semibold text-muted-foreground">
+                  Priority
+                </label>
                 <select
                   value={noteForm.priority}
-                  onChange={(e) => setNoteForm((prev) => ({ ...prev, priority: e.target.value as any }))}
+                  onChange={(e) =>
+                    setNoteForm((prev) => ({
+                      ...prev,
+                      priority: e.target.value as any,
+                    }))
+                  }
                   className="w-full h-9 px-3 rounded-xl border border-border bg-secondary text-foreground text-xs focus:outline-none"
                 >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="critical">Critical</option>
+                  <option value="normal">Normal</option>
+                  <option value="important">Important</option>
+                  <option value="emergency">🚨 Emergency</option>
                 </select>
               </div>
             </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="font-semibold text-muted-foreground">
+                  Delivery Type
+                </label>
+                <select
+                  value={noteForm.deliveryType}
+                  onChange={(e) =>
+                    setNoteForm((prev) => ({
+                      ...prev,
+                      deliveryType: e.target.value as "immediate" | "future",
+                    }))
+                  }
+                  className="w-full h-9 px-3 rounded-xl border border-border bg-secondary text-foreground text-xs focus:outline-none"
+                >
+                  <option value="immediate">⚡ Immediate</option>
+                  <option value="future">📅 Future / Scheduled</option>
+                </select>
+              </div>
+              {noteForm.deliveryType === "future" ? (
+                <div className="space-y-1">
+                  <label className="font-semibold text-muted-foreground">
+                    Auto-Release Date &amp; Time
+                  </label>
+                  <Input
+                    type="datetime-local"
+                    value={noteForm.scheduledReleaseDate}
+                    onChange={(e) =>
+                      setNoteForm((prev) => ({
+                        ...prev,
+                        scheduledReleaseDate: e.target.value,
+                      }))
+                    }
+                    className="h-9 rounded-xl text-xs"
+                  />
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <label className="font-semibold text-muted-foreground">
+                    Category
+                  </label>
+                  <Input
+                    placeholder="e.g. Legal, Medical, Financial..."
+                    value={noteForm.category}
+                    onChange={(e) =>
+                      setNoteForm((prev) => ({
+                        ...prev,
+                        category: e.target.value,
+                      }))
+                    }
+                    className="h-9 rounded-xl text-xs"
+                  />
+                </div>
+              )}
+            </div>
+
+            {noteForm.deliveryType === "future" && (
+              <div className="space-y-1">
+                <label className="font-semibold text-muted-foreground">
+                  Category
+                </label>
+                <Input
+                  placeholder="e.g. Legal, Medical, Financial..."
+                  value={noteForm.category}
+                  onChange={(e) =>
+                    setNoteForm((prev) => ({
+                      ...prev,
+                      category: e.target.value,
+                    }))
+                  }
+                  className="h-9 rounded-xl text-xs"
+                />
+              </div>
+            )}
 
             {noteForm.noteType === "secret_emergency" && (
               <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-2">
@@ -2845,56 +3313,186 @@ export function PersonDetailClient({
                     className="h-8 rounded-xl text-xs bg-card"
                   />
                   <p className="text-[10px] text-amber-600/80">
-                    When unlock is requested, a countdown of this duration will run before the note is released.
+                    When unlock is requested, a countdown of this duration will
+                    run before the note is released.
                   </p>
                 </div>
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="font-semibold text-muted-foreground">Category</label>
-                <Input
-                  placeholder="e.g. Legal, Medical, Financial..."
-                  value={noteForm.category}
-                  onChange={(e) => setNoteForm((prev) => ({ ...prev, category: e.target.value }))}
-                  className="h-9 rounded-xl text-xs"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-semibold text-muted-foreground">Tags (comma-separated)</label>
-                <Input
-                  placeholder="urgent, insurance, password"
-                  value={noteForm.tags}
-                  onChange={(e) => setNoteForm((prev) => ({ ...prev, tags: e.target.value }))}
-                  className="h-9 rounded-xl text-xs"
-                />
-              </div>
+            <div className="space-y-1">
+              <label className="font-semibold text-muted-foreground">
+                Tags (comma-separated)
+              </label>
+              <Input
+                placeholder="urgent, insurance, password"
+                value={noteForm.tags}
+                onChange={(e) =>
+                  setNoteForm((prev) => ({ ...prev, tags: e.target.value }))
+                }
+                className="h-9 rounded-xl text-xs"
+              />
             </div>
 
             <div className="space-y-1">
-              <label className="font-semibold text-muted-foreground">Content *</label>
+              <label className="font-semibold text-muted-foreground">
+                Content *
+              </label>
               <textarea
                 placeholder="Write note contents, instructions, or secret directives..."
                 value={noteForm.content}
-                onChange={(e) => setNoteForm((prev) => ({ ...prev, content: e.target.value }))}
-                rows={5}
+                onChange={(e) =>
+                  setNoteForm((prev) => ({ ...prev, content: e.target.value }))
+                }
+                rows={4}
                 className="w-full p-3 rounded-2xl border border-border bg-secondary text-foreground text-xs focus:outline-none resize-none leading-relaxed"
               />
             </div>
 
-            <label className="flex items-center gap-2 cursor-pointer pt-1">
-              <input
-                type="checkbox"
-                checked={noteForm.isPinned}
-                onChange={(e) => setNoteForm((prev) => ({ ...prev, isPinned: e.target.checked }))}
-                className="rounded border-border text-emerald-600 focus:ring-0"
+            <div className="space-y-1">
+              <label className="font-semibold text-muted-foreground">
+                Responsibilities / Instructions
+              </label>
+              <textarea
+                placeholder="Specific responsibilities or step-by-step instructions the recipient must follow..."
+                value={noteForm.instructions}
+                onChange={(e) =>
+                  setNoteForm((prev) => ({
+                    ...prev,
+                    instructions: e.target.value,
+                  }))
+                }
+                rows={3}
+                className="w-full p-3 rounded-2xl border border-border bg-secondary text-foreground text-xs focus:outline-none resize-none leading-relaxed"
               />
-              <span className="font-semibold text-muted-foreground text-xs flex items-center gap-1">
-                <Pin className="w-3 h-3 text-emerald-600" /> Pin this note to top
-              </span>
-            </label>
+            </div>
+
+            {/* Attachments */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="font-semibold text-muted-foreground">
+                  Attachments
+                </label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => noteFileInputRef.current?.click()}
+                  className="h-7 px-2.5 rounded-lg text-[11px] font-semibold gap-1 border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10"
+                >
+                  <Paperclip className="w-3 h-3" />
+                  Attach Files
+                </Button>
+                <input
+                  ref={noteFileInputRef}
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={handlePersonNoteAttachmentChange}
+                />
+              </div>
+              {pendingNoteAttachments.length > 0 && (
+                <div className="space-y-1.5">
+                  {pendingNoteAttachments.map((att, idx) => {
+                    const isImg =
+                      att.type?.startsWith("image/") ||
+                      att.name.match(/\.(png|jpe?g|gif|webp|svg)$/i);
+                    return (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between gap-2 p-2 rounded-xl bg-muted/40 border border-border/60"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          {isImg ? (
+                            <img
+                              src={att.url}
+                              alt={att.name}
+                              className="w-9 h-9 rounded-lg object-cover shrink-0"
+                            />
+                          ) : (
+                            <div className="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                              <FileText className="w-4 h-4" />
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <div className="text-[11px] font-semibold text-foreground truncate">
+                              {att.name}
+                            </div>
+                            {att.size !== undefined && (
+                              <div className="text-[10px] text-muted-foreground">
+                                {(att.size / 1024).toFixed(1)} KB
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removePersonNoteAttachment(idx)}
+                          className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 shrink-0"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Additional Toggles */}
+            <div className="space-y-2 p-3 rounded-2xl bg-muted/30 border border-border/50">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                Additional Settings
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <label className="text-xs cursor-pointer select-none">
+                  Need Help Allowed
+                </label>
+                <input
+                  type="checkbox"
+                  checked={noteForm.needHelpAllowed}
+                  onChange={(e) =>
+                    setNoteForm((prev) => ({
+                      ...prev,
+                      needHelpAllowed: e.target.checked,
+                    }))
+                  }
+                  className="rounded border-border w-4 h-4"
+                />
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <label className="text-xs cursor-pointer select-none">
+                  Confirm Read Required
+                </label>
+                <input
+                  type="checkbox"
+                  checked={noteForm.confirmReadRequired}
+                  onChange={(e) =>
+                    setNoteForm((prev) => ({
+                      ...prev,
+                      confirmReadRequired: e.target.checked,
+                    }))
+                  }
+                  className="rounded border-border w-4 h-4"
+                />
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <label className="text-xs cursor-pointer select-none flex items-center gap-1">
+                  <Pin className="w-3 h-3 text-emerald-600" /> Pin to top
+                </label>
+                <input
+                  type="checkbox"
+                  checked={noteForm.isPinned}
+                  onChange={(e) =>
+                    setNoteForm((prev) => ({
+                      ...prev,
+                      isPinned: e.target.checked,
+                    }))
+                  }
+                  className="rounded border-border text-emerald-600 focus:ring-0 w-4 h-4"
+                />
+              </div>
+            </div>
 
             <DialogFooter className="pt-3 gap-2 sm:gap-0">
               <Button
@@ -2914,7 +3512,11 @@ export function PersonDetailClient({
                 disabled={noteSaving}
                 className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold gap-1.5 shadow-xs"
               >
-                {noteSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                {noteSaving ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                )}
                 {editingNote ? "Save Changes" : "Create Note"}
               </Button>
             </DialogFooter>
@@ -2925,7 +3527,10 @@ export function PersonDetailClient({
       {/* ============================================================ */}
       {/* Note Version History Modal                                    */}
       {/* ============================================================ */}
-      <Dialog open={Boolean(noteHistoryModal)} onOpenChange={(open) => !open && setNoteHistoryModal(null)}>
+      <Dialog
+        open={Boolean(noteHistoryModal)}
+        onOpenChange={(open) => !open && setNoteHistoryModal(null)}
+      >
         <DialogContent className="life-dialog sm:max-w-lg rounded-3xl border border-border bg-card text-foreground shadow-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
@@ -2935,13 +3540,17 @@ export function PersonDetailClient({
           </DialogHeader>
 
           <div className="space-y-3 pt-2 text-xs">
-            {!noteHistoryModal?.history || noteHistoryModal.history.length === 0 ? (
+            {!noteHistoryModal?.history ||
+            noteHistoryModal.history.length === 0 ? (
               <p className="text-xs text-muted-foreground py-6 text-center">
                 No past revisions recorded.
               </p>
             ) : (
               noteHistoryModal.history.map((h, idx) => (
-                <div key={idx} className="p-3 rounded-2xl bg-secondary/60 border border-border space-y-1.5">
+                <div
+                  key={idx}
+                  className="p-3 rounded-2xl bg-secondary/60 border border-border space-y-1.5"
+                >
                   <div className="flex items-center justify-between text-[11px] text-muted-foreground font-semibold">
                     <span>{h.changedBy || "User"}</span>
                     <span>{new Date(h.changedAt).toLocaleString()}</span>
@@ -2980,10 +3589,14 @@ export function PersonDetailClient({
                 <span>Profile & Granular Access Control</span>
               </div>
               <div className="flex items-center gap-1.5 text-xs font-semibold">
-                <span className={`px-2 py-0.5 rounded-full ${accessStep === "edit" ? "bg-emerald-600 text-white" : "bg-secondary text-muted-foreground"}`}>
+                <span
+                  className={`px-2 py-0.5 rounded-full ${accessStep === "edit" ? "bg-emerald-600 text-white" : "bg-secondary text-muted-foreground"}`}
+                >
                   1. Configure
                 </span>
-                <span className={`px-2 py-0.5 rounded-full ${accessStep === "review" ? "bg-emerald-600 text-white" : "bg-secondary text-muted-foreground"}`}>
+                <span
+                  className={`px-2 py-0.5 rounded-full ${accessStep === "review" ? "bg-emerald-600 text-white" : "bg-secondary text-muted-foreground"}`}
+                >
                   2. Review Diff
                 </span>
               </div>
@@ -2999,18 +3612,29 @@ export function PersonDetailClient({
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground">Full Name *</label>
+                    <label className="font-semibold text-muted-foreground">
+                      Full Name *
+                    </label>
                     <Input
                       value={accessForm.name}
-                      onChange={(e) => setAccessForm((p) => ({ ...p, name: e.target.value }))}
+                      onChange={(e) =>
+                        setAccessForm((p) => ({ ...p, name: e.target.value }))
+                      }
                       className="h-9 rounded-xl text-xs"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground">Relationship</label>
+                    <label className="font-semibold text-muted-foreground">
+                      Relationship
+                    </label>
                     <Input
                       value={accessForm.relation}
-                      onChange={(e) => setAccessForm((p) => ({ ...p, relation: e.target.value }))}
+                      onChange={(e) =>
+                        setAccessForm((p) => ({
+                          ...p,
+                          relation: e.target.value,
+                        }))
+                      }
                       className="h-9 rounded-xl text-xs"
                     />
                   </div>
@@ -3018,26 +3642,41 @@ export function PersonDetailClient({
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground">Designation</label>
+                    <label className="font-semibold text-muted-foreground">
+                      Designation
+                    </label>
                     <Input
                       value={accessForm.designation}
-                      onChange={(e) => setAccessForm((p) => ({ ...p, designation: e.target.value }))}
+                      onChange={(e) =>
+                        setAccessForm((p) => ({
+                          ...p,
+                          designation: e.target.value,
+                        }))
+                      }
                       className="h-9 rounded-xl text-xs"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground">Phone</label>
+                    <label className="font-semibold text-muted-foreground">
+                      Phone
+                    </label>
                     <Input
                       value={accessForm.phone}
-                      onChange={(e) => setAccessForm((p) => ({ ...p, phone: e.target.value }))}
+                      onChange={(e) =>
+                        setAccessForm((p) => ({ ...p, phone: e.target.value }))
+                      }
                       className="h-9 rounded-xl text-xs"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground">Email</label>
+                    <label className="font-semibold text-muted-foreground">
+                      Email
+                    </label>
                     <Input
                       value={accessForm.email}
-                      onChange={(e) => setAccessForm((p) => ({ ...p, email: e.target.value }))}
+                      onChange={(e) =>
+                        setAccessForm((p) => ({ ...p, email: e.target.value }))
+                      }
                       className="h-9 rounded-xl text-xs"
                     />
                   </div>
@@ -3052,27 +3691,55 @@ export function PersonDetailClient({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground">System Role</label>
+                    <label className="font-semibold text-muted-foreground">
+                      System Role
+                    </label>
                     <select
                       value={accessForm.role}
-                      onChange={(e) => setAccessForm((p) => ({ ...p, role: e.target.value as LifeRole }))}
+                      onChange={(e) =>
+                        setAccessForm((p) => ({
+                          ...p,
+                          role: e.target.value as LifeRole,
+                        }))
+                      }
                       className="w-full h-9 px-3 rounded-xl border border-border bg-secondary text-foreground text-xs focus:outline-none"
                     >
-                      <option value="individual">Individual User (Assigned info only)</option>
-                      <option value="guardian">Guardian (Family members, emergency, medical)</option>
-                      <option value="business_staff">Business Staff (Assigned business area)</option>
-                      <option value="business_partner">Business Partner (Selected business)</option>
-                      <option value="admin">Administrator (Permitted records)</option>
-                      <option value="super_admin">Super Admin (Full access)</option>
-                      <option value="read_only">Read Only (View-only access)</option>
+                      <option value="individual">
+                        Individual User (Assigned info only)
+                      </option>
+                      <option value="guardian">
+                        Guardian (Family members, emergency, medical)
+                      </option>
+                      <option value="business_staff">
+                        Business Staff (Assigned business area)
+                      </option>
+                      <option value="business_partner">
+                        Business Partner (Selected business)
+                      </option>
+                      <option value="admin">
+                        Administrator (Permitted records)
+                      </option>
+                      <option value="super_admin">
+                        Super Admin (Full access)
+                      </option>
+                      <option value="read_only">
+                        Read Only (View-only access)
+                      </option>
                     </select>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground">Account Status</label>
+                    <label className="font-semibold text-muted-foreground">
+                      Account Status
+                    </label>
                     <select
                       value={accessForm.accountStatus}
-                      onChange={(e) => setAccessForm((p) => ({ ...p, accountStatus: e.target.value as AccountStatus }))}
+                      onChange={(e) =>
+                        setAccessForm((p) => ({
+                          ...p,
+                          accountStatus: e.target.value as AccountStatus,
+                        }))
+                      }
                       className="w-full h-9 px-3 rounded-xl border border-border bg-secondary text-foreground text-xs focus:outline-none"
                     >
                       <option value="active">Active</option>
@@ -3087,9 +3754,12 @@ export function PersonDetailClient({
                 <div className="p-3 rounded-2xl bg-secondary/60 border border-border space-y-2">
                   <label className="flex items-center justify-between cursor-pointer">
                     <div>
-                      <span className="font-bold text-foreground text-xs">Record-Only Person</span>
+                      <span className="font-bold text-foreground text-xs">
+                        Record-Only Person
+                      </span>
                       <p className="text-[11px] text-muted-foreground">
-                        Reference-only record (gifts, loans, emergency); login is permanently disabled.
+                        Reference-only record (gifts, loans, emergency); login
+                        is permanently disabled.
                       </p>
                     </div>
                     <input
@@ -3110,15 +3780,23 @@ export function PersonDetailClient({
                   {!accessForm.isRecordOnly && (
                     <label className="flex items-center justify-between cursor-pointer pt-2 border-t border-border">
                       <div>
-                        <span className="font-bold text-foreground text-xs">Login Allowed</span>
+                        <span className="font-bold text-foreground text-xs">
+                          Login Allowed
+                        </span>
                         <p className="text-[11px] text-muted-foreground">
-                          Allow this user to sign in to their dedicated Life Vault dashboard.
+                          Allow this user to sign in to their dedicated Life
+                          Vault dashboard.
                         </p>
                       </div>
                       <input
                         type="checkbox"
                         checked={accessForm.isLoginEnabled}
-                        onChange={(e) => setAccessForm((p) => ({ ...p, isLoginEnabled: e.target.checked }))}
+                        onChange={(e) =>
+                          setAccessForm((p) => ({
+                            ...p,
+                            isLoginEnabled: e.target.checked,
+                          }))
+                        }
                         className="rounded border-border text-emerald-600 focus:ring-0"
                       />
                     </label>
@@ -3135,13 +3813,25 @@ export function PersonDetailClient({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {[
                     { key: "canViewPersonal", label: "View Personal Data" },
-                    { key: "canViewBusiness", label: "View Business Continuity" },
+                    {
+                      key: "canViewBusiness",
+                      label: "View Business Continuity",
+                    },
                     { key: "canViewFinancial", label: "View Financial Care" },
-                    { key: "canViewSensitive", label: "View Sensitive Records" },
+                    {
+                      key: "canViewSensitive",
+                      label: "View Sensitive Records",
+                    },
                     { key: "canRevealVault", label: "Reveal Vault Secrets" },
                     { key: "canManageAccess", label: "Manage Access Control" },
-                    { key: "canAccessEmergency", label: "Access Emergency Mode" },
-                    { key: "canManageSecretNotes", label: "Manage Secret Notes" },
+                    {
+                      key: "canAccessEmergency",
+                      label: "Access Emergency Mode",
+                    },
+                    {
+                      key: "canManageSecretNotes",
+                      label: "Manage Secret Notes",
+                    },
                   ].map((perm) => (
                     <label
                       key={perm.key}
@@ -3151,20 +3841,32 @@ export function PersonDetailClient({
                         type="checkbox"
                         checked={Boolean((accessForm as any)[perm.key])}
                         onChange={(e) =>
-                          setAccessForm((p) => ({ ...p, [perm.key]: e.target.checked }))
+                          setAccessForm((p) => ({
+                            ...p,
+                            [perm.key]: e.target.checked,
+                          }))
                         }
                         className="rounded border-border text-emerald-600 focus:ring-0"
                       />
-                      <span className="font-semibold text-foreground text-xs">{perm.label}</span>
+                      <span className="font-semibold text-foreground text-xs">
+                        {perm.label}
+                      </span>
                     </label>
                   ))}
                 </div>
 
                 <div className="space-y-1 pt-1">
-                  <label className="font-semibold text-muted-foreground">Notes Access Scope</label>
+                  <label className="font-semibold text-muted-foreground">
+                    Notes Access Scope
+                  </label>
                   <select
                     value={accessForm.notesAccessScope}
-                    onChange={(e) => setAccessForm((p) => ({ ...p, notesAccessScope: e.target.value as any }))}
+                    onChange={(e) =>
+                      setAccessForm((p) => ({
+                        ...p,
+                        notesAccessScope: e.target.value as any,
+                      }))
+                    }
                     className="w-full h-8 px-3 rounded-xl border border-border bg-secondary text-foreground text-xs focus:outline-none"
                   >
                     <option value="assigned_only">Assigned Notes Only</option>
@@ -3202,7 +3904,8 @@ export function PersonDetailClient({
                   Confirmation & Audit Preview
                 </h4>
                 <p className="text-[11px] text-muted-foreground">
-                  The following changes will be applied and permanently logged in the audit trail.
+                  The following changes will be applied and permanently logged
+                  in the audit trail.
                 </p>
               </div>
 
@@ -3213,7 +3916,9 @@ export function PersonDetailClient({
                   <span>[+ Permissions & Access Added]</span>
                 </div>
                 {getPermissionDiff().added.length === 0 ? (
-                  <p className="text-[11px] text-muted-foreground italic pl-5">None</p>
+                  <p className="text-[11px] text-muted-foreground italic pl-5">
+                    None
+                  </p>
                 ) : (
                   <ul className="space-y-1 pl-5 list-disc text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
                     {getPermissionDiff().added.map((item, idx) => (
@@ -3230,7 +3935,9 @@ export function PersonDetailClient({
                   <span>[- Permissions & Access Revoked]</span>
                 </div>
                 {getPermissionDiff().removed.length === 0 ? (
-                  <p className="text-[11px] text-muted-foreground italic pl-5">None</p>
+                  <p className="text-[11px] text-muted-foreground italic pl-5">
+                    None
+                  </p>
                 ) : (
                   <ul className="space-y-1 pl-5 list-disc text-[11px] text-rose-700 dark:text-rose-400 font-medium">
                     {getPermissionDiff().removed.map((item, idx) => (
