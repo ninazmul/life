@@ -53,7 +53,6 @@ import {
   CircleDollarSign,
   Inbox,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -87,21 +86,28 @@ interface LifeDashboardClientProps {
   userAccess?: UserModuleAccess;
 }
 
-export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientProps) {
-  const router = useRouter();
+export function LifeDashboardClient({
+  stats,
+  userAccess,
+}: LifeDashboardClientProps) {
   const isSuperUser = Boolean(
     userAccess?.isOwner ||
     userAccess?.isAdmin ||
     userAccess?.role === "super_admin" ||
     userAccess?.role === "admin" ||
-    userAccess?.role === "administrator"
+    userAccess?.role === "administrator",
   );
   const [subcatModalOpen, setSubcatModalOpen] = useState(false);
-  const [subcategories, setSubcategories] = useState<Record<string, ILifeCategory[]>>({});
+  const [subcategories, setSubcategories] = useState<
+    Record<string, ILifeCategory[]>
+  >({});
   const [subcatLoading, setSubcatLoading] = useState(false);
-  const [selectedMainCat, setSelectedMainCat] = useState<MainCategoryKey>("financial_care");
+  const [selectedMainCat, setSelectedMainCat] =
+    useState<MainCategoryKey>("financial_care");
   const [newSubcatName, setNewSubcatName] = useState("");
-  const [editingSubcat, setEditingSubcat] = useState<ILifeCategory | null>(null);
+  const [editingSubcat, setEditingSubcat] = useState<ILifeCategory | null>(
+    null,
+  );
   const [editSubcatName, setEditSubcatName] = useState("");
   const [subcatSaving, setSubcatSaving] = useState(false);
 
@@ -121,7 +127,10 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
     if (!newSubcatName.trim()) return;
     setSubcatSaving(true);
     try {
-      await createSubcategory({ mainCategory: selectedMainCat, name: newSubcatName.trim() });
+      await createSubcategory({
+        mainCategory: selectedMainCat,
+        name: newSubcatName.trim(),
+      });
       setNewSubcatName("");
       await loadSubcategories();
       toast.success("Subcategory added!");
@@ -136,7 +145,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
     if (!editingSubcat || !editSubcatName.trim()) return;
     setSubcatSaving(true);
     try {
-      await updateSubcategory(editingSubcat._id, { name: editSubcatName.trim() });
+      await updateSubcategory(editingSubcat._id, {
+        name: editSubcatName.trim(),
+      });
       setEditingSubcat(null);
       setEditSubcatName("");
       await loadSubcategories();
@@ -175,12 +186,16 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
     }
   };
 
-  const handleMoveSubcategory = async (catKey: string, index: number, direction: "up" | "down") => {
+  const handleMoveSubcategory = async (
+    catKey: string,
+    index: number,
+    direction: "up" | "down",
+  ) => {
     const cats = [...(subcategories[catKey] || [])];
     const newIndex = direction === "up" ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= cats.length) return;
     [cats[index], cats[newIndex]] = [cats[newIndex], cats[index]];
-    const orderedIds = cats.map(c => c._id);
+    const orderedIds = cats.map((c) => c._id);
     try {
       await reorderSubcategories(orderedIds);
       await loadSubcategories();
@@ -190,27 +205,30 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
   };
 
   const ownerPersonId = stats.ownerProfile?.personId || userAccess?.personId;
-  const ownerProfileUrl = ownerPersonId ? `/people/${ownerPersonId}` : "/people";
-  const ownerName = stats.ownerProfile?.name || userAccess?.name || "Nazmul Islam";
+  const ownerProfileUrl = ownerPersonId
+    ? `/people/${ownerPersonId}`
+    : "/people";
+  const ownerName =
+    stats.ownerProfile?.name || userAccess?.name || "Nazmul Islam";
   const ownerAvatar = stats.ownerProfile?.avatarUrl || userAccess?.avatarUrl;
   const estateCompletion = Math.round(
     Math.min(
       100,
       ((stats.beneficiariesCount || 0) > 0 ? 35 : 0) +
-      (stats.assetsTotalValue > 0 ? 35 : 0) +
-      ((stats.legacyCount || 0) > 0 ? 30 : 0) ||
-      60
-    )
+        (stats.assetsTotalValue > 0 ? 35 : 0) +
+        ((stats.legacyCount || 0) > 0 ? 30 : 0) || 60,
+    ),
   );
 
   const currency = "SAR";
   const totalIncomeReceived = stats.gesnSummary?.totalIncome || 64995;
   const availableCash = stats.gesnSummary?.netProfit || 42719;
-  const assetsAndInvestments = (stats.assetsTotalValue || 0) + (stats.investedTotal || 0) || 70000;
+  const assetsAndInvestments =
+    (stats.assetsTotalValue || 0) + (stats.investedTotal || 0) || 70000;
   const totalNetWorth =
     (stats.assetsTotalValue || 0) +
-    (stats.gesnSummary?.netProfit || 0) +
-    (stats.receivablesTotal || 0) || 47719;
+      (stats.gesnSummary?.netProfit || 0) +
+      (stats.receivablesTotal || 0) || 47719;
 
   const permissions = userAccess?.permissions || {
     canViewPersonal: true,
@@ -223,27 +241,77 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
   };
 
   // Module access checks
-  const hasFinanceAccess = canAccessModule("/finance", permissions, isSuperUser);
+  const hasFinanceAccess = canAccessModule(
+    "/finance",
+    permissions,
+    isSuperUser,
+  );
   const hasMoneyAccess = canAccessModule("/money", permissions, isSuperUser);
   const hasPeopleAccess = canAccessModule("/people", permissions, isSuperUser);
   const hasVaultAccess = canAccessModule("/vault", permissions, isSuperUser);
-  const hasBusinessAccess = canAccessModule("/business", permissions, isSuperUser);
+  const hasBusinessAccess = canAccessModule(
+    "/business",
+    permissions,
+    isSuperUser,
+  );
   const hasAssetsAccess = canAccessModule("/assets", permissions, isSuperUser);
-  const hasGuardiansAccess = canAccessModule("/guardians", permissions, isSuperUser);
-  const hasInstructionsAccess = canAccessModule("/instructions", permissions, isSuperUser);
-  const hasActivityAccess = canAccessModule("/activity", permissions, isSuperUser);
-  const hasDocumentsAccess = canAccessModule("/documents", permissions, isSuperUser);
+  const hasGuardiansAccess = canAccessModule(
+    "/guardians",
+    permissions,
+    isSuperUser,
+  );
+  const hasInstructionsAccess = canAccessModule(
+    "/instructions",
+    permissions,
+    isSuperUser,
+  );
+  const hasActivityAccess = canAccessModule(
+    "/activity",
+    permissions,
+    isSuperUser,
+  );
+  const hasDocumentsAccess = canAccessModule(
+    "/documents",
+    permissions,
+    isSuperUser,
+  );
   const hasLegacyAccess = canAccessModule("/legacy", permissions, isSuperUser);
-  const hasBeneficiariesAccess = canAccessModule("/beneficiaries", permissions, isSuperUser);
-  const hasContactsAccess = canAccessModule("/contacts", permissions, isSuperUser);
-  const hasInfoAccess = canAccessModule("/information", permissions, isSuperUser);
-  const hasLifeNoteAccess = canAccessModule("/lifenote", permissions, isSuperUser);
+  const hasBeneficiariesAccess = canAccessModule(
+    "/beneficiaries",
+    permissions,
+    isSuperUser,
+  );
+  const hasContactsAccess = canAccessModule(
+    "/contacts",
+    permissions,
+    isSuperUser,
+  );
+  const hasInfoAccess = canAccessModule(
+    "/information",
+    permissions,
+    isSuperUser,
+  );
+  const hasLifeNoteAccess = canAccessModule(
+    "/lifenote",
+    permissions,
+    isSuperUser,
+  );
 
-  const hasAccessControlAccess = canAccessModule("/access", permissions, isSuperUser);
-  const hasSettingsAccess = canAccessModule("/settings", permissions, isSuperUser);
+  const hasAccessControlAccess = canAccessModule(
+    "/access",
+    permissions,
+    isSuperUser,
+  );
+  const hasSettingsAccess = canAccessModule(
+    "/settings",
+    permissions,
+    isSuperUser,
+  );
 
   // Financial Overview Interactive State
-  const [financeTab, setFinanceTab] = useState<"business" | "personal" | "combined">("business");
+  const [financeTab, setFinanceTab] = useState<
+    "business" | "personal" | "combined"
+  >("business");
   const [gesnPeriod, setGesnPeriod] = useState<string>("thisMonth");
   const [gesnData, setGesnData] = useState(stats.gesnSummary || null);
   const [isPendingGesn, startGesnTransition] = useTransition();
@@ -270,7 +338,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                 type: c.category?.type || "Expense",
                 total: c.total || 0,
                 count: c.count || 0,
-                color: c.category?.color || (c.category?.type === "Income" ? "#10b981" : "#ef4444"),
+                color:
+                  c.category?.color ||
+                  (c.category?.type === "Income" ? "#10b981" : "#ef4444"),
               })),
           });
         }
@@ -282,7 +352,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
 
   // Filter urgent items by module permissions
   const filteredUrgentItems = stats.urgentItems.filter((item) =>
-    canAccessModule(item.link, permissions, isSuperUser)
+    canAccessModule(item.link, permissions, isSuperUser),
   );
 
   // Define all possible directory cards with permissions
@@ -300,7 +370,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
     {
       title: "Business Continuity",
       href: "/business",
-      desc: "\"If I Am Not Available\" checklist & equity",
+      desc: '"If I Am Not Available" checklist & equity',
       icon: Briefcase,
       badge: `${stats.businessCount} plans`,
       badgeValue: stats.businessCount,
@@ -449,7 +519,8 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       href: "/finance",
       desc: `${stats.upcomingPaymentsCount || 0} Active · ${stats.overduePaymentsCount || 0} Due`,
       icon: Wallet,
-      color: "text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 border-emerald-500/20",
+      color:
+        "text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 border-emerald-500/20",
       hasAccess: hasFinanceAccess || hasMoneyAccess,
     },
     {
@@ -457,7 +528,8 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       href: "/beneficiaries",
       desc: `${estateCompletion}% Complete`,
       icon: Gift,
-      color: "text-purple-700 dark:text-purple-300 bg-purple-500/10 border-purple-500/20",
+      color:
+        "text-purple-700 dark:text-purple-300 bg-purple-500/10 border-purple-500/20",
       hasAccess: hasBeneficiariesAccess,
     },
     {
@@ -473,7 +545,8 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       href: "/contacts",
       desc: `${stats.contactsCount || stats.trustedGuardiansCount || 0} Verified`,
       icon: PhoneCall,
-      color: "text-amber-700 dark:text-amber-300 bg-amber-500/10 border-amber-500/20",
+      color:
+        "text-amber-700 dark:text-amber-300 bg-amber-500/10 border-amber-500/20",
       hasAccess: hasContactsAccess,
     },
     {
@@ -486,7 +559,8 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
             ? `${stats.pendingAccessRequestsCount} Requests`
             : "Protected",
       icon: ShieldAlert,
-      color: "text-rose-700 dark:text-rose-300 bg-rose-500/10 border-rose-500/20",
+      color:
+        "text-rose-700 dark:text-rose-300 bg-rose-500/10 border-rose-500/20",
       hasAccess: hasAccessControlAccess,
     },
     {
@@ -494,7 +568,8 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       href: "/legacy",
       desc: `${(stats.instructionsCount || 0) + (stats.legacyCount || 0) || stats.infoCount || 0} Saved`,
       icon: FileText,
-      color: "text-indigo-700 dark:text-indigo-300 bg-indigo-500/10 border-indigo-500/20",
+      color:
+        "text-indigo-700 dark:text-indigo-300 bg-indigo-500/10 border-indigo-500/20",
       hasAccess: hasLegacyAccess,
     },
     {
@@ -502,7 +577,8 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       href: "/lifenote",
       desc: `Notes, messages & locked releases`,
       icon: NotebookPen,
-      color: "text-violet-700 dark:text-violet-300 bg-violet-500/10 border-violet-500/20",
+      color:
+        "text-violet-700 dark:text-violet-300 bg-violet-500/10 border-violet-500/20",
       hasAccess: hasLifeNoteAccess,
     },
   ];
@@ -516,9 +592,16 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
         <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-50/90 via-teal-50/40 to-background dark:from-emerald-950/30 dark:via-background dark:to-background p-3.5 sm:p-4.5 lg:p-5 shadow-xs">
           {/* Subtle botanical leaves watermark on top-right */}
           <div className="pointer-events-none absolute -right-3 -top-4 w-24 h-24 sm:w-32 sm:h-32 text-emerald-600/10 dark:text-emerald-400/10 select-none">
-            <svg viewBox="0 0 200 200" fill="currentColor" className="w-full h-full">
+            <svg
+              viewBox="0 0 200 200"
+              fill="currentColor"
+              className="w-full h-full"
+            >
               <path d="M120 15 C80 50, 40 100, 50 160 C70 170, 110 155, 140 120 C170 85, 175 40, 120 15 Z M95 65 C120 90, 130 120, 130 120 C130 120, 105 110, 85 90 C75 80, 85 70, 95 65 Z" />
-              <path d="M160 40 C140 70, 120 110, 130 150 C145 155, 170 145, 185 120 C200 95, 195 60, 160 40 Z" opacity="0.6" />
+              <path
+                d="M160 40 C140 70, 120 110, 130 150 C145 155, 170 145, 185 120 C200 95, 195 60, 160 40 Z"
+                opacity="0.6"
+              />
             </svg>
           </div>
 
@@ -527,7 +610,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
             <div className="min-w-0">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100/80 dark:bg-emerald-950/60 border border-emerald-300/60 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-[10px] sm:text-[11px] font-semibold mb-1 shadow-2xs max-w-full">
                 <Sparkles className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <span className="truncate">Personal Legacy & Continuity Active</span>
+                <span className="truncate">
+                  Personal Legacy & Continuity Active
+                </span>
               </div>
 
               <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
@@ -558,7 +643,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                 >
                   <div className="px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground flex items-center justify-between">
                     <span>Quick Actions Navigation</span>
-                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">{quickActionsList.length} Available</span>
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                      {quickActionsList.length} Available
+                    </span>
                   </div>
                   <div className="space-y-1">
                     {quickActionsList.map((action, idx) => {
@@ -633,7 +720,10 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                 className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-xl border-border/80 bg-background/90 hover:bg-secondary text-foreground text-xs font-semibold gap-1.5 shadow-2xs hover:shadow-xs transition-all shrink-0 whitespace-nowrap"
               >
                 <Link href="/information">
-                  <Plus className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" strokeWidth={2.5} />
+                  <Plus
+                    className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0"
+                    strokeWidth={2.5}
+                  />
                   <span>Info.</span>
                 </Link>
               </Button>
@@ -660,19 +750,7 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       <section aria-label="My Life Profile and Financial Overview">
         <div className="rounded-2xl sm:rounded-3xl border border-border bg-card p-3.5 sm:p-6 shadow-sm ring-1 ring-border/50">
           {/* Profile Header & Details */}
-          <div
-            onClick={() => router.push(ownerProfileUrl)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                router.push(ownerProfileUrl);
-              }
-            }}
-            role="button"
-            tabIndex={0}
-            aria-label="Open My Life Profile"
-            className="group/profile cursor-pointer"
-          >
+          <div className="group/profile">
             {/* User Details Row */}
             <div className="flex items-center gap-3 sm:gap-4 min-w-0">
               {ownerAvatar ? (
@@ -689,12 +767,22 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <h2 className="text-lg sm:text-2xl font-black text-foreground tracking-tight group-hover/profile:text-emerald-600 dark:group-hover/profile:text-emerald-400 transition-colors truncate uppercase font-heading">
+                  <Link
+                    href={ownerProfileUrl}
+                    aria-label={`Open ${ownerName}'s profile`}
+                    className="min-w-0 truncate text-left text-lg sm:text-2xl font-black text-foreground tracking-tight hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors uppercase font-heading"
+                  >
                     {ownerName}
-                  </h2>
-                  <div className="flex items-center gap-1 text-xs font-semibold text-muted-foreground group-hover/profile:text-emerald-600 dark:group-hover/profile:text-emerald-400 transition-colors shrink-0">
+                  </Link>
+                  <div className="flex items-center gap-1 text-xs font-semibold text-muted-foreground shrink-0">
                     <span className="hidden sm:inline">View Profile</span>
-                    <ArrowRight className="w-3.5 h-3.5 group-hover/profile:translate-x-0.5 transition-transform" />
+                    <Link
+                      href={ownerProfileUrl}
+                      aria-label={`Open ${ownerName}'s profile`}
+                      className="rounded-sm hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                    >
+                      <ArrowRight className="w-3.5 h-3.5 hover:translate-x-0.5 transition-transform" />
+                    </Link>
                   </div>
                 </div>
 
@@ -718,12 +806,16 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               >
                 {(stats.dashboardBadges?.requestsCount ?? 0) > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 flex min-w-4 h-4 px-1 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white shadow-xs z-10">
-                    {(stats.dashboardBadges?.requestsCount ?? 0) > 9 ? "9+" : stats.dashboardBadges?.requestsCount}
+                    {(stats.dashboardBadges?.requestsCount ?? 0) > 9
+                      ? "9+"
+                      : stats.dashboardBadges?.requestsCount}
                   </span>
                 )}
-                {isSuperUser
-                  ? <Inbox className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[1.9]" />
-                  : <ClipboardList className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[1.9]" />}
+                {isSuperUser ? (
+                  <Inbox className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[1.9]" />
+                ) : (
+                  <ClipboardList className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[1.9]" />
+                )}
               </Link>
 
               {/* 2. Messages */}
@@ -735,7 +827,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               >
                 {(stats.dashboardBadges?.messagesCount ?? 0) > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 flex min-w-4 h-4 px-1 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white shadow-xs z-10">
-                    {(stats.dashboardBadges?.messagesCount ?? 0) > 9 ? "9+" : stats.dashboardBadges?.messagesCount}
+                    {(stats.dashboardBadges?.messagesCount ?? 0) > 9
+                      ? "9+"
+                      : stats.dashboardBadges?.messagesCount}
                   </span>
                 )}
                 <MessageCircle className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[1.9]" />
@@ -750,7 +844,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               >
                 {(stats.dashboardBadges?.notesCount ?? 0) > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 flex min-w-4 h-4 px-1 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white shadow-xs z-10">
-                    {(stats.dashboardBadges?.notesCount ?? 0) > 9 ? "9+" : stats.dashboardBadges?.notesCount}
+                    {(stats.dashboardBadges?.notesCount ?? 0) > 9
+                      ? "9+"
+                      : stats.dashboardBadges?.notesCount}
                   </span>
                 )}
                 <NotebookPen className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[1.9]" />
@@ -765,13 +861,14 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               >
                 {(stats.dashboardBadges?.financialCount ?? 0) > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 flex min-w-4 h-4 px-1 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white shadow-xs z-10">
-                    {(stats.dashboardBadges?.financialCount ?? 0) > 9 ? "9+" : stats.dashboardBadges?.financialCount}
+                    {(stats.dashboardBadges?.financialCount ?? 0) > 9
+                      ? "9+"
+                      : stats.dashboardBadges?.financialCount}
                   </span>
                 )}
                 <CircleDollarSign className="w-5 h-5 sm:w-5.5 sm:h-5.5 stroke-[1.9]" />
               </Link>
             </div>
-
           </div>
 
           {/* Separator Line */}
@@ -808,7 +905,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                   <div className="truncate">
                     <span className="text-xs sm:text-base font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">
                       {totalIncomeReceived.toLocaleString()}{" "}
-                      <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">SAR</span>
+                      <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">
+                        SAR
+                      </span>
                     </span>
                   </div>
                 </div>
@@ -824,7 +923,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                   <div className="truncate">
                     <span className="text-xs sm:text-base font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">
                       {availableCash.toLocaleString()}{" "}
-                      <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">SAR</span>
+                      <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">
+                        SAR
+                      </span>
                     </span>
                   </div>
                 </div>
@@ -840,7 +941,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                   <div className="truncate">
                     <span className="text-xs sm:text-base font-extrabold text-amber-700 dark:text-amber-400 font-mono">
                       {assetsAndInvestments.toLocaleString()}{" "}
-                      <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">SAR</span>
+                      <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">
+                        SAR
+                      </span>
                     </span>
                   </div>
                 </div>
@@ -856,7 +959,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                   <div className="truncate">
                     <span className="text-xs sm:text-base font-extrabold text-sky-700 dark:text-sky-400 font-mono">
                       {totalNetWorth.toLocaleString()}{" "}
-                      <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">SAR</span>
+                      <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">
+                        SAR
+                      </span>
                     </span>
                   </div>
                 </div>
@@ -892,7 +997,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                   <div className="truncate">
                     <span className="text-xs sm:text-base font-extrabold text-foreground font-mono">
                       {stats.personalFinancialSummary?.currency || "BDT"}{" "}
-                      {(stats.personalFinancialSummary?.totalReceived || 0).toLocaleString()}
+                      {(
+                        stats.personalFinancialSummary?.totalReceived || 0
+                      ).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -908,7 +1015,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                   <div className="truncate">
                     <span className="text-xs sm:text-base font-extrabold text-blue-600 dark:text-blue-400 font-mono">
                       {stats.personalFinancialSummary?.currency || "BDT"}{" "}
-                      {(stats.personalFinancialSummary?.repayableAmount || 0).toLocaleString()}
+                      {(
+                        stats.personalFinancialSummary?.repayableAmount || 0
+                      ).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -924,7 +1033,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                   <div className="truncate">
                     <span className="text-xs sm:text-base font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
                       {stats.personalFinancialSummary?.currency || "BDT"}{" "}
-                      {(stats.personalFinancialSummary?.totalRepaid || 0).toLocaleString()}
+                      {(
+                        stats.personalFinancialSummary?.totalRepaid || 0
+                      ).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -940,7 +1051,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                   <div className="truncate">
                     <span className="text-xs sm:text-base font-extrabold text-amber-600 dark:text-amber-400 font-mono">
                       {stats.personalFinancialSummary?.currency || "BDT"}{" "}
-                      {(stats.personalFinancialSummary?.remainingBalance || 0).toLocaleString()}
+                      {(
+                        stats.personalFinancialSummary?.remainingBalance || 0
+                      ).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -978,7 +1091,10 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       </section>
 
       {/* §24 Continuity & Safety State */}
-      <section className="space-y-2.5" aria-label="Continuity & Safety Readiness">
+      <section
+        className="space-y-2.5"
+        aria-label="Continuity & Safety Readiness"
+      >
         {stats.activeRecoveryPending && (
           <div className="p-4 rounded-3xl bg-red-500/15 border-2 border-red-500/60 shadow-lg shadow-red-950/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
             <div className="flex items-center gap-3">
@@ -988,14 +1104,18 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-red-600 text-white">
-                    {stats.isVaultLocked ? "Vault Locked (48h)" : "Emergency 48h Countdown"}
+                    {stats.isVaultLocked
+                      ? "Vault Locked (48h)"
+                      : "Emergency 48h Countdown"}
                   </span>
                   <span className="text-xs font-bold text-red-700 dark:text-red-300">
                     Active Recovery Protocol
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  An emergency continuity event is currently in its 48-hour cancellation period. Super Admins can manage or cancel with Master PIN.
+                  An emergency continuity event is currently in its 48-hour
+                  cancellation period. Super Admins can manage or cancel with
+                  Master PIN.
                 </p>
               </div>
             </div>
@@ -1014,28 +1134,40 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span>Continuity & Safety State</span>
           </h2>
-          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${stats.activeRecoveryPending
-            ? "text-red-600 bg-red-500/10 border-red-500/20 animate-pulse"
-            : "text-emerald-600 bg-emerald-500/10 border-emerald-500/20"
-            }`}>
-            {stats.activeRecoveryPending ? "Recovery Active (48h)" : "System Operational"}
+          <span
+            className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+              stats.activeRecoveryPending
+                ? "text-red-600 bg-red-500/10 border-red-500/20 animate-pulse"
+                : "text-emerald-600 bg-emerald-500/10 border-emerald-500/20"
+            }`}
+          >
+            {stats.activeRecoveryPending
+              ? "Recovery Active (48h)"
+              : "System Operational"}
           </span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {/* Owner Safety Status */}
           <div className="p-3.5 rounded-2xl bg-card border border-border shadow-sm flex flex-col justify-between">
-            <span className="text-[11px] font-medium text-muted-foreground">Owner Safety</span>
+            <span className="text-[11px] font-medium text-muted-foreground">
+              Owner Safety
+            </span>
             <div className="my-1 flex items-center gap-1.5">
               <span
-                className={`w-2 h-2 rounded-full ${stats.ownerSafetyStatus === "emergency" ? "bg-red-500 animate-pulse" : "bg-emerald-500"
-                  }`}
+                className={`w-2 h-2 rounded-full ${
+                  stats.ownerSafetyStatus === "emergency"
+                    ? "bg-red-500 animate-pulse"
+                    : "bg-emerald-500"
+                }`}
               />
               <span className="text-sm font-extrabold capitalize text-foreground">
                 {stats.ownerSafetyStatus || "Safe"}
               </span>
             </div>
-            <span className="text-[10px] text-muted-foreground">Check-in Active</span>
+            <span className="text-[10px] text-muted-foreground">
+              Check-in Active
+            </span>
           </div>
 
           {/* Emergency Mode Status */}
@@ -1044,26 +1176,37 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               href="/guardians"
               className="p-3.5 rounded-2xl bg-card border border-border hover:border-red-500/30 transition-all shadow-sm flex flex-col justify-between"
             >
-              <span className="text-[11px] font-medium text-muted-foreground">Emergency Mode</span>
+              <span className="text-[11px] font-medium text-muted-foreground">
+                Emergency Mode
+              </span>
               <div className="my-1">
                 <span
-                  className={`text-sm font-extrabold ${stats.emergencyModeStatus === "Active" ? "text-red-600" : "text-foreground"
-                    }`}
+                  className={`text-sm font-extrabold ${
+                    stats.emergencyModeStatus === "Active"
+                      ? "text-red-600"
+                      : "text-foreground"
+                  }`}
                 >
                   {stats.emergencyModeStatus || "Normal"}
                 </span>
               </div>
-              <span className="text-[10px] text-muted-foreground">Protocol Ready</span>
+              <span className="text-[10px] text-muted-foreground">
+                Protocol Ready
+              </span>
             </Link>
           ) : (
             <div className="p-3.5 rounded-2xl bg-card border border-border shadow-sm flex flex-col justify-between">
-              <span className="text-[11px] font-medium text-muted-foreground">Emergency Mode</span>
+              <span className="text-[11px] font-medium text-muted-foreground">
+                Emergency Mode
+              </span>
               <div className="my-1">
                 <span className="text-sm font-extrabold text-foreground">
                   {stats.emergencyModeStatus || "Normal"}
                 </span>
               </div>
-              <span className="text-[10px] text-muted-foreground">Protocol Ready</span>
+              <span className="text-[10px] text-muted-foreground">
+                Protocol Ready
+              </span>
             </div>
           )}
 
@@ -1073,13 +1216,17 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               href="/guardians"
               className="p-3.5 rounded-2xl bg-card border border-border hover:border-emerald-500/30 transition-all shadow-sm flex flex-col justify-between"
             >
-              <span className="text-[11px] font-medium text-muted-foreground">Guardians</span>
+              <span className="text-[11px] font-medium text-muted-foreground">
+                Guardians
+              </span>
               <div className="my-1">
                 <span className="text-lg font-extrabold text-blue-600 dark:text-blue-400 font-mono">
                   {stats.trustedGuardiansCount || 0}
                 </span>
               </div>
-              <span className="text-[10px] text-muted-foreground">Multi-Party Trust</span>
+              <span className="text-[10px] text-muted-foreground">
+                Multi-Party Trust
+              </span>
             </Link>
           )}
 
@@ -1089,13 +1236,17 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               href="/instructions"
               className="p-3.5 rounded-2xl bg-card border border-border hover:border-emerald-500/30 transition-all shadow-sm flex flex-col justify-between"
             >
-              <span className="text-[11px] font-medium text-muted-foreground">Responsibilities</span>
+              <span className="text-[11px] font-medium text-muted-foreground">
+                Responsibilities
+              </span>
               <div className="my-1">
                 <span className="text-lg font-extrabold text-foreground font-mono">
                   {stats.pendingResponsibilitiesCount || 0}
                 </span>
               </div>
-              <span className="text-[10px] text-amber-600 font-medium">In Progress</span>
+              <span className="text-[10px] text-amber-600 font-medium">
+                In Progress
+              </span>
             </Link>
           )}
 
@@ -1105,13 +1256,17 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               href="/business"
               className="p-3.5 rounded-2xl bg-card border border-border hover:border-emerald-500/30 transition-all shadow-sm flex flex-col justify-between"
             >
-              <span className="text-[11px] font-medium text-muted-foreground">Continuity Ready</span>
+              <span className="text-[11px] font-medium text-muted-foreground">
+                Continuity Ready
+              </span>
               <div className="my-1">
                 <span className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
                   {stats.businessContinuityReadiness}%
                 </span>
               </div>
-              <span className="text-[10px] text-muted-foreground">If Not Available</span>
+              <span className="text-[10px] text-muted-foreground">
+                If Not Available
+              </span>
             </Link>
           )}
 
@@ -1121,15 +1276,20 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               href="/finance"
               className="p-3.5 rounded-2xl bg-card border border-border hover:border-emerald-500/30 transition-all shadow-sm flex flex-col justify-between"
             >
-              <span className="text-[11px] font-medium text-muted-foreground">Financial Care</span>
+              <span className="text-[11px] font-medium text-muted-foreground">
+                Financial Care
+              </span>
               <div className="my-1">
                 <span className="text-sm font-extrabold text-foreground">
                   {stats.upcomingPaymentsCount || 0} Active
                 </span>
               </div>
               <span
-                className={`text-[10px] font-medium ${(stats.overduePaymentsCount || 0) > 0 ? "text-red-500" : "text-muted-foreground"
-                  }`}
+                className={`text-[10px] font-medium ${
+                  (stats.overduePaymentsCount || 0) > 0
+                    ? "text-red-500"
+                    : "text-muted-foreground"
+                }`}
               >
                 {stats.overduePaymentsCount || 0} Overdue
               </span>
@@ -1160,18 +1320,20 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               <Link
                 key={item.id}
                 href={item.link}
-                className={`p-3.5 rounded-2xl border transition-all hover:scale-[1.01] flex items-center justify-between group min-w-0 ${item.severity === "high"
-                  ? "bg-red-500/10 border-red-500/25 hover:border-red-500/50"
-                  : "bg-amber-500/10 border-amber-500/25 hover:border-amber-500/50"
-                  }`}
+                className={`p-3.5 rounded-2xl border transition-all hover:scale-[1.01] flex items-center justify-between group min-w-0 ${
+                  item.severity === "high"
+                    ? "bg-red-500/10 border-red-500/25 hover:border-red-500/50"
+                    : "bg-amber-500/10 border-amber-500/25 hover:border-amber-500/50"
+                }`}
                 aria-label={`Urgent: ${item.title} (${item.severity} priority)`}
               >
                 <div className="min-w-0 pr-2">
                   <span
-                    className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border shrink-0 inline-block ${item.severity === "high"
-                      ? "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/25"
-                      : "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/25"
-                      }`}
+                    className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border shrink-0 inline-block ${
+                      item.severity === "high"
+                        ? "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/25"
+                        : "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/25"
+                    }`}
                   >
                     {item.category}
                   </span>
@@ -1201,8 +1363,16 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
       )}
 
       {/* Financial Care & Cash Flow Command Overview - Admin sees Business & Personal, other users only see Personal */}
-      {(hasMoneyAccess || hasFinanceAccess || Boolean(stats.personalFinancialSummary && (stats.personalFinancialSummary.recordsCount ?? 0) > 0)) && (
-        <section className="space-y-4" aria-label="Financial and cash flow overview">
+      {(hasMoneyAccess ||
+        hasFinanceAccess ||
+        Boolean(
+          stats.personalFinancialSummary &&
+          (stats.personalFinancialSummary.recordsCount ?? 0) > 0,
+        )) && (
+        <section
+          className="space-y-4"
+          aria-label="Financial and cash flow overview"
+        >
           {/* Section Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
             <div className="flex items-center gap-2.5 flex-wrap min-w-0">
@@ -1213,7 +1383,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                   aria-hidden="true"
                 />
                 <span className="truncate">
-                  {isSuperUser ? "Financial & Cash Flow Overview" : "Personal Financial Care & Mutual Assistance"}
+                  {isSuperUser
+                    ? "Financial & Cash Flow Overview"
+                    : "Personal Financial Care & Mutual Assistance"}
                 </span>
               </h2>
 
@@ -1241,30 +1413,33 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                   <button
                     type="button"
                     onClick={() => setFinanceTab("business")}
-                    className={`px-3 py-1 rounded-lg transition-all ${financeTab === "business"
-                      ? "bg-background text-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                      }`}
+                    className={`px-3 py-1 rounded-lg transition-all ${
+                      financeTab === "business"
+                        ? "bg-background text-foreground shadow-xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
                   >
                     Accounting & Cash Flow
                   </button>
                   <button
                     type="button"
                     onClick={() => setFinanceTab("personal")}
-                    className={`px-3 py-1 rounded-lg transition-all ${financeTab === "personal"
-                      ? "bg-background text-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                      }`}
+                    className={`px-3 py-1 rounded-lg transition-all ${
+                      financeTab === "personal"
+                        ? "bg-background text-foreground shadow-xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
                   >
                     Personal Care
                   </button>
                   <button
                     type="button"
                     onClick={() => setFinanceTab("combined")}
-                    className={`px-3 py-1 rounded-lg transition-all ${financeTab === "combined"
-                      ? "bg-background text-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                      }`}
+                    className={`px-3 py-1 rounded-lg transition-all ${
+                      financeTab === "combined"
+                        ? "bg-background text-foreground shadow-xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
                   >
                     All
                   </button>
@@ -1286,198 +1461,219 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
           </div>
 
           {/* 1. Real-time Accounting & Cash Flow Section (ACC.GESN.NET) - Strictly Admin & Super Admin */}
-          {isSuperUser && (financeTab === "business" || financeTab === "combined") && (
-            <div className="space-y-3 p-4 sm:p-5 rounded-3xl bg-card border border-border shadow-xs">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1 border-b border-border/60">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                  <span className="text-xs font-bold text-foreground">
-                    Business Accounting & Performance
-                  </span>
-                  {isPendingGesn && (
-                    <RefreshCw className="w-3 h-3 text-emerald-500 animate-spin shrink-0" />
-                  )}
-                </div>
+          {isSuperUser &&
+            (financeTab === "business" || financeTab === "combined") && (
+              <div className="space-y-3 p-4 sm:p-5 rounded-3xl bg-card border border-border shadow-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1 border-b border-border/60">
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span className="text-xs font-bold text-foreground">
+                      Business Accounting & Performance
+                    </span>
+                    {isPendingGesn && (
+                      <RefreshCw className="w-3 h-3 text-emerald-500 animate-spin shrink-0" />
+                    )}
+                  </div>
 
-                {/* Period Selector Pills */}
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-                  {[
-                    { label: "This Month", value: "thisMonth" },
-                    { label: "Today", value: "today" },
-                    { label: "Last 7 Days", value: "last7days" },
-                    { label: "Last 30 Days", value: "last30days" },
-                    { label: "This Year", value: "thisYear" },
-                  ].map((p) => (
-                    <button
-                      key={p.value}
-                      type="button"
-                      onClick={() => handlePeriodChange(p.value)}
-                      disabled={isPendingGesn}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all shrink-0 ${gesnPeriod === p.value
-                        ? "bg-emerald-600 text-white font-semibold shadow-xs"
-                        : "bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary"
+                  {/* Period Selector Pills */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+                    {[
+                      { label: "This Month", value: "thisMonth" },
+                      { label: "Today", value: "today" },
+                      { label: "Last 7 Days", value: "last7days" },
+                      { label: "Last 30 Days", value: "last30days" },
+                      { label: "This Year", value: "thisYear" },
+                    ].map((p) => (
+                      <button
+                        key={p.value}
+                        type="button"
+                        onClick={() => handlePeriodChange(p.value)}
+                        disabled={isPendingGesn}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all shrink-0 ${
+                          gesnPeriod === p.value
+                            ? "bg-emerald-600 text-white font-semibold shadow-xs"
+                            : "bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary"
                         }`}
-                    >
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Accounting KPI Grid */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                {/* Total Revenue / Income */}
-                <div className="p-3.5 rounded-2xl bg-secondary/40 border border-emerald-500/20 hover:border-emerald-500/40 transition-all flex flex-col justify-between min-h-[110px]">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-muted-foreground">
-                      Total Revenue
-                    </span>
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                      <TrendingUp className="w-3.5 h-3.5" />
-                    </div>
-                  </div>
-                  <div className="my-1.5">
-                    <span className="text-xl sm:text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
-                      {(gesnData?.totalIncome || 0).toLocaleString()}
-                      <span className="text-xs font-normal text-muted-foreground ml-1.5">SAR</span>
-                    </span>
-                  </div>
-                  <span className="text-[11px] text-muted-foreground font-medium truncate">
-                    {gesnData?.incomeCount || 0} Credited transactions
-                  </span>
-                </div>
-
-                {/* Total Operating Expenses */}
-                <div className="p-3.5 rounded-2xl bg-secondary/40 border border-rose-500/20 hover:border-rose-500/40 transition-all flex flex-col justify-between min-h-[110px]">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-muted-foreground">
-                      Operating Expenses
-                    </span>
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
-                      <TrendingDown className="w-3.5 h-3.5" />
-                    </div>
-                  </div>
-                  <div className="my-1.5">
-                    <span className="text-xl sm:text-2xl font-extrabold text-rose-600 dark:text-rose-400 font-mono">
-                      {(gesnData?.totalExpenses || 0).toLocaleString()}
-                      <span className="text-xs font-normal text-muted-foreground ml-1.5">SAR</span>
-                    </span>
-                  </div>
-                  <span className="text-[11px] text-muted-foreground font-medium truncate">
-                    {gesnData?.expenseCount || 0} Debited entries
-                  </span>
-                </div>
-
-                {/* Net Cash Flow / Profit */}
-                <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border hover:border-border/80 transition-all flex flex-col justify-between min-h-[110px]">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-muted-foreground">
-                      Net Cash Flow
-                    </span>
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20">
-                      <Coins className="w-3.5 h-3.5" />
-                    </div>
-                  </div>
-                  <div className="my-1.5">
-                    <span
-                      className={`text-xl sm:text-2xl font-extrabold font-mono ${(gesnData?.netProfit || 0) >= 0
-                        ? "text-emerald-700 dark:text-emerald-300"
-                        : "text-rose-600 dark:text-rose-400"
-                        }`}
-                    >
-                      {(gesnData?.netProfit || 0) >= 0 ? "+" : ""}
-                      {(gesnData?.netProfit || 0).toLocaleString()}
-                      <span className="text-xs font-normal text-muted-foreground ml-1.5">SAR</span>
-                    </span>
-                  </div>
-                  <span className="text-[11px] text-muted-foreground font-medium truncate">
-                    {(gesnData?.netProfit || 0) >= 0 ? "Operating Surplus" : "Operating Deficit"}
-                  </span>
-                </div>
-
-                {/* Profit Margin & Efficiency */}
-                <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border hover:border-border/80 transition-all flex flex-col justify-between min-h-[110px]">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-muted-foreground">
-                      Profit Margin
-                    </span>
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                      <Percent className="w-3.5 h-3.5" />
-                    </div>
-                  </div>
-                  <div className="my-1.5">
-                    <span className="text-xl sm:text-2xl font-extrabold text-foreground font-mono">
-                      {(gesnData?.profitMarginPercent || 0).toFixed(1)}%
-                    </span>
-                    <div className="w-full bg-secondary h-1.5 rounded-full overflow-hidden mt-1.5">
-                      <div
-                        className="bg-emerald-500 h-full rounded-full transition-all duration-500"
-                        style={{
-                          width: `${Math.min(100, Math.max(0, gesnData?.profitMarginPercent || 0))}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <span className="text-[11px] text-muted-foreground font-medium truncate">
-                    Margin on total revenue
-                  </span>
-                </div>
-              </div>
-
-              {/* Top Categories Distribution Preview */}
-              {gesnData?.topCategories && gesnData.topCategories.length > 0 && (
-                <div className="pt-2 border-t border-border/50">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                      Top Expense & Revenue Categories
-                    </span>
-                    <Link
-                      href="/finance"
-                      className="text-[11px] font-semibold text-emerald-600 hover:underline"
-                    >
-                      View All in Ledger
-                    </Link>
-                  </div>
-                  <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                    {gesnData.topCategories.map((cat, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-background border border-border/80 shrink-0 text-xs shadow-2xs"
                       >
-                        <span
-                          className="w-2 h-2 rounded-full shrink-0"
-                          style={{ backgroundColor: cat.color || "#10b981" }}
-                        />
-                        <span className="font-semibold text-foreground truncate max-w-[120px]">
-                          {cat.name}
-                        </span>
-                        <span className="font-bold text-muted-foreground font-mono text-[11px]">
-                          {cat.total.toLocaleString()}
-                          <span className="text-[10px] text-muted-foreground font-normal ml-0.5">SAR</span>
-                        </span>
-                        <span className="text-[10px] text-muted-foreground">
-                          ({cat.count})
-                        </span>
-                      </div>
+                        {p.label}
+                      </button>
                     ))}
                   </div>
                 </div>
-              )}
-            </div>
-          )}
+
+                {/* Accounting KPI Grid */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  {/* Total Revenue / Income */}
+                  <div className="p-3.5 rounded-2xl bg-secondary/40 border border-emerald-500/20 hover:border-emerald-500/40 transition-all flex flex-col justify-between min-h-[110px]">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-muted-foreground">
+                        Total Revenue
+                      </span>
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        <TrendingUp className="w-3.5 h-3.5" />
+                      </div>
+                    </div>
+                    <div className="my-1.5">
+                      <span className="text-xl sm:text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
+                        {(gesnData?.totalIncome || 0).toLocaleString()}
+                        <span className="text-xs font-normal text-muted-foreground ml-1.5">
+                          SAR
+                        </span>
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-muted-foreground font-medium truncate">
+                      {gesnData?.incomeCount || 0} Credited transactions
+                    </span>
+                  </div>
+
+                  {/* Total Operating Expenses */}
+                  <div className="p-3.5 rounded-2xl bg-secondary/40 border border-rose-500/20 hover:border-rose-500/40 transition-all flex flex-col justify-between min-h-[110px]">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-muted-foreground">
+                        Operating Expenses
+                      </span>
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                        <TrendingDown className="w-3.5 h-3.5" />
+                      </div>
+                    </div>
+                    <div className="my-1.5">
+                      <span className="text-xl sm:text-2xl font-extrabold text-rose-600 dark:text-rose-400 font-mono">
+                        {(gesnData?.totalExpenses || 0).toLocaleString()}
+                        <span className="text-xs font-normal text-muted-foreground ml-1.5">
+                          SAR
+                        </span>
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-muted-foreground font-medium truncate">
+                      {gesnData?.expenseCount || 0} Debited entries
+                    </span>
+                  </div>
+
+                  {/* Net Cash Flow / Profit */}
+                  <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border hover:border-border/80 transition-all flex flex-col justify-between min-h-[110px]">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-muted-foreground">
+                        Net Cash Flow
+                      </span>
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20">
+                        <Coins className="w-3.5 h-3.5" />
+                      </div>
+                    </div>
+                    <div className="my-1.5">
+                      <span
+                        className={`text-xl sm:text-2xl font-extrabold font-mono ${
+                          (gesnData?.netProfit || 0) >= 0
+                            ? "text-emerald-700 dark:text-emerald-300"
+                            : "text-rose-600 dark:text-rose-400"
+                        }`}
+                      >
+                        {(gesnData?.netProfit || 0) >= 0 ? "+" : ""}
+                        {(gesnData?.netProfit || 0).toLocaleString()}
+                        <span className="text-xs font-normal text-muted-foreground ml-1.5">
+                          SAR
+                        </span>
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-muted-foreground font-medium truncate">
+                      {(gesnData?.netProfit || 0) >= 0
+                        ? "Operating Surplus"
+                        : "Operating Deficit"}
+                    </span>
+                  </div>
+
+                  {/* Profit Margin & Efficiency */}
+                  <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border hover:border-border/80 transition-all flex flex-col justify-between min-h-[110px]">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-muted-foreground">
+                        Profit Margin
+                      </span>
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                        <Percent className="w-3.5 h-3.5" />
+                      </div>
+                    </div>
+                    <div className="my-1.5">
+                      <span className="text-xl sm:text-2xl font-extrabold text-foreground font-mono">
+                        {(gesnData?.profitMarginPercent || 0).toFixed(1)}%
+                      </span>
+                      <div className="w-full bg-secondary h-1.5 rounded-full overflow-hidden mt-1.5">
+                        <div
+                          className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${Math.min(100, Math.max(0, gesnData?.profitMarginPercent || 0))}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <span className="text-[11px] text-muted-foreground font-medium truncate">
+                      Margin on total revenue
+                    </span>
+                  </div>
+                </div>
+
+                {/* Top Categories Distribution Preview */}
+                {gesnData?.topCategories &&
+                  gesnData.topCategories.length > 0 && (
+                    <div className="pt-2 border-t border-border/50">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                          Top Expense & Revenue Categories
+                        </span>
+                        <Link
+                          href="/finance"
+                          className="text-[11px] font-semibold text-emerald-600 hover:underline"
+                        >
+                          View All in Ledger
+                        </Link>
+                      </div>
+                      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                        {gesnData.topCategories.map((cat, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-background border border-border/80 shrink-0 text-xs shadow-2xs"
+                          >
+                            <span
+                              className="w-2 h-2 rounded-full shrink-0"
+                              style={{
+                                backgroundColor: cat.color || "#10b981",
+                              }}
+                            />
+                            <span className="font-semibold text-foreground truncate max-w-[120px]">
+                              {cat.name}
+                            </span>
+                            <span className="font-bold text-muted-foreground font-mono text-[11px]">
+                              {cat.total.toLocaleString()}
+                              <span className="text-[10px] text-muted-foreground font-normal ml-0.5">
+                                SAR
+                              </span>
+                            </span>
+                            <span className="text-[10px] text-muted-foreground">
+                              ({cat.count})
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+              </div>
+            )}
 
           {/* 2. Personal Financial Care & Support Section (LIFE Vault) */}
-          {(!isSuperUser || financeTab === "personal" || financeTab === "combined") && (
+          {(!isSuperUser ||
+            financeTab === "personal" ||
+            financeTab === "combined") && (
             <div className="space-y-3 p-4 sm:p-5 rounded-3xl bg-card border border-border shadow-xs">
               <div className="flex items-center justify-between pb-1 border-b border-border/60">
                 <div className="flex items-center gap-2">
                   <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <span className="text-xs font-bold text-foreground">
-                    {isSuperUser ? "Personal Financial Care & Mutual Assistance" : "Mutual Assistance & Support Commitments"}
+                    {isSuperUser
+                      ? "Personal Financial Care & Mutual Assistance"
+                      : "Mutual Assistance & Support Commitments"}
                   </span>
                 </div>
                 <span className="text-[11px] font-medium text-muted-foreground">
-                  {stats.upcomingPaymentsCount || 0} Active · {stats.overduePaymentsCount || 0} Overdue
+                  {stats.upcomingPaymentsCount || 0} Active ·{" "}
+                  {stats.overduePaymentsCount || 0} Overdue
                 </span>
               </div>
 
@@ -1597,11 +1793,17 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                     <div className="my-1">
                       <span className="text-lg sm:text-xl font-extrabold text-foreground font-mono">
                         {stats.personalFinancialSummary?.currency || "BDT"}{" "}
-                        {(stats.personalFinancialSummary?.totalReceived || 0).toLocaleString()}
+                        {(
+                          stats.personalFinancialSummary?.totalReceived || 0
+                        ).toLocaleString()}
                       </span>
                     </div>
                     <span className="text-[10px] text-muted-foreground font-medium truncate">
-                      {stats.personalFinancialSummary?.recordsCount || 0} Connected record{(stats.personalFinancialSummary?.recordsCount || 0) === 1 ? "" : "s"}
+                      {stats.personalFinancialSummary?.recordsCount || 0}{" "}
+                      Connected record
+                      {(stats.personalFinancialSummary?.recordsCount || 0) === 1
+                        ? ""
+                        : "s"}
                     </span>
                   </div>
 
@@ -1614,7 +1816,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                     <div className="my-1">
                       <span className="text-lg sm:text-xl font-extrabold text-blue-800 dark:text-blue-200 font-mono">
                         {stats.personalFinancialSummary?.currency || "BDT"}{" "}
-                        {(stats.personalFinancialSummary?.repayableAmount || 0).toLocaleString()}
+                        {(
+                          stats.personalFinancialSummary?.repayableAmount || 0
+                        ).toLocaleString()}
                       </span>
                     </div>
                     <span className="text-[10px] text-blue-700/80 dark:text-blue-300/80 font-medium truncate">
@@ -1631,7 +1835,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                     <div className="my-1">
                       <span className="text-lg sm:text-xl font-extrabold text-emerald-800 dark:text-emerald-200 font-mono">
                         {stats.personalFinancialSummary?.currency || "BDT"}{" "}
-                        {(stats.personalFinancialSummary?.totalRepaid || 0).toLocaleString()}
+                        {(
+                          stats.personalFinancialSummary?.totalRepaid || 0
+                        ).toLocaleString()}
                       </span>
                     </div>
                     <span className="text-[10px] text-emerald-700/80 dark:text-emerald-300/80 font-medium truncate">
@@ -1648,7 +1854,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                     <div className="my-1">
                       <span className="text-lg sm:text-xl font-extrabold text-amber-800 dark:text-amber-200 font-mono">
                         {stats.personalFinancialSummary?.currency || "BDT"}{" "}
-                        {(stats.personalFinancialSummary?.remainingBalance || 0).toLocaleString()}
+                        {(
+                          stats.personalFinancialSummary?.remainingBalance || 0
+                        ).toLocaleString()}
                       </span>
                     </div>
                     <span className="text-[10px] text-amber-700/80 dark:text-amber-300/80 font-medium truncate">
@@ -1665,7 +1873,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                     <div className="my-1">
                       <span className="text-lg sm:text-xl font-extrabold text-purple-800 dark:text-purple-200 font-mono">
                         {stats.personalFinancialSummary?.currency || "BDT"}{" "}
-                        {(stats.personalFinancialSummary?.giftAmount || 0).toLocaleString()}
+                        {(
+                          stats.personalFinancialSummary?.giftAmount || 0
+                        ).toLocaleString()}
                       </span>
                     </div>
                     <span className="text-[10px] text-purple-700/80 dark:text-purple-300/80 font-medium truncate">
@@ -1684,8 +1894,12 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                         {stats.upcomingPaymentsCount || 0} Active
                       </span>
                     </div>
-                    <span className={`text-[10px] font-medium truncate ${(stats.overduePaymentsCount || 0) > 0 ? "text-rose-600 dark:text-rose-400 font-bold" : "text-muted-foreground"}`}>
-                      {(stats.overduePaymentsCount || 0) > 0 ? `${stats.overduePaymentsCount} Overdue` : "All on schedule"}
+                    <span
+                      className={`text-[10px] font-medium truncate ${(stats.overduePaymentsCount || 0) > 0 ? "text-rose-600 dark:text-rose-400 font-bold" : "text-muted-foreground"}`}
+                    >
+                      {(stats.overduePaymentsCount || 0) > 0
+                        ? `${stats.overduePaymentsCount} Overdue`
+                        : "All on schedule"}
                     </span>
                   </div>
                 </div>
@@ -1792,7 +2006,10 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                     <p className="text-foreground font-medium truncate">
                       {act.details}
                     </p>
-                    <span className="text-[11px] text-muted-foreground truncate block" suppressHydrationWarning>
+                    <span
+                      className="text-[11px] text-muted-foreground truncate block"
+                      suppressHydrationWarning
+                    >
                       By {act.actorEmail} •{" "}
                       {new Date(act.createdAt).toLocaleTimeString([], {
                         hour: "2-digit",
@@ -1831,10 +2048,11 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
               <button
                 key={mc.key}
                 onClick={() => setSelectedMainCat(mc.key)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${selectedMainCat === mc.key
-                  ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
-                  : "bg-secondary text-muted-foreground border-border hover:bg-accent"
-                  }`}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${
+                  selectedMainCat === mc.key
+                    ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                    : "bg-secondary text-muted-foreground border-border hover:bg-accent"
+                }`}
               >
                 {mc.title}
               </button>
@@ -1850,29 +2068,39 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
             ) : (subcategories[selectedMainCat] || []).length === 0 ? (
               <div className="text-center py-10">
                 <Layers className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
-                <p className="text-xs text-muted-foreground">No subcategories yet.</p>
+                <p className="text-xs text-muted-foreground">
+                  No subcategories yet.
+                </p>
               </div>
             ) : (
               (subcategories[selectedMainCat] || []).map((cat, idx) => (
                 <div
                   key={cat._id}
-                  className={`flex items-center gap-2 p-2.5 rounded-2xl border transition-all ${cat.isArchived
-                    ? "bg-secondary/50 border-border/60 opacity-60"
-                    : "bg-card border-border hover:border-emerald-500/30"
-                    }`}
+                  className={`flex items-center gap-2 p-2.5 rounded-2xl border transition-all ${
+                    cat.isArchived
+                      ? "bg-secondary/50 border-border/60 opacity-60"
+                      : "bg-card border-border hover:border-emerald-500/30"
+                  }`}
                 >
                   {/* Reorder Controls */}
                   <div className="flex flex-col gap-0.5">
                     <button
-                      onClick={() => handleMoveSubcategory(selectedMainCat, idx, "up")}
+                      onClick={() =>
+                        handleMoveSubcategory(selectedMainCat, idx, "up")
+                      }
                       disabled={idx === 0}
                       className="p-0.5 rounded hover:bg-accent disabled:opacity-30"
                     >
                       <ChevronUp className="w-3 h-3 text-muted-foreground" />
                     </button>
                     <button
-                      onClick={() => handleMoveSubcategory(selectedMainCat, idx, "down")}
-                      disabled={idx === (subcategories[selectedMainCat]?.length || 1) - 1}
+                      onClick={() =>
+                        handleMoveSubcategory(selectedMainCat, idx, "down")
+                      }
+                      disabled={
+                        idx ===
+                        (subcategories[selectedMainCat]?.length || 1) - 1
+                      }
                       className="p-0.5 rounded hover:bg-accent disabled:opacity-30"
                     >
                       <ChevronDown className="w-3 h-3 text-muted-foreground" />
@@ -1888,7 +2116,9 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                           onChange={(e) => setEditSubcatName(e.target.value)}
                           className="h-7 text-xs flex-1 border-emerald-500/40 bg-secondary"
                           autoFocus
-                          onKeyDown={(e) => e.key === "Enter" && handleEditSubcategory()}
+                          onKeyDown={(e) =>
+                            e.key === "Enter" && handleEditSubcategory()
+                          }
                         />
                         <Button
                           size="sm"
@@ -1972,7 +2202,11 @@ export function LifeDashboardClient({ stats, userAccess }: LifeDashboardClientPr
                 disabled={subcatSaving || !newSubcatName.trim()}
                 className="h-9 px-3.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl gap-1.5 shadow-sm"
               >
-                {subcatSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                {subcatSaving ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Plus className="w-3.5 h-3.5" />
+                )}
                 Add
               </Button>
             </div>
