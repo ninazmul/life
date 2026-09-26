@@ -2902,7 +2902,7 @@ export function PersonDetailClient({
           >
             {/* Direct Contact Fields */}
             <div className="space-y-3 pb-3 border-b border-border">
-              <h4 className="font-bold text-xs text-foreground uppercase tracking-wider text-muted-foreground">
+              <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">
                 Primary Contact
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -2959,7 +2959,7 @@ export function PersonDetailClient({
 
             {/* Social Links Fields */}
             <div className="space-y-3">
-              <h4 className="font-bold text-xs text-foreground uppercase tracking-wider text-muted-foreground">
+              <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">
                 Social Profiles & Links
               </h4>
               <p className="text-[11px] text-muted-foreground">
