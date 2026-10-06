@@ -36,15 +36,13 @@ export function LifeLayoutClient({
           {/* Desktop Sidebar (still visible on desktop for consistency) */}
           <LifeSidebar userAccess={userAccess} />
 
-          {/* Main Content — dashboard provides its own header/nav on mobile */}
+          {/* Main Content Area */}
           <div className="flex-1 flex flex-col min-h-screen min-w-0 overflow-x-hidden">
-            {/* Show LifeHeader only on desktop for dashboard */}
-            <div className="hidden md:block">
-              <LifeHeader
-                userName={userName}
-                isEmergencyActive={isEmergencyActive}
-              />
-            </div>
+            {/* Official Top Header on all devices */}
+            <LifeHeader
+              userName={userName}
+              isEmergencyActive={isEmergencyActive}
+            />
 
             {/* Page Content — fluid responsive layout for mobile, tablet and desktop */}
             <main className="flex-1 p-3.5 sm:p-5 md:p-6 lg:p-8 pb-24 md:pb-12 max-w-7xl w-full mx-auto">

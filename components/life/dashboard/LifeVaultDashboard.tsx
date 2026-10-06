@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import {
   Search,
   ChevronRight,
-  Lock,
   Briefcase,
   ClipboardCheck,
   Plus,
@@ -39,7 +38,6 @@ import { LifeSearchDialog } from "@/components/life/shared/LifeSearchDialog";
 import {
   reviewAccessRequest,
   acknowledgeReleasedRequest,
-  seedSampleActionRequest,
 } from "@/lib/actions/lifeRequest.actions";
 import toast from "react-hot-toast";
 
@@ -137,23 +135,16 @@ export function LifeVaultDashboard({
   const pendingRequests = stats.pendingActionRequests || [];
   const releasedUpdates = stats.releasedUpdates || [];
 
-  // Determine actual state from data
-  const hasRealActionRequired = pendingRequests.length > 0 || releasedUpdates.length > 0;
-
-  // View state toggle: "normal" | "action_required" | "auto"
-  // If user toggles explicitly, respect it. Otherwise, default to real data.
-  const [selectedView, setSelectedView] = useState<"normal" | "action_required">(
-    hasRealActionRequired ? "action_required" : "normal"
-  );
-
-  const isActionRequiredState = selectedView === "action_required";
+  // Automatically determine state from live database records (Production Grade)
+  const hasActionRequired = pendingRequests.length > 0 || releasedUpdates.length > 0;
+  const urgentRequest = pendingRequests[0] || null;
+  const pendingCount = pendingRequests.length;
 
   // Search dialog & Add dropdown state
   const [addMenuOpen, setAddMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [decidingId, setDecidingId] = useState<string | null>(null);
-  const [isSeeding, setIsSeeding] = useState(false);
   const addMenuRef = useRef<HTMLDivElement>(null);
 
   const displayName = profile?.name || userAccess?.name || "Shahidul Islam";
@@ -226,41 +217,6 @@ export function LifeVaultDashboard({
     },
     [router]
   );
-
-  // ── Seed Sample Action Request (for demo / verification) ──
-  const handleSeedSample = async () => {
-    setIsSeeding(true);
-    try {
-      const res = await seedSampleActionRequest();
-      if (res.success) {
-        toast.success("Sample action request created");
-        setSelectedView("action_required");
-        router.refresh();
-      } else {
-        toast.error(res.error || "Could not create sample request");
-      }
-    } catch {
-      toast.error("Error creating sample request");
-    } finally {
-      setIsSeeding(false);
-    }
-  };
-
-  // Active pending request (real or fallback preview)
-  const realUrgentRequest = pendingRequests[0] || null;
-  const demoUrgentRequest = {
-    _id: "demo_sample_req",
-    submittedByName: "Sabbir",
-    title: "Emergency instructions",
-    requestedScope: "Emergency instructions",
-    description: "Requesting limited access to operational emergency instructions as designated continuity guardian.",
-    expiresAt: new Date(Date.now() + 6 * 3600 * 1000),
-    autoRelease: true,
-    durationHours: 6,
-  };
-
-  const currentActionRequest = realUrgentRequest || demoUrgentRequest;
-  const pendingCount = pendingRequests.length > 0 ? pendingRequests.length : 1;
 
   // ── People & Support Config (Exact visual matching reference) ──
   const peopleSupportItems = [
@@ -371,63 +327,12 @@ export function LifeVaultDashboard({
       `}</style>
 
       {/* ─── Responsive Container: perfectly framed for mobile, tablet & desktop ─── */}
-      <div className="w-full max-w-[480px] sm:max-w-xl md:max-w-2xl mx-auto px-1 sm:px-2">
-
-        {/* ─── Interactive State Switcher (Normal / Action Required) ─── */}
-        <div className="flex items-center justify-center gap-2 mb-3 pt-1">
-          <div className="inline-flex items-center p-1 bg-white/80 backdrop-blur-md rounded-full shadow-2xs border border-slate-200/60">
-            <button
-              type="button"
-              onClick={() => setSelectedView("normal")}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer ${
-                !isActionRequiredState
-                  ? "bg-[#EEF2FF] text-[#4F46E5] shadow-xs"
-                  : "text-slate-500 hover:text-slate-800"
-              }`}
-            >
-              Normal
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedView("action_required")}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
-                isActionRequiredState
-                  ? "bg-[#FEF3C7] text-[#B45309] shadow-xs"
-                  : "text-slate-500 hover:text-slate-800"
-              }`}
-            >
-              Action required
-              {hasRealActionRequired && (
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* ─── Top Header (Matching Reference Design) ─── */}
-        <header className="flex items-center justify-between px-1 mb-3 sm:mb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-[#4F46E5] flex items-center justify-center shadow-xs shrink-0 transition-transform active:scale-95">
-              <Lock className="w-5 h-5 text-white" strokeWidth={2.2} />
-            </div>
-            <h1 className="text-[18px] sm:text-[20px] font-extrabold text-[#1E1B4B] tracking-tight">
-              Life Command Center
-            </h1>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setSearchOpen(true)}
-            className="w-10 h-10 flex items-center justify-center rounded-2xl hover:bg-white/80 active:bg-white text-[#1E1B4B] hover:text-[#4F46E5] transition-all cursor-pointer"
-            aria-label="Search records"
-          >
-            <Search className="w-5 h-5" strokeWidth={2.2} />
-          </button>
-        </header>
+      {/* ─── Responsive Container: perfectly framed for mobile, tablet & desktop ─── */}
+      <div className="w-full max-w-[480px] sm:max-w-xl md:max-w-2xl mx-auto px-1 sm:px-2 pt-1 sm:pt-2">
 
         {/* ─── Profile Section ─── */}
-        {isActionRequiredState ? (
-          /* Compact Profile Row (Action Required State) */
+        {hasActionRequired ? (
+          /* Compact Profile Row (When Action Required is active) */
           <div className="flex items-center justify-between px-1 py-1.5 mb-2.5">
             <div className="flex items-center gap-3 min-w-0">
               <PersonAvatar
@@ -491,10 +396,11 @@ export function LifeVaultDashboard({
           </div>
         )}
 
-        {/* ─── Action Required Banner Card (Active in Action Required State) ─── */}
-        {isActionRequiredState && (
+        {/* ─── Action Required Banner Card (Automatically Shown If Pending) ─── */}
+        {hasActionRequired && (
           <div className="mb-3 space-y-2.5">
             {/* Main Action Required Card */}
+            {urgentRequest && (
             <div className="bg-[#FFFDF5] border border-amber-200/80 border-l-[4px] border-l-[#F59E0B] rounded-2xl p-3.5 sm:p-4 shadow-[0_2px_12px_rgba(245,158,11,0.06)] transition-all">
               {/* Header row */}
               <div className="flex items-center justify-between mb-2">
@@ -520,24 +426,24 @@ export function LifeVaultDashboard({
               </div>
 
               {/* Review Panel Expanded or Compact */}
-              {reviewingId === currentActionRequest._id ? (
+              {reviewingId === urgentRequest._id ? (
                 /* Inline Decision Panel */
                 <div className="mt-2.5 p-3.5 bg-white rounded-xl border border-amber-100 shadow-xs">
                   <p className="text-[13px] font-bold text-[#1E1B4B] mb-1">
-                    {currentActionRequest.submittedByName} requested access
+                    {urgentRequest.submittedByName} requested access
                   </p>
                   <p className="text-[12px] text-slate-600 mb-1">
                     <span className="font-semibold text-slate-700">Scope:</span>{" "}
-                    {currentActionRequest.requestedScope || currentActionRequest.title}
+                    {urgentRequest.requestedScope || urgentRequest.title}
                   </p>
                   <p className="text-[12px] text-slate-600 mb-1">
                     <span className="font-semibold text-slate-700">Reason:</span>{" "}
-                    {currentActionRequest.description}
+                    {urgentRequest.description}
                   </p>
-                  {currentActionRequest.expiresAt && (
+                  {urgentRequest.expiresAt && (
                     <p className="text-[12px] text-slate-600 mb-2">
                       <span className="font-semibold text-slate-700">Deadline:</span>{" "}
-                      {new Date(currentActionRequest.expiresAt).toLocaleTimeString([], {
+                      {new Date(urgentRequest.expiresAt).toLocaleTimeString([], {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}{" "}
@@ -548,16 +454,16 @@ export function LifeVaultDashboard({
                   <div className="flex items-center gap-2 mt-3">
                     <button
                       type="button"
-                      onClick={() => handleDecision(currentActionRequest._id, "approve")}
-                      disabled={decidingId === currentActionRequest._id}
+                      onClick={() => handleDecision(urgentRequest._id, "approve")}
+                      disabled={decidingId === urgentRequest._id}
                       className="flex-1 py-2 px-3 text-[13px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
                     >
-                      {decidingId === currentActionRequest._id ? "Processing..." : "Approve"}
+                      {decidingId === urgentRequest._id ? "Processing..." : "Approve"}
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleDecision(currentActionRequest._id, "reject")}
-                      disabled={decidingId === currentActionRequest._id}
+                      onClick={() => handleDecision(urgentRequest._id, "reject")}
+                      disabled={decidingId === urgentRequest._id}
                       className="flex-1 py-2 px-3 text-[13px] font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
                     >
                       Reject
@@ -575,20 +481,20 @@ export function LifeVaultDashboard({
                 /* Compact Request Preview matching reference */
                 <div>
                   <p className="text-[14px] font-bold text-[#1E1B4B]">
-                    {currentActionRequest.submittedByName} requested access
+                    {urgentRequest.submittedByName} requested access
                   </p>
                   <p className="text-[12px] text-slate-500 font-medium mt-0.5">
-                    {currentActionRequest.requestedScope || currentActionRequest.title}
+                    {urgentRequest.requestedScope || urgentRequest.title}
                   </p>
 
                   <div className="flex items-center justify-between mt-2.5">
                     <div>
                       <div className="flex items-center gap-1.5 text-[12px] font-semibold text-amber-700">
                         <Clock className="w-3.5 h-3.5 text-amber-600" strokeWidth={2.2} />
-                        <span>{getTimeLeftText(currentActionRequest.expiresAt)}</span>
+                        <span>{getTimeLeftText(urgentRequest.expiresAt)}</span>
                       </div>
 
-                      {currentActionRequest.autoRelease && (
+                      {urgentRequest.autoRelease && (
                         <div className="flex items-center gap-1 text-[11px] text-slate-400 font-medium mt-1">
                           <LockKeyhole className="w-3 h-3 text-slate-400" strokeWidth={2} />
                           <span>Auto-release enabled for this item</span>
@@ -598,7 +504,7 @@ export function LifeVaultDashboard({
 
                     <button
                       type="button"
-                      onClick={() => setReviewingId(currentActionRequest._id)}
+                      onClick={() => setReviewingId(urgentRequest._id)}
                       className="px-4 py-2 text-[13px] font-bold text-white bg-[#3B82F6] hover:bg-[#2563EB] active:scale-95 rounded-xl transition-all shadow-xs flex items-center gap-1 cursor-pointer shrink-0"
                     >
                       Review
@@ -608,6 +514,7 @@ export function LifeVaultDashboard({
                 </div>
               )}
             </div>
+            )}
 
             {/* Released updates banner (if any) */}
             {releasedUpdates.map((update) => (
@@ -648,9 +555,9 @@ export function LifeVaultDashboard({
                   className="w-[23px] h-[23px] text-slate-600 group-hover:text-[#4F46E5] transition-colors"
                   strokeWidth={1.8}
                 />
-                {(isActionRequiredState || (badges && badges.requestsCount > 0)) && (
+                {(pendingCount > 0 || (badges && badges.requestsCount > 0)) && (
                   <span className="absolute -top-1.5 -right-2 flex h-[16px] min-w-[16px] px-1 items-center justify-center rounded-full bg-[#EF4444] text-white text-[9px] font-bold ring-2 ring-white shadow-2xs">
-                    {badges?.requestsCount || 1}
+                    {badges?.requestsCount || pendingCount}
                   </span>
                 )}
               </div>
@@ -816,19 +723,7 @@ export function LifeVaultDashboard({
           </div>
         </section>
 
-        {/* Optional quick demo helper for user convenience */}
-        {!hasRealActionRequired && (
-          <div className="text-center py-2">
-            <button
-              type="button"
-              onClick={handleSeedSample}
-              disabled={isSeeding}
-              className="text-[11px] font-semibold text-slate-400 hover:text-indigo-600 transition-colors inline-flex items-center gap-1 cursor-pointer"
-            >
-              <span>{isSeeding ? "Seeding..." : "Create demo action request in DB"}</span>
-            </button>
-          </div>
-        )}
+
 
       </div>
 
