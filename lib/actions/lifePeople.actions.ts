@@ -12,6 +12,7 @@ import LifeInstruction from "@/lib/database/models/lifeInstruction.model";
 import LifeResponsibility from "@/lib/database/models/lifeResponsibility.model";
 import LifeLegacyMessage from "@/lib/database/models/lifeLegacyMessage.model";
 import LifeAsset from "@/lib/database/models/lifeAsset.model";
+import LifeGuardian from "@/lib/database/models/lifeGuardian.model";
 import Admin from "@/lib/database/models/admin.model";
 import {
   getLifeAuthContext,
@@ -630,3 +631,225 @@ export async function updatePersonAccessAndPermissions(
     person: JSON.parse(JSON.stringify(updated)),
   };
 }
+
+// ─────────────────────────────────────────────
+// PEOPLE & SUPPORT ROLES (Section 6 & 7)
+// Guardian, Trusted People, Advisors, Caregivers
+// ─────────────────────────────────────────────
+
+export async function getSupportRoleCounts(): Promise<{
+  guardian: number;
+  trustedPeople: number;
+  advisors: number;
+  caregivers: number;
+  totalUniquePeople: number;
+}> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth) {
+      return { guardian: 0, trustedPeople: 0, advisors: 0, caregivers: 0, totalUniquePeople: 0 };
+    }
+
+    const baseQuery: Record<string, any> = {
+      status: { $ne: "archived" },
+      isDeleted: { $ne: true },
+    };
+
+    // Total unique people count in central directory
+    const totalUniquePeople = await LifePerson.countDocuments(baseQuery);
+
+    // Active guardian documents from LifeGuardian
+    const guardianDocs = await LifeGuardian.find({ isActive: true }).select("personId").lean();
+    const guardianPersonIds = guardianDocs.map((g: any) => String(g.personId));
+
+    const [guardianCount, trustedCount, advisorsCount, caregiversCount] = await Promise.all([
+      LifePerson.countDocuments({
+        ...baseQuery,
+        $or: [
+          { _id: { $in: guardianPersonIds } },
+          { supportRoles: "guardian" },
+          { guardianStatus: true },
+          { role: "guardian" },
+          { userRole: "guardian" },
+        ],
+      }),
+      LifePerson.countDocuments({
+        ...baseQuery,
+        supportRoles: "trusted_person",
+      }),
+      LifePerson.countDocuments({
+        ...baseQuery,
+        $or: [
+          { supportRoles: "advisor" },
+          { designation: { $regex: /^(advisor|lawyer|advocate|counsel)$/i } },
+          { relation: { $regex: /^(advisor|lawyer|advocate|counsel)$/i } },
+        ],
+      }),
+      LifePerson.countDocuments({
+        ...baseQuery,
+        supportRoles: "caregiver",
+      }),
+    ]);
+
+    return {
+      guardian: guardianCount,
+      trustedPeople: trustedCount,
+      advisors: advisorsCount,
+      caregivers: caregiversCount,
+      totalUniquePeople,
+    };
+  } catch (error) {
+    console.error("Error in getSupportRoleCounts:", error);
+    return { guardian: 0, trustedPeople: 0, advisors: 0, caregivers: 0, totalUniquePeople: 0 };
+  }
+}
+
+export async function getPeopleBySupportRole(role: string): Promise<ILifePerson[]> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth) return [];
+
+    const baseQuery: Record<string, any> = {
+      status: { $ne: "archived" },
+      isDeleted: { $ne: true },
+    };
+
+    let roleQuery: Record<string, any> = {};
+
+    if (role === "guardian") {
+      const guardianDocs = await LifeGuardian.find({ isActive: true }).select("personId").lean();
+      const guardianPersonIds = guardianDocs.map((g: any) => String(g.personId));
+      roleQuery = {
+        $or: [
+          { _id: { $in: guardianPersonIds } },
+          { supportRoles: "guardian" },
+          { guardianStatus: true },
+          { role: "guardian" },
+          { userRole: "guardian" },
+        ],
+      };
+    } else if (role === "trusted_person") {
+      roleQuery = { supportRoles: "trusted_person" };
+    } else if (role === "advisor") {
+      roleQuery = {
+        $or: [
+          { supportRoles: "advisor" },
+          { designation: { $regex: /^(advisor|lawyer|advocate|counsel)$/i } },
+          { relation: { $regex: /^(advisor|lawyer|advocate|counsel)$/i } },
+        ],
+      };
+    } else if (role === "caregiver") {
+      roleQuery = { supportRoles: "caregiver" };
+    }
+
+    const people = await LifePerson.find({ ...baseQuery, ...roleQuery })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const enriched = await enrichWithClerkAvatars(people);
+    return JSON.parse(JSON.stringify(enriched));
+  } catch (error) {
+    console.error("Error in getPeopleBySupportRole:", error);
+    return [];
+  }
+}
+
+export async function assignSupportRole(
+  personId: string,
+  role: "guardian" | "trusted_person" | "advisor" | "caregiver"
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return { success: false, error: "Forbidden: Owner or Admin required." };
+    }
+
+    await connectToDatabase();
+    const person = await LifePerson.findById(personId);
+    if (!person) return { success: false, error: "Person not found." };
+
+    // Add role without duplicating
+    await LifePerson.findByIdAndUpdate(personId, {
+      $addToSet: { supportRoles: role },
+      ...(role === "guardian" ? { guardianStatus: true } : {}),
+    });
+
+    if (role === "guardian") {
+      await LifeGuardian.findOneAndUpdate(
+        { personId: person._id },
+        {
+          $set: {
+            personId: person._id,
+            guardianType: "primary",
+            isActive: true,
+            assignedDate: new Date(),
+          },
+        },
+        { upsert: true }
+      );
+    }
+
+    await logLifeActivity({
+      action: "ASSIGN_SUPPORT_ROLE",
+      resourceType: "people",
+      resourceId: personId,
+      resourceName: person.name,
+      details: `Assigned role "${role}" to ${person.name}.`,
+    });
+
+    revalidatePath("/");
+    revalidatePath("/people");
+    revalidatePath(`/people/${personId}`);
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error in assignSupportRole:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function removeSupportRole(
+  personId: string,
+  role: "guardian" | "trusted_person" | "advisor" | "caregiver"
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return { success: false, error: "Forbidden: Owner or Admin required." };
+    }
+
+    await connectToDatabase();
+    const person = await LifePerson.findById(personId);
+    if (!person) return { success: false, error: "Person not found." };
+
+    await LifePerson.findByIdAndUpdate(personId, {
+      $pull: { supportRoles: role },
+      ...(role === "guardian" ? { guardianStatus: false } : {}),
+    });
+
+    if (role === "guardian") {
+      await LifeGuardian.findOneAndUpdate(
+        { personId: person._id },
+        { $set: { isActive: false } }
+      );
+    }
+
+    await logLifeActivity({
+      action: "REMOVE_SUPPORT_ROLE",
+      resourceType: "people",
+      resourceId: personId,
+      resourceName: person.name,
+      details: `Removed role "${role}" from ${person.name}.`,
+    });
+
+    revalidatePath("/");
+    revalidatePath("/people");
+    revalidatePath(`/people/${personId}`);
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error in removeSupportRole:", error);
+    return { success: false, error: error.message };
+  }
+}
+

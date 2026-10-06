@@ -64,6 +64,15 @@ export interface ILifeRequestDoc extends Document {
   /** Badge visibility helpers */
   isNewForAdmin: boolean;
 
+  /** Action Required / Auto-Release fields */
+  expiresAt?: Date;
+  autoRelease?: boolean;
+  autoReleasedAt?: Date;
+  isAutoReleased?: boolean;
+  isAcknowledged?: boolean;
+  requestedScope?: string;
+  durationHours?: number;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -144,6 +153,14 @@ const LifeRequestSchema = new Schema<ILifeRequestDoc>(
     unreadByAdmin: { type: Number, default: 0, index: true },
     unreadByUser: { type: Number, default: 0, index: true },
     isNewForAdmin: { type: Boolean, default: true, index: true },
+
+    expiresAt: { type: Date, index: true },
+    autoRelease: { type: Boolean, default: false },
+    autoReleasedAt: { type: Date },
+    isAutoReleased: { type: Boolean, default: false },
+    isAcknowledged: { type: Boolean, default: true },
+    requestedScope: { type: String, default: "" },
+    durationHours: { type: Number, default: 24 },
   },
   { timestamps: true }
 );

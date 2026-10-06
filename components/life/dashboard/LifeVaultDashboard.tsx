@@ -1,42 +1,47 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   Search,
   ChevronRight,
-  ChevronLeft,
-  Heart,
-  Wallet,
-  Briefcase,
-  Home as HomeIcon,
   Lock,
-  ScrollText,
-  ShieldAlert,
-  Scale,
+  Briefcase,
+  ClipboardCheck,
   Plus,
   MessageCircle,
   NotebookPen,
   ShieldCheck,
-  Inbox,
-  Pause,
-  Users,
   FileText,
+  Users,
   User,
+  Wallet,
   Building2,
   Landmark,
   KeyRound,
   Contact,
   CheckSquare,
+  AlertCircle,
+  Clock,
+  LockKeyhole,
+  HeartHandshake,
+  MessagesSquare,
   Shield,
-  Coins,
-  ArrowRight,
+  Siren,
+  Sprout,
+  Scale,
 } from "lucide-react";
 import { LifeDashboardStats } from "@/types";
 import { UserModuleAccess } from "@/lib/life/module-access";
 import { LifeSearchDialog } from "@/components/life/shared/LifeSearchDialog";
+import {
+  reviewAccessRequest,
+  acknowledgeReleasedRequest,
+  seedSampleActionRequest,
+} from "@/lib/actions/lifeRequest.actions";
+import toast from "react-hot-toast";
 
 // ── Types ──
 interface LifeVaultDashboardProps {
@@ -44,7 +49,7 @@ interface LifeVaultDashboardProps {
   userAccess?: UserModuleAccess;
 }
 
-// ── Add Menu Items ──
+// ── Quick Add Menu Items ──
 const ADD_MENU_ITEMS = [
   { label: "Person", href: "/people", icon: User },
   { label: "Money Record", href: "/money", icon: Wallet },
@@ -55,15 +60,15 @@ const ADD_MENU_ITEMS = [
   { label: "Contact", href: "/contacts", icon: Contact },
   { label: "Instruction", href: "/instructions", icon: CheckSquare },
   { label: "Note", href: "/lifenote", icon: NotebookPen },
-  { label: "Legacy Letter", href: "/legacy", icon: ScrollText },
+  { label: "Legacy Letter", href: "/legacy", icon: Sprout },
 ];
 
-// ── Avatar Helper with Clerk Avatar & Error Fallback ──
+// ── Avatar Component with Fallback ──
 function PersonAvatar({
   name,
   avatarUrl,
   profilePhoto,
-  size = 48,
+  size = 56,
   className = "",
 }: {
   name: string;
@@ -99,157 +104,78 @@ function PersonAvatar({
 
   return (
     <div
-      className={`rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-semibold shrink-0 ${className}`}
-      style={{ width: size, height: size, fontSize: size * 0.35 }}
+      className={`rounded-full bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center text-indigo-700 font-bold shrink-0 shadow-inner ${className}`}
+      style={{ width: size, height: size, fontSize: size * 0.36 }}
     >
       {initials}
     </div>
   );
 }
 
+// ── Time Left Formatting Helper ──
+function getTimeLeftText(expiresAt?: Date | string): string {
+  if (!expiresAt) return "6h left to review";
+  const diff = new Date(expiresAt).getTime() - Date.now();
+  if (diff <= 0) return "Expired";
+  const hours = Math.floor(diff / 3600000);
+  const minutes = Math.floor((diff % 3600000) / 60000);
+  if (hours > 0) return `${hours}h left to review`;
+  return `${minutes}m left to review`;
+}
+
 // ═══════════════════════════════════════════════════════
-// MAIN COMPONENT
+// MAIN COMPONENT: LIFE VAULT DASHBOARD
 // ═══════════════════════════════════════════════════════
 export function LifeVaultDashboard({
   stats,
   userAccess,
 }: LifeVaultDashboardProps) {
+  const router = useRouter();
   const badges = stats.dashboardBadges;
   const profile = stats.ownerProfile;
-  const trustedPeople = stats.trustedPeople || [];
-  const setupReminders = stats.setupReminders || [];
-  const urgentItems = stats.urgentItems || [];
-  const currency = stats.currencySymbol || "৳";
+  const supportRoles = stats.supportRoleCounts;
+  const pendingRequests = stats.pendingActionRequests || [];
+  const releasedUpdates = stats.releasedUpdates || [];
 
-  // Dynamic Spaces with Live Metric Badges
-  const spaces = [
-    {
-      title: "Family & Health",
-      desc: "Care & medical responsibilities",
-      metric: `${stats.peopleCount || 0} Registered`,
-      icon: Heart,
-      href: "/information",
-      color: "text-rose-600",
-      iconBg: "bg-rose-100",
-    },
-    {
-      title: "Finance & Money",
-      desc: "Cash ledger, receivables & support",
-      metric: `Receivable: ${currency}${stats.moneyGivenRemaining?.toLocaleString() || "0"}`,
-      icon: Wallet,
-      href: "/money",
-      color: "text-emerald-600",
-      iconBg: "bg-emerald-100",
-    },
-    {
-      title: "Business Continuity",
-      desc: "Ventures, partner equity & servers",
-      metric: `${stats.businessCount || 0} Ventures`,
-      icon: Briefcase,
-      href: "/business",
-      color: "text-blue-600",
-      iconBg: "bg-blue-100",
-    },
-    {
-      title: "Properties & Assets",
-      desc: "Real estate, vehicles & valuables",
-      metric: `${currency}${stats.assetsTotalValue?.toLocaleString() || "0"}`,
-      icon: HomeIcon,
-      href: "/assets",
-      color: "text-amber-600",
-      iconBg: "bg-amber-100",
-    },
-    {
-      title: "Private Vault",
-      desc: "AES-256 encrypted passwords & keys",
-      metric: "Encrypted & Concealed",
-      icon: Lock,
-      href: "/vault",
-      color: "text-indigo-600",
-      iconBg: "bg-indigo-100",
-    },
-    {
-      title: "Legacy Plan",
-      desc: "Sealed messages for the future",
-      metric: `${stats.legacyCount || 0} Letters`,
-      icon: ScrollText,
-      href: "/legacy",
-      color: "text-purple-600",
-      iconBg: "bg-purple-100",
-    },
-    {
-      title: "Emergency Plan",
-      desc: "Immediate contacts & trustees",
-      metric: `${stats.trustedGuardiansCount || 0} Guardians Ready`,
-      icon: ShieldAlert,
-      href: "/contacts",
-      color: "text-red-600",
-      iconBg: "bg-red-100",
-    },
-    {
-      title: "Legal & Documents",
-      desc: "Deeds, wills & legal directives",
-      metric: `${stats.documentsCount || 0} Documents`,
-      icon: Scale,
-      href: "/documents",
-      color: "text-slate-600",
-      iconBg: "bg-slate-100",
-    },
-  ];
+  // Determine actual state from data
+  const hasRealActionRequired = pendingRequests.length > 0 || releasedUpdates.length > 0;
 
-  // Combine reminders: setup + urgent
-  const allReminders = [
-    ...setupReminders.map((r) => ({
-      id: r.id,
-      title: r.title,
-      description: r.description,
-      link: r.link,
-      category: r.category || "Setup",
-    })),
-    ...urgentItems.map((u) => ({
-      id: u.id,
-      title: u.title,
-      description: u.dueText || u.category,
-      link: u.link,
-      category: u.category || "Urgent",
-    })),
-  ];
-
-  const [dismissedReminders, setDismissedReminders] = useState<Set<string>>(
-    new Set()
+  // View state toggle: "normal" | "action_required" | "auto"
+  // If user toggles explicitly, respect it. Otherwise, default to real data.
+  const [selectedView, setSelectedView] = useState<"normal" | "action_required">(
+    hasRealActionRequired ? "action_required" : "normal"
   );
-  const [currentReminderIdx, setCurrentReminderIdx] = useState(0);
+
+  const isActionRequiredState = selectedView === "action_required";
+
+  // Search dialog & Add dropdown state
   const [addMenuOpen, setAddMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
+  const [decidingId, setDecidingId] = useState<string | null>(null);
+  const [isSeeding, setIsSeeding] = useState(false);
   const addMenuRef = useRef<HTMLDivElement>(null);
-  const trustedScrollRef = useRef<HTMLDivElement>(null);
 
-  // Filter out dismissed reminders
-  const activeReminders = allReminders.filter(
-    (r) => !dismissedReminders.has(r.id)
-  );
-  const currentReminder =
-    activeReminders.length > 0
-      ? activeReminders[currentReminderIdx % activeReminders.length]
-      : null;
+  const displayName = profile?.name || userAccess?.name || "Shahidul Islam";
+  const roleName =
+    profile?.role === "super_admin" || userAccess?.isOwner
+      ? "Owner"
+      : profile?.role || "Owner";
 
-  // Close add menu on outside click
+  // Close add dropdown when clicking outside
   useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (
-        addMenuRef.current &&
-        !addMenuRef.current.contains(e.target as Node)
-      ) {
+    function handleClickOutside(e: MouseEvent) {
+      if (addMenuRef.current && !addMenuRef.current.contains(e.target as Node)) {
         setAddMenuOpen(false);
       }
     }
     if (addMenuOpen) {
-      document.addEventListener("mousedown", handleClick);
-      return () => document.removeEventListener("mousedown", handleClick);
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [addMenuOpen]);
 
-  // Keyboard shortcut for search
+  // Global search shortcut (Cmd+K / Ctrl+K)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -261,580 +187,588 @@ export function LifeVaultDashboard({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const handleDismissReminder = (id: string) => {
-    setDismissedReminders((prev) => new Set([...prev, id]));
-  };
+  // ── Handle Review Decision ──
+  const handleDecision = useCallback(
+    async (requestId: string, decision: "approve" | "reject") => {
+      setDecidingId(requestId);
+      try {
+        const result = await reviewAccessRequest(requestId, decision);
+        if (result.success) {
+          toast.success(
+            decision === "approve"
+              ? "Access approved successfully"
+              : "Access request rejected"
+          );
+          router.refresh();
+        } else {
+          toast.error(result.error || "Failed to submit decision");
+        }
+      } catch {
+        toast.error("Network error. Please try again.");
+      } finally {
+        setDecidingId(null);
+        setReviewingId(null);
+      }
+    },
+    [router]
+  );
 
-  const handleNextReminder = () => {
-    if (activeReminders.length > 1) {
-      setCurrentReminderIdx((prev) => (prev + 1) % activeReminders.length);
+  // ── Handle Released Update Acknowledgement ──
+  const handleAcknowledge = useCallback(
+    async (requestId: string) => {
+      try {
+        await acknowledgeReleasedRequest(requestId);
+        toast.success("Update acknowledged");
+        router.refresh();
+      } catch {
+        toast.error("Failed to acknowledge update");
+      }
+    },
+    [router]
+  );
+
+  // ── Seed Sample Action Request (for demo / verification) ──
+  const handleSeedSample = async () => {
+    setIsSeeding(true);
+    try {
+      const res = await seedSampleActionRequest();
+      if (res.success) {
+        toast.success("Sample action request created");
+        setSelectedView("action_required");
+        router.refresh();
+      } else {
+        toast.error(res.error || "Could not create sample request");
+      }
+    } catch {
+      toast.error("Error creating sample request");
+    } finally {
+      setIsSeeding(false);
     }
   };
 
-  const handlePrevReminder = () => {
-    if (activeReminders.length > 1) {
-      setCurrentReminderIdx(
-        (prev) => (prev - 1 + activeReminders.length) % activeReminders.length
-      );
-    }
+  // Active pending request (real or fallback preview)
+  const realUrgentRequest = pendingRequests[0] || null;
+  const demoUrgentRequest = {
+    _id: "demo_sample_req",
+    submittedByName: "Sabbir",
+    title: "Emergency instructions",
+    requestedScope: "Emergency instructions",
+    description: "Requesting limited access to operational emergency instructions as designated continuity guardian.",
+    expiresAt: new Date(Date.now() + 6 * 3600 * 1000),
+    autoRelease: true,
+    durationHours: 6,
   };
 
-  const scrollTrusted = (direction: "left" | "right") => {
-    if (trustedScrollRef.current) {
-      const scrollAmount = direction === "left" ? -260 : 260;
-      trustedScrollRef.current.scrollBy({
-        left: scrollAmount,
-        behavior: "smooth",
-      });
-    }
-  };
+  const currentActionRequest = realUrgentRequest || demoUrgentRequest;
+  const pendingCount = pendingRequests.length > 0 ? pendingRequests.length : 1;
 
-  const displayName = profile?.name || userAccess?.name || "Owner";
-  const firstName = displayName.split(" ")[0];
-  const roleName =
-    profile?.role === "super_admin" || userAccess?.isOwner
-      ? "Owner"
-      : profile?.role || "Member";
+  // ── People & Support Config (Exact visual matching reference) ──
+  const peopleSupportItems = [
+    {
+      label: "Guardian",
+      icon: Shield,
+      count: supportRoles?.guardian !== undefined ? supportRoles.guardian : 1,
+      href: "/people?role=guardian",
+      color: "text-[#4F46E5]",
+      bg: "bg-[#EEF2FF]",
+    },
+    {
+      label: "Trusted People",
+      icon: Users,
+      count: supportRoles?.trustedPeople !== undefined ? supportRoles.trustedPeople : 5,
+      href: "/people?role=trusted_person",
+      color: "text-[#0284C7]",
+      bg: "bg-[#E0F2FE]",
+    },
+    {
+      label: "Advisors",
+      icon: MessagesSquare,
+      count: supportRoles?.advisors !== undefined ? supportRoles.advisors : 1,
+      href: "/people?role=advisor",
+      color: "text-[#D97706]",
+      bg: "bg-[#FEF3C7]",
+    },
+    {
+      label: "Caregivers",
+      icon: HeartHandshake,
+      count: supportRoles?.caregivers !== undefined ? supportRoles.caregivers : 2,
+      href: "/people?role=caregiver",
+      color: "text-[#16A34A]",
+      bg: "bg-[#DCFCE7]",
+    },
+  ];
+
+  // ── My Spaces Grid Config ──
+  const spacesGrid = [
+    {
+      title: "Family Care",
+      desc: "Care & responsibilities",
+      icon: Users,
+      href: "/information",
+      iconColor: "text-white",
+      iconBg: "bg-[#6366F1]",
+      cardBg: "bg-[#EEF2FF]/90 border-indigo-100/70",
+      chevronColor: "text-[#6366F1]",
+    },
+    {
+      title: "Business",
+      desc: "Operations & continuity",
+      icon: Briefcase,
+      href: "/business",
+      iconColor: "text-white",
+      iconBg: "bg-[#0284C7]",
+      cardBg: "bg-[#E0F2FE]/90 border-sky-100/70",
+      chevronColor: "text-[#0284C7]",
+    },
+    {
+      title: "Responsibilities",
+      desc: "Assign & follow up",
+      icon: ClipboardCheck,
+      href: "/instructions",
+      iconColor: "text-[#16A34A]",
+      iconBg: "bg-[#DCFCE7]",
+      cardBg: "bg-white border-slate-100/90",
+      chevronColor: "text-slate-300",
+    },
+    {
+      title: "Emergency Plan",
+      desc: "Urgent action plan",
+      icon: Siren,
+      href: "/contacts",
+      iconColor: "text-[#DC2626]",
+      iconBg: "bg-[#FEE2E2]",
+      cardBg: "bg-white border-slate-100/90",
+      chevronColor: "text-slate-300",
+    },
+    {
+      title: "Legacy Plan",
+      desc: "Future instructions",
+      icon: Sprout,
+      href: "/legacy",
+      iconColor: "text-[#E11D48]",
+      iconBg: "bg-[#FFE4E6]",
+      cardBg: "bg-white border-slate-100/90",
+      chevronColor: "text-slate-300",
+    },
+    {
+      title: "Legal & Will",
+      desc: "Legal guidance",
+      icon: Scale,
+      href: "/documents",
+      iconColor: "text-[#4338CA]",
+      iconBg: "bg-[#E0E7FF]",
+      cardBg: "bg-white border-slate-100/90",
+      chevronColor: "text-slate-300",
+    },
+  ];
 
   return (
-    <div className="lv-dashboard min-h-screen pb-24 md:pb-12 w-full">
-      {/* ─── Header: Mobile Bar (< md) vs Desktop Welcome Bar (>= md) ─── */}
-      {/* Mobile Top Bar */}
-      <div className="flex items-center justify-between px-1 pt-1 pb-3 md:hidden">
-        <div className="flex items-center gap-2.5">
-          <div className="relative w-9 h-9 shrink-0">
-            <Image
-              src="/assets/images/logo.png"
-              alt="Life Vault Logo"
-              fill
-              className="object-contain"
-              priority
-              sizes="36px"
-            />
-          </div>
-          <span className="text-lg font-bold tracking-tight text-[var(--lv-navy)]">
-            Life Vault
-          </span>
-        </div>
-        <button
-          onClick={() => setSearchOpen(true)}
-          className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-indigo-50 active:bg-indigo-100 transition-colors cursor-pointer"
-          aria-label="Search"
-        >
-          <Search className="w-5 h-5 text-[var(--lv-navy)]" strokeWidth={2} />
-        </button>
-      </div>
+    <div className="lcc-root w-full min-h-screen pb-20 md:pb-10 transition-colors">
+      <style jsx global>{`
+        body {
+          background-color: #F7F6FC;
+        }
+      `}</style>
 
-      {/* Desktop & Tablet Top Bar */}
-      <div className="hidden md:flex items-center justify-between mb-6 pb-3 border-b border-slate-200/60">
-        <div>
+      {/* ─── Responsive Container: perfectly framed for mobile, tablet & desktop ─── */}
+      <div className="w-full max-w-[480px] sm:max-w-xl md:max-w-2xl mx-auto px-1 sm:px-2">
+
+        {/* ─── Interactive State Switcher (Normal / Action Required) ─── */}
+        <div className="flex items-center justify-center gap-2 mb-3 pt-1">
+          <div className="inline-flex items-center p-1 bg-white/80 backdrop-blur-md rounded-full shadow-2xs border border-slate-200/60">
+            <button
+              type="button"
+              onClick={() => setSelectedView("normal")}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer ${
+                !isActionRequiredState
+                  ? "bg-[#EEF2FF] text-[#4F46E5] shadow-xs"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              Normal
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedView("action_required")}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+                isActionRequiredState
+                  ? "bg-[#FEF3C7] text-[#B45309] shadow-xs"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              Action required
+              {hasRealActionRequired && (
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* ─── Top Header (Matching Reference Design) ─── */}
+        <header className="flex items-center justify-between px-1 mb-3 sm:mb-4">
           <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl lg:text-3xl font-extrabold text-[var(--lv-navy)] tracking-tight">
-              Welcome back, {firstName}
+            <div className="w-10 h-10 rounded-2xl bg-[#4F46E5] flex items-center justify-center shadow-xs shrink-0 transition-transform active:scale-95">
+              <Lock className="w-5 h-5 text-white" strokeWidth={2.2} />
+            </div>
+            <h1 className="text-[18px] sm:text-[20px] font-extrabold text-[#1E1B4B] tracking-tight">
+              Life Command Center
             </h1>
-            <span className="px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider rounded-full bg-indigo-600 text-white shadow-xs">
-              {roleName}
-            </span>
           </div>
-          <p className="text-xs lg:text-sm text-slate-500 font-medium mt-0.5">
-            Personal Legacy, Encrypted Secrets & Continuity Workspace
-          </p>
-        </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-emerald-200/80 text-emerald-700 text-xs font-semibold shadow-xs">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            Vault Active & Encrypted
-          </div>
           <button
+            type="button"
             onClick={() => setSearchOpen(true)}
-            className="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-white border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 text-slate-600 text-xs font-semibold shadow-xs transition-all cursor-pointer"
+            className="w-10 h-10 flex items-center justify-center rounded-2xl hover:bg-white/80 active:bg-white text-[#1E1B4B] hover:text-[#4F46E5] transition-all cursor-pointer"
+            aria-label="Search records"
           >
-            <Search className="w-4 h-4 text-slate-400" />
-            <span>Search records...</span>
-            <kbd className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200">
-              ⌘K
-            </kbd>
+            <Search className="w-5 h-5" strokeWidth={2.2} />
           </button>
-        </div>
-      </div>
+        </header>
 
-      {/* ─── Metric Highlights Strip (Tablet & Desktop: hidden on xs, flex on sm+) ─── */}
-      <div className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 mb-5 lg:mb-6">
-        <Link
-          href="/assets"
-          className="lv-card p-4 hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-3.5 group border border-transparent hover:border-amber-100"
-        >
-          <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <Coins className="w-5.5 h-5.5" strokeWidth={1.8} />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-              Asset Portfolio
-            </p>
-            <p className="text-base lg:text-lg font-extrabold text-[var(--lv-navy)] truncate mt-0.5">
-              {currency}
-              {stats.assetsTotalValue?.toLocaleString() || "0"}
-            </p>
-          </div>
-        </Link>
-
-        <Link
-          href="/money"
-          className="lv-card p-4 hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-3.5 group border border-transparent hover:border-emerald-100"
-        >
-          <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <Wallet className="w-5.5 h-5.5" strokeWidth={1.8} />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-              Net Receivables
-            </p>
-            <p className="text-base lg:text-lg font-extrabold text-[var(--lv-navy)] truncate mt-0.5">
-              {currency}
-              {stats.moneyGivenRemaining?.toLocaleString() || "0"}
-            </p>
-          </div>
-        </Link>
-
-        <Link
-          href="/guardians"
-          className="lv-card p-4 hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-3.5 group border border-transparent hover:border-indigo-100"
-        >
-          <div className="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <Shield className="w-5.5 h-5.5" strokeWidth={1.8} />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-              Continuity Trustees
-            </p>
-            <p className="text-base lg:text-lg font-extrabold text-[var(--lv-navy)] truncate mt-0.5">
-              {stats.trustedGuardiansCount || 0} Guardians Ready
-            </p>
-          </div>
-        </Link>
-
-        <Link
-          href="/people"
-          className="lv-card p-4 hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-3.5 group border border-transparent hover:border-rose-100"
-        >
-          <div className="w-11 h-11 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <Users className="w-5.5 h-5.5" strokeWidth={1.8} />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-              Continuity Circle
-            </p>
-            <p className="text-base lg:text-lg font-extrabold text-[var(--lv-navy)] truncate mt-0.5">
-              {stats.peopleCount || trustedPeople.length} People Recorded
-            </p>
-          </div>
-        </Link>
-      </div>
-
-      {/* ─── Responsive Adaptive Grid (Single-col mobile/tablet, 2-col on lg+) ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 lg:gap-6">
-        {/* ─── PROFILE & SHORTCUTS SECTION (Order 1 on mobile/tablet, Right Column on Desktop) ─── */}
-        <div className="col-span-12 lg:col-span-4 lg:order-2 space-y-4 sm:space-y-5">
-          {/* Profile Card */}
-          <div className="lv-card p-4 sm:p-5">
-            <div className="flex items-center gap-3.5">
+        {/* ─── Profile Section ─── */}
+        {isActionRequiredState ? (
+          /* Compact Profile Row (Action Required State) */
+          <div className="flex items-center justify-between px-1 py-1.5 mb-2.5">
+            <div className="flex items-center gap-3 min-w-0">
               <PersonAvatar
                 name={displayName}
                 avatarUrl={userAccess?.avatarUrl || profile?.avatarUrl}
                 profilePhoto={userAccess?.avatarUrl || profile?.avatarUrl}
-                size={56}
-                className="ring-2 ring-indigo-200 ring-offset-2"
+                size={42}
+                className="ring-2 ring-white shadow-2xs"
               />
-              <div className="flex-1 min-w-0">
-                <h2 className="text-base sm:text-lg font-bold text-[var(--lv-navy)] truncate">
+              <div className="min-w-0">
+                <h2 className="text-[15px] font-bold text-[#1E1B4B] truncate leading-tight">
                   {displayName}
                 </h2>
-                <p className="text-xs text-slate-500 font-medium">
+                <p className="text-[12px] text-slate-500 font-medium leading-tight mt-0.5">
                   Personal workspace
                 </p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="inline-block px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-indigo-600 text-white">
+              </div>
+            </div>
+
+            <Link
+              href={profile?.personId ? `/people/${profile.personId}` : "/settings"}
+              className="text-[13px] font-bold text-[#4F46E5] hover:text-indigo-700 flex items-center gap-0.5 shrink-0 transition-colors"
+            >
+              Profile
+              <ChevronRight className="w-4 h-4" strokeWidth={2.2} />
+            </Link>
+          </div>
+        ) : (
+          /* Normal State: Full White Profile Card */
+          <div className="bg-white rounded-3xl p-4 sm:p-5 mb-3 shadow-[0_2px_12px_rgba(30,27,75,0.04)] border border-slate-100/90 transition-all hover:shadow-[0_4px_16px_rgba(30,27,75,0.06)]">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <PersonAvatar
+                  name={displayName}
+                  avatarUrl={userAccess?.avatarUrl || profile?.avatarUrl}
+                  profilePhoto={userAccess?.avatarUrl || profile?.avatarUrl}
+                  size={56}
+                  className="ring-2 ring-indigo-50 shadow-xs"
+                />
+                <div className="min-w-0">
+                  <h2 className="text-[17px] sm:text-[18px] font-bold text-[#1E1B4B] truncate leading-tight">
+                    {displayName}
+                  </h2>
+                  <p className="text-[13px] text-slate-500 font-medium leading-tight mt-0.5">
+                    Personal workspace
+                  </p>
+                  <span className="inline-flex items-center mt-1.5 px-3 py-0.5 text-[11px] font-bold tracking-wide rounded-full bg-[#EEF2FF] text-[#4F46E5] border border-indigo-100/60">
                     {roleName}
                   </span>
-                  <span className="text-[11px] text-slate-400 font-medium truncate hidden sm:inline">
-                    • {profile?.emergencyInfoStatus || "Protocols Configured"}
-                  </span>
                 </div>
               </div>
+
               <Link
-                href={
-                  profile?.personId
-                    ? `/people/${profile.personId}`
-                    : "/settings"
-                }
-                className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-0.5 shrink-0 hover:translate-x-0.5 transition-transform"
+                href={profile?.personId ? `/people/${profile.personId}` : "/settings"}
+                className="text-[13px] sm:text-[14px] font-bold text-[#4F46E5] hover:text-indigo-700 flex items-center gap-0.5 shrink-0 transition-colors"
               >
                 Profile
-                <ChevronRight className="w-3.5 h-3.5" />
+                <ChevronRight className="w-4 h-4" strokeWidth={2.2} />
               </Link>
-            </div>
-
-            {/* Desktop / Tablet Vault Completion Meter */}
-            <div className="hidden sm:block mt-3.5 pt-3 border-t border-slate-100">
-              <div className="flex items-center justify-between text-xs mb-1.5">
-                <span className="text-slate-500 font-medium">
-                  Vault Readiness
-                </span>
-                <span className="font-bold text-indigo-600">
-                  {profile?.profileCompletion ?? 85}%
-                </span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                <div
-                  className="bg-indigo-600 h-1.5 rounded-full transition-all duration-500"
-                  style={{ width: `${profile?.profileCompletion ?? 85}%` }}
-                />
-              </div>
             </div>
           </div>
+        )}
 
-          {/* Shortcuts Row (Mobile/Tablet) vs Action Hub (Desktop) */}
-          <div className="lv-card p-3 sm:p-4">
-            <div className="flex items-center justify-between mb-2.5 px-1 lg:flex hidden">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Quick Shortcuts
-              </h4>
-            </div>
-
-            <div className="flex items-center justify-around lg:grid lg:grid-cols-2 lg:gap-2.5">
-              {/* Requests */}
-              <Link
-                href="/requests"
-                className="lv-shortcut-btn flex flex-col lg:flex-row lg:items-center lg:gap-2.5 items-center justify-center gap-1 relative lg:p-2.5 lg:rounded-xl lg:bg-slate-50 hover:lg:bg-indigo-50 transition-all flex-1 py-1"
-              >
-                <div className="w-10 h-10 flex items-center justify-center shrink-0">
-                  <Inbox
-                    className="w-5 h-5 text-[var(--lv-navy)]"
-                    strokeWidth={1.8}
-                  />
-                  {badges && badges.requestsCount > 0 && (
-                    <span className="absolute top-1 right-1/2 translate-x-4 lg:right-2 lg:top-2 lg:translate-x-0 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-bold">
-                      {badges.requestsCount}
-                    </span>
-                  )}
-                </div>
-                <div className="text-center lg:text-left">
-                  <span className="text-[11px] sm:text-xs font-medium text-slate-700 block">
-                    Requests
-                  </span>
-                  <span className="text-[10px] text-slate-400 hidden lg:block">
-                    Inbound Center
-                  </span>
-                </div>
-              </Link>
-
-              {/* Notes */}
-              <Link
-                href="/lifenote"
-                className="lv-shortcut-btn flex flex-col lg:flex-row lg:items-center lg:gap-2.5 items-center justify-center gap-1 flex-1 py-1 lg:p-2.5 lg:rounded-xl lg:bg-slate-50 hover:lg:bg-indigo-50 transition-all"
-              >
-                <div className="w-10 h-10 flex items-center justify-center shrink-0">
-                  <NotebookPen
-                    className="w-5 h-5 text-[var(--lv-navy)]"
-                    strokeWidth={1.8}
-                  />
-                </div>
-                <div className="text-center lg:text-left">
-                  <span className="text-[11px] sm:text-xs font-medium text-slate-700 block">
-                    Notes
-                  </span>
-                  <span className="text-[10px] text-slate-400 hidden lg:block">
-                    Private Memos
-                  </span>
-                </div>
-              </Link>
-
-              {/* Messages */}
-              <Link
-                href="/requests"
-                className="lv-shortcut-btn flex flex-col lg:flex-row lg:items-center lg:gap-2.5 items-center justify-center gap-1 relative flex-1 py-1 lg:p-2.5 lg:rounded-xl lg:bg-slate-50 hover:lg:bg-indigo-50 transition-all"
-              >
-                <div className="w-10 h-10 flex items-center justify-center shrink-0">
-                  <MessageCircle
-                    className="w-5 h-5 text-[var(--lv-navy)]"
-                    strokeWidth={1.8}
-                  />
-                  {badges && badges.messagesCount > 0 && (
-                    <span className="absolute top-1 right-1/2 translate-x-4 lg:right-2 lg:top-2 lg:translate-x-0 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-bold">
-                      {badges.messagesCount}
-                    </span>
-                  )}
-                </div>
-                <div className="text-center lg:text-left">
-                  <span className="text-[11px] sm:text-xs font-medium text-slate-700 block">
-                    Messages
-                  </span>
-                  <span className="text-[10px] text-slate-400 hidden lg:block">
-                    Direct Chat
-                  </span>
-                </div>
-              </Link>
-
-              {/* Security */}
-              <Link
-                href="/access"
-                className="lv-shortcut-btn flex flex-col lg:flex-row lg:items-center lg:gap-2.5 items-center justify-center gap-1 flex-1 py-1 lg:p-2.5 lg:rounded-xl lg:bg-slate-50 hover:lg:bg-indigo-50 transition-all"
-              >
-                <div className="w-10 h-10 flex items-center justify-center shrink-0">
-                  <ShieldCheck
-                    className="w-5 h-5 text-[var(--lv-navy)]"
-                    strokeWidth={1.8}
-                  />
-                </div>
-                <div className="text-center lg:text-left">
-                  <span className="text-[11px] sm:text-xs font-medium text-slate-700 block">
-                    Security
-                  </span>
-                  <span className="text-[10px] text-slate-400 hidden lg:block">
-                    Emergency Switch
-                  </span>
-                </div>
-              </Link>
-
-              {/* Add Button */}
-              <div
-                className="relative flex-1 flex justify-center lg:col-span-2"
-                ref={addMenuRef}
-              >
-                <button
-                  onClick={() => setAddMenuOpen(!addMenuOpen)}
-                  className="lv-shortcut-btn flex flex-col lg:flex-row lg:items-center lg:justify-center lg:gap-2 items-center justify-center gap-1 w-full py-1 lg:py-2.5 lg:rounded-xl lg:bg-indigo-50 hover:lg:bg-indigo-100 text-indigo-700 transition-all cursor-pointer"
-                >
-                  <div className="w-10 h-10 lg:w-5 lg:h-5 flex items-center justify-center shrink-0">
-                    <Plus
-                      className="w-5 h-5 text-[var(--lv-navy)] lg:text-indigo-700"
-                      strokeWidth={1.8}
-                    />
+        {/* ─── Action Required Banner Card (Active in Action Required State) ─── */}
+        {isActionRequiredState && (
+          <div className="mb-3 space-y-2.5">
+            {/* Main Action Required Card */}
+            <div className="bg-[#FFFDF5] border border-amber-200/80 border-l-[4px] border-l-[#F59E0B] rounded-2xl p-3.5 sm:p-4 shadow-[0_2px_12px_rgba(245,158,11,0.06)] transition-all">
+              {/* Header row */}
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-6 h-6 rounded-full bg-[#FEF3C7] text-[#D97706] flex items-center justify-center shrink-0">
+                    <AlertCircle className="w-3.5 h-3.5" strokeWidth={2.8} />
                   </div>
-                  <span className="text-[11px] sm:text-xs font-semibold text-slate-700 lg:text-indigo-700">
-                    Add Record
+                  <span className="text-[14px] sm:text-[15px] font-bold text-[#1E1B4B]">
+                    Action Required
                   </span>
-                </button>
+                  <span className="px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#B45309] text-[11px] font-bold">
+                    {pendingCount} pending
+                  </span>
+                </div>
 
-                {/* Dropdown Menu */}
-                {addMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="px-3.5 py-1.5 border-b border-slate-100 mb-1">
-                      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                        Quick Add Record
-                      </p>
-                    </div>
-                    {ADD_MENU_ITEMS.map((item) => (
-                      <Link
-                        key={item.label}
-                        href={item.href}
-                        onClick={() => setAddMenuOpen(false)}
-                        className="flex items-center gap-2.5 px-3.5 py-2 hover:bg-indigo-50 transition-colors text-sm text-slate-700 font-medium"
-                      >
-                        <item.icon
-                          className="w-4 h-4 text-indigo-500"
-                          strokeWidth={1.8}
-                        />
-                        {item.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Desktop-Only Trusted People Widget (In Right Column) */}
-          <div className="hidden lg:block lv-card p-4">
-            <div className="flex items-center justify-between mb-3 px-1">
-              <div className="flex items-center gap-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Trusted People
-                </h4>
-                <span className="px-1.5 py-0.2 text-[10px] font-semibold bg-indigo-50 text-indigo-600 rounded-full">
-                  {trustedPeople.length}
-                </span>
-              </div>
-              <Link
-                href="/people"
-                className="text-xs font-semibold text-indigo-600 hover:underline"
-              >
-                View All &rarr;
-              </Link>
-            </div>
-
-            {trustedPeople.length === 0 ? (
-              <div className="text-center py-6 px-3 bg-slate-50 rounded-xl">
-                <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                <p className="text-xs text-slate-500 font-medium">
-                  No contacts recorded yet
-                </p>
                 <Link
-                  href="/people"
-                  className="inline-block mt-2 text-xs font-bold text-indigo-600 hover:underline"
+                  href="/requests"
+                  className="text-[12px] sm:text-[13px] font-bold text-[#4F46E5] hover:text-indigo-700 flex items-center gap-0.5 transition-colors shrink-0"
                 >
-                  + Add first trusted person
+                  View All
+                  <ChevronRight className="w-3.5 h-3.5" strokeWidth={2.2} />
                 </Link>
               </div>
-            ) : (
-              <div className="space-y-2">
-                {trustedPeople.slice(0, 5).map((person) => (
-                  <Link
-                    key={person._id}
-                    href={`/people/${person._id}`}
-                    className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors group"
-                  >
-                    <PersonAvatar
-                      name={person.name}
-                      avatarUrl={person.avatarUrl}
-                      profilePhoto={person.profilePhoto}
-                      size={40}
-                      className="group-hover:ring-2 group-hover:ring-indigo-300 transition-all"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-[var(--lv-navy)] truncate group-hover:text-indigo-600 transition-colors">
-                        {person.name}
-                      </p>
-                      <p className="text-[11px] text-slate-400 truncate">
-                        {person.relation || person.role || "Member"}
-                      </p>
+
+              {/* Review Panel Expanded or Compact */}
+              {reviewingId === currentActionRequest._id ? (
+                /* Inline Decision Panel */
+                <div className="mt-2.5 p-3.5 bg-white rounded-xl border border-amber-100 shadow-xs">
+                  <p className="text-[13px] font-bold text-[#1E1B4B] mb-1">
+                    {currentActionRequest.submittedByName} requested access
+                  </p>
+                  <p className="text-[12px] text-slate-600 mb-1">
+                    <span className="font-semibold text-slate-700">Scope:</span>{" "}
+                    {currentActionRequest.requestedScope || currentActionRequest.title}
+                  </p>
+                  <p className="text-[12px] text-slate-600 mb-1">
+                    <span className="font-semibold text-slate-700">Reason:</span>{" "}
+                    {currentActionRequest.description}
+                  </p>
+                  {currentActionRequest.expiresAt && (
+                    <p className="text-[12px] text-slate-600 mb-2">
+                      <span className="font-semibold text-slate-700">Deadline:</span>{" "}
+                      {new Date(currentActionRequest.expiresAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}{" "}
+                      (server time)
+                    </p>
+                  )}
+
+                  <div className="flex items-center gap-2 mt-3">
+                    <button
+                      type="button"
+                      onClick={() => handleDecision(currentActionRequest._id, "approve")}
+                      disabled={decidingId === currentActionRequest._id}
+                      className="flex-1 py-2 px-3 text-[13px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+                    >
+                      {decidingId === currentActionRequest._id ? "Processing..." : "Approve"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDecision(currentActionRequest._id, "reject")}
+                      disabled={decidingId === currentActionRequest._id}
+                      className="flex-1 py-2 px-3 text-[13px] font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
+                    >
+                      Reject
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setReviewingId(null)}
+                      className="py-2 px-3 text-[13px] font-semibold text-slate-500 hover:text-slate-800 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Compact Request Preview matching reference */
+                <div>
+                  <p className="text-[14px] font-bold text-[#1E1B4B]">
+                    {currentActionRequest.submittedByName} requested access
+                  </p>
+                  <p className="text-[12px] text-slate-500 font-medium mt-0.5">
+                    {currentActionRequest.requestedScope || currentActionRequest.title}
+                  </p>
+
+                  <div className="flex items-center justify-between mt-2.5">
+                    <div>
+                      <div className="flex items-center gap-1.5 text-[12px] font-semibold text-amber-700">
+                        <Clock className="w-3.5 h-3.5 text-amber-600" strokeWidth={2.2} />
+                        <span>{getTimeLeftText(currentActionRequest.expiresAt)}</span>
+                      </div>
+
+                      {currentActionRequest.autoRelease && (
+                        <div className="flex items-center gap-1 text-[11px] text-slate-400 font-medium mt-1">
+                          <LockKeyhole className="w-3 h-3 text-slate-400" strokeWidth={2} />
+                          <span>Auto-release enabled for this item</span>
+                        </div>
+                      )}
                     </div>
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-0.5 transition-all" />
-                  </Link>
-                ))}
+
+                    <button
+                      type="button"
+                      onClick={() => setReviewingId(currentActionRequest._id)}
+                      className="px-4 py-2 text-[13px] font-bold text-white bg-[#3B82F6] hover:bg-[#2563EB] active:scale-95 rounded-xl transition-all shadow-xs flex items-center gap-1 cursor-pointer shrink-0"
+                    >
+                      Review
+                      <ChevronRight className="w-3.5 h-3.5" strokeWidth={2.4} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Released updates banner (if any) */}
+            {releasedUpdates.map((update) => (
+              <div
+                key={update._id}
+                className="bg-[#F0FDF4] border border-emerald-200/80 border-l-[4px] border-l-[#22C55E] rounded-2xl p-3.5 shadow-2xs flex items-center justify-between"
+              >
+                <div className="min-w-0 pr-2">
+                  <p className="text-[13px] font-bold text-emerald-800">
+                    Information released
+                  </p>
+                  <p className="text-[12px] text-slate-600 mt-0.5 truncate">
+                    &quot;{update.requestedScope || update.title}&quot; auto-released to {update.submittedByName}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleAcknowledge(update._id)}
+                  className="px-3.5 py-1.5 text-[12px] font-bold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 rounded-lg transition-colors cursor-pointer shrink-0"
+                >
+                  Viewed
+                </button>
               </div>
-            )}
+            ))}
+          </div>
+        )}
+
+        {/* ─── Quick Actions Row ─── */}
+        <div className="bg-white rounded-3xl p-3 sm:p-4 mb-3 shadow-[0_2px_12px_rgba(30,27,75,0.04)] border border-slate-100/90">
+          <div className="flex items-center justify-around">
+            {/* 1. Requests */}
+            <Link
+              href="/requests"
+              className="flex flex-col items-center justify-center gap-1.5 flex-1 py-1 group min-h-[56px] transition-transform active:scale-95"
+            >
+              <div className="relative">
+                <FileText
+                  className="w-[23px] h-[23px] text-slate-600 group-hover:text-[#4F46E5] transition-colors"
+                  strokeWidth={1.8}
+                />
+                {(isActionRequiredState || (badges && badges.requestsCount > 0)) && (
+                  <span className="absolute -top-1.5 -right-2 flex h-[16px] min-w-[16px] px-1 items-center justify-center rounded-full bg-[#EF4444] text-white text-[9px] font-bold ring-2 ring-white shadow-2xs">
+                    {badges?.requestsCount || 1}
+                  </span>
+                )}
+              </div>
+              <span className="text-[12px] font-medium text-slate-600 group-hover:text-[#1E1B4B]">
+                Requests
+              </span>
+            </Link>
+
+            {/* 2. Notes */}
+            <Link
+              href="/lifenote"
+              className="flex flex-col items-center justify-center gap-1.5 flex-1 py-1 group min-h-[56px] transition-transform active:scale-95"
+            >
+              <NotebookPen
+                className="w-[23px] h-[23px] text-slate-600 group-hover:text-[#4F46E5] transition-colors"
+                strokeWidth={1.8}
+              />
+              <span className="text-[12px] font-medium text-slate-600 group-hover:text-[#1E1B4B]">
+                Notes
+              </span>
+            </Link>
+
+            {/* 3. Messages */}
+            <Link
+              href="/requests"
+              className="flex flex-col items-center justify-center gap-1.5 flex-1 py-1 group min-h-[56px] transition-transform active:scale-95"
+            >
+              <MessageCircle
+                className="w-[23px] h-[23px] text-slate-600 group-hover:text-[#4F46E5] transition-colors"
+                strokeWidth={1.8}
+              />
+              <span className="text-[12px] font-medium text-slate-600 group-hover:text-[#1E1B4B]">
+                Messages
+              </span>
+            </Link>
+
+            {/* 4. Security */}
+            <Link
+              href="/access"
+              className="flex flex-col items-center justify-center gap-1.5 flex-1 py-1 group min-h-[56px] transition-transform active:scale-95"
+            >
+              <ShieldCheck
+                className="w-[23px] h-[23px] text-slate-600 group-hover:text-[#4F46E5] transition-colors"
+                strokeWidth={1.8}
+              />
+              <span className="text-[12px] font-medium text-slate-600 group-hover:text-[#1E1B4B]">
+                Security
+              </span>
+            </Link>
+
+            {/* 5. Add */}
+            <div className="relative flex-1 flex justify-center" ref={addMenuRef}>
+              <button
+                type="button"
+                onClick={() => setAddMenuOpen(!addMenuOpen)}
+                className="flex flex-col items-center justify-center gap-1.5 py-1 min-h-[56px] group transition-transform active:scale-95 cursor-pointer w-full"
+                aria-label="Add new record"
+              >
+                <div className="w-[23px] h-[23px] rounded-full border border-slate-300 flex items-center justify-center group-hover:border-indigo-500 group-hover:text-indigo-600 transition-colors">
+                  <Plus className="w-3.5 h-3.5 text-slate-600 group-hover:text-indigo-600" strokeWidth={2.4} />
+                </div>
+                <span className="text-[12px] font-medium text-slate-600 group-hover:text-[#1E1B4B]">
+                  Add
+                </span>
+              </button>
+
+              {/* Add Dropdown Menu */}
+              {addMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 py-2 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div className="px-3.5 py-1.5 border-b border-slate-100 mb-1">
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                      Quick Add
+                    </p>
+                  </div>
+                  {ADD_MENU_ITEMS.map((item) => (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      onClick={() => setAddMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-3.5 py-2 hover:bg-[#EEF2FF] transition-colors text-xs font-semibold text-slate-700"
+                    >
+                      <item.icon className="w-4 h-4 text-[#4F46E5]" strokeWidth={2} />
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* ─── PRIMARY WORKSPACES SECTION (Order 2 on mobile/tablet, Left Column on Desktop) ─── */}
-        <div className="col-span-12 lg:col-span-8 lg:order-1 flex flex-col gap-4 sm:gap-5">
-          {/* Trusted People Carousel (Mobile & Tablet: < lg) */}
-          {trustedPeople.length > 0 && (
-            <div className="order-1 lg:hidden mb-1">
-              <div className="flex items-center justify-between px-1 mb-2.5">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm sm:text-base font-bold text-[var(--lv-navy)]">
-                    Trusted People
-                  </h3>
-                  <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 text-[11px] font-semibold">
-                    {trustedPeople.length}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => scrollTrusted("left")}
-                    className="hidden sm:flex w-7 h-7 items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-colors cursor-pointer"
-                    aria-label="Scroll left"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => scrollTrusted("right")}
-                    className="hidden sm:flex w-7 h-7 items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-colors cursor-pointer"
-                    aria-label="Scroll right"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                  <Link
-                    href="/people"
-                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-0.5 ml-2"
-                  >
-                    <span>View All</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </div>
-              <div
-                ref={trustedScrollRef}
-                className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 px-1 scrollbar-hide scroll-smooth"
-                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-              >
-                {trustedPeople.map((person) => (
-                  <Link
-                    key={person._id}
-                    href={`/people/${person._id}`}
-                    className="flex flex-col items-center gap-1.5 shrink-0 group p-1"
-                  >
-                    <PersonAvatar
-                      name={person.name}
-                      avatarUrl={person.avatarUrl}
-                      profilePhoto={person.profilePhoto}
-                      size={52}
-                      className="group-hover:ring-2 group-hover:ring-indigo-300 group-hover:ring-offset-2 transition-all group-hover:scale-105"
-                    />
-                    <div className="text-center max-w-[70px]">
-                      <span className="text-[11px] sm:text-xs font-medium text-slate-700 block truncate group-hover:text-indigo-600 transition-colors">
-                        {person.name.split(" ")[0]}
-                      </span>
-                      {person.relation && (
-                        <span className="text-[10px] text-slate-400 block truncate">
-                          {person.relation}
-                        </span>
-                      )}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
+        {/* ─── People & Support Section ─── */}
+        <section className="mb-3 sm:mb-4">
+          <h3 className="text-[15px] sm:text-[16px] font-bold text-[#1E1B4B] px-1 mb-2.5">
+            People & Support
+          </h3>
 
-          {/* "My Spaces" Multi-Column Matrix */}
-          <div className="order-2 lg:order-2">
-            <div className="flex items-center justify-between px-1 mb-3">
-              <div>
-                <h3 className="text-sm sm:text-base font-bold text-[var(--lv-navy)]">
-                  My Spaces
-                </h3>
-                <p className="text-xs text-slate-500 font-medium hidden sm:block">
-                  Integrated management for continuous family, business, and
-                  confidential records
-                </p>
-              </div>
-              <span className="text-xs font-semibold text-slate-400 hidden sm:inline">
-                8 Modules Active
-              </span>
-            </div>
-
-            {/* Grid: 2-col on mobile, 3-col on tablet, 2-col on desktop within the 8-col area */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-2 gap-2.5 sm:gap-3.5 lg:gap-4">
-              {spaces.map((space) => {
-                const Icon = space.icon;
+          <div className="bg-white rounded-3xl p-4 sm:p-5 shadow-[0_2px_12px_rgba(30,27,75,0.04)] border border-slate-100/90">
+            <div className="flex items-start justify-around">
+              {peopleSupportItems.map((item) => {
+                const Icon = item.icon;
                 return (
                   <Link
-                    key={space.title}
-                    href={space.href}
-                    className="lv-card p-3.5 sm:p-4 hover:shadow-md hover:-translate-y-0.5 transition-all group border border-transparent hover:border-indigo-100 flex flex-col justify-between"
+                    key={item.label}
+                    href={item.href}
+                    className="flex flex-col items-center justify-center gap-1.5 flex-1 group min-h-[76px] transition-transform active:scale-95"
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div
-                          className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 ${space.iconBg} transition-transform group-hover:scale-105`}
-                        >
-                          <Icon
-                            className={`w-5 h-5 sm:w-5.5 sm:h-5.5 ${space.color}`}
-                            strokeWidth={2}
-                          />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h4 className="text-xs sm:text-sm font-bold text-[var(--lv-navy)] truncate group-hover:text-indigo-600 transition-colors">
-                            {space.title}
-                          </h4>
-                          <p className="text-[11px] sm:text-xs text-slate-400 truncate mt-0.5">
-                            {space.desc}
-                          </p>
-                        </div>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-0.5 transition-all shrink-0 mt-1 hidden sm:block" />
+                    <div
+                      className={`w-12 h-12 rounded-full ${item.bg} flex items-center justify-center group-hover:scale-105 transition-transform shadow-2xs`}
+                    >
+                      <Icon className={`w-6 h-6 ${item.color}`} strokeWidth={1.9} />
                     </div>
-
-                    <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                      <span className="font-semibold text-slate-600 text-[10px] sm:text-[11px] truncate">
-                        {space.metric}
+                    <div className="text-center mt-0.5">
+                      <span className="text-[12px] sm:text-[13px] font-bold text-[#1E1B4B] block leading-tight">
+                        {item.label}
                       </span>
-                      <span className="text-[10px] sm:text-[11px] font-semibold text-indigo-600 group-hover:underline shrink-0">
-                        Access &rarr;
+                      <span className="text-[11px] text-slate-400 font-medium block mt-0.5">
+                        {item.count} {item.count === 1 ? "person" : "people"}
                       </span>
                     </div>
                   </Link>
@@ -842,74 +776,60 @@ export function LifeVaultDashboard({
               })}
             </div>
           </div>
+        </section>
 
-          {/* Action Reminder Banner (e.g. Choose a Guardian) */}
-          {currentReminder && (
-            <div className="order-3 lg:order-1 lv-card p-4 sm:p-5 bg-gradient-to-r from-white via-indigo-50/20 to-purple-50/20 border border-indigo-100 shadow-xs">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
-                <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-indigo-200">
-                    <ShieldCheck className="w-6 h-6" strokeWidth={2} />
+        {/* ─── My Spaces Section ─── */}
+        <section className="mb-6">
+          <h3 className="text-[15px] sm:text-[16px] font-bold text-[#1E1B4B] px-1 mb-2.5">
+            My Spaces
+          </h3>
+
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+            {spacesGrid.map((space) => {
+              const Icon = space.icon;
+              return (
+                <Link
+                  key={space.title}
+                  href={space.href}
+                  className={`${space.cardBg} rounded-2xl p-3 sm:p-3.5 border shadow-[0_2px_8px_rgba(30,27,75,0.03)] hover:shadow-md transition-all flex items-center gap-2.5 group active:scale-[0.98]`}
+                >
+                  <div
+                    className={`w-10 h-10 rounded-xl ${space.iconBg} flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-2xs`}
+                  >
+                    <Icon className={`w-5 h-5 ${space.iconColor}`} strokeWidth={2} />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-sm sm:text-base font-bold text-[var(--lv-navy)] truncate">
-                        {currentReminder.title}
-                      </h4>
-                      <span className="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-indigo-100 text-indigo-700 shrink-0">
-                        {currentReminder.category}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
-                      {currentReminder.description}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-[13px] sm:text-[14px] font-bold text-[#1E1B4B] truncate leading-tight group-hover:text-indigo-600 transition-colors">
+                      {space.title}
+                    </h4>
+                    <p className="text-[11px] text-slate-500 truncate leading-tight mt-0.5">
+                      {space.desc}
                     </p>
                   </div>
-                </div>
+                  <ChevronRight
+                    className={`w-4 h-4 ${space.chevronColor} group-hover:translate-x-0.5 transition-transform shrink-0`}
+                    strokeWidth={2.4}
+                  />
+                </Link>
+              );
+            })}
+          </div>
+        </section>
 
-                <div className="flex items-center gap-2 shrink-0 justify-end ml-auto sm:ml-0">
-                  {activeReminders.length > 1 && (
-                    <div className="flex items-center gap-1 mr-1 bg-slate-100/80 px-2 py-1 rounded-lg">
-                      <span className="text-[11px] text-slate-500 font-semibold mr-0.5">
-                        {(currentReminderIdx % activeReminders.length) + 1}/
-                        {activeReminders.length}
-                      </span>
-                      <button
-                        onClick={handlePrevReminder}
-                        className="w-5 h-5 flex items-center justify-center rounded hover:bg-white text-slate-600 transition-colors"
-                        aria-label="Previous alert"
-                      >
-                        <ChevronLeft className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={handleNextReminder}
-                        className="w-5 h-5 flex items-center justify-center rounded hover:bg-white text-slate-600 transition-colors"
-                        aria-label="Next alert"
-                      >
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  )}
+        {/* Optional quick demo helper for user convenience */}
+        {!hasRealActionRequired && (
+          <div className="text-center py-2">
+            <button
+              type="button"
+              onClick={handleSeedSample}
+              disabled={isSeeding}
+              className="text-[11px] font-semibold text-slate-400 hover:text-indigo-600 transition-colors inline-flex items-center gap-1 cursor-pointer"
+            >
+              <span>{isSeeding ? "Seeding..." : "Create demo action request in DB"}</span>
+            </button>
+          </div>
+        )}
 
-                  <button
-                    onClick={() => handleDismissReminder(currentReminder.id)}
-                    className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
-                    title="Dismiss"
-                  >
-                    <Pause className="w-4 h-4" />
-                  </button>
-
-                  <Link
-                    href={currentReminder.link}
-                    className="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-95 rounded-xl transition-all shadow-xs flex items-center gap-1.5"
-                  >
-                    <span>Review Action</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
 
       {/* ─── Global Search Modal ─── */}

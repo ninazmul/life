@@ -31,6 +31,9 @@ import {
   getClerkAvatar,
 } from "@/lib/life/clerk-avatar";
 
+import { getSupportRoleCounts } from "@/lib/actions/lifePeople.actions";
+import { getPendingActionRequests } from "@/lib/actions/lifeRequest.actions";
+
 export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
   await connectToDatabase();
   const _auth = await getLifeAuthContext();
@@ -656,6 +659,21 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     }
   }
 
+  const [{ pendingRequests, releasedUpdates }, supportRoleCounts] = await Promise.all([
+    getPendingActionRequests().catch(() => ({ pendingRequests: [], releasedUpdates: [] })),
+    getSupportRoleCounts().catch(() => ({
+      guardian: activeGuardiansCount,
+      trustedPeople: 0,
+      advisors: 0,
+      caregivers: 0,
+      totalUniquePeople: peopleCount,
+    })),
+  ]);
+
+  if (dashboardBadges) {
+    dashboardBadges.requestsCount = pendingRequests.length;
+  }
+
   return {
     peopleCount,
     infoCount,
@@ -703,6 +721,9 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     trustedPeople,
     setupReminders,
     currencySymbol: settingsDoc?.currencySymbol || "৳",
+    supportRoleCounts,
+    pendingActionRequests: pendingRequests,
+    releasedUpdates,
   };
 }
 

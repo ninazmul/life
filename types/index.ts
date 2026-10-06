@@ -89,6 +89,8 @@ export type VisibilityMode =
   | "hidden"
   | "admin_can_release";
 
+export type SupportRole = "guardian" | "trusted_person" | "advisor" | "caregiver";
+
 export interface ILifePerson {
   _id: string;
   name: string;
@@ -108,6 +110,7 @@ export interface ILifePerson {
   userRole?: LifeRole;
   guardianStatus?: boolean;
   guardianType?: GuardianType;
+  supportRoles?: SupportRole[];
   permissions: LifePermission;
   emergencyPriority?: number;
   personalMessage?: string;
@@ -638,6 +641,18 @@ export interface LifeDashboardStats {
   }>;
   /** Active system currency symbol */
   currencySymbol?: string;
+  /** Support role counts for People & Support (Section 6) */
+  supportRoleCounts?: {
+    guardian: number;
+    trustedPeople: number;
+    advisors: number;
+    caregivers: number;
+    totalUniquePeople: number;
+  };
+  /** Action Required pending requests (Section 9) */
+  pendingActionRequests?: ILifeRequest[];
+  /** Released updates requiring acknowledgement (Section 12) */
+  releasedUpdates?: ILifeRequest[];
 }
 
 // ------------------------------------------------------------
@@ -1280,6 +1295,13 @@ export interface ILifeRequest {
   unreadByAdmin: number;
   unreadByUser: number;
   isNewForAdmin: boolean;
+  expiresAt?: Date | string;
+  autoRelease?: boolean;
+  autoReleasedAt?: Date | string;
+  isAutoReleased?: boolean;
+  isAcknowledged?: boolean;
+  requestedScope?: string;
+  durationHours?: number;
   createdAt: Date | string;
   updatedAt: Date | string;
 }

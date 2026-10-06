@@ -20,6 +20,7 @@ export interface ILifePersonDoc extends Document {
   userRole?: LifeRole;
   guardianStatus?: boolean;
   guardianType?: GuardianType;
+  supportRoles?: string[];
   permissions: {
     canViewPersonal: boolean;
     canViewBusiness: boolean;
@@ -110,6 +111,7 @@ const LifePersonSchema = new Schema<ILifePersonDoc>(
       enum: ["primary", "secondary", "independent", ""],
       default: "",
     },
+    supportRoles: [{ type: String, index: true }],
     permissions: {
       canViewPersonal: { type: Boolean, default: false },
       canViewBusiness: { type: Boolean, default: false },

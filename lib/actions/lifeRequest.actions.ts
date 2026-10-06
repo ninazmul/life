@@ -506,3 +506,307 @@ export async function getRequestBadgeCounts(): Promise<{
     return { requestsCount: 0, messagesCount: 0 };
   }
 }
+
+// ─────────────────────────────────────────────
+// AUTO-RELEASE CHECK FOR ACCESS REQUESTS
+// ─────────────────────────────────────────────
+export async function checkAndAutoReleaseRequests() {
+  try {
+    await connectToDatabase();
+    const now = new Date();
+
+    const expiredRequests = await LifeRequest.find({
+      status: { $in: ["pending", "in_review"] },
+      autoRelease: true,
+      expiresAt: { $lte: now },
+    });
+
+    for (const req of expiredRequests) {
+      req.status = "approved";
+      req.isAutoReleased = true;
+      req.isAcknowledged = false;
+      req.autoReleasedAt = now;
+      req.resolvedBy = "System (Auto-Release)";
+      req.resolvedAt = now;
+      req.adminResponse = "Automatically released upon deadline expiration.";
+      req.unreadByUser += 1;
+      await req.save();
+
+      // Sync linked LifeNote if applicable
+      if (req.relatedRecordType === "LifeNote" && req.relatedRecordId) {
+        try {
+          const note = await LifeNote.findById(req.relatedRecordId);
+          if (note) {
+            note.isReleased = true;
+            note.status = "released";
+            note.releasedAt = now;
+            note.releasedBy = "System (Auto-Release)";
+            note.history = note.history || [];
+            note.history.push({
+              changedAt: now,
+              changedBy: "System (Auto-Release)",
+              action: "auto_released_via_request_center",
+            });
+            await note.save();
+          }
+        } catch (e) {
+          console.error("Error updating note in auto-release:", e);
+        }
+      }
+
+      await createInAppNotification({
+        recipientEmail: req.submittedByEmail,
+        recipientPersonId: req.submittedByPersonId?.toString(),
+        title: `Information Released: ${req.title}`,
+        message: `Your requested access to "${req.requestedScope || req.title}" has been automatically released.`,
+        type: "request_approved",
+        link: `/requests?id=${req._id}`,
+      });
+
+      await logLifeActivity({
+        action: "REQUEST_AUTO_RELEASED",
+        resourceType: "request",
+        resourceId: String(req._id),
+        resourceName: req.title,
+        details: `Access to "${req.requestedScope || req.title}" automatically released to ${req.submittedByName} after review deadline passed.`,
+      });
+    }
+
+    if (expiredRequests.length > 0) {
+      revalidatePath("/");
+      revalidatePath("/requests");
+    }
+  } catch (e) {
+    console.error("Error in checkAndAutoReleaseRequests:", e);
+  }
+}
+
+// ─────────────────────────────────────────────
+// GET PENDING ACTION REQUESTS FOR DASHBOARD
+// ─────────────────────────────────────────────
+export async function getPendingActionRequests(): Promise<{
+  pendingRequests: ILifeRequest[];
+  releasedUpdates: ILifeRequest[];
+}> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth) return { pendingRequests: [], releasedUpdates: [] };
+
+    // Run auto-release check first so server deadlines are strictly enforced
+    await checkAndAutoReleaseRequests();
+    await checkAndAutoReleaseNotes();
+
+    const isPrivileged = auth.isOwner || auth.isAdmin;
+    let query: Record<string, any> = {
+      status: { $in: ["pending", "in_review"] },
+    };
+
+    if (!isPrivileged) {
+      query = {
+        submittedByEmail: auth.email.toLowerCase().trim(),
+        status: { $in: ["pending", "in_review"] },
+      };
+    }
+
+    const pendingDocs = await LifeRequest.find(query)
+      .sort({ expiresAt: 1, createdAt: -1 })
+      .lean();
+
+    // Get unacknowledged auto-released updates for owner/admin
+    let releasedDocs: any[] = [];
+    if (isPrivileged) {
+      releasedDocs = await LifeRequest.find({
+        isAutoReleased: true,
+        isAcknowledged: false,
+      })
+        .sort({ autoReleasedAt: -1 })
+        .limit(5)
+        .lean();
+    }
+
+    return {
+      pendingRequests: JSON.parse(JSON.stringify(pendingDocs)),
+      releasedUpdates: JSON.parse(JSON.stringify(releasedDocs)),
+    };
+  } catch (error) {
+    console.error("Error in getPendingActionRequests:", error);
+    return { pendingRequests: [], releasedUpdates: [] };
+  }
+}
+
+// ─────────────────────────────────────────────
+// REVIEW ACCESS REQUEST (Approve / Reject decision)
+// ─────────────────────────────────────────────
+export async function reviewAccessRequest(
+  requestId: string,
+  decision: "approve" | "reject",
+  responseReason?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return { success: false, error: "Forbidden: Only admins can decide requests." };
+    }
+
+    await connectToDatabase();
+    const request = await LifeRequest.findById(requestId);
+    if (!request) return { success: false, error: "Request not found." };
+
+    if (request.status !== "pending" && request.status !== "in_review") {
+      return {
+        success: false,
+        error: `Request has already been ${request.status}.`,
+      };
+    }
+
+    const newStatus = decision === "approve" ? "approved" : "rejected";
+    request.status = newStatus;
+    request.adminResponse = responseReason ? responseReason.trim() : (
+      decision === "approve" ? "Approved by workspace owner." : "Rejected by workspace owner."
+    );
+    request.resolvedBy = auth.name;
+    request.resolvedAt = new Date();
+    request.unreadByUser += 1;
+
+    await request.save();
+
+    // Synchronize linked LifeNote if applicable
+    if (request.relatedRecordType === "LifeNote" && request.relatedRecordId) {
+      try {
+        const note = await LifeNote.findById(request.relatedRecordId);
+        if (note) {
+          if (decision === "approve") {
+            note.isReleased = true;
+            note.status = "released";
+            note.releasedAt = new Date();
+            note.releasedBy = `${auth.name} (${auth.email})`;
+            note.history = note.history || [];
+            note.history.push({
+              changedAt: new Date(),
+              changedBy: `${auth.name} (${auth.email})`,
+              action: "approved_via_action_required",
+            });
+            await note.save();
+          } else {
+            note.status = "request_rejected";
+            note.isReleased = false;
+            note.history = note.history || [];
+            note.history.push({
+              changedAt: new Date(),
+              changedBy: `${auth.name} (${auth.email})`,
+              action: `rejected_via_action_required: ${responseReason || "No reason specified"}`,
+            });
+            await note.save();
+          }
+        }
+      } catch (e) {
+        console.error("Error synchronizing linked note on review:", e);
+      }
+    }
+
+    // Notify submitter
+    await createInAppNotification({
+      recipientEmail: request.submittedByEmail,
+      recipientPersonId: request.submittedByPersonId?.toString(),
+      title: `Request ${decision === "approve" ? "Approved" : "Rejected"}: ${request.title}`,
+      message: request.adminResponse || `Your request was ${newStatus}.`,
+      type: decision === "approve" ? "request_approved" : "request_rejected",
+      link: `/requests?id=${requestId}`,
+    });
+
+    await logLifeActivity({
+      action: decision === "approve" ? "REQUEST_APPROVED" : "REQUEST_REJECTED",
+      resourceType: "request",
+      resourceId: requestId,
+      resourceName: request.title,
+      details: `${auth.name} ${decision}d access request for "${request.requestedScope || request.title}" submitted by ${request.submittedByName}.`,
+    });
+
+    revalidatePath("/");
+    revalidatePath("/requests");
+    revalidatePath("/lifenote");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error in reviewAccessRequest:", error);
+    return { success: false, error: error.message || "Failed to submit decision." };
+  }
+}
+
+// ─────────────────────────────────────────────
+// ACKNOWLEDGE AUTO-RELEASED UPDATE
+// ─────────────────────────────────────────────
+export async function acknowledgeReleasedRequest(requestId: string): Promise<{ success: boolean }> {
+  try {
+    const auth = await getLifeAuthContext();
+    if (!auth) return { success: false };
+
+    await connectToDatabase();
+    await LifeRequest.findByIdAndUpdate(requestId, {
+      $set: { isAcknowledged: true },
+    });
+
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("Error in acknowledgeReleasedRequest:", error);
+    return { success: false };
+  }
+}
+
+// ─────────────────────────────────────────────
+// SEED OR TOGGLE SAMPLE ACTION REQUEST (For Verification & Demo)
+// ─────────────────────────────────────────────
+export async function seedSampleActionRequest(): Promise<{ success: boolean; request?: any; error?: string }> {
+  try {
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return { success: false, error: "Forbidden: Owner/Admin required." };
+    }
+
+    await connectToDatabase();
+
+    // Check if an existing sample request is already pending
+    const existing = await LifeRequest.findOne({
+      title: "Emergency instructions",
+      status: { $in: ["pending", "in_review"] },
+    });
+
+    if (existing) {
+      return { success: true, request: JSON.parse(JSON.stringify(existing)) };
+    }
+
+    // Create realistic sample matching design reference:
+    // "Sabbir requested access" • "Emergency instructions" • "6h left to review" • "Auto-release enabled for this item"
+    const sixHoursLater = new Date(Date.now() + 6 * 3600 * 1000);
+
+    const newReq = await LifeRequest.create({
+      submittedByName: "Sabbir",
+      submittedByEmail: "sabbir@example.com",
+      submittedByUserId: "user_sabbir_demo",
+      submittedByRole: "guardian",
+      category: "access_request",
+      title: "Emergency instructions",
+      requestedScope: "Emergency instructions",
+      description: "Requesting limited access to operational emergency instructions as designated continuity guardian.",
+      status: "pending",
+      autoRelease: true,
+      expiresAt: sixHoursLater,
+      durationHours: 6,
+      isAutoReleased: false,
+      isAcknowledged: true,
+      isNewForAdmin: true,
+      unreadByAdmin: 1,
+      unreadByUser: 0,
+      messages: [],
+    });
+
+    revalidatePath("/");
+    revalidatePath("/requests");
+    return { success: true, request: JSON.parse(JSON.stringify(newReq)) };
+  } catch (error: any) {
+    console.error("Error in seedSampleActionRequest:", error);
+    return { success: false, error: error.message };
+  }
+}
+

@@ -29,7 +29,9 @@ export default async function LifeHomePage() {
           role: authContext.role,
         }}
       />
-      <LifeVaultBottomNav />
+      <LifeVaultBottomNav
+        peopleCount={stats.supportRoleCounts?.totalUniquePeople ?? stats.peopleCount ?? 0}
+      />
     </>
   );
 }
