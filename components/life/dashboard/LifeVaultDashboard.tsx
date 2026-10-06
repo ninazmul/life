@@ -254,27 +254,27 @@ export function LifeVaultDashboard({
     },
   ];
 
-  // ── My Spaces Grid Config ──
+  // ── My Spaces Grid Config (Normal white by default, color on hover matching its icon) ──
   const spacesGrid = [
     {
       title: "Family Care",
       desc: "Care & responsibilities",
       icon: Users,
       href: "/information",
-      iconColor: "text-white",
-      iconBg: "bg-[#6366F1]",
-      cardBg: "bg-[#EEF2FF]/90 border-indigo-100/70",
-      chevronColor: "text-[#6366F1]",
+      iconColor: "text-[#6366F1]",
+      iconBg: "bg-[#EEF2FF]",
+      hoverBg: "hover:bg-[#EEF2FF]/85 hover:border-indigo-200/80",
+      accentColor: "group-hover:text-[#6366F1]",
     },
     {
       title: "Business",
       desc: "Operations & continuity",
       icon: Briefcase,
       href: "/business",
-      iconColor: "text-white",
-      iconBg: "bg-[#0284C7]",
-      cardBg: "bg-[#E0F2FE]/90 border-sky-100/70",
-      chevronColor: "text-[#0284C7]",
+      iconColor: "text-[#0284C7]",
+      iconBg: "bg-[#E0F2FE]",
+      hoverBg: "hover:bg-[#E0F2FE]/85 hover:border-sky-200/80",
+      accentColor: "group-hover:text-[#0284C7]",
     },
     {
       title: "Responsibilities",
@@ -283,8 +283,8 @@ export function LifeVaultDashboard({
       href: "/instructions",
       iconColor: "text-[#16A34A]",
       iconBg: "bg-[#DCFCE7]",
-      cardBg: "bg-white border-slate-100/90",
-      chevronColor: "text-slate-300",
+      hoverBg: "hover:bg-[#DCFCE7]/75 hover:border-emerald-200/80",
+      accentColor: "group-hover:text-[#16A34A]",
     },
     {
       title: "Emergency Plan",
@@ -293,8 +293,8 @@ export function LifeVaultDashboard({
       href: "/contacts",
       iconColor: "text-[#DC2626]",
       iconBg: "bg-[#FEE2E2]",
-      cardBg: "bg-white border-slate-100/90",
-      chevronColor: "text-slate-300",
+      hoverBg: "hover:bg-[#FEE2E2]/75 hover:border-red-200/80",
+      accentColor: "group-hover:text-[#DC2626]",
     },
     {
       title: "Legacy Plan",
@@ -303,8 +303,8 @@ export function LifeVaultDashboard({
       href: "/legacy",
       iconColor: "text-[#E11D48]",
       iconBg: "bg-[#FFE4E6]",
-      cardBg: "bg-white border-slate-100/90",
-      chevronColor: "text-slate-300",
+      hoverBg: "hover:bg-[#FFE4E6]/75 hover:border-rose-200/80",
+      accentColor: "group-hover:text-[#E11D48]",
     },
     {
       title: "Legal & Will",
@@ -313,8 +313,8 @@ export function LifeVaultDashboard({
       href: "/documents",
       iconColor: "text-[#4338CA]",
       iconBg: "bg-[#E0E7FF]",
-      cardBg: "bg-white border-slate-100/90",
-      chevronColor: "text-slate-300",
+      hoverBg: "hover:bg-[#E0E7FF]/75 hover:border-indigo-200/80",
+      accentColor: "group-hover:text-[#4338CA]",
     },
   ];
 
@@ -698,7 +698,7 @@ export function LifeVaultDashboard({
                 <Link
                   key={space.title}
                   href={space.href}
-                  className={`${space.cardBg} rounded-2xl p-3 sm:p-3.5 border shadow-[0_2px_8px_rgba(30,27,75,0.03)] hover:shadow-md transition-all flex items-center gap-2.5 group active:scale-[0.98]`}
+                  className={`bg-white border border-slate-100/90 ${space.hoverBg} rounded-2xl p-3 sm:p-3.5 shadow-[0_2px_8px_rgba(30,27,75,0.03)] hover:shadow-md transition-all duration-200 flex items-center gap-2.5 group active:scale-[0.98] cursor-pointer`}
                 >
                   <div
                     className={`w-10 h-10 rounded-xl ${space.iconBg} flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-2xs`}
@@ -706,7 +706,7 @@ export function LifeVaultDashboard({
                     <Icon className={`w-5 h-5 ${space.iconColor}`} strokeWidth={2} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-[13px] sm:text-[14px] font-bold text-[#1E1B4B] truncate leading-tight group-hover:text-indigo-600 transition-colors">
+                    <h4 className={`text-[13px] sm:text-[14px] font-bold text-[#1E1B4B] truncate leading-tight ${space.accentColor} transition-colors`}>
                       {space.title}
                     </h4>
                     <p className="text-[11px] text-slate-500 truncate leading-tight mt-0.5">
@@ -714,7 +714,7 @@ export function LifeVaultDashboard({
                     </p>
                   </div>
                   <ChevronRight
-                    className={`w-4 h-4 ${space.chevronColor} group-hover:translate-x-0.5 transition-transform shrink-0`}
+                    className={`w-4 h-4 text-slate-300 ${space.accentColor} group-hover:translate-x-0.5 transition-all shrink-0`}
                     strokeWidth={2.4}
                   />
                 </Link>
