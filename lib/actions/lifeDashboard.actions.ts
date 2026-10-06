@@ -25,6 +25,11 @@ import LifeNote from "@/lib/database/models/lifeNote.model";
 import LifeNotification from "@/lib/database/models/lifeNotification.model";
 import LifeConversation from "@/lib/database/models/lifeConversation.model";
 import { LifeDashboardStats, ILifeEmergencyAccess } from "@/types";
+import {
+  enrichWithClerkAvatars,
+  syncClerkUsersWithPeople,
+  getClerkAvatar,
+} from "@/lib/life/clerk-avatar";
 
 export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
   await connectToDatabase();
@@ -236,8 +241,9 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     LifeActivityLog.findOne({ action: { $regex: /backup/i } })
       .sort({ createdAt: -1 })
       .lean(),
-    LifeSettings.findOne().select("vaultPinHash").lean() as Promise<{
+    LifeSettings.findOne().select("vaultPinHash currencySymbol").lean() as Promise<{
       vaultPinHash?: string;
+      currencySymbol?: string;
     } | null>,
     LifeContact.countDocuments(contactsQuery),
     LifeDocument.countDocuments(documentsQuery),
@@ -459,15 +465,21 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
       ? `${activeGuardiansCount} Guardians Ready`
       : "Protocols Configured";
 
+  const ownerAvatar =
+    _auth?.avatarUrl ||
+    (await getClerkAvatar({
+      email: ownerPerson?.email || _auth?.email,
+      clerkUserId: _auth?.userId,
+    })) ||
+    ownerPerson?.avatarUrl ||
+    ownerPerson?.profilePhoto ||
+    "";
+
   const ownerProfile = {
     name: ownerPerson?.name || _auth?.name || "Nazmul Islam",
     email: ownerPerson?.email || _auth?.email || "",
     phone: ownerPerson?.phone || "",
-    avatarUrl:
-      ownerPerson?.profilePhoto ||
-      ownerPerson?.avatarUrl ||
-      _auth?.avatarUrl ||
-      "",
+    avatarUrl: ownerAvatar,
     role: ownerPerson?.role || _auth?.role || "super_admin",
     personId: ownerPerson?._id
       ? String(ownerPerson._id)
@@ -548,6 +560,102 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     console.error("Error computing dashboardBadges:", e);
   }
 
+  // ── Trusted People for dashboard horizontal row ──
+  let trustedPeople: LifeDashboardStats["trustedPeople"] = [];
+  try {
+    if (isPrivileged) {
+      await syncClerkUsersWithPeople().catch((e) =>
+        console.error("Error syncing clerk users with people:", e)
+      );
+
+      const people = await LifePerson.find({
+        status: { $in: ["active", "verified"] },
+        isDeleted: { $ne: true },
+        ...(_auth?.email
+          ? { email: { $ne: _auth.email.toLowerCase().trim() } }
+          : {}),
+      })
+        .select(
+          "name email clerkUserId avatarUrl profilePhoto relation role emergencyPriority"
+        )
+        .sort({ emergencyPriority: 1, createdAt: 1 })
+        .limit(20)
+        .lean();
+
+      const enriched = await enrichWithClerkAvatars(people);
+
+      trustedPeople = enriched.map((p: any) => ({
+        _id: String(p._id),
+        name: p.name,
+        avatarUrl: p.avatarUrl || p.profilePhoto || "",
+        profilePhoto: p.profilePhoto || p.avatarUrl || "",
+        relation: p.relation || "",
+        role: p.role || "individual",
+      }));
+    }
+  } catch (e) {
+    console.error("Error fetching trustedPeople:", e);
+  }
+
+  // ── Setup Reminders for dashboard reminder banner ──
+  const setupReminders: LifeDashboardStats["setupReminders"] = [];
+  if (isPrivileged) {
+    if (!settingsDoc?.vaultPinHash) {
+      setupReminders.push({
+        id: "setup-pin",
+        title: "Set Master Security PIN",
+        description: "Protect your vault with a Master PIN",
+        link: "/settings",
+        category: "Security",
+      });
+    }
+    if (activeGuardiansCount === 0) {
+      setupReminders.push({
+        id: "setup-guardian",
+        title: "Choose a guardian",
+        description: "Complete your emergency setup",
+        link: "/guardians",
+        category: "Emergency",
+      });
+    }
+    if (peopleCount === 0) {
+      setupReminders.push({
+        id: "setup-people",
+        title: "Add trusted people",
+        description: "Register your family & partners",
+        link: "/people",
+        category: "People",
+      });
+    }
+    if (contactsCount === 0) {
+      setupReminders.push({
+        id: "setup-contacts",
+        title: "Add emergency contacts",
+        description: "Add doctors, lawyers & advisors",
+        link: "/contacts",
+        category: "Contacts",
+      });
+    }
+    if (personalInfoCount === 0) {
+      setupReminders.push({
+        id: "setup-info",
+        title: "Record personal information",
+        description: "Medical, identity & legal records",
+        link: "/information",
+        category: "Information",
+      });
+    }
+    if (documentsCount === 0) {
+      setupReminders.push({
+        id: "setup-docs",
+        title: "Upload critical documents",
+        description: "Deeds, wills & legal contracts",
+        link: "/documents",
+        category: "Documents",
+      });
+    }
+  }
+
   return {
     peopleCount,
     infoCount,
@@ -592,6 +700,9 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     ownerProfile,
     personalFinancialSummary,
     dashboardBadges,
+    trustedPeople,
+    setupReminders,
+    currencySymbol: settingsDoc?.currencySymbol || "৳",
   };
 }
 

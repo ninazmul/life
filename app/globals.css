@@ -703,3 +703,110 @@ body {
   }
 }
 
+/* ============================================================ */
+/* Life Vault Dashboard Theme                                   */
+/* ============================================================ */
+
+:root {
+  --lv-bg: #f0ecf6;
+  --lv-card: #ffffff;
+  --lv-navy: #1a1a3e;
+  --lv-indigo: #4f46e5;
+  --lv-indigo-light: #e0e7ff;
+  --lv-lavender: #ede9f6;
+  --lv-shadow: 0 1px 3px 0 rgba(30, 27, 75, 0.04), 0 1px 2px -1px rgba(30, 27, 75, 0.04);
+  --lv-shadow-md: 0 4px 6px -1px rgba(30, 27, 75, 0.06), 0 2px 4px -2px rgba(30, 27, 75, 0.04);
+}
+
+/* Life Vault shell background */
+.lv-shell {
+  background-color: var(--lv-bg);
+}
+
+/* Life Vault card base */
+.lv-card {
+  background-color: var(--lv-card);
+  border-radius: 1rem;
+  box-shadow: var(--lv-shadow);
+}
+
+/* Life Vault dashboard wrapper */
+.lv-dashboard {
+  color: var(--lv-navy);
+}
+
+/* Shortcut button touch targets */
+.lv-shortcut-btn {
+  min-width: 48px;
+  min-height: 48px;
+  border-radius: 0.75rem;
+  transition: background-color 150ms ease;
+  cursor: pointer;
+}
+
+.lv-shortcut-btn:hover {
+  background-color: var(--lv-lavender);
+}
+
+.lv-shortcut-btn:active {
+  background-color: var(--lv-indigo-light);
+  transform: scale(0.96);
+}
+
+/* Reminder banner */
+.lv-reminder-banner {
+  background-color: var(--lv-card);
+  border-radius: 1rem;
+  padding: 0.875rem 1rem;
+  box-shadow: var(--lv-shadow);
+}
+
+/* Hide scrollbar for trusted people row */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Smooth transitions for dashboard elements */
+.lv-dashboard a,
+.lv-dashboard button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Dark mode overrides for Life Vault dashboard */
+.dark .lv-shell {
+  background-color: hsl(var(--background));
+}
+
+.dark .lv-card {
+  background-color: hsl(var(--card));
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
+}
+
+.dark .lv-reminder-banner {
+  background-color: hsl(var(--card));
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
+}
+
+.dark .lv-dashboard {
+  color: hsl(var(--foreground));
+}
+
+.dark .lv-shortcut-btn:hover {
+  background-color: hsl(var(--accent));
+}
+
+.dark .lv-shortcut-btn:active {
+  background-color: hsl(var(--accent));
+}
+
+/* Responsive: full fluid width on tablet and desktop */
+.lv-dashboard {
+  width: 100%;
+  max-width: 100%;
+}
+

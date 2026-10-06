@@ -619,6 +619,25 @@ export interface LifeDashboardStats {
     notesCount: number;      // unread / new notes for user
     financialCount: number;  // unacknowledged financial updates for user
   } | null;
+  /** Trusted people for dashboard horizontal row */
+  trustedPeople?: Array<{
+    _id: string;
+    name: string;
+    avatarUrl?: string;
+    profilePhoto?: string;
+    relation: string;
+    role: string;
+  }>;
+  /** Setup reminders for the dashboard reminder banner */
+  setupReminders?: Array<{
+    id: string;
+    title: string;
+    description: string;
+    link: string;
+    category: string;
+  }>;
+  /** Active system currency symbol */
+  currencySymbol?: string;
 }
 
 // ------------------------------------------------------------

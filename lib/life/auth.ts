@@ -318,15 +318,22 @@ export const getLifeAuthContext = cache(async function getLifeAuthContext(): Pro
           accountStatus: "active",
           isLoginEnabled: true,
           clerkUserId: userId,
+          avatarUrl,
+          profilePhoto: avatarUrl,
           permissions: DEFAULT_OWNER_PERMS,
         }).catch(() => null);
+      } else if (adminPerson && avatarUrl && (!adminPerson.avatarUrl || adminPerson.avatarUrl !== avatarUrl)) {
+        await LifePerson.updateOne(
+          { _id: adminPerson._id },
+          { $set: { avatarUrl, profilePhoto: avatarUrl, clerkUserId: userId } }
+        ).catch(() => {});
       }
 
       return {
         userId,
         email,
         name: adminDoc.name || adminPerson?.name || name,
-        avatarUrl: adminPerson?.profilePhoto || adminPerson?.avatarUrl || avatarUrl,
+        avatarUrl: avatarUrl || adminPerson?.avatarUrl || adminPerson?.profilePhoto,
         role: isSuper ? "super_admin" : "administrator",
         isOwner: true,
         isAdmin: true,
@@ -370,6 +377,10 @@ export const getLifeAuthContext = cache(async function getLifeAuthContext(): Pro
       if (!personDoc.lastLogin) {
         updates.lastLogin = new Date();
       }
+      if (avatarUrl && (!personDoc.avatarUrl || personDoc.avatarUrl !== avatarUrl)) {
+        updates.avatarUrl = avatarUrl;
+        updates.profilePhoto = avatarUrl;
+      }
       if (Object.keys(updates).length > 0) {
         await LifePerson.updateOne({ _id: personDoc._id }, { $set: updates });
       }
@@ -399,7 +410,7 @@ export const getLifeAuthContext = cache(async function getLifeAuthContext(): Pro
         userId,
         email,
         name: personDoc?.name || name,
-        avatarUrl: personDoc?.avatarUrl || avatarUrl,
+        avatarUrl: avatarUrl || personDoc?.avatarUrl || personDoc?.profilePhoto,
         role: isPrimary ? "owner" : "administrator",
         isOwner: isPrimary,
         isAdmin: true,
@@ -459,7 +470,7 @@ export const getLifeAuthContext = cache(async function getLifeAuthContext(): Pro
         userId,
         email,
         name: personDoc.name || name,
-        avatarUrl: personDoc.avatarUrl || avatarUrl,
+        avatarUrl: avatarUrl || personDoc.avatarUrl || personDoc.profilePhoto,
         role,
         isOwner,
         isAdmin,

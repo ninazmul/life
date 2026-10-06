@@ -26,6 +26,11 @@ import {
   AccountStatus,
   LifePermission,
 } from "@/types";
+import {
+  enrichWithClerkAvatars,
+  getClerkAvatar,
+  syncClerkUsersWithPeople,
+} from "@/lib/life/clerk-avatar";
 
 export async function getPeople(params?: {
   search?: string;
@@ -72,7 +77,9 @@ export async function getPeople(params?: {
     .sort({ emergencyPriority: -1, createdAt: -1 })
     .lean();
 
-  return JSON.parse(JSON.stringify(people));
+  const enriched = await enrichWithClerkAvatars(people);
+
+  return JSON.parse(JSON.stringify(enriched));
 }
 
 export async function getPersonById(id: string) {
@@ -89,8 +96,10 @@ export async function getPersonById(id: string) {
     }
   }
 
-  const person = (await LifePerson.findById(id).lean()) as any;
-  if (!person) return null;
+  const rawPerson = (await LifePerson.findById(id).lean()) as any;
+  if (!rawPerson) return null;
+
+  const [person] = await enrichWithClerkAvatars([rawPerson]);
 
   const isOwnerOrSuper =
     person.role === "owner" || person.role === "super_admin";
@@ -217,12 +226,19 @@ export async function createPerson(data: {
         canAccessEmergency: false,
       };
 
+  const cleanEmail = isRecordOnly ? "" : data.email?.toLowerCase().trim() || "";
+  const clerkAvatar = cleanEmail
+    ? await getClerkAvatar({ email: cleanEmail })
+    : undefined;
+
   const person = await LifePerson.create({
     name: data.name,
     relation: data.relation,
     phone: data.phone || "",
     whatsapp: data.whatsapp || data.phone || "",
-    email: isRecordOnly ? "" : data.email?.toLowerCase().trim() || "",
+    email: cleanEmail,
+    avatarUrl: clerkAvatar || "",
+    profilePhoto: clerkAvatar || "",
     role: finalRole,
     userRole: finalRole,
     status: data.status || "active",
@@ -326,6 +342,15 @@ export async function updatePerson(
     if (data.whatsapp !== undefined) updateData.whatsapp = data.whatsapp;
     if (data.socialLinks !== undefined)
       updateData.socialLinks = data.socialLinks;
+  }
+
+  if (data.email) {
+    const cleanEmail = data.email.toLowerCase().trim();
+    const clerkAvatar = await getClerkAvatar({ email: cleanEmail });
+    if (clerkAvatar) {
+      updateData.avatarUrl = clerkAvatar;
+      updateData.profilePhoto = clerkAvatar;
+    }
   }
 
   const updated = (await LifePerson.findByIdAndUpdate(
