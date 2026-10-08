@@ -101,7 +101,10 @@ export interface ILifePerson {
   email?: string;
   country?: string;
   address?: string;
+  permanentAddress?: string;
   username?: string;
+  displayName?: string;
+  dateOfBirth?: string;
   avatarUrl?: string;
   profilePhoto?: string;
   status: PersonStatus;

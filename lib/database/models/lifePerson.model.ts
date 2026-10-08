@@ -11,7 +11,10 @@ export interface ILifePersonDoc extends Document {
   email?: string;
   country?: string;
   address?: string;
+  permanentAddress?: string;
   username?: string;
+  displayName?: string;
+  dateOfBirth?: string;
   avatarUrl?: string;
   profilePhoto?: string;
   status: PersonStatus;
@@ -72,7 +75,10 @@ const LifePersonSchema = new Schema<ILifePersonDoc>(
     email: { type: String, trim: true, lowercase: true, default: "" },
     country: { type: String, trim: true, default: "" },
     address: { type: String, trim: true, default: "" },
+    permanentAddress: { type: String, trim: true, default: "" },
     username: { type: String, trim: true, default: "" },
+    displayName: { type: String, trim: true, default: "" },
+    dateOfBirth: { type: String, trim: true, default: "" },
     avatarUrl: { type: String, default: "" },
     profilePhoto: { type: String, default: "" },
     status: {

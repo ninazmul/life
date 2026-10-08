@@ -25,27 +25,34 @@ export function LifeLayoutClient({
   const [moreSheetOpen, setMoreSheetOpen] = useState(false);
   const pathname = usePathname();
 
-  // The new Life Vault dashboard (/) has its own header, bottom nav, and layout.
+  // The new Life Vault dashboard (/) and profile (/profile) share the same clean theme & layout.
   // For all other pages, use the existing chrome (sidebar, header, bottom nav).
   const isDashboard = pathname === "/";
+  const isProfile = pathname === "/profile";
 
-  if (isDashboard) {
+  if (isDashboard || isProfile) {
     return (
       <PWAProvider>
         <div className="lv-shell flex min-h-screen transition-colors">
-          {/* Desktop Sidebar (still visible on desktop for consistency) */}
+          {/* Desktop Sidebar (visible on desktop for consistency) */}
           <LifeSidebar userAccess={userAccess} />
 
           {/* Main Content Area */}
           <div className="flex-1 flex flex-col min-h-screen min-w-0 overflow-x-hidden">
-            {/* Official Top Header on all devices */}
+            {/* Top Header — always visible across all views */}
             <LifeHeader
               userName={userName}
               isEmergencyActive={isEmergencyActive}
             />
 
-            {/* Page Content — fluid responsive layout for mobile, tablet and desktop */}
-            <main className="flex-1 p-3.5 sm:p-5 md:p-6 lg:p-8 pb-24 md:pb-12 max-w-7xl w-full mx-auto">
+            {/* Page Content — fluid full width responsive layout for mobile, tablet and desktop */}
+            <main
+              className={`flex-1 ${
+                isProfile
+                  ? "p-2 sm:p-4 md:p-6 lg:p-8 pb-20 md:pb-12"
+                  : "p-3.5 sm:p-5 md:p-6 lg:p-8 pb-24 md:pb-12"
+              } w-full`}
+            >
               {children}
             </main>
           </div>

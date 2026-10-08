@@ -15,3 +15,4 @@ export * from "./lifeSettings.actions";
 export * from "./lifeCategory.actions";
 export * from "./lifeNote.actions";
 export * from "./lifeNotification.actions";
+export * from "./lifeProfile.actions";

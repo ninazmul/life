@@ -326,9 +326,8 @@ export function LifeVaultDashboard({
         }
       `}</style>
 
-      {/* ─── Responsive Container: perfectly framed for mobile, tablet & desktop ─── */}
-      {/* ─── Responsive Container: perfectly framed for mobile, tablet & desktop ─── */}
-      <div className="w-full max-w-[480px] sm:max-w-xl md:max-w-2xl mx-auto px-1 sm:px-2 pt-1 sm:pt-2">
+      {/* ─── Responsive Container: mobile optimized & fluid full width on desktop ─── */}
+      <div className="w-full mx-auto px-1 sm:px-2 pt-1 sm:pt-2">
 
         {/* ─── Profile Section ─── */}
         {hasActionRequired ? (
@@ -353,7 +352,7 @@ export function LifeVaultDashboard({
             </div>
 
             <Link
-              href={profile?.personId ? `/people/${profile.personId}` : "/settings"}
+              href="/profile"
               className="text-[13px] font-bold text-[#4F46E5] hover:text-indigo-700 flex items-center gap-0.5 shrink-0 transition-colors"
             >
               Profile
@@ -386,7 +385,7 @@ export function LifeVaultDashboard({
               </div>
 
               <Link
-                href={profile?.personId ? `/people/${profile.personId}` : "/settings"}
+                href="/profile"
                 className="text-[13px] sm:text-[14px] font-bold text-[#4F46E5] hover:text-indigo-700 flex items-center gap-0.5 shrink-0 transition-colors"
               >
                 Profile
@@ -691,7 +690,7 @@ export function LifeVaultDashboard({
             My Spaces
           </h3>
 
-          <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-6 gap-2.5 sm:gap-3 md:gap-4">
             {spacesGrid.map((space) => {
               const Icon = space.icon;
               return (
