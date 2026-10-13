@@ -133,7 +133,7 @@ export function LifeHeader({
                 <span className="text-sm font-extrabold tracking-tight text-foreground shrink-0">
                   Life
                 </span>
-                <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
+                <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded bg-[#EEF2FF] text-[#4F46E5] border border-indigo-100/80 shrink-0">
                   Vault
                 </span>
               </div>

@@ -1034,18 +1034,18 @@ export function PersonDetailClient({
         <div className="flex items-center gap-3">
           <Link
             href="/people"
-            className="p-1 -ml-1 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 transition-colors"
+            className="w-9 h-9 rounded-xl border border-slate-200/80 bg-white flex items-center justify-center text-slate-600 hover:text-[#4F46E5] hover:border-indigo-100 shadow-xs transition-all active:scale-95"
             aria-label="Back to People & Access"
           >
-            <ArrowLeft className="w-5 h-5" strokeWidth={2.5} />
+            <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-black text-[#1E1B4B] tracking-tight">
               {activeTab === "contact_social"
                 ? "Contact & Social Links"
                 : `${person.name}'s Profile`}
             </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               {activeTab === "contact_social"
                 ? "View and manage contact information and social links"
                 : "Manage profile, private data, permissions, and continuity records"}
@@ -1056,8 +1056,8 @@ export function PersonDetailClient({
         {/* Action Controls / Status */}
         <div className="flex items-center gap-2">
           {isSuperUser && (
-            <div className="hidden sm:flex items-center gap-1.5 bg-secondary border border-border px-2.5 py-1 rounded-xl">
-              <span className="text-[11px] font-semibold text-muted-foreground">
+            <div className="hidden sm:flex items-center gap-1.5 bg-white border border-slate-200/80 px-2.5 py-1 rounded-xl shadow-xs">
+              <span className="text-[11px] font-semibold text-slate-500">
                 Status:
               </span>
               <select
@@ -1066,20 +1066,12 @@ export function PersonDetailClient({
                   handleAccountStatusChange(e.target.value as AccountStatus)
                 }
                 disabled={loading}
-                className="bg-transparent text-xs font-bold text-foreground focus:outline-none cursor-pointer"
+                className="bg-transparent text-xs font-bold text-[#1E1B4B] focus:outline-none cursor-pointer"
               >
-                <option value="active" className="bg-card text-foreground">
-                  Active
-                </option>
-                <option value="locked" className="bg-card text-foreground">
-                  Locked
-                </option>
-                <option value="disabled" className="bg-card text-foreground">
-                  Disabled
-                </option>
-                <option value="archived" className="bg-card text-foreground">
-                  Archived
-                </option>
+                <option value="active">Active</option>
+                <option value="locked">Locked</option>
+                <option value="disabled">Disabled</option>
+                <option value="archived">Archived</option>
               </select>
             </div>
           )}
@@ -1104,7 +1096,7 @@ export function PersonDetailClient({
                 });
                 setEditModalOpen(true);
               }}
-              className="h-8 rounded-xl text-xs font-semibold gap-1.5 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+              className="h-8.5 rounded-xl text-xs font-bold gap-1.5 border-slate-200/90 text-slate-700 hover:bg-[#EEF2FF] hover:text-[#4F46E5] hover:border-indigo-200 transition-all shadow-xs"
             >
               <Pencil className="w-3.5 h-3.5" />
               <span className="hidden xs:inline">Edit Links</span>
@@ -1113,12 +1105,11 @@ export function PersonDetailClient({
 
           {isSuperUser && (
             <Button
-              variant="outline"
               size="sm"
               onClick={openAccessModal}
-              className="h-8 rounded-xl text-xs font-semibold gap-1.5 border-emerald-500/30 text-foreground hover:bg-accent"
+              className="h-8.5 rounded-xl text-xs font-bold gap-1.5 bg-[#4F46E5] hover:bg-indigo-700 text-white shadow-xs transition-all active:scale-95"
             >
-              <Shield className="w-3.5 h-3.5 text-emerald-600" />
+              <Shield className="w-3.5 h-3.5 text-indigo-200" />
               <span className="hidden xs:inline">Edit Profile & Access</span>
             </Button>
           )}
@@ -1128,19 +1119,19 @@ export function PersonDetailClient({
       {/* ============================================================ */}
       {/* Person Header Card (Exact Match to Reference UI)             */}
       {/* ============================================================ */}
-      <div className="p-4 sm:p-5 rounded-3xl bg-card border border-border shadow-xs relative overflow-hidden transition-all">
+      <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-100/90 shadow-xs relative overflow-hidden transition-all">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3.5 min-w-0">
-            {/* Mint Squircle Initial Avatar */}
-            <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300/60 dark:border-emerald-800/60 flex items-center justify-center text-emerald-800 dark:text-emerald-200 font-extrabold text-xl sm:text-2xl shrink-0">
+            {/* Soft Indigo Squircle Initial Avatar */}
+            <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-[#EEF2FF] border border-indigo-100/80 flex items-center justify-center text-[#4F46E5] font-black text-xl sm:text-2xl shrink-0 shadow-xs">
               {person.name ? person.name.charAt(0).toUpperCase() : "U"}
             </div>
 
             <div className="min-w-0">
-              <h2 className="text-base sm:text-lg font-extrabold text-foreground truncate">
+              <h2 className="text-base sm:text-lg font-black text-[#1E1B4B] truncate">
                 {person.name}
               </h2>
-              <p className="text-xs text-muted-foreground truncate">
+              <p className="text-xs text-slate-500 truncate">
                 {getSubTitle()}
               </p>
             </div>
@@ -1149,17 +1140,17 @@ export function PersonDetailClient({
           {/* Badges on the right */}
           <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
             {isSuperAdmin && (
-              <div className="hidden xs:flex items-center gap-1 px-2.5 py-0.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold tracking-wider uppercase">
-                <Shield className="w-3 h-3 text-slate-600 dark:text-slate-400" />
+              <div className="hidden xs:flex items-center gap-1 px-2.5 py-0.5 rounded-lg border border-slate-200/80 bg-slate-100 text-slate-700 text-[10px] font-bold tracking-wider uppercase">
+                <Shield className="w-3 h-3 text-slate-500" />
                 <span>Super Admin</span>
               </div>
             )}
 
             <span
-              className={`text-[10px] uppercase font-extrabold px-2.5 py-0.5 rounded-full border ${
+              className={`text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full border ${
                 person.status === "active" || person.accountStatus === "active"
-                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60"
-                  : "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400 border-red-200 dark:border-red-800/60"
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  : "bg-red-50 text-red-700 border-red-200"
               }`}
             >
               {(
@@ -1180,11 +1171,11 @@ export function PersonDetailClient({
         onValueChange={setActiveTab}
         className="space-y-4"
       >
-        <TabsList className="bg-secondary p-1 rounded-2xl border border-border flex overflow-x-auto scrollbar-none max-w-full justify-start h-auto gap-1">
+        <TabsList className="bg-slate-100/90 p-1 rounded-2xl border border-slate-200/70 flex overflow-x-auto scrollbar-none max-w-full justify-start h-auto gap-1">
           {isOwnerProfile && (
             <TabsTrigger
               value="owner_dossier"
-              className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap flex items-center gap-1.5"
+              className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white whitespace-nowrap flex items-center gap-1.5 transition-all"
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               <span>Owner Life Dossier</span>
@@ -1192,25 +1183,25 @@ export function PersonDetailClient({
           )}
           <TabsTrigger
             value="overview"
-            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap"
+            className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white whitespace-nowrap transition-all"
           >
             Overview
           </TabsTrigger>
           <TabsTrigger
             value="contact_social"
-            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap"
+            className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white whitespace-nowrap transition-all"
           >
             Contact & Social
           </TabsTrigger>
           <TabsTrigger
             value="message"
-            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap"
+            className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white whitespace-nowrap transition-all"
           >
             Personal Message
           </TabsTrigger>
           <TabsTrigger
             value="instructions"
-            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap"
+            className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white whitespace-nowrap transition-all"
           >
             Instructions & Responsibilities (
             {(personData.instructions?.length || 0) +
@@ -1219,7 +1210,7 @@ export function PersonDetailClient({
           </TabsTrigger>
           <TabsTrigger
             value="financial_care"
-            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap"
+            className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white whitespace-nowrap transition-all"
           >
             Financial Care (
             {(personData.financialCare?.length || 0) +
@@ -1228,25 +1219,25 @@ export function PersonDetailClient({
           </TabsTrigger>
           <TabsTrigger
             value="contacts"
-            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap"
+            className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white whitespace-nowrap transition-all"
           >
             Important Contacts ({personData.contacts?.length || 0})
           </TabsTrigger>
           <TabsTrigger
             value="documents"
-            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap"
+            className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white whitespace-nowrap transition-all"
           >
             Documents ({personData.documents?.length || 0})
           </TabsTrigger>
           <TabsTrigger
             value="access_info"
-            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap"
+            className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white whitespace-nowrap transition-all"
           >
             Access Information
           </TabsTrigger>
           <TabsTrigger
             value="notes"
-            className="rounded-xl px-3 py-1.5 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white whitespace-nowrap flex items-center gap-1.5"
+            className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white whitespace-nowrap flex items-center gap-1.5 transition-all"
           >
             <StickyNote className="w-3.5 h-3.5" />
             <span>Notes & Secret Notes ({notes.length})</span>
@@ -1259,17 +1250,17 @@ export function PersonDetailClient({
         {isOwnerProfile && (
           <TabsContent value="owner_dossier" className="space-y-5 outline-none">
             {/* Header Banner */}
-            <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-emerald-500/10 via-card to-secondary border border-emerald-500/20 shadow-xs">
+            <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-indigo-500/10 via-white to-slate-50 border border-indigo-100 shadow-xs">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md">
+                  <div className="w-10 h-10 rounded-2xl bg-[#4F46E5] text-white flex items-center justify-center shrink-0 shadow-xs">
                     <Sparkles className="w-5 h-5 text-amber-300" />
                   </div>
                   <div>
-                    <h2 className="text-base sm:text-lg font-extrabold text-foreground tracking-tight flex items-center gap-2">
+                    <h2 className="text-base sm:text-lg font-black text-[#1E1B4B] tracking-tight flex items-center gap-2">
                       <span>My Life Profile Dossier</span>
                     </h2>
-                    <p className="text-xs text-muted-foreground mt-0.5">
+                    <p className="text-xs text-slate-500 mt-0.5">
                       Personal · Medical · Life History · Private Records ·
                       Wasiyyah · Assets
                     </p>
@@ -1281,7 +1272,7 @@ export function PersonDetailClient({
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-8 rounded-xl text-xs font-semibold gap-1.5 border-border bg-card hover:bg-secondary"
+                      className="h-8.5 rounded-xl text-xs font-bold gap-1.5 border-slate-200/90 bg-white text-slate-700 hover:bg-[#EEF2FF] hover:text-[#4F46E5] hover:border-indigo-200 shadow-xs transition-all"
                     >
                       <Pencil className="w-3 h-3" />
                       <span>Manage Records</span>
@@ -1290,7 +1281,7 @@ export function PersonDetailClient({
                   <Link href="/documents">
                     <Button
                       size="sm"
-                      className="h-8 rounded-xl text-xs font-semibold gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs"
+                      className="h-8.5 rounded-xl text-xs font-bold gap-1.5 bg-[#4F46E5] hover:bg-indigo-700 text-white shadow-xs transition-all active:scale-95"
                     >
                       <FileText className="w-3 h-3" />
                       <span>Add Documents</span>
@@ -2552,8 +2543,8 @@ export function PersonDetailClient({
                   onClick={() => setNoteFilter(f)}
                   className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all ${
                     noteFilter === f
-                      ? "bg-emerald-600 text-white shadow-xs"
-                      : "bg-secondary text-muted-foreground hover:text-foreground"
+                      ? "bg-[#4F46E5] text-white shadow-xs font-bold"
+                      : "bg-slate-100 text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   {f === "all"
@@ -2578,7 +2569,7 @@ export function PersonDetailClient({
                   setEditingNote(null);
                   setNoteModalOpen(true);
                 }}
-                className="h-8 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold gap-1.5 shadow-xs"
+                className="h-8.5 px-3 rounded-xl bg-[#4F46E5] hover:bg-indigo-700 text-white text-xs font-bold gap-1.5 shadow-xs transition-all active:scale-95"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add Note</span>
@@ -3585,17 +3576,17 @@ export function PersonDetailClient({
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-foreground flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Shield className="w-4.5 h-4.5 text-emerald-600" />
-                <span>Profile & Granular Access Control</span>
+                <Shield className="w-4.5 h-4.5 text-[#4F46E5]" />
+                <span className="text-[#1E1B4B]">Profile & Granular Access Control</span>
               </div>
-              <div className="flex items-center gap-1.5 text-xs font-semibold">
+              <div className="flex items-center gap-1.5 text-xs font-bold">
                 <span
-                  className={`px-2 py-0.5 rounded-full ${accessStep === "edit" ? "bg-emerald-600 text-white" : "bg-secondary text-muted-foreground"}`}
+                  className={`px-2 py-0.5 rounded-full ${accessStep === "edit" ? "bg-[#4F46E5] text-white" : "bg-slate-100 text-slate-500"}`}
                 >
                   1. Configure
                 </span>
                 <span
-                  className={`px-2 py-0.5 rounded-full ${accessStep === "review" ? "bg-emerald-600 text-white" : "bg-secondary text-muted-foreground"}`}
+                  className={`px-2 py-0.5 rounded-full ${accessStep === "review" ? "bg-[#4F46E5] text-white" : "bg-slate-100 text-slate-500"}`}
                 >
                   2. Review Diff
                 </span>
@@ -3890,7 +3881,7 @@ export function PersonDetailClient({
                   type="button"
                   size="sm"
                   onClick={() => setAccessStep("review")}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold gap-1.5 shadow-xs"
+                  className="bg-[#4F46E5] hover:bg-indigo-700 text-white rounded-xl text-xs font-bold gap-1.5 shadow-xs transition-all active:scale-95"
                 >
                   Review Changes →
                 </Button>
@@ -3963,7 +3954,7 @@ export function PersonDetailClient({
                   size="sm"
                   onClick={handleSaveAccess}
                   disabled={accessSaving}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold gap-1.5 shadow-xs"
+                  className="bg-[#4F46E5] hover:bg-indigo-700 text-white rounded-xl text-xs font-bold gap-1.5 shadow-xs transition-all active:scale-95"
                 >
                   {accessSaving ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />

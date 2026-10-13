@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
+  ArrowLeft,
   Home,
   Users,
   Wallet,
@@ -81,9 +83,9 @@ const sections: GuideSection[] = [
     category: "Onboarding & Setup",
     serial: "00",
     icon: Rocket,
-    color: "text-emerald-600 dark:text-emerald-400",
-    bg: "bg-emerald-50 dark:bg-emerald-950/50",
-    border: "border-emerald-200 dark:border-emerald-800/40",
+    color: "text-indigo-600 dark:text-indigo-400",
+    bg: "bg-indigo-50 dark:bg-indigo-950/50",
+    border: "border-indigo-200 dark:border-indigo-800/40",
     title: "Getting Started — Full Admin Onboarding",
     subtitle: "Complete setup flow from account creation to production readiness",
     description:
@@ -200,9 +202,9 @@ const sections: GuideSection[] = [
     category: "Core Command",
     serial: "01",
     icon: Home,
-    color: "text-emerald-600 dark:text-emerald-400",
-    bg: "bg-emerald-50 dark:bg-emerald-950/50",
-    border: "border-emerald-200 dark:border-emerald-800/40",
+    color: "text-indigo-600 dark:text-indigo-400",
+    bg: "bg-indigo-50 dark:bg-indigo-950/50",
+    border: "border-indigo-200 dark:border-indigo-800/40",
     title: "01. Home Dashboard & Life Command Center",
     subtitle: "Central command console, My Life Profile, Financial Overview & Quick Actions",
     description:
@@ -278,9 +280,9 @@ const sections: GuideSection[] = [
     category: "Core Command",
     serial: "02",
     icon: Users,
-    color: "text-emerald-600 dark:text-emerald-400",
-    bg: "bg-emerald-50 dark:bg-emerald-950/50",
-    border: "border-emerald-200 dark:border-emerald-800/40",
+    color: "text-sky-600 dark:text-sky-400",
+    bg: "bg-sky-50 dark:bg-sky-950/50",
+    border: "border-sky-200 dark:border-sky-800/40",
     title: "02. People Directory & Team",
     subtitle:
       "Family, partners, team & Record-Only individuals",
@@ -606,9 +608,9 @@ const sections: GuideSection[] = [
     category: "Core Command",
     serial: "04",
     icon: KeyRound,
-    color: "text-amber-600 dark:text-amber-400",
-    bg: "bg-amber-50 dark:bg-amber-950/50",
-    border: "border-amber-200 dark:border-amber-800/40",
+    color: "text-indigo-600 dark:text-indigo-400",
+    bg: "bg-indigo-50 dark:bg-indigo-950/50",
+    border: "border-indigo-200 dark:border-indigo-800/40",
     title: "04. Secure Vault (AES-256)",
     subtitle: "Encrypted passwords, server keys, seed phrases & master PIN",
     description:
@@ -1641,6 +1643,7 @@ const tipIconMap = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export function UserGuideClient() {
+  const router = useRouter();
   const [activeId, setActiveId] = useState<string>("getting-started");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
@@ -1687,28 +1690,35 @@ export function UserGuideClient() {
   }, [drawerOpen]);
 
   return (
-    <div className="flex h-[calc(100dvh-57px)] overflow-hidden bg-background relative">
+    <div className="flex h-[calc(100dvh-57px)] overflow-hidden bg-[#F7F6FC] relative">
       {/* ── Desktop Sidebar (md+) ── */}
       <aside
-        className="hidden md:flex flex-col w-64 lg:w-72 shrink-0 border-r border-border bg-card/60 backdrop-blur-sm h-full overflow-hidden"
+        className="hidden md:flex flex-col w-64 lg:w-72 shrink-0 border-r border-slate-200/80 bg-white/80 backdrop-blur-sm h-full overflow-hidden"
         aria-label="Desktop Guide Navigation"
       >
         {/* Sidebar Header */}
-        <div className="shrink-0 px-4 py-3.5 border-b border-border bg-card/90 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+        <div className="shrink-0 px-4 py-3.5 border-b border-slate-100 bg-white flex items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              aria-label="Go back"
+              className="w-8 h-8 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 transition-colors flex items-center justify-center text-slate-600 shadow-xs shrink-0"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EEF2FF] border border-indigo-100/80 text-[#4F46E5] shrink-0">
               <BookOpen className="w-4 h-4" strokeWidth={2.5} />
             </div>
-            <div>
-              <h2 className="font-bold text-sm text-foreground tracking-tight leading-none">
+            <div className="min-w-0">
+              <h2 className="font-bold text-sm text-[#1E1B4B] tracking-tight leading-none truncate">
                 User Guide
               </h2>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
+              <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
                 {sections.length} module guides
               </p>
             </div>
           </div>
-
         </div>
 
         {/* Section List */}
@@ -1721,7 +1731,7 @@ export function UserGuideClient() {
             if (catSections.length === 0) return null;
             return (
               <div key={category} className="space-y-1">
-                <h3 className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground/60 px-3 py-1">
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400 px-3 py-1">
                   {category}
                 </h3>
                 <div className="space-y-0.5">
@@ -1734,26 +1744,25 @@ export function UserGuideClient() {
                         onClick={() => selectSection(section.id)}
                         className={`w-full flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl text-left transition-all text-xs font-medium group relative ${
                           isActive
-                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold shadow-xs"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                            ? "bg-[#EEF2FF] text-[#4F46E5] font-bold shadow-xs border border-indigo-100/70"
+                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                         }`}
                         aria-current={isActive ? "page" : undefined}
                       >
                         {isActive && (
-                          <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r-full bg-emerald-500" />
+                          <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r-full bg-[#4F46E5]" />
                         )}
                         <div className="flex items-center gap-2.5 min-w-0">
                           <Icon
                             className={`w-4 h-4 shrink-0 transition-colors ${
                               isActive
-                                ? "text-emerald-600 dark:text-emerald-400"
-                                : "text-muted-foreground/70 group-hover:text-foreground"
+                                ? "text-[#4F46E5]"
+                                : "text-slate-400 group-hover:text-slate-700"
                             }`}
                             strokeWidth={isActive ? 2.5 : 2}
                           />
                           <span className="truncate">{section.title}</span>
                         </div>
-
                       </button>
                     );
                   })}
@@ -1764,8 +1773,8 @@ export function UserGuideClient() {
         </nav>
 
         {/* Bottom Hint */}
-        <div className="shrink-0 p-3 m-2 rounded-xl bg-muted/40 border border-border/80 text-[11px] text-muted-foreground">
-          <p className="font-semibold text-foreground/80 mb-0.5">
+        <div className="shrink-0 p-3 m-2 rounded-xl bg-slate-50 border border-slate-200/70 text-[11px] text-slate-500">
+          <p className="font-bold text-[#1E1B4B] mb-0.5">
             Permission Notice
           </p>
           <p className="leading-relaxed text-[10px]">
@@ -1778,26 +1787,35 @@ export function UserGuideClient() {
       {/* ── Main Column ── */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         {/* Mobile Sticky Top Header (md:hidden) */}
-        <header className="md:hidden shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-3.5 py-2.5 flex items-center justify-between gap-2 z-20">
-          {/* Drawer toggle button */}
-          <button
-            onClick={() => setDrawerOpen(true)}
-            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-muted/70 hover:bg-muted text-foreground border border-border text-xs font-semibold shrink-0 active:scale-95 transition-all"
-            aria-label="Open topic menu"
-          >
-            <Menu className="w-4 h-4 text-muted-foreground" />
-            <span className="max-w-[140px] truncate text-left">
-              {active.title}
-            </span>
-
-          </button>
+        <header className="md:hidden shrink-0 border-b border-slate-200/80 bg-white/95 backdrop-blur-md px-3.5 py-2.5 flex items-center justify-between gap-2 z-20">
+          <div className="flex items-center gap-2 min-w-0">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              aria-label="Go back"
+              className="w-8 h-8 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 transition-colors flex items-center justify-center text-slate-600 shadow-xs shrink-0"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            {/* Drawer toggle button */}
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200/70 text-[#1E1B4B] border border-slate-200/80 text-xs font-semibold shrink-0 active:scale-95 transition-all truncate"
+              aria-label="Open topic menu"
+            >
+              <Menu className="w-4 h-4 text-slate-500 shrink-0" />
+              <span className="max-w-[120px] sm:max-w-[160px] truncate text-left">
+                {active.title}
+              </span>
+            </button>
+          </div>
 
           {/* Quick Prev / Next icons */}
           <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={() => prevSection && selectSection(prevSection.id)}
               disabled={!prevSection}
-              className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed hover:bg-muted/60 transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200/80 bg-white text-slate-600 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors shadow-xs"
               aria-label="Previous section"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -1805,7 +1823,7 @@ export function UserGuideClient() {
             <button
               onClick={() => nextSection && selectSection(nextSection.id)}
               disabled={!nextSection}
-              className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed hover:bg-muted/60 transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200/80 bg-white text-slate-600 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors shadow-xs"
               aria-label="Next section"
             >
               <ChevronRight className="w-4 h-4" />
@@ -1823,11 +1841,11 @@ export function UserGuideClient() {
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-6 sm:space-y-8 pb-12">
             {/* Section Hero Card */}
             <div
-              className={`rounded-2xl border p-4 sm:p-6 transition-colors shadow-xs ${active.bg} ${active.border}`}
+              className={`rounded-2xl md:rounded-3xl border p-4 sm:p-6 transition-colors shadow-[0_2px_12px_rgba(30,27,75,0.04)] ${active.bg} ${active.border}`}
             >
               <div className="flex flex-col sm:flex-row items-start gap-4">
                 <div
-                  className={`flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl border shadow-xs bg-background/80 ${active.border}`}
+                  className={`flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl border shadow-xs bg-white/90 ${active.border}`}
                 >
                   <ActiveIcon
                     className={`w-6 h-6 sm:w-7 sm:h-7 ${active.color}`}
@@ -1841,25 +1859,24 @@ export function UserGuideClient() {
                     >
                       {active.subtitle}
                     </p>
-
                   </div>
-                  <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
+                  <h1 className="text-xl sm:text-2xl font-extrabold text-[#1E1B4B] tracking-tight">
                     {active.title}
                   </h1>
-                  <p className="text-xs sm:text-sm text-muted-foreground mt-2 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
                     {active.description}
                   </p>
                 </div>
               </div>
 
               {/* Access permission badge */}
-              <div className="mt-4 pt-3 border-t border-border/40 flex items-center gap-2 text-xs text-muted-foreground bg-background/50 rounded-xl px-3 py-2 border border-border/50">
+              <div className="mt-4 pt-3 border-t border-slate-200/50 flex items-center gap-2 text-xs text-slate-600 bg-white/70 rounded-xl px-3 py-2 border border-slate-200/60 shadow-xs">
                 <UserCheck
-                  className="w-4 h-4 shrink-0 text-emerald-500"
+                  className="w-4 h-4 shrink-0 text-[#4F46E5]"
                   strokeWidth={2}
                 />
                 <span className="truncate">
-                  <strong className="text-foreground/90 font-semibold">
+                  <strong className="text-[#1E1B4B] font-bold">
                     Who Can Access:
                   </strong>{" "}
                   {active.whoCanAccess}
@@ -1875,15 +1892,15 @@ export function UserGuideClient() {
               <div className="flex items-center justify-between">
                 <h2
                   id="steps-heading"
-                  className="text-xs sm:text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2"
+                  className="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2"
                 >
                   <CheckCircle2
-                    className="w-4 h-4 text-emerald-500"
+                    className="w-4 h-4 text-[#4F46E5]"
                     strokeWidth={2}
                   />
                   How It Works & Step-by-Step Guide
                 </h2>
-                <span className="text-[11px] text-muted-foreground font-medium">
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#EEF2FF] text-[#4F46E5] border border-indigo-100/70">
                   {active.steps.length} steps
                 </span>
               </div>
@@ -1892,16 +1909,16 @@ export function UserGuideClient() {
                 {active.steps.map((step, i) => (
                   <div
                     key={i}
-                    className="flex gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-2xl bg-card border border-border/80 hover:border-border transition-all shadow-xs"
+                    className="flex gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-100/90 hover:border-indigo-100 transition-all shadow-[0_2px_12px_rgba(30,27,75,0.03)]"
                   >
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold mt-0.5">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-[#EEF2FF] text-[#4F46E5] border border-indigo-100 text-xs font-bold mt-0.5 shadow-xs">
                       {i + 1}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-sm font-semibold text-foreground mb-1">
+                      <h3 className="text-sm font-bold text-[#1E1B4B] mb-1">
                         {step.title}
                       </h3>
-                      <p className="text-xs sm:text-[13px] text-muted-foreground leading-relaxed">
+                      <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed">
                         {step.detail}
                       </p>
                     </div>
@@ -1917,7 +1934,7 @@ export function UserGuideClient() {
             >
               <h2
                 id="tips-heading"
-                className="text-xs sm:text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2"
+                className="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2"
               >
                 <Zap className="w-4 h-4 text-amber-500" strokeWidth={2} />
                 Security Rules & Important Tips
@@ -1943,7 +1960,7 @@ export function UserGuideClient() {
                           {tipConfig.label}
                         </span>
                       </div>
-                      <p className="text-foreground/90 font-medium sm:pt-0.5">
+                      <p className="text-slate-800 font-medium sm:pt-0.5">
                         {tip.text}
                       </p>
                     </div>
@@ -1954,20 +1971,20 @@ export function UserGuideClient() {
 
             {/* Bottom Section Pager Navigation */}
             <nav
-              className="pt-6 border-t border-border flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3"
+              className="pt-6 border-t border-slate-200/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3"
               aria-label="Section pagination"
             >
               {prevSection ? (
                 <button
                   onClick={() => selectSection(prevSection.id)}
-                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-border bg-card hover:bg-muted/60 text-foreground transition-all group text-left"
+                  className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-slate-200/80 bg-white hover:bg-slate-50 text-[#1E1B4B] transition-all group text-left shadow-xs"
                 >
-                  <ChevronLeft className="w-4 h-4 text-muted-foreground group-hover:text-foreground shrink-0 transition-transform group-hover:-translate-x-0.5" />
+                  <ChevronLeft className="w-4 h-4 text-slate-400 group-hover:text-[#4F46E5] shrink-0 transition-transform group-hover:-translate-x-0.5" />
                   <div className="min-w-0">
-                    <p className="text-[10px] uppercase font-semibold text-muted-foreground">
+                    <p className="text-[10px] uppercase font-bold text-slate-400">
                       Previous
                     </p>
-                    <p className="text-xs font-semibold truncate text-foreground">
+                    <p className="text-xs font-bold truncate text-[#1E1B4B]">
                       {prevSection.title}
                     </p>
                   </div>
@@ -1976,24 +1993,24 @@ export function UserGuideClient() {
                 <div className="hidden sm:block flex-1" />
               )}
 
-              <div className="text-center font-mono text-[11px] text-muted-foreground/70 py-1">
+              <div className="text-center font-mono text-[11px] text-slate-500 font-semibold py-1">
                 {activeIndex + 1} / {sections.length}
               </div>
 
               {nextSection ? (
                 <button
                   onClick={() => selectSection(nextSection.id)}
-                  className="flex items-center justify-end gap-2.5 px-3 py-2.5 rounded-xl border border-border bg-card hover:bg-muted/60 text-foreground transition-all group text-right"
+                  className="flex items-center justify-end gap-2.5 px-3.5 py-2.5 rounded-xl border border-slate-200/80 bg-white hover:bg-slate-50 text-[#1E1B4B] transition-all group text-right shadow-xs"
                 >
                   <div className="min-w-0">
-                    <p className="text-[10px] uppercase font-semibold text-muted-foreground">
+                    <p className="text-[10px] uppercase font-bold text-slate-400">
                       Next
                     </p>
-                    <p className="text-xs font-semibold truncate text-foreground">
+                    <p className="text-xs font-bold truncate text-[#1E1B4B]">
                       {nextSection.title}
                     </p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground shrink-0 transition-transform group-hover:translate-x-0.5" />
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#4F46E5] shrink-0 transition-transform group-hover:translate-x-0.5" />
                 </button>
               ) : (
                 <div className="hidden sm:block flex-1" />
@@ -2019,20 +2036,20 @@ export function UserGuideClient() {
           />
 
           {/* Slide-in drawer sheet from left */}
-          <div className="relative w-4/5 max-w-xs bg-card border-r border-border h-full flex flex-col shadow-2xl z-10 animate-in slide-in-from-left duration-200">
+          <div className="relative w-4/5 max-w-xs bg-white border-r border-slate-200/80 h-full flex flex-col shadow-2xl z-10 animate-in slide-in-from-left duration-200">
             {/* Drawer Header */}
-            <div className="shrink-0 px-4 py-3.5 border-b border-border flex items-center justify-between bg-card/90">
+            <div className="shrink-0 px-4 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white">
               <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EEF2FF] border border-indigo-100/80 text-[#4F46E5]">
                   <BookOpen className="w-3.5 h-3.5" strokeWidth={2.5} />
                 </div>
-                <span className="font-bold text-sm text-foreground">
+                <span className="font-bold text-sm text-[#1E1B4B]">
                   Topics
                 </span>
               </div>
               <button
                 onClick={() => setDrawerOpen(false)}
-                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
                 aria-label="Close guide menu"
               >
                 <X className="w-4 h-4" />
@@ -2049,7 +2066,7 @@ export function UserGuideClient() {
                 if (catSections.length === 0) return null;
                 return (
                   <div key={category} className="space-y-1">
-                    <h3 className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground/60 px-3 py-1">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400 px-3 py-1">
                       {category}
                     </h3>
                     <div className="space-y-0.5">
@@ -2062,22 +2079,21 @@ export function UserGuideClient() {
                             onClick={() => selectSection(section.id)}
                             className={`w-full flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl text-left transition-all text-xs font-medium ${
                               isActive
-                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold"
-                                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                ? "bg-[#EEF2FF] text-[#4F46E5] font-bold border border-indigo-100/70"
+                                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                             }`}
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
                               <Icon
                                 className={`w-4 h-4 shrink-0 ${
                                   isActive
-                                    ? "text-emerald-600 dark:text-emerald-400"
-                                    : "text-muted-foreground/70"
+                                    ? "text-[#4F46E5]"
+                                    : "text-slate-400"
                                 }`}
                                 strokeWidth={isActive ? 2.5 : 2}
                               />
                               <span className="truncate">{section.title}</span>
                             </div>
-
                           </button>
                         );
                       })}
@@ -2088,7 +2104,7 @@ export function UserGuideClient() {
             </nav>
 
             {/* Drawer Footer Notice */}
-            <div className="shrink-0 p-3 border-t border-border bg-muted/20 text-[10px] text-muted-foreground leading-relaxed">
+            <div className="shrink-0 p-3 border-t border-slate-100 bg-slate-50 text-[10px] text-slate-500 leading-relaxed font-medium">
               Super Admin sees all modules. Others see only granted modules.
             </div>
           </div>

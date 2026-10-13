@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   CheckSquare,
   Plus,
@@ -18,6 +19,7 @@ import {
   Building2,
   ChevronDown,
   History,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -208,59 +210,62 @@ export function InstructionsClient({
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-              <CheckSquare className="w-5 h-5" />
+        <div className="flex items-center gap-3">
+          <Link
+            href="/"
+            className="w-9 h-9 rounded-xl border border-slate-200/80 bg-white flex items-center justify-center text-slate-600 hover:text-[#4F46E5] hover:border-indigo-100 shadow-xs transition-all active:scale-95 shrink-0"
+            aria-label="Back to Dashboard"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#1E1B4B]">
+                Instructions & Responsibilities
+              </h1>
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#EEF2FF] text-[#4F46E5] border border-indigo-100/80">
+                {responsibilities.length + instructions.length}
+              </span>
             </div>
-            <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
-              Instructions & Responsibilities
-            </h1>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Current tasks, emergency directives & verified acknowledgements
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            Current tasks, emergency directives & verified acknowledgements
-          </p>
         </div>
 
         {(isOwner || isAdmin) && (
           <Button
             onClick={() => setAddModalOpen(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm"
+            className="h-9 px-3.5 rounded-xl bg-[#4F46E5] hover:bg-indigo-700 text-white font-bold text-xs gap-1.5 shadow-xs transition-all active:scale-95"
           >
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="w-3.5 h-3.5" />
             New Directive
           </Button>
         )}
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="flex border-b border-border space-x-6 text-sm font-semibold">
+      {/* Navigation Pill Tabs */}
+      <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 rounded-2xl border border-slate-200/70 w-fit">
         <button
           onClick={() => setActiveTab("responsibilities")}
-          className={`pb-3 transition-colors relative ${
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             activeTab === "responsibilities"
-              ? "text-blue-600 dark:text-blue-400 font-bold"
-              : "text-muted-foreground hover:text-foreground"
+              ? "bg-[#4F46E5] text-white shadow-xs"
+              : "text-slate-600 hover:text-slate-900"
           }`}
         >
           Active Responsibilities ({responsibilities.length})
-          {activeTab === "responsibilities" && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 rounded-full" />
-          )}
         </button>
 
         <button
           onClick={() => setActiveTab("instructions")}
-          className={`pb-3 transition-colors relative ${
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             activeTab === "instructions"
-              ? "text-blue-600 dark:text-blue-400 font-bold"
-              : "text-muted-foreground hover:text-foreground"
+              ? "bg-[#4F46E5] text-white shadow-xs"
+              : "text-slate-600 hover:text-slate-900"
           }`}
         >
           Directives & Instructions ({instructions.length})
-          {activeTab === "instructions" && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 rounded-full" />
-          )}
         </button>
       </div>
 
@@ -268,9 +273,10 @@ export function InstructionsClient({
       {activeTab === "responsibilities" ? (
         <div className="space-y-4">
           {responsibilities.length === 0 ? (
-            <div className="p-8 text-center rounded-2xl border border-dashed border-border bg-card">
-              <CheckSquare className="w-10 h-10 mx-auto text-muted-foreground/50 mb-2" />
-              <p className="text-sm text-muted-foreground">No responsibilities assigned yet.</p>
+            <div className="p-10 rounded-3xl border border-dashed border-slate-200 bg-white text-center space-y-2 shadow-xs">
+              <CheckSquare className="w-8 h-8 text-slate-400 mx-auto" />
+              <h3 className="text-sm font-black text-[#1E1B4B]">No responsibilities assigned yet</h3>
+              <p className="text-xs text-slate-500">Assign key delegated continuity responsibilities to designated persons.</p>
             </div>
           ) : (
             responsibilities.map((r) => {
@@ -281,43 +287,43 @@ export function InstructionsClient({
               return (
                 <div
                   key={r._id}
-                  className="p-5 rounded-2xl border border-border bg-card shadow-sm hover:border-blue-500/30 transition-all space-y-3"
+                  className="p-5 rounded-2xl md:rounded-3xl border border-slate-100/90 bg-white shadow-[0_2px_12px_rgba(30,27,75,0.04)] hover:border-indigo-200/70 hover:shadow-md transition-all space-y-3"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                     <div className="space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <span
-                          className={`text-xs px-2.5 py-0.5 rounded-full font-bold uppercase ${
+                          className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase border ${
                             r.priority === "critical"
-                              ? "bg-red-500/10 text-red-600 border border-red-500/20"
+                              ? "bg-rose-50 text-rose-700 border-rose-100"
                               : r.priority === "high"
-                              ? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
-                              : "bg-blue-500/10 text-blue-600 border border-blue-500/20"
+                              ? "bg-amber-50 text-amber-700 border-amber-100"
+                              : "bg-indigo-50 text-indigo-700 border-indigo-100"
                           }`}
                         >
                           {r.priority} Priority
                         </span>
 
                         <span
-                          className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
+                          className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold border ${
                             r.completionStatus === "completed"
-                              ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-100"
                               : r.completionStatus === "in_progress"
-                              ? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
-                              : "bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20"
+                              ? "bg-amber-50 text-amber-700 border-amber-100"
+                              : "bg-slate-100 text-slate-600 border-slate-200"
                           }`}
                         >
                           Status: {r.completionStatus.replace("_", " ")}
                         </span>
 
                         {r.visibilityMode && r.visibilityMode !== "available_now" && (
-                          <span className="text-xs px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600 border border-purple-500/20 font-medium">
+                          <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-100 font-bold">
                             {r.visibilityMode}
                           </span>
                         )}
                       </div>
 
-                      <h3 className="text-base font-bold text-foreground mt-1">
+                      <h3 className="text-base font-black text-[#1E1B4B] mt-1">
                         {r.title}
                       </h3>
                     </div>
@@ -327,40 +333,40 @@ export function InstructionsClient({
                         size="sm"
                         variant="outline"
                         onClick={() => handleOpenResponse(r)}
-                        className="rounded-xl border-blue-500/30 text-blue-600 hover:bg-blue-500/10"
+                        className="h-8 rounded-xl border-indigo-100 bg-[#EEF2FF] text-[#4F46E5] hover:bg-indigo-100 text-xs font-bold transition-all shadow-xs"
                       >
                         {r.userResponse ? "Update Response" : "Acknowledge"}
                       </Button>
                     </div>
                   </div>
 
-                  <p className="text-sm text-foreground/80 leading-relaxed bg-muted/40 p-3 rounded-xl">
+                  <p className="text-xs text-slate-700 leading-relaxed bg-slate-50 border border-slate-100/90 p-3.5 rounded-xl">
                     {r.detailedInstruction}
                   </p>
 
                   {/* Metadata line */}
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground pt-1 border-t border-border">
-                    <span className="flex items-center gap-1.5 font-medium text-foreground">
-                      <User className="w-3.5 h-3.5 text-blue-500" />
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-1 border-t border-slate-100">
+                    <span className="flex items-center gap-1.5 font-bold text-[#1E1B4B]">
+                      <User className="w-3.5 h-3.5 text-[#4F46E5]" />
                       Assigned: {assignedName}
                     </span>
 
                     {backupName && (
-                      <span className="flex items-center gap-1.5">
+                      <span className="flex items-center gap-1.5 text-slate-500">
                         <Shield className="w-3.5 h-3.5 text-amber-500" />
                         Backup: {backupName}
                       </span>
                     )}
 
                     {businessName && (
-                      <span className="flex items-center gap-1.5">
-                        <Building2 className="w-3.5 h-3.5 text-muted-foreground" />
+                      <span className="flex items-center gap-1.5 text-slate-500">
+                        <Building2 className="w-3.5 h-3.5 text-slate-400" />
                         {businessName}
                       </span>
                     )}
 
                     {r.deadline && (
-                      <span className="flex items-center gap-1.5 text-red-600 dark:text-red-400 font-medium">
+                      <span className="flex items-center gap-1.5 text-rose-600 font-bold">
                         <Calendar className="w-3.5 h-3.5" />
                         Deadline: {new Date(r.deadline).toLocaleDateString()}
                       </span>
@@ -369,7 +375,7 @@ export function InstructionsClient({
 
                   {/* User Response Acknowledgement status */}
                   {r.userResponse && (
-                    <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-800 dark:text-emerald-300">
+                    <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-100 text-xs text-emerald-800">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                       <div>
                         <span className="font-bold uppercase tracking-wider text-[11px] mr-1">
@@ -377,12 +383,12 @@ export function InstructionsClient({
                         </span>
                         <span>"{r.userResponse}"</span>
                         {r.userResponseNote && (
-                          <span className="text-muted-foreground ml-1">
+                          <span className="text-slate-500 ml-1">
                             — {r.userResponseNote}
                           </span>
                         )}
                         {r.responseDate && (
-                          <span className="text-muted-foreground ml-2 text-[10px]">
+                          <span className="text-slate-400 ml-2 text-[10px]">
                             ({new Date(r.responseDate).toLocaleString()})
                           </span>
                         )}
@@ -398,36 +404,37 @@ export function InstructionsClient({
         /* Instructions Tab */
         <div className="space-y-4">
           {instructions.length === 0 ? (
-            <div className="p-8 text-center rounded-2xl border border-dashed border-border bg-card">
-              <FileText className="w-10 h-10 mx-auto text-muted-foreground/50 mb-2" />
-              <p className="text-sm text-muted-foreground">No instructions recorded yet.</p>
+            <div className="p-10 rounded-3xl border border-dashed border-slate-200 bg-white text-center space-y-2 shadow-xs">
+              <FileText className="w-8 h-8 text-slate-400 mx-auto" />
+              <h3 className="text-sm font-black text-[#1E1B4B]">No instructions recorded yet</h3>
+              <p className="text-xs text-slate-500">Create operational directives, handover guidelines, and standard operating procedures.</p>
             </div>
           ) : (
             instructions.map((ins) => (
               <div
                 key={ins._id}
-                className="p-5 rounded-2xl border border-border bg-card shadow-sm space-y-3"
+                className="p-5 rounded-2xl md:rounded-3xl border border-slate-100/90 bg-white shadow-[0_2px_12px_rgba(30,27,75,0.04)] space-y-3"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 border border-blue-500/20 font-bold uppercase">
+                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 font-bold uppercase">
                         {ins.instructionType}
                       </span>
-                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-500/10 text-muted-foreground font-medium">
+                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 font-bold">
                         v{ins.versionHistory?.length || 1}
                       </span>
                     </div>
-                    <h3 className="text-base font-bold text-foreground mt-1">{ins.title}</h3>
+                    <h3 className="text-base font-black text-[#1E1B4B] mt-1">{ins.title}</h3>
                   </div>
                 </div>
 
-                <p className="text-sm text-foreground/80 leading-relaxed bg-muted/40 p-3 rounded-xl whitespace-pre-wrap">
+                <p className="text-xs text-slate-700 leading-relaxed bg-slate-50 border border-slate-100/90 p-3.5 rounded-xl whitespace-pre-wrap">
                   {ins.detailedInstruction}
                 </p>
 
                 {ins.versionHistory && ins.versionHistory.length > 1 && (
-                  <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <div className="text-xs text-slate-400 flex items-center gap-1.5">
                     <History className="w-3.5 h-3.5" />
                     Last revised by {ins.versionHistory[ins.versionHistory.length - 1].updatedBy} on{" "}
                     {new Date(
@@ -443,15 +450,15 @@ export function InstructionsClient({
 
       {/* Response / Acknowledgment Modal (§6) */}
       <Dialog open={responseModalOpen} onOpenChange={setResponseModalOpen}>
-        <DialogContent className="sm:max-w-md rounded-3xl p-6">
+        <DialogContent className="life-dialog sm:max-w-md rounded-3xl border border-slate-100 bg-white text-[#1E1B4B] shadow-2xl p-6">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold">
+            <DialogTitle className="text-lg font-black text-[#1E1B4B]">
               Acknowledge Responsibility
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 mt-2">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-slate-500">
               Please select your formal status regarding "{selectedResp?.title}":
             </p>
 
@@ -467,8 +474,8 @@ export function InstructionsClient({
                   key={opt.val}
                   className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
                     responseType === opt.val
-                      ? "bg-blue-500/10 border-blue-500/50 text-foreground font-semibold"
-                      : "border-border hover:bg-muted/50"
+                      ? "bg-[#EEF2FF] border-indigo-200 text-[#1E1B4B] font-bold"
+                      : "border-slate-200/80 hover:bg-slate-50 text-slate-700 font-medium"
                   }`}
                 >
                   <input
@@ -477,22 +484,22 @@ export function InstructionsClient({
                     value={opt.val}
                     checked={responseType === opt.val}
                     onChange={() => setResponseType(opt.val as any)}
-                    className="text-blue-600"
+                    className="text-[#4F46E5] accent-[#4F46E5]"
                   />
-                  <span className="text-sm">{opt.label}</span>
+                  <span className="text-xs">{opt.label}</span>
                 </label>
               ))}
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-muted-foreground">
+              <label className="text-xs font-bold text-slate-700">
                 Optional Note / Clarification Details
               </label>
               <textarea
                 value={responseNote}
                 onChange={(e) => setResponseNote(e.target.value)}
                 placeholder="Any questions or acceptance notes..."
-                className="w-full h-20 p-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full h-20 p-2.5 rounded-xl border border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs focus:bg-white focus:border-indigo-400 focus:outline-none resize-none"
               />
             </div>
 
@@ -500,16 +507,16 @@ export function InstructionsClient({
               <Button
                 variant="outline"
                 onClick={() => setResponseModalOpen(false)}
-                className="rounded-xl"
+                className="rounded-xl border-slate-200/80 text-slate-600 hover:bg-slate-100 text-xs font-semibold"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSendResponse}
                 disabled={responding}
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+                className="bg-[#4F46E5] hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all active:scale-95"
               >
-                {responding ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                {responding ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> : null}
                 Record Acknowledgement
               </Button>
             </div>
@@ -519,9 +526,9 @@ export function InstructionsClient({
 
       {/* Add Directive Modal */}
       <Dialog open={addModalOpen} onOpenChange={setAddModalOpen}>
-        <DialogContent className="sm:max-w-lg rounded-3xl p-6 max-h-[90vh] overflow-y-auto">
+        <DialogContent className="life-dialog sm:max-w-lg rounded-3xl border border-slate-100 bg-white text-[#1E1B4B] shadow-2xl p-6 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold">
+            <DialogTitle className="text-lg font-black text-[#1E1B4B]">
               {activeTab === "responsibilities"
                 ? "Assign New Responsibility"
                 : "Create Instruction / Directive"}
@@ -530,18 +537,18 @@ export function InstructionsClient({
 
           <form onSubmit={handleCreateNew} className="space-y-4 mt-2">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-muted-foreground">Title *</label>
+              <label className="text-xs font-bold text-slate-700">Title *</label>
               <Input
                 required
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="e.g. Server emergency failover procedure"
-                className="rounded-xl"
+                className="h-10 border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs focus:bg-white focus:border-indigo-400 rounded-xl"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-muted-foreground">
+              <label className="text-xs font-bold text-slate-700">
                 Detailed Instructions *
               </label>
               <textarea
@@ -551,13 +558,13 @@ export function InstructionsClient({
                   setFormData({ ...formData, detailedInstruction: e.target.value })
                 }
                 placeholder="Step by step instructions to execute..."
-                className="w-full h-28 p-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full h-28 p-2.5 rounded-xl border border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs focus:bg-white focus:border-indigo-400 focus:outline-none resize-none"
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-muted-foreground">
+                <label className="text-xs font-bold text-slate-700">
                   Assigned Person {activeTab === "responsibilities" ? "*" : "(Optional)"}
                 </label>
                 <select
@@ -565,7 +572,7 @@ export function InstructionsClient({
                   onChange={(e) =>
                     setFormData({ ...formData, assignedPersonId: e.target.value })
                   }
-                  className="w-full p-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs focus:bg-white focus:border-indigo-400 focus:outline-none cursor-pointer"
                 >
                   <option value="">Select Person</option>
                   {people.map((p) => (
@@ -577,7 +584,7 @@ export function InstructionsClient({
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-muted-foreground">
+                <label className="text-xs font-bold text-slate-700">
                   Backup Person (Optional)
                 </label>
                 <select
@@ -585,7 +592,7 @@ export function InstructionsClient({
                   onChange={(e) =>
                     setFormData({ ...formData, backupPersonId: e.target.value })
                   }
-                  className="w-full p-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs focus:bg-white focus:border-indigo-400 focus:outline-none cursor-pointer"
                 >
                   <option value="">Select Backup</option>
                   {people.map((p) => (
@@ -597,13 +604,13 @@ export function InstructionsClient({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-muted-foreground">Priority</label>
+                <label className="text-xs font-bold text-slate-700">Priority</label>
                 <select
                   value={formData.priority}
                   onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs focus:bg-white focus:border-indigo-400 focus:outline-none cursor-pointer"
                 >
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
@@ -613,7 +620,7 @@ export function InstructionsClient({
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-muted-foreground">
+                <label className="text-xs font-bold text-slate-700">
                   Related Business (Optional)
                 </label>
                 <select
@@ -621,7 +628,7 @@ export function InstructionsClient({
                   onChange={(e) =>
                     setFormData({ ...formData, relatedBusinessId: e.target.value })
                   }
-                  className="w-full p-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs focus:bg-white focus:border-indigo-400 focus:outline-none cursor-pointer"
                 >
                   <option value="">None</option>
                   {businesses.map((b) => (
@@ -633,9 +640,9 @@ export function InstructionsClient({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-muted-foreground">
+                <label className="text-xs font-bold text-slate-700">
                   Visibility / Release Mode
                 </label>
                 <select
@@ -643,7 +650,7 @@ export function InstructionsClient({
                   onChange={(e) =>
                     setFormData({ ...formData, visibilityMode: e.target.value })
                   }
-                  className="w-full p-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs focus:bg-white focus:border-indigo-400 focus:outline-none cursor-pointer"
                 >
                   <option value="available_now">Available Now (Current)</option>
                   <option value="emergency_only">Emergency Only (Protected)</option>
@@ -655,7 +662,7 @@ export function InstructionsClient({
 
               {activeTab === "responsibilities" ? (
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-muted-foreground">
+                  <label className="text-xs font-bold text-slate-700">
                     Target Deadline
                   </label>
                   <Input
@@ -664,12 +671,12 @@ export function InstructionsClient({
                     onChange={(e) =>
                       setFormData({ ...formData, deadline: e.target.value })
                     }
-                    className="rounded-xl"
+                    className="h-10 border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs focus:bg-white focus:border-indigo-400 rounded-xl"
                   />
                 </div>
               ) : (
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-muted-foreground">
+                  <label className="text-xs font-bold text-slate-700">
                     Instruction Category
                   </label>
                   <select
@@ -677,7 +684,7 @@ export function InstructionsClient({
                     onChange={(e) =>
                       setFormData({ ...formData, instructionType: e.target.value })
                     }
-                    className="w-full p-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full h-10 px-3 rounded-xl border border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs focus:bg-white focus:border-indigo-400 focus:outline-none cursor-pointer"
                   >
                     <option value="personal">Personal</option>
                     <option value="family">Family</option>
@@ -700,16 +707,16 @@ export function InstructionsClient({
                 type="button"
                 variant="outline"
                 onClick={() => setAddModalOpen(false)}
-                className="rounded-xl"
+                className="rounded-xl border-slate-200/80 text-slate-600 hover:bg-slate-100 text-xs font-semibold"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={submitting}
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+                className="h-9 px-4 bg-[#4F46E5] hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all active:scale-95"
               >
-                {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> : null}
                 Save Directive
               </Button>
             </div>

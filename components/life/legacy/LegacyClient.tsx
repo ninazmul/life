@@ -2,18 +2,21 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   HeartHandshake,
   Plus,
   Mail,
   Eye,
   EyeOff,
-  User,
-  Calendar,
-  Lock,
   Trash2,
   Send,
   Loader2,
+  ArrowLeft,
+  Calendar,
+  Lock,
+  Unlock,
+  ShieldAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +40,7 @@ interface LegacyClientProps {
 }
 
 export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
+  const router = useRouter();
   const [messages, setMessages] =
     useState<ILifeLegacyMessage[]>(initialMessages);
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -58,7 +62,7 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
     e.preventDefault();
     if (!title.trim() || !recipientPersonId || !message.trim()) {
       toast.error(
-        "Title, designated recipient and letter message are required.",
+        "Title, designated recipient and letter message are required."
       );
       return;
     }
@@ -93,12 +97,12 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
     try {
       await toggleLegacyRelease(id, next);
       setMessages(
-        messages.map((m) => (m._id === id ? { ...m, isReleased: next } : m)),
+        messages.map((m) => (m._id === id ? { ...m, isReleased: next } : m))
       );
       toast.success(
         next
           ? "Letter released and visible to recipient!"
-          : "Letter concealed and protected.",
+          : "Letter concealed and protected."
       );
     } catch (err: any) {
       toast.error(err.message || "Failed to toggle release.");
@@ -119,56 +123,65 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
-              Personal Legacy Messages
-            </h1>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20">
-              {messages.length} Letters
-            </span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.back()}
+            className="h-9 w-9 p-0 rounded-xl bg-white border border-slate-200/80 hover:bg-slate-50 text-slate-700 shadow-xs flex items-center justify-center transition-all cursor-pointer"
+            title="Go back"
+          >
+            <ArrowLeft className="w-4 h-4 text-slate-600" />
+          </button>
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-xl sm:text-2xl font-black text-[#1E1B4B] tracking-tight">
+                Personal Legacy Messages
+              </h1>
+              <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-[#FFE4E6] text-[#E11D48] border border-rose-100">
+                {messages.length} Letters
+              </span>
+            </div>
+            <p className="text-xs font-medium text-slate-500 mt-0.5">
+              Heartfelt letters and confidential guidance designated for loved ones and trusted partners.
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Private heartfelt letters and confidential instructions designated
-            for loved ones and trusted partners.
-          </p>
         </div>
 
         <Button
           onClick={() => setAddModalOpen(true)}
-          className="h-9 px-3.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs gap-1.5 shadow-sm shadow-rose-950/30"
+          className="h-10 px-4 rounded-xl bg-[#4F46E5] hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs gap-2 shadow-xs transition-all cursor-pointer"
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Plus className="w-4 h-4" />
           Write Legacy Message
         </Button>
       </div>
 
       {/* Legacy Emotional Quote Banner */}
-      <div className="p-5 rounded-3xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-500/20 text-xs text-rose-800 dark:text-rose-200 flex items-start gap-3.5">
-        <HeartHandshake className="w-5 h-5 text-rose-700 dark:text-rose-300 shrink-0 mt-0.5" />
-        <p className="leading-relaxed">
-          &quot;If I become unavailable, the people I care about should
-          understand what was intended for them, who to trust, and what personal
-          message I left behind.&quot;
+      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-rose-50/80 via-white to-indigo-50/40 border border-rose-100 shadow-[0_2px_12px_rgba(225,29,72,0.03)] text-xs text-rose-950 flex items-start gap-3.5">
+        <div className="w-8 h-8 rounded-xl bg-[#FFE4E6] text-[#E11D48] flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+          <HeartHandshake className="w-4 h-4" />
+        </div>
+        <p className="leading-relaxed font-serif italic text-slate-700 pt-1">
+          &quot;If I become unavailable, the people I care about should understand what was intended for them, who to trust, and what personal message I left behind.&quot;
         </p>
       </div>
 
       {/* Letters List */}
       {messages.length === 0 ? (
-        <div className="p-10 rounded-3xl border border-dashed border-border text-center space-y-3">
-          <Mail className="w-8 h-8 text-rose-700 dark:text-rose-300/60 mx-auto" />
-          <h3 className="text-sm font-bold text-foreground">
+        <div className="p-12 rounded-3xl bg-white border border-dashed border-slate-200 text-center space-y-3 shadow-xs">
+          <div className="w-12 h-12 rounded-2xl bg-[#FFE4E6] text-[#E11D48] flex items-center justify-center mx-auto shadow-xs">
+            <Mail className="w-6 h-6" />
+          </div>
+          <h3 className="text-sm font-bold text-slate-900">
             No Legacy Letters Written
           </h3>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Write private letters for your wife, brother, parents, or partners
-            with custom release triggers.
+          <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
+            Write private letters for your family, siblings, parents, or partners with custom release triggers.
           </p>
           <Button
             size="sm"
             onClick={() => setAddModalOpen(true)}
-            className="h-8.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold"
+            className="h-9 px-4 rounded-xl bg-[#4F46E5] hover:bg-indigo-700 text-white text-xs font-bold shadow-xs cursor-pointer"
           >
             + Write First Letter
           </Button>
@@ -178,38 +191,47 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
           {messages.map((item) => (
             <div
               key={item._id}
-              className="p-5 rounded-3xl bg-card border border-border hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between group shadow-xs"
+              className="p-5 rounded-2xl bg-white border border-slate-100/90 shadow-[0_2px_12px_rgba(30,27,75,0.04)] hover:shadow-md hover:border-slate-200 transition-all flex flex-col justify-between group"
             >
               <div>
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-0.5 rounded-full border border-rose-200 dark:border-rose-800/40">
-                      To: {item.recipientName}
-                    </span>
-                  </div>
+                  <span className="text-xs font-bold text-[#E11D48] bg-[#FFE4E6] px-2.5 py-0.5 rounded-lg border border-rose-200/80">
+                    To: {item.recipientName}
+                  </span>
                   <span
-                    className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${
+                    className={`text-[10px] uppercase font-black px-2.5 py-0.5 rounded-lg border ${
                       item.isReleased
-                        ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
-                        : "bg-muted text-muted-foreground border-border"
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1"
+                        : "bg-slate-50 text-slate-600 border-slate-200 flex items-center gap-1"
                     }`}
                   >
-                    {item.isReleased ? "Released" : "Concealed"}
+                    {item.isReleased ? (
+                      <>
+                        <Unlock className="w-2.5 h-2.5 text-emerald-600" />
+                        Released
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="w-2.5 h-2.5 text-slate-500" />
+                        Concealed
+                      </>
+                    )}
                   </span>
                 </div>
 
-                <h3 className="font-bold text-base text-foreground mt-2.5 line-clamp-1">
+                <h3 className="font-black text-base text-[#1E1B4B] mt-3 line-clamp-1">
                   {item.title}
                 </h3>
 
-                <div className="mt-3 p-4 rounded-2xl bg-muted border border-border text-xs text-foreground font-serif leading-relaxed line-clamp-3 whitespace-pre-wrap">
+                <div className="mt-3 p-4 rounded-xl bg-slate-50/80 border border-slate-100 text-xs text-slate-700 font-serif leading-relaxed line-clamp-3 whitespace-pre-wrap">
                   {item.message}
                 </div>
 
                 {item.releaseCondition && (
-                  <p className="text-[11px] text-slate-500 mt-2">
-                    Release Condition:{" "}
-                    <span className="text-slate-400">
+                  <p className="text-[11px] font-medium text-slate-500 mt-2.5 flex items-center gap-1.5">
+                    <ShieldAlert className="w-3 h-3 text-slate-400" />
+                    <span>Condition: </span>
+                    <span className="text-slate-700 font-semibold">
                       {item.releaseCondition}
                     </span>
                   </p>
@@ -217,14 +239,14 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
               </div>
 
               {/* Actions */}
-              <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
+              <div className="mt-5 pt-3.5 border-t border-slate-100 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Button
                     size="sm"
                     onClick={() => setSelectedLetter(item)}
-                    className="h-8 px-3 text-xs bg-secondary hover:bg-muted text-foreground rounded-xl font-semibold gap-1.5"
+                    className="h-8 px-3 text-xs bg-[#EEF2FF] hover:bg-indigo-100 text-[#4F46E5] rounded-xl font-bold gap-1.5 shadow-xs cursor-pointer"
                   >
-                    <Eye className="w-3.5 h-3.5 text-rose-700 dark:text-rose-300" /> Read Letter
+                    <Eye className="w-3.5 h-3.5 text-[#4F46E5]" /> Read Letter
                   </Button>
                   <Button
                     size="sm"
@@ -232,12 +254,19 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
                     onClick={() =>
                       handleToggleRelease(item._id, item.isReleased)
                     }
-                    className="h-8 px-2.5 text-xs text-slate-400 hover:text-white"
+                    className="h-8 px-3 text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl font-bold gap-1 cursor-pointer"
+                    title={item.isReleased ? "Conceal Letter" : "Release Letter"}
                   >
                     {item.isReleased ? (
-                      <EyeOff className="w-3.5 h-3.5" />
+                      <>
+                        <EyeOff className="w-3.5 h-3.5" />
+                        Conceal
+                      </>
                     ) : (
-                      <Send className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-300" />
+                      <>
+                        <Send className="w-3.5 h-3.5 text-emerald-600" />
+                        Release
+                      </>
                     )}
                   </Button>
                 </div>
@@ -246,7 +275,8 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
                   size="sm"
                   variant="ghost"
                   onClick={() => handleDelete(item._id, item.title)}
-                  className="h-7 w-7 p-0 text-slate-500 hover:text-red-700 dark:hover:text-red-300"
+                  className="h-8 w-8 p-0 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                  title="Delete letter"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
@@ -262,36 +292,37 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
           open={Boolean(selectedLetter)}
           onOpenChange={(open) => !open && setSelectedLetter(null)}
         >
-          <DialogContent className="life-dialog sm:max-w-xl rounded-3xl border border-border/80 dark:border-slate-800 bg-white dark:bg-slate-950 text-foreground max-h-[85vh] overflow-y-auto shadow-2xl">
-            <DialogHeader>
+          <DialogContent className="life-dialog sm:max-w-xl rounded-3xl border border-slate-100 bg-white p-6 text-slate-900 shadow-2xl max-h-[85vh] overflow-y-auto">
+            <DialogHeader className="pb-3 border-b border-slate-100">
               <div className="flex items-center justify-between pr-4">
-                <span className="text-xs uppercase font-bold text-rose-600 dark:text-rose-400">
+                <span className="text-xs uppercase font-black text-[#E11D48] tracking-wider">
                   Private Legacy Letter
                 </span>
-                <span className="text-[10px] text-muted-foreground font-mono">
+                <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
                   {new Date(selectedLetter.createdAt).toLocaleDateString()}
                 </span>
               </div>
-              <DialogTitle className="text-xl font-serif font-bold text-foreground pt-1">
+              <DialogTitle className="text-xl font-serif font-black text-[#1E1B4B] pt-1">
                 {selectedLetter.title}
               </DialogTitle>
-              <p className="text-xs text-slate-400 font-sans">
+              <p className="text-xs text-slate-500 font-medium">
                 Dedicated to:{" "}
-                <strong className="text-slate-200">
+                <strong className="text-slate-800 font-bold">
                   {selectedLetter.recipientName}
                 </strong>
               </p>
             </DialogHeader>
 
-            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 text-sm text-slate-200 leading-relaxed font-serif whitespace-pre-wrap mt-3">
+            <div className="p-6 rounded-2xl bg-amber-50/40 border border-amber-100/90 text-sm text-slate-800 leading-relaxed font-serif whitespace-pre-wrap mt-4 shadow-xs">
               {selectedLetter.message}
             </div>
 
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end pt-4 border-t border-slate-100 mt-4">
               <Button
                 variant="ghost"
                 onClick={() => setSelectedLetter(null)}
-                className="text-xs text-slate-400 hover:text-white"
+                className="h-9 px-4 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl"
               >
                 Close Letter
               </Button>
@@ -302,17 +333,19 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
 
       {/* Write Legacy Letter Modal */}
       <Dialog open={addModalOpen} onOpenChange={setAddModalOpen}>
-        <DialogContent className="life-dialog sm:max-w-lg rounded-3xl border border-border/80 dark:border-slate-800 bg-white dark:bg-slate-950 text-foreground max-h-[90vh] overflow-y-auto shadow-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
-              <HeartHandshake className="w-5 h-5 text-rose-300" />
+        <DialogContent className="life-dialog sm:max-w-lg rounded-3xl border border-slate-100 bg-white p-6 text-slate-900 shadow-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-3 border-b border-slate-100">
+            <DialogTitle className="text-base font-black text-[#1E1B4B] flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-[#FFE4E6] text-[#E11D48] flex items-center justify-center">
+                <HeartHandshake className="w-4 h-4" />
+              </div>
               <span>Compose Legacy Letter</span>
             </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleCreate} className="space-y-4 pt-2">
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-300">
+          <form onSubmit={handleCreate} className="space-y-4 pt-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700">
                 Letter Title *
               </label>
               <Input
@@ -320,20 +353,20 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
                 placeholder="e.g. A letter to my Wife / Advice for Sabbir"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="h-10 border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-rose-500"
+                className="h-10 rounded-xl border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 text-xs focus:bg-white focus:border-[#4F46E5]"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">
                   Designated Recipient *
                 </label>
                 <select
                   required
                   value={recipientPersonId}
                   onChange={(e) => setRecipientPersonId(e.target.value)}
-                  className="w-full h-10 px-3 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-rose-500 focus:outline-none"
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs font-medium focus:bg-white focus:border-[#4F46E5] focus:outline-none"
                 >
                   <option value="">-- Choose Person --</option>
                   {people.map((p) => (
@@ -344,8 +377,8 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
                 </select>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">
                   Visibility Rule
                 </label>
                 <select
@@ -353,7 +386,7 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
                   onChange={(e) =>
                     setVisibility(e.target.value as LifeVisibility)
                   }
-                  className="w-full h-10 px-3 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-rose-500 focus:outline-none"
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs font-medium focus:bg-white focus:border-[#4F46E5] focus:outline-none"
                 >
                   <option value="admin_can_release">
                     Admin Can Release (Default)
@@ -367,20 +400,20 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-300">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700">
                 Release Conditions / Instructions
               </label>
               <Input
                 placeholder="e.g. Release only in case of medical emergency or after 1 year"
                 value={releaseCondition}
                 onChange={(e) => setReleaseCondition(e.target.value)}
-                className="h-10 border-slate-800 bg-slate-900/90 text-slate-100 text-xs"
+                className="h-10 rounded-xl border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 text-xs focus:bg-white focus:border-[#4F46E5]"
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-300">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700">
                 Personal Message / Letter Body *
               </label>
               <textarea
@@ -389,23 +422,23 @@ export function LegacyClient({ initialMessages, people }: LegacyClientProps) {
                 placeholder="Write your personal words, wisdom, financial instructions or private thoughts..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="w-full p-3 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-rose-500 focus:outline-none font-serif leading-relaxed"
+                className="w-full p-3.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs font-serif leading-relaxed focus:bg-white focus:border-[#4F46E5] focus:outline-none"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => setAddModalOpen(false)}
-                className="text-xs text-slate-400 hover:text-white"
+                className="h-9 px-4 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={loading}
-                className="h-9 px-4 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-xl gap-1.5 shadow-md"
+                className="h-10 px-5 bg-[#4F46E5] hover:bg-indigo-700 text-white text-xs font-bold rounded-xl gap-2 shadow-xs transition-all cursor-pointer"
               >
                 {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 Preserve Message

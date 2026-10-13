@@ -179,6 +179,41 @@ export async function sampleServerAction(payload: any): Promise<{
 - **Server vs Client**:
   - `app/(root)/<module>/page.tsx`: Server Component that calls Server Actions to fetch data, verifies permissions, and passes serialized props to `<Module>Client`.
   - `components/life/<module>/<Module>Client.tsx`: Client Component (`'use client'`) managing UI state, tabs, search/filters, and dialog modals.
+- **Universal App Shell**:
+  - The universal layout shell is defined in `LifeLayoutClient.tsx` using `bg-[#F7F6FC]` and incorporates `LifeHeader`, `LifeSidebar` (desktop), and `LifeVaultBottomNav` (mobile).
+- **Design System Standard (Visual Reference: Dashboard & Profile)**:
+  - **Canvas Background**: `#F7F6FC` — serene clean light-slate canvas.
+  - **Primary Text / Heading**: `#1E1B4B` (`rgb(30, 27, 75)`) — deep rich navy-indigo font-bold/font-extrabold for all module headers, cards, and section titles.
+  - **Secondary Text**: `#64748B` (`text-slate-500`) — subtitles, metadata, descriptions.
+  - **Muted Caption Text**: `#94A3B8` (`text-slate-400`) — micro-timestamps, footer notices.
+  - **Brand Primary Accent**: `#4F46E5` (`indigo-600`) — primary action buttons, active indicator bars, key links.
+  - **Brand Soft Background**: `#EEF2FF` (`indigo-50`) with `border-indigo-100` — active pills, soft icon containers, module badges.
+  - **Card Surfaces**: Pure white `#FFFFFF`, `rounded-2xl` (16px) or `rounded-3xl` (24px), subtle border `border-slate-100/90` or `border-slate-200/80`, shadow `shadow-[0_2px_12px_rgba(30,27,75,0.04)]`.
+  - **Back Button Standard**: 32×32px square:
+    ```tsx
+    <button
+      type="button"
+      onClick={() => router.back()}
+      aria-label="Go back"
+      className="w-8 h-8 rounded-lg border border-slate-200/80 bg-white hover:bg-slate-50 transition-colors flex items-center justify-center text-slate-600 shadow-xs"
+    >
+      <ArrowLeft className="w-4 h-4" />
+    </button>
+    ```
+  - **Filter Pill Buttons**:
+    - Active: `bg-[#4F46E5] text-white font-bold shadow-xs`
+    - Inactive: `bg-white border border-slate-200/80 text-slate-600 hover:bg-slate-50`
+  - **Modal / Dialog Architecture**:
+    - Wrapper: `<DialogContent className="sm:max-w-md rounded-3xl p-0 border-0 overflow-hidden">`
+    - Body: `<div className="p-6 space-y-5">` with 40px icon badge container in header.
+  - **Pastel Semantic Category Containers**:
+    - Security / Vault: `text-[#4F46E5] bg-[#EEF2FF] border-indigo-100`
+    - People / Directory: `text-[#0284C7] bg-[#E0F2FE] border-sky-100`
+    - Finance / Money: `text-[#16A34A] bg-[#DCFCE7] border-emerald-100`
+    - Warning / Attention: `text-[#D97706] bg-[#FEF3C7] border-amber-100`
+    - Urgent / Emergency: `text-[#DC2626] bg-[#FEE2E2] border-red-100`
+    - Legacy / Messages: `text-[#E11D48] bg-[#FFE4E6] border-rose-100`
+    - Documents / Legal: `text-[#4338CA] bg-[#E0E7FF] border-indigo-100`
 - **Forms**: Use `react-hook-form` paired with `@hookform/resolvers/zod` and `zod` schemas.
 - **Toasts**: Use `toast.success()` and `toast.error()` from `react-hot-toast`.
 - **Icons**: Import only from `lucide-react`.

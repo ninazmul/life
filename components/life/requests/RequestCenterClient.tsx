@@ -18,6 +18,7 @@ import {
   Lock,
   KeyRound,
   FileText,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -319,19 +320,27 @@ export function RequestCenterClient({
 
   // ─── Render ────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4">
+    <div className="min-h-screen bg-[#F7F6FC]">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between gap-3 px-1">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
-              <ClipboardList className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="h-9 w-9 p-0 rounded-xl bg-white border border-slate-200/80 hover:bg-slate-50 text-slate-700 shadow-xs flex items-center justify-center transition-all cursor-pointer shrink-0"
+              title="Back"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 border border-indigo-100 text-[#4F46E5] shrink-0">
+              <ClipboardList className="w-4.5 h-4.5" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-base sm:text-lg font-black text-foreground tracking-tight truncate">
+              <h1 className="text-xl sm:text-2xl font-black text-[#1E1B4B] tracking-tight truncate">
                 {isAdmin ? "Requests Inbox" : "Request Center"}
               </h1>
-              <p className="text-[11px] text-muted-foreground font-medium truncate">
+              <p className="text-xs text-slate-500 font-medium truncate">
                 {isAdmin
                   ? "Review and respond to all incoming requests and note access inquiries"
                   : "Submit requests, request future note access, and communicate with the admin"}
@@ -341,33 +350,35 @@ export function RequestCenterClient({
           {!isAdmin && (
             <Button
               size="sm"
-              className="h-8 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold gap-1.5 shrink-0"
+              className="h-9 px-4 rounded-xl bg-[#4F46E5] hover:bg-indigo-700 text-white text-xs font-bold gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
               onClick={() => {
                 setShowNewForm(true);
                 setSelectedId(null);
               }}
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-4 h-4" />
               New Request
             </Button>
           )}
         </div>
 
         {/* Tab filter */}
-        <div className="inline-flex p-1 rounded-xl bg-secondary/80 border border-border text-xs font-semibold flex-wrap gap-1">
+        <div className="inline-flex p-1.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs text-xs font-semibold flex-wrap gap-1.5">
           <button
             type="button"
             onClick={() => setTab("messages")}
-            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all ${
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
               tab === "messages"
-                ? "bg-background text-foreground shadow-xs font-bold text-blue-600 dark:text-blue-400"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-[#4F46E5] text-white shadow-xs font-bold"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
             }`}
           >
             <MessageCircle className="w-3.5 h-3.5" />
             <span>Direct Messages</span>
             {unreadMessagesCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-rose-500 text-white shadow-2xs">
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black shadow-2xs ${
+                tab === "messages" ? "bg-white text-[#4F46E5]" : "bg-rose-500 text-white"
+              }`}>
                 {unreadMessagesCount}
               </span>
             )}
@@ -375,10 +386,10 @@ export function RequestCenterClient({
           <button
             type="button"
             onClick={() => setTab("all")}
-            className={`px-3 py-1 rounded-lg transition-all ${
+            className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
               tab === "all"
-                ? "bg-background text-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-[#4F46E5] text-white shadow-xs font-bold"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
             }`}
           >
             All Requests ({requests.length})
@@ -386,10 +397,10 @@ export function RequestCenterClient({
           <button
             type="button"
             onClick={() => setTab("pending")}
-            className={`px-3 py-1 rounded-lg transition-all ${
+            className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
               tab === "pending"
-                ? "bg-background text-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-[#4F46E5] text-white shadow-xs font-bold"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
             }`}
           >
             Active ({requests.filter((r) => ["pending", "in_review"].includes(r.status)).length})
@@ -397,16 +408,20 @@ export function RequestCenterClient({
           <button
             type="button"
             onClick={() => setTab("future_notes")}
-            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all ${
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
               tab === "future_notes"
-                ? "bg-background text-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-[#4F46E5] text-white shadow-xs font-bold"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
             }`}
           >
-            <Lock className="w-3 h-3 text-violet-500" />
+            <Lock className={`w-3.5 h-3.5 ${tab === "future_notes" ? "text-white" : "text-violet-600"}`} />
             <span>Future Notes</span>
             {futureNotes.length > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-violet-500/15 text-violet-600 dark:text-violet-400">
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                tab === "future_notes"
+                  ? "bg-white/20 text-white"
+                  : "bg-indigo-50 text-[#4F46E5] border border-indigo-100"
+              }`}>
                 {futureNotes.length}
               </span>
             )}
@@ -414,10 +429,10 @@ export function RequestCenterClient({
           <button
             type="button"
             onClick={() => setTab("resolved")}
-            className={`px-3 py-1 rounded-lg transition-all ${
+            className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer ${
               tab === "resolved"
-                ? "bg-background text-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-[#4F46E5] text-white shadow-xs font-bold"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
             }`}
           >
             Resolved
@@ -438,37 +453,37 @@ export function RequestCenterClient({
           />
         ) : tab === "future_notes" ? (
           <div className="space-y-4">
-            <div className="p-4 rounded-2xl bg-card border border-border/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="p-5 rounded-3xl bg-white border border-slate-100/90 shadow-[0_2px_12px_rgba(30,27,75,0.04)] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-violet-600 dark:text-violet-400" />
-                  <h2 className="text-sm font-bold text-foreground">
+                  <Lock className="w-4 h-4 text-violet-600" />
+                  <h2 className="text-sm font-bold text-[#1E1B4B]">
                     Future & Protected Notes
                   </h2>
                 </div>
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <p className="text-xs text-slate-500 mt-0.5">
                   Directives and continuity instructions assigned to you for future viewing.
                   Request access when ready.
                 </p>
               </div>
-              <div className="text-[11px] text-muted-foreground bg-muted/40 px-3 py-1.5 rounded-xl border border-border/40 shrink-0">
+              <div className="text-[11px] text-slate-600 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200/70 shrink-0 font-medium">
                 Content remains strictly protected until released by Owner or waiting period expiry.
               </div>
             </div>
 
             {futureNotes.length === 0 ? (
-              <div className="p-12 rounded-3xl border border-dashed border-border bg-card/40 text-center">
-                <Lock className="w-8 h-8 text-muted-foreground/50 mx-auto mb-2" />
-                <h3 className="text-sm font-semibold text-foreground">
+              <div className="p-12 rounded-3xl border border-dashed border-slate-200 bg-white text-center shadow-[0_2px_12px_rgba(30,27,75,0.04)]">
+                <Lock className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <h3 className="text-sm font-bold text-[#1E1B4B]">
                   No Future Notes Assigned
                 </h3>
-                <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+                <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
                   When the Owner assigns notes or directives for future viewing, they will appear
                   here with access request controls.
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {futureNotes.map((fn) => {
                   const isWaitingApproval =
                     fn.status === "countdown_active" ||
@@ -479,65 +494,65 @@ export function RequestCenterClient({
                   return (
                     <div
                       key={fn.noteId}
-                      className="p-4 rounded-2xl bg-card border border-border hover:border-border/90 flex flex-col justify-between transition-all space-y-3"
+                      className="p-5 rounded-3xl bg-white border border-slate-100/90 shadow-[0_2px_12px_rgba(30,27,75,0.04)] hover:shadow-md flex flex-col justify-between transition-all space-y-4"
                     >
-                      <div className="space-y-2.5">
+                      <div className="space-y-3">
                         <div className="flex items-start justify-between gap-2">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase bg-indigo-50 text-[#4F46E5] border border-indigo-100">
                             <Lock className="w-2.5 h-2.5" />
                             Future Note
                           </span>
 
                           {isWaitingApproval ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
                               <Clock className="w-2.5 h-2.5 animate-spin" />
                               Waiting for Approval
                             </span>
                           ) : isRejected ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-500/10 text-rose-600 border border-rose-500/20">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-rose-50 text-rose-600 border border-rose-200">
                               <XCircle className="w-2.5 h-2.5" />
                               Request Rejected
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-secondary text-muted-foreground border border-border">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200/60">
                               Assigned
                             </span>
                           )}
                         </div>
 
                         <div>
-                          <h3 className="text-sm font-bold text-foreground leading-snug">
+                          <h3 className="text-sm font-bold text-[#1E1B4B] leading-snug">
                             {fn.title}
                           </h3>
-                          <p className="text-[11px] text-muted-foreground mt-0.5">
+                          <p className="text-[11px] text-slate-500 mt-0.5">
                             Assigned to you · {fn.waitingPeriodHours}h waiting period
                           </p>
                         </div>
 
                         {/* Limited Metadata Notice - Content Protected */}
-                        <div className="p-2.5 rounded-xl bg-muted/20 border border-border/40 text-[11px] text-muted-foreground">
+                        <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100 text-[11px] text-slate-600 leading-relaxed">
                           {isWaitingApproval ? (
                             <div className="space-y-1">
-                              <p className="font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                              <p className="font-semibold text-amber-700 flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
                                 <span>Waiting period active ({fn.waitingPeriodHours}h)</span>
                               </p>
                               {fn.unlockDeadline && (
-                                <p className="text-[10px]">
+                                <p className="text-[10px] text-slate-600">
                                   Deadline: {new Date(fn.unlockDeadline).toLocaleString()}
                                 </p>
                               )}
-                              <p className="text-[10px] text-muted-foreground">
+                              <p className="text-[10px] text-slate-500">
                                 Will automatically release to your Notes section when period expires if
                                 no owner action is taken.
                               </p>
                             </div>
                           ) : isRejected ? (
-                            <p className="text-rose-600 dark:text-rose-400 text-[10px]">
+                            <p className="text-rose-600 text-[10px]">
                               Access was rejected by the Owner. This note remains protected.
                             </p>
                           ) : (
-                            <p className="text-[10px] text-muted-foreground">
+                            <p className="text-[10px] text-slate-500">
                               Content is protected. Click &quot;Request Access&quot; to notify the
                               Owner and start the {fn.waitingPeriodHours}h countdown.
                             </p>
@@ -545,9 +560,9 @@ export function RequestCenterClient({
                         </div>
                       </div>
 
-                      <div className="pt-3 border-t border-border/40">
+                      <div className="pt-3 border-t border-slate-100">
                         {isWaitingApproval ? (
-                          <div className="text-center text-xs font-semibold text-amber-600 dark:text-amber-400 py-1">
+                          <div className="text-center text-xs font-semibold text-amber-700 py-1">
                             Waiting for Approval
                           </div>
                         ) : isRejected ? (
@@ -558,7 +573,7 @@ export function RequestCenterClient({
                               setRequestAccessNote(fn);
                               setAccessReason("");
                             }}
-                            className="w-full h-8 rounded-xl text-xs font-semibold border-border gap-1.5"
+                            className="w-full h-8.5 rounded-xl text-xs font-semibold border-slate-200 hover:bg-slate-50 gap-1.5 cursor-pointer"
                           >
                             <KeyRound className="w-3.5 h-3.5" />
                             <span>Request Access Again</span>
@@ -570,7 +585,7 @@ export function RequestCenterClient({
                               setRequestAccessNote(fn);
                               setAccessReason("");
                             }}
-                            className="w-full h-8 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold gap-1.5 shadow-xs"
+                            className="w-full h-8.5 rounded-xl bg-[#4F46E5] hover:bg-indigo-700 text-white text-xs font-bold gap-1.5 shadow-xs cursor-pointer"
                           >
                             <KeyRound className="w-3.5 h-3.5" />
                             <span>Request Access</span>
@@ -585,26 +600,26 @@ export function RequestCenterClient({
           </div>
         ) : (
           /* ── Standard Requests View ── */
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Left: Request List */}
-            <div className="md:col-span-1 space-y-2 max-h-[70vh] overflow-y-auto pr-0.5">
+            <div className="md:col-span-1 space-y-2.5 max-h-[70vh] overflow-y-auto pr-0.5">
               {showNewForm && (
-                <div className="p-4 rounded-2xl bg-card border border-emerald-500/30 shadow-sm space-y-3">
+                <div className="p-4.5 rounded-3xl bg-white border border-indigo-100 shadow-[0_4px_20px_rgba(79,70,229,0.08)] space-y-3.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-foreground">New Request</span>
+                    <span className="text-xs font-bold text-[#1E1B4B]">New Request</span>
                     <button
                       onClick={() => setShowNewForm(false)}
-                      className="text-muted-foreground hover:text-foreground"
+                      className="text-slate-400 hover:text-slate-600 cursor-pointer"
                     >
                       <XCircle className="w-4 h-4" />
                     </button>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2.5">
                     <select
                       value={newCategory}
                       onChange={(e) => setNewCategory(e.target.value as RequestCategory)}
-                      className="w-full text-xs border border-border rounded-xl px-3 py-2 bg-background text-foreground outline-none focus:ring-1 focus:ring-emerald-500"
+                      className="w-full text-xs border border-slate-200 rounded-xl px-3 py-2 bg-slate-50/50 text-slate-800 outline-none focus:bg-white focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/15 transition-all"
                     >
                       {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
                         <option key={k} value={k}>
@@ -618,7 +633,7 @@ export function RequestCenterClient({
                       placeholder="Request title *"
                       value={newTitle}
                       onChange={(e) => setNewTitle(e.target.value)}
-                      className="w-full text-xs border border-border rounded-xl px-3 py-2 bg-background text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-emerald-500"
+                      className="w-full text-xs border border-slate-200 rounded-xl px-3 py-2 bg-slate-50/50 text-slate-800 placeholder:text-slate-400 outline-none focus:bg-white focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/15 transition-all"
                     />
 
                     <textarea
@@ -626,7 +641,7 @@ export function RequestCenterClient({
                       value={newDesc}
                       onChange={(e) => setNewDesc(e.target.value)}
                       rows={3}
-                      className="w-full text-xs border border-border rounded-xl px-3 py-2 bg-background text-foreground placeholder:text-muted-foreground outline-none resize-none focus:ring-1 focus:ring-emerald-500"
+                      className="w-full text-xs border border-slate-200 rounded-xl px-3 py-2 bg-slate-50/50 text-slate-800 placeholder:text-slate-400 outline-none resize-none focus:bg-white focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/15 transition-all"
                     />
                   </div>
 
@@ -637,7 +652,7 @@ export function RequestCenterClient({
                     size="sm"
                     disabled={isPending}
                     onClick={handleSubmitNew}
-                    className="w-full h-8 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold gap-1.5"
+                    className="w-full h-8.5 rounded-xl bg-[#4F46E5] hover:bg-indigo-700 text-white text-xs font-bold gap-1.5 shadow-xs cursor-pointer active:scale-95 transition-all"
                   >
                     {isPending ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -650,13 +665,13 @@ export function RequestCenterClient({
               )}
 
               {filtered.length === 0 ? (
-                <div className="p-6 rounded-2xl bg-card border border-border text-center">
-                  <Inbox className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-xs font-semibold text-muted-foreground">No requests found</p>
+                <div className="p-8 rounded-3xl bg-white border border-slate-100 text-center shadow-[0_2px_12px_rgba(30,27,75,0.04)]">
+                  <Inbox className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                  <p className="text-xs font-semibold text-slate-500">No requests found</p>
                   {!isAdmin && (
                     <button
                       onClick={() => setShowNewForm(true)}
-                      className="mt-2 text-xs font-bold text-emerald-600 hover:text-emerald-700"
+                      className="mt-2 text-xs font-bold text-[#4F46E5] hover:text-indigo-700 cursor-pointer"
                     >
                       Submit your first request →
                     </button>
@@ -671,32 +686,32 @@ export function RequestCenterClient({
                       key={req._id}
                       type="button"
                       onClick={() => handleSelectRequest(req)}
-                      className={`w-full text-left p-3.5 rounded-2xl border transition-all ${
+                      className={`w-full text-left p-4 rounded-2xl border transition-all cursor-pointer ${
                         isActive
-                          ? "bg-emerald-500/5 border-emerald-500/30 shadow-xs"
-                          : "bg-card border-border hover:border-emerald-500/20 hover:bg-accent/30"
+                          ? "bg-indigo-50/80 border-indigo-200 shadow-xs"
+                          : "bg-white border-slate-100 hover:border-indigo-100 hover:bg-slate-50/60 shadow-[0_2px_8px_rgba(30,27,75,0.03)]"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 mb-0.5">
+                          <div className="flex items-center gap-1.5 mb-1">
                             {hasUnread && (
                               <span className="flex h-2 w-2 rounded-full bg-rose-500 shrink-0" />
                             )}
-                            <p className="text-xs font-bold text-foreground truncate">
+                            <p className="text-xs font-bold text-[#1E1B4B] truncate">
                               {req.title}
                             </p>
                           </div>
-                          <p className="text-[10px] text-muted-foreground truncate">
+                          <p className="text-[10px] text-slate-500 truncate">
                             {CATEGORY_LABELS[req.category]} · {formatTime(req.createdAt)}
                           </p>
                           {isAdmin && (
-                            <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                            <p className="text-[10px] text-slate-500 mt-0.5 truncate">
                               From: {req.submittedByName}
                             </p>
                           )}
                           {req.relatedRecordName && (
-                            <p className="text-[10px] text-violet-600 dark:text-violet-400 mt-0.5 truncate">
+                            <p className="text-[10px] text-indigo-600 mt-0.5 truncate font-medium">
                               Ref: {req.relatedRecordName}
                             </p>
                           )}
@@ -704,7 +719,7 @@ export function RequestCenterClient({
                         <div className="flex flex-col items-end gap-1 shrink-0">
                           <StatusBadge status={req.status} />
                           {req.messages.length > 0 && (
-                            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                            <span className="text-[10px] text-slate-400 flex items-center gap-0.5">
                               <MessageCircle className="w-3 h-3" />
                               {req.messages.length}
                             </span>
@@ -720,9 +735,9 @@ export function RequestCenterClient({
             {/* Right: Detail / Thread */}
             <div className="md:col-span-2">
               {!selected ? (
-                <div className="p-8 rounded-3xl bg-card border border-border text-center h-full min-h-[200px] flex flex-col items-center justify-center gap-3">
-                  <ClipboardList className="w-10 h-10 text-muted-foreground/40" />
-                  <p className="text-sm font-semibold text-muted-foreground">
+                <div className="p-8 rounded-3xl bg-white border border-slate-100 text-center h-full min-h-[240px] flex flex-col items-center justify-center gap-3 shadow-[0_2px_12px_rgba(30,27,75,0.04)]">
+                  <ClipboardList className="w-10 h-10 text-slate-300" />
+                  <p className="text-sm font-semibold text-slate-500">
                     Select a request to view the conversation thread
                   </p>
                   {!isAdmin && (
@@ -730,7 +745,7 @@ export function RequestCenterClient({
                       size="sm"
                       variant="outline"
                       onClick={() => setShowNewForm(true)}
-                      className="mt-1 h-8 rounded-xl text-xs gap-1.5"
+                      className="mt-1 h-8.5 rounded-xl text-xs gap-1.5 border-slate-200 hover:bg-slate-50 cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       New Request
@@ -739,26 +754,26 @@ export function RequestCenterClient({
                 </div>
               ) : (
                 <div
-                  className="rounded-3xl bg-card border border-border shadow-xs overflow-hidden flex flex-col"
+                  className="rounded-3xl bg-white border border-slate-100/90 shadow-[0_2px_12px_rgba(30,27,75,0.04)] overflow-hidden flex flex-col"
                   style={{ maxHeight: "75vh" }}
                 >
                   {/* Thread header */}
-                  <div className="p-4 border-b border-border bg-card flex flex-col gap-2">
+                  <div className="p-4.5 border-b border-slate-100 bg-white flex flex-col gap-2">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <StatusBadge status={selected.status} />
-                          <span className="text-[10px] text-muted-foreground font-medium px-2 py-0.5 rounded-full bg-secondary border border-border">
+                          <span className="text-[10px] text-slate-600 font-semibold px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200/60">
                             {CATEGORY_LABELS[selected.category]}
                           </span>
                           {selected.relatedRecordName && (
-                            <span className="text-[10px] font-semibold text-violet-600 dark:text-violet-400 px-2 py-0.5 rounded-full bg-violet-500/10 border border-violet-500/20">
+                            <span className="text-[10px] font-semibold text-[#4F46E5] px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-100">
                               Ref: {selected.relatedRecordName}
                             </span>
                           )}
                         </div>
-                        <h2 className="text-sm font-black text-foreground mt-1">{selected.title}</h2>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                        <h2 className="text-sm font-black text-[#1E1B4B] mt-1.5">{selected.title}</h2>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
                           {isAdmin
                             ? `From: ${selected.submittedByName} (${selected.submittedByEmail})`
                             : `Submitted ${formatTime(selected.createdAt)}`}
@@ -769,15 +784,15 @@ export function RequestCenterClient({
                       {isAdmin && ["pending", "in_review"].includes(selected.status) && (
                         <details className="relative shrink-0">
                           <summary className="list-none cursor-pointer">
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-secondary border border-border text-xs font-semibold hover:bg-accent transition-colors">
+                            <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200/80 text-xs font-semibold text-slate-700 hover:bg-slate-200/60 transition-colors">
                               Update Status <ChevronDown className="w-3 h-3" />
                             </span>
                           </summary>
-                          <div className="absolute right-0 top-8 z-20 bg-popover border border-border rounded-2xl shadow-xl p-3 space-y-2 w-56">
+                          <div className="absolute right-0 top-9 z-20 bg-white border border-slate-200 rounded-2xl shadow-xl p-3.5 space-y-2.5 w-60">
                             <select
                               value={newStatus}
                               onChange={(e) => setNewStatus(e.target.value as RequestStatus)}
-                              className="w-full text-xs border border-border rounded-xl px-2 py-1.5 bg-background text-foreground"
+                              className="w-full text-xs border border-slate-200 rounded-xl px-2.5 py-1.5 bg-slate-50 text-slate-800 outline-none focus:bg-white focus:border-[#4F46E5]"
                             >
                               <option value="in_review">In Review</option>
                               <option value="approved">Approved & Release</option>
@@ -789,13 +804,13 @@ export function RequestCenterClient({
                               placeholder="Admin note / response (optional)"
                               value={adminResponse}
                               onChange={(e) => setAdminResponse(e.target.value)}
-                              className="w-full text-xs border border-border rounded-xl px-2 py-1.5 bg-background text-foreground placeholder:text-muted-foreground"
+                              className="w-full text-xs border border-slate-200 rounded-xl px-2.5 py-1.5 bg-slate-50 text-slate-800 placeholder:text-slate-400 outline-none focus:bg-white focus:border-[#4F46E5]"
                             />
                             <Button
                               size="sm"
                               disabled={isPending}
                               onClick={handleUpdateStatus}
-                              className="w-full h-7 rounded-xl text-xs bg-emerald-700 hover:bg-emerald-600 text-white font-bold"
+                              className="w-full h-7.5 rounded-xl text-xs bg-[#4F46E5] hover:bg-indigo-700 text-white font-bold cursor-pointer"
                             >
                               Save Status
                             </Button>
@@ -805,13 +820,13 @@ export function RequestCenterClient({
                     </div>
 
                     {/* Original description */}
-                    <div className="p-3 rounded-2xl bg-muted/30 border border-border/40 text-xs text-foreground mt-1">
+                    <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-xs text-slate-700 leading-relaxed mt-1">
                       {selected.description}
                     </div>
 
                     {/* Admin Response banner if resolved */}
                     {selected.adminResponse && (
-                      <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-800 dark:text-emerald-300">
+                      <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-100 text-xs text-emerald-800">
                         <span className="font-bold">Admin response: </span>
                         {selected.adminResponse}
                       </div>
@@ -821,7 +836,7 @@ export function RequestCenterClient({
                   {/* Messages scroll area */}
                   <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[160px]">
                     {selected.messages.length === 0 ? (
-                      <p className="text-xs text-muted-foreground text-center py-6">
+                      <p className="text-xs text-slate-400 text-center py-6">
                         No messages in this thread yet. Send a message below.
                       </p>
                     ) : (
@@ -832,19 +847,19 @@ export function RequestCenterClient({
                             key={idx}
                             className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
                           >
-                            <div className="flex items-center gap-1.5 mb-0.5">
-                              <span className="text-[10px] font-bold text-foreground">
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <span className="text-[10px] font-bold text-[#1E1B4B]">
                                 {m.senderName}
                               </span>
-                              <span className="text-[9px] text-muted-foreground">
+                              <span className="text-[9px] text-slate-400">
                                 {formatTime(m.createdAt)}
                               </span>
                             </div>
                             <div
-                              className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-xs leading-relaxed ${
+                              className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-xs leading-relaxed ${
                                 isMe
-                                  ? "bg-emerald-700 text-white rounded-tr-xs"
-                                  : "bg-secondary text-foreground border border-border rounded-tl-xs"
+                                  ? "bg-[#4F46E5] text-white rounded-tr-xs shadow-xs"
+                                  : "bg-slate-100 text-slate-800 rounded-tl-xs border border-slate-200/50"
                               }`}
                             >
                               {m.message}
@@ -859,7 +874,7 @@ export function RequestCenterClient({
                   {!["approved", "rejected", "completed", "cancelled"].includes(
                     selected.status
                   ) && (
-                    <div className="p-3 border-t border-border bg-card flex items-center gap-2">
+                    <div className="p-3.5 border-t border-slate-100 bg-white flex items-center gap-2">
                       <input
                         type="text"
                         value={msgText}
@@ -868,13 +883,13 @@ export function RequestCenterClient({
                           e.key === "Enter" && !e.shiftKey && handleSendMessage()
                         }
                         placeholder="Type a message…"
-                        className="flex-1 text-xs border border-border rounded-xl px-3 py-2 bg-background text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-emerald-500"
+                        className="flex-1 text-xs border border-slate-200 rounded-xl px-3 py-2 bg-slate-50/50 text-slate-800 placeholder:text-slate-400 outline-none focus:bg-white focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/15 transition-all"
                       />
                       <Button
                         size="sm"
                         disabled={isPending || !msgText.trim()}
                         onClick={handleSendMessage}
-                        className="h-9 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white shrink-0"
+                        className="h-9 px-3.5 rounded-xl bg-[#4F46E5] hover:bg-indigo-700 text-white shrink-0 cursor-pointer shadow-xs active:scale-95 transition-all"
                       >
                         {isPending ? (
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -892,7 +907,7 @@ export function RequestCenterClient({
                         type="button"
                         onClick={handleCancel}
                         disabled={isPending}
-                        className="text-[11px] text-rose-600 hover:text-rose-700 font-semibold"
+                        className="text-[11px] text-rose-600 hover:text-rose-700 font-semibold cursor-pointer"
                       >
                         Cancel this request
                       </button>
@@ -914,23 +929,23 @@ export function RequestCenterClient({
         open={Boolean(requestAccessNote)}
         onOpenChange={() => setRequestAccessNote(null)}
       >
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-white rounded-3xl border border-slate-100 p-6 shadow-2xl text-slate-900">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold flex items-center gap-2">
-              <KeyRound className="w-5 h-5 text-violet-600" />
+            <DialogTitle className="text-base font-black text-[#1E1B4B] flex items-center gap-2">
+              <KeyRound className="w-5 h-5 text-[#4F46E5]" />
               <span>Request Access to Note</span>
             </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
+            <DialogDescription className="text-xs text-slate-500">
               {requestAccessNote?.title}
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmitRequestAccess} className="space-y-3 pt-2">
-            <div className="p-3 rounded-2xl bg-violet-500/10 border border-violet-500/20 text-xs text-foreground space-y-1">
-              <p className="font-semibold text-violet-700 dark:text-violet-300">
+          <form onSubmit={handleSubmitRequestAccess} className="space-y-3.5 pt-2">
+            <div className="p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-100 text-xs text-slate-800 space-y-1">
+              <p className="font-bold text-[#4F46E5]">
                 Waiting Period: {requestAccessNote?.waitingPeriodHours} Hours
               </p>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
+              <p className="text-[11px] text-slate-600 leading-relaxed">
                 When you submit this request, the Owner will be notified immediately. If no action is
                 taken before the {requestAccessNote?.waitingPeriodHours}h waiting period expires, this
                 note will automatically be released into your Notes section.
@@ -938,12 +953,12 @@ export function RequestCenterClient({
             </div>
 
             <div>
-              <Label className="text-xs font-semibold">Note / Reason (Optional)</Label>
+              <Label className="text-xs font-bold text-[#1E1B4B]">Note / Reason (Optional)</Label>
               <Textarea
                 value={accessReason}
                 onChange={(e) => setAccessReason(e.target.value)}
                 placeholder="Optional note for the Owner explaining why you are requesting access now..."
-                className="mt-1 min-h-[80px] rounded-xl text-xs"
+                className="mt-1.5 min-h-[80px] rounded-xl text-xs border-slate-200 focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/15"
               />
             </div>
 
@@ -953,7 +968,7 @@ export function RequestCenterClient({
                 variant="outline"
                 size="sm"
                 onClick={() => setRequestAccessNote(null)}
-                className="rounded-xl text-xs"
+                className="rounded-xl text-xs border-slate-200 hover:bg-slate-50 cursor-pointer"
               >
                 Cancel
               </Button>
@@ -961,7 +976,7 @@ export function RequestCenterClient({
                 type="submit"
                 size="sm"
                 disabled={isPending}
-                className="rounded-xl text-xs bg-violet-600 hover:bg-violet-700 text-white font-bold gap-1.5"
+                className="rounded-xl text-xs bg-[#4F46E5] hover:bg-indigo-700 text-white font-bold gap-1.5 cursor-pointer shadow-xs active:scale-95 transition-all"
               >
                 {isPending ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />

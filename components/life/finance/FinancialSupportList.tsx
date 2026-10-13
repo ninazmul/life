@@ -4,9 +4,11 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Wallet,
   Plus,
+  ArrowLeft,
   ArrowUpRight,
   Gift,
   Clock,
@@ -79,6 +81,7 @@ export function FinancialSupportList({
       ? canAccessLiveAccountingProp
       : Boolean(isOwner || isAdmin);
 
+  const router = useRouter();
   const [records, setRecords] = useState(initialRecords);
   const [mainView, setMainView] = useState<"acc_transactions" | "personal_support">(
     canAccessLiveAccounting ? "acc_transactions" : "personal_support"
@@ -188,18 +191,29 @@ export function FinancialSupportList({
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-              <Wallet className="w-5 h-5" />
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.back()}
+            className="h-9 w-9 p-0 rounded-xl bg-white border border-slate-200/80 hover:bg-slate-50 text-slate-700 shadow-xs flex items-center justify-center transition-all cursor-pointer"
+            title="Go back"
+          >
+            <ArrowLeft className="w-4 h-4 text-slate-600" />
+          </button>
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-xl sm:text-2xl font-black text-[#1E1B4B] tracking-tight">
+                Financial Support & Transactions
+              </h1>
+              {records.length > 0 && (
+                <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-[#EEF2FF] text-[#4F46E5] border border-indigo-100">
+                  {records.length}
+                </span>
+              )}
             </div>
-            <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
-              Financial Support & Transactions
-            </h1>
+            <p className="text-xs font-medium text-slate-500 mt-0.5">
+              Personal financial assistance, repayment tracking & gift allocations
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            Personal financial assistance, repayment tracking & gift allocations
-          </p>
         </div>
 
         {(isOwner || isAdmin) && (
@@ -208,9 +222,9 @@ export function FinancialSupportList({
               setMainView("personal_support");
               setAddModalOpen(true);
             }}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm"
+            className="h-10 px-4 rounded-xl bg-[#4F46E5] hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs gap-2 shadow-xs transition-all cursor-pointer"
           >
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="w-4 h-4" />
             New Financial Record
           </Button>
         )}
@@ -218,52 +232,52 @@ export function FinancialSupportList({
 
       {/* Main View Switcher Tabs / Section Header */}
       {canAccessLiveAccounting ? (
-        <div className="flex border-b border-border gap-2 overflow-x-auto scrollbar-none">
+        <div className="flex border-b border-slate-200/80 gap-3 overflow-x-auto scrollbar-none">
           <button
             onClick={() => setMainView("acc_transactions")}
-            className={`pb-3 px-3 sm:px-4 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all whitespace-nowrap ${
+            className={`pb-3 px-3 sm:px-4 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
               mainView === "acc_transactions"
-                ? "border-emerald-600 text-emerald-600 dark:text-emerald-400"
-                : "border-transparent text-muted-foreground hover:text-foreground"
+                ? "border-[#4F46E5] text-[#4F46E5]"
+                : "border-transparent text-slate-500 hover:text-slate-800"
             }`}
           >
             <Building2 className="w-4 h-4" />
             <span>ACC.GESN.NET Live Accounting</span>
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-black px-2 py-0.5 rounded-full bg-[#EEF2FF] text-[#4F46E5] border border-indigo-100">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4F46E5] animate-pulse" />
               Live Sync
             </span>
           </button>
 
           <button
             onClick={() => setMainView("personal_support")}
-            className={`pb-3 px-3 sm:px-4 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all whitespace-nowrap ${
+            className={`pb-3 px-3 sm:px-4 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
               mainView === "personal_support"
-                ? "border-emerald-600 text-emerald-600 dark:text-emerald-400"
-                : "border-transparent text-muted-foreground hover:text-foreground"
+                ? "border-[#4F46E5] text-[#4F46E5]"
+                : "border-transparent text-slate-500 hover:text-slate-800"
             }`}
           >
             <Wallet className="w-4 h-4" />
             <span>Personal Support & Commitments</span>
             {records.length > 0 && (
-              <span className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-semibold border border-border">
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#EEF2FF] text-[#4F46E5] font-black border border-indigo-100">
                 {records.length}
               </span>
             )}
           </button>
         </div>
       ) : (
-        <div className="flex border-b border-border pb-3 items-center justify-between">
-          <div className="flex items-center gap-2 text-sm font-bold text-emerald-600 dark:text-emerald-400">
-            <Wallet className="w-4 h-4" />
+        <div className="flex border-b border-slate-200/80 pb-3 items-center justify-between">
+          <div className="flex items-center gap-2 text-sm font-black text-[#1E1B4B]">
+            <Wallet className="w-4 h-4 text-[#4F46E5]" />
             <span>Personal Support & Commitments</span>
             {records.length > 0 && (
-              <span className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-semibold border border-border">
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#EEF2FF] text-[#4F46E5] font-black border border-indigo-100">
                 {records.length}
               </span>
             )}
           </div>
-          <span className="text-xs text-muted-foreground hidden sm:inline">
+          <span className="text-xs text-slate-500 font-medium hidden sm:inline">
             Your personal & assigned financial records
           </span>
         </div>
@@ -280,34 +294,34 @@ export function FinancialSupportList({
           {/* Summary Cards: Currency-separated for Owner (§17) or User Dashboard (§16) */}
           {isOwner && ownerDashboard?.currencyMap ? (
             <div className="space-y-3">
-              <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              <div className="text-xs font-black uppercase tracking-wider text-slate-500">
                 Currency Portfolios (Distinct Totals)
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {Object.entries(ownerDashboard.currencyMap).map(([cur, val]: [string, any]) => (
                   <div
                     key={cur}
-                    className="p-4 rounded-2xl border border-border bg-card shadow-sm space-y-2 relative overflow-hidden"
+                    className="p-5 rounded-2xl border border-slate-100/90 bg-white shadow-[0_2px_12px_rgba(30,27,75,0.04)] space-y-3 relative overflow-hidden"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                      <span className="text-xs font-black px-2.5 py-0.5 rounded-lg bg-[#EEF2FF] text-[#4F46E5] border border-indigo-100">
                         {cur}
                       </span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs font-medium text-slate-400">
                         Repaid: {cur} {val.totalRepaid.toLocaleString()}
                       </span>
                     </div>
 
                     <div>
-                      <p className="text-xs text-muted-foreground">Total Given</p>
-                      <p className="text-xl font-extrabold text-foreground">
+                      <p className="text-xs font-semibold text-slate-400">Total Given</p>
+                      <p className="text-xl font-black text-[#1E1B4B] mt-0.5">
                         {cur} {val.totalGiven.toLocaleString()}
                       </p>
                     </div>
 
-                    <div className="pt-2 border-t border-border flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Remaining:</span>
-                      <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                    <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+                      <span className="text-slate-500 font-medium">Remaining:</span>
+                      <span className="font-black text-emerald-700">
                         {cur} {val.remaining.toLocaleString()}
                       </span>
                     </div>
@@ -317,30 +331,30 @@ export function FinancialSupportList({
             </div>
           ) : userSummary ? (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="p-4 rounded-2xl border border-border bg-card">
-                <p className="text-xs text-muted-foreground">Total Support Received</p>
-                <p className="text-xl font-extrabold text-foreground mt-1">
+              <div className="p-5 rounded-2xl border border-slate-100/90 bg-white shadow-[0_2px_12px_rgba(30,27,75,0.04)]">
+                <p className="text-xs font-semibold text-slate-400">Total Support Received</p>
+                <p className="text-xl font-black text-[#1E1B4B] mt-1">
                   {userSummary.currency} {userSummary.totalReceived.toLocaleString()}
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl border border-border bg-card">
-                <p className="text-xs text-muted-foreground">Repayable Support</p>
-                <p className="text-xl font-extrabold text-blue-600 dark:text-blue-400 mt-1">
+              <div className="p-5 rounded-2xl border border-slate-100/90 bg-white shadow-[0_2px_12px_rgba(30,27,75,0.04)]">
+                <p className="text-xs font-semibold text-slate-400">Repayable Support</p>
+                <p className="text-xl font-black text-[#4F46E5] mt-1">
                   {userSummary.currency} {userSummary.repayableAmount.toLocaleString()}
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl border border-border bg-card">
-                <p className="text-xs text-muted-foreground">Total Returned</p>
-                <p className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
+              <div className="p-5 rounded-2xl border border-slate-100/90 bg-white shadow-[0_2px_12px_rgba(30,27,75,0.04)]">
+                <p className="text-xs font-semibold text-slate-400">Total Returned</p>
+                <p className="text-xl font-black text-emerald-700 mt-1">
                   {userSummary.currency} {userSummary.totalRepaid.toLocaleString()}
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl border border-border bg-card">
-                <p className="text-xs text-muted-foreground">Remaining to Return</p>
-                <p className="text-xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">
+              <div className="p-5 rounded-2xl border border-slate-100/90 bg-white shadow-[0_2px_12px_rgba(30,27,75,0.04)]">
+                <p className="text-xs font-semibold text-slate-400">Remaining to Return</p>
+                <p className="text-xl font-black text-amber-600 mt-1">
                   {userSummary.currency} {userSummary.remainingBalance.toLocaleString()}
                 </p>
               </div>
@@ -350,12 +364,12 @@ export function FinancialSupportList({
           {/* Filters & Search */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search records or recipients..."
-                className="pl-9 rounded-xl"
+                className="pl-10 h-10 rounded-xl border-slate-200/80 bg-white text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#4F46E5] shadow-xs"
               />
             </div>
 
@@ -364,10 +378,10 @@ export function FinancialSupportList({
                 <button
                   key={t}
                   onClick={() => setFilterType(t)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold capitalize transition-colors border ${
+                  className={`px-3.5 py-2 rounded-xl text-xs capitalize transition-all cursor-pointer ${
                     filterType === t
-                      ? "bg-emerald-600 text-white border-emerald-600"
-                      : "bg-card text-muted-foreground border-border hover:bg-muted"
+                      ? "bg-[#4F46E5] text-white font-bold shadow-xs"
+                      : "bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900 font-semibold"
                   }`}
                 >
                   {t}
@@ -379,9 +393,14 @@ export function FinancialSupportList({
           {/* List */}
           <div className="space-y-3">
             {filteredRecords.length === 0 ? (
-              <div className="p-10 text-center rounded-2xl border border-dashed border-border bg-card">
-                <Wallet className="w-10 h-10 mx-auto text-muted-foreground/50 mb-2" />
-                <p className="text-sm text-muted-foreground">No financial support records found.</p>
+              <div className="p-12 text-center rounded-3xl border border-dashed border-slate-200 bg-white shadow-xs space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center mx-auto shadow-xs">
+                  <Wallet className="w-6 h-6" />
+                </div>
+                <p className="text-sm font-bold text-slate-900">No financial support records found.</p>
+                <p className="text-xs text-slate-500 font-medium max-w-sm mx-auto">
+                  Record personal care, allowances, educational support, or repaid installments.
+                </p>
               </div>
             ) : (
               (() => {
@@ -400,85 +419,85 @@ export function FinancialSupportList({
                         <Link
                           key={r._id}
                           href={`/finance/${r._id}`}
-                          className="block p-4 sm:p-5 rounded-2xl border border-border bg-card hover:border-emerald-500/40 transition-all shadow-sm group"
+                          className="block p-5 rounded-2xl border border-slate-100/90 bg-white hover:border-slate-200 hover:shadow-md transition-all shadow-[0_2px_12px_rgba(30,27,75,0.04)] group"
                         >
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div className="space-y-1.5 min-w-0">
                               <div className="flex flex-wrap items-center gap-2">
-                                <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-bold uppercase">
+                                <span className="text-[10px] px-2.5 py-0.5 rounded-lg bg-[#EEF2FF] text-[#4F46E5] border border-indigo-100 font-black uppercase">
                                   {r.supportType.replace("_", " ")}
                                 </span>
 
                                 <span
-                                  className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
+                                  className={`text-[10px] px-2.5 py-0.5 rounded-lg font-black uppercase border ${
                                     r.status === "fully_repaid" || r.status === "closed"
-                                      ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                       : r.status === "overdue"
-                                      ? "bg-red-500/10 text-red-600 border border-red-500/20"
+                                      ? "bg-rose-50 text-rose-700 border-rose-200"
                                       : r.status === "converted_to_gift" || r.status === "gift"
-                                      ? "bg-purple-500/10 text-purple-600 border border-purple-500/20"
-                                      : "bg-blue-500/10 text-blue-600 border border-blue-500/20"
+                                      ? "bg-purple-50 text-purple-700 border-purple-200"
+                                      : "bg-blue-50 text-blue-700 border-blue-200"
                                   }`}
                                 >
                                   {r.status.replace("_", " ")}
                                 </span>
 
                                 {r.visibilityMode && r.visibilityMode !== "available_now" && (
-                                  <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 border border-purple-500/20 font-medium">
+                                  <span className="text-[10px] px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 border border-slate-200 font-bold">
                                     {r.visibilityMode}
                                   </span>
                                 )}
                               </div>
 
-                              <h3 className="text-base font-bold text-foreground truncate group-hover:text-emerald-600 transition-colors">
+                              <h3 className="text-base font-black text-[#1E1B4B] truncate group-hover:text-[#4F46E5] transition-colors">
                                 {r.title}
                               </h3>
 
-                              <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1 font-medium text-foreground">
-                                  <User className="w-3.5 h-3.5 text-emerald-500" />
+                              <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 font-medium">
+                                <span className="flex items-center gap-1.5 font-bold text-slate-800">
+                                  <User className="w-3.5 h-3.5 text-[#4F46E5]" />
                                   {recipient?.name || "Recipient"} {recipient?.relation ? `(${recipient.relation})` : ""}
                                 </span>
 
                                 {business && (
-                                  <span className="flex items-center gap-1">
-                                    <Building2 className="w-3.5 h-3.5" />
+                                  <span className="flex items-center gap-1.5">
+                                    <Building2 className="w-3.5 h-3.5 text-slate-400" />
                                     {business.name}
                                   </span>
                                 )}
 
-                                <span className="flex items-center gap-1">
-                                  <Clock className="w-3.5 h-3.5" />
+                                <span className="flex items-center gap-1.5">
+                                  <Clock className="w-3.5 h-3.5 text-slate-400" />
                                   {new Date(r.givenDate).toLocaleDateString()}
                                 </span>
                               </div>
                             </div>
 
                             {/* Financial Values */}
-                            <div className="flex items-center justify-between sm:justify-end gap-6 pt-2 sm:pt-0 border-t sm:border-0 border-border">
+                            <div className="flex items-center justify-between sm:justify-end gap-6 pt-3 sm:pt-0 border-t sm:border-0 border-slate-100">
                               <div className="text-left sm:text-right">
-                                <p className="text-xs text-muted-foreground">Total Support</p>
-                                <p className="text-base font-extrabold text-foreground">
+                                <p className="text-xs font-semibold text-slate-400">Total Support</p>
+                                <p className="text-base font-black text-[#1E1B4B]">
                                   {r.currency} {r.totalAmount.toLocaleString()}
                                 </p>
                               </div>
 
                               {r.repayableOrNot && r.status !== "converted_to_gift" && r.status !== "gift" ? (
                                 <div className="text-right">
-                                  <p className="text-xs text-muted-foreground">Remaining</p>
-                                  <p className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">
+                                  <p className="text-xs font-semibold text-slate-400">Remaining</p>
+                                  <p className="text-base font-black text-emerald-700">
                                     {r.currency} {r.remainingBalance.toLocaleString()}
                                   </p>
                                 </div>
                               ) : (
                                 <div className="text-right">
-                                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-purple-600 bg-purple-500/10 px-2 py-1 rounded-lg">
+                                  <span className="inline-flex items-center gap-1 text-xs font-bold text-purple-700 bg-purple-50 border border-purple-100 px-2.5 py-1 rounded-lg">
                                     <Gift className="w-3.5 h-3.5" /> Non-Repayable
                                   </span>
                                 </div>
                               )}
 
-                              <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                              <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-[#4F46E5] group-hover:translate-x-0.5 transition-all" />
                             </div>
                           </div>
                         </Link>
@@ -486,7 +505,7 @@ export function FinancialSupportList({
                     })}
 
                     {totalPersonalPages > 1 && (
-                      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-border text-xs text-muted-foreground">
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs text-slate-500 font-medium">
                         <span>
                           Showing {personalStartIndex + 1}–{personalEndIndex} of {filteredRecords.length} records
                         </span>
@@ -497,11 +516,11 @@ export function FinancialSupportList({
                             size="sm"
                             onClick={() => setPersonalPage((p) => Math.max(1, p - 1))}
                             disabled={personalPage === 1}
-                            className="h-8 px-2.5 rounded-xl text-xs"
+                            className="h-8 px-2.5 rounded-xl text-xs font-bold border-slate-200 bg-white"
                           >
                             Prev
                           </Button>
-                          <span className="px-2 font-medium text-foreground">
+                          <span className="px-2 font-bold text-[#1E1B4B]">
                             Page {personalPage} of {totalPersonalPages}
                           </span>
                           <Button
@@ -509,7 +528,7 @@ export function FinancialSupportList({
                             size="sm"
                             onClick={() => setPersonalPage((p) => Math.min(totalPersonalPages, p + 1))}
                             disabled={personalPage === totalPersonalPages}
-                            className="h-8 px-2.5 rounded-xl text-xs"
+                            className="h-8 px-2.5 rounded-xl text-xs font-bold border-slate-200 bg-white"
                           >
                             Next
                           </Button>
@@ -528,33 +547,36 @@ export function FinancialSupportList({
 
       {/* Add Financial Record Modal */}
       <Dialog open={addModalOpen} onOpenChange={setAddModalOpen}>
-        <DialogContent className="sm:max-w-lg rounded-3xl p-6 max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold">
-              New Financial Support Record
+        <DialogContent className="life-dialog sm:max-w-lg rounded-3xl border border-slate-100 bg-white p-6 text-slate-900 shadow-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-3 border-b border-slate-100">
+            <DialogTitle className="text-base font-black text-[#1E1B4B] flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center">
+                <Wallet className="w-4 h-4" />
+              </div>
+              <span>New Financial Support Record</span>
             </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleCreate} className="space-y-4 mt-2">
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-muted-foreground">Record Title *</label>
+          <form onSubmit={handleCreate} className="space-y-4 pt-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700">Record Title *</label>
               <Input
                 required
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="e.g. Medical emergency support or Business expansion advance"
-                className="rounded-xl"
+                className="h-10 rounded-xl border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 text-xs focus:bg-white focus:border-[#4F46E5]"
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-muted-foreground">Recipient *</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Recipient *</label>
                 <select
                   required
                   value={formData.recipientPersonId}
                   onChange={(e) => setFormData({ ...formData, recipientPersonId: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs font-medium focus:bg-white focus:border-[#4F46E5] focus:outline-none"
                 >
                   <option value="">Select Recipient</option>
                   {people.map((p) => (
@@ -565,12 +587,12 @@ export function FinancialSupportList({
                 </select>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-muted-foreground">Support Type *</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Support Type *</label>
                 <select
                   value={formData.supportType}
                   onChange={(e) => handleSupportTypeChange(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs font-medium focus:bg-white focus:border-[#4F46E5] focus:outline-none"
                 >
                   <option value="repayable_support">Repayable Support</option>
                   <option value="personal_loan">Personal Care</option>
@@ -588,8 +610,8 @@ export function FinancialSupportList({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="space-y-1 col-span-2">
-                <label className="text-xs font-semibold text-muted-foreground">Total Amount *</label>
+              <div className="space-y-1.5 col-span-2">
+                <label className="text-xs font-bold text-slate-700">Total Amount *</label>
                 <Input
                   type="number"
                   required
@@ -598,16 +620,16 @@ export function FinancialSupportList({
                   value={formData.totalAmount}
                   onChange={(e) => setFormData({ ...formData, totalAmount: e.target.value })}
                   placeholder="e.g. 50000"
-                  className="rounded-xl"
+                  className="h-10 rounded-xl border-slate-200 bg-slate-50 text-slate-900 text-xs focus:bg-white focus:border-[#4F46E5]"
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-muted-foreground">Currency</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Currency</label>
                 <select
                   value={formData.currency}
                   onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs font-medium focus:bg-white focus:border-[#4F46E5] focus:outline-none"
                 >
                   <option value="BDT">BDT (৳)</option>
                   <option value="SAR">SAR (ر.س)</option>
@@ -616,23 +638,23 @@ export function FinancialSupportList({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-muted-foreground">Given Date</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Given Date</label>
                 <Input
                   type="date"
                   value={formData.givenDate}
                   onChange={(e) => setFormData({ ...formData, givenDate: e.target.value })}
-                  className="rounded-xl"
+                  className="h-10 rounded-xl border-slate-200 bg-slate-50 text-slate-900 text-xs focus:bg-white focus:border-[#4F46E5]"
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-muted-foreground">Payment Method</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Payment Method</label>
                 <select
                   value={formData.paymentMethod}
                   onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs font-medium focus:bg-white focus:border-[#4F46E5] focus:outline-none"
                 >
                   <option value="bank_transfer">Bank Transfer</option>
                   <option value="cash">Cash</option>
@@ -644,45 +666,45 @@ export function FinancialSupportList({
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-muted-foreground">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700">
                 Transaction Reference / Check No.
               </label>
               <Input
                 value={formData.transactionReference}
                 onChange={(e) => setFormData({ ...formData, transactionReference: e.target.value })}
                 placeholder="TRX123456 or Check #4892"
-                className="rounded-xl"
+                className="h-10 rounded-xl border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 text-xs focus:bg-white focus:border-[#4F46E5]"
               />
             </div>
 
             {formData.repayableOrNot && (
-              <div className="p-3.5 rounded-2xl bg-muted/40 border border-border space-y-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
+                <span className="text-[11px] font-black uppercase tracking-wider text-[#1E1B4B]">
                   Repayment & Installment Setup
                 </span>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-muted-foreground">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700">
                       Repayment Start Date
                     </label>
                     <Input
                       type="date"
                       value={formData.repaymentStartDate}
                       onChange={(e) => setFormData({ ...formData, repaymentStartDate: e.target.value })}
-                      className="rounded-xl"
+                      className="h-10 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:border-[#4F46E5]"
                     />
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-muted-foreground">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700">
                       Frequency
                     </label>
                     <select
                       value={formData.installmentFrequency}
                       onChange={(e) => setFormData({ ...formData, installmentFrequency: e.target.value })}
-                      className="w-full p-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-slate-900 text-xs font-medium focus:border-[#4F46E5] focus:outline-none"
                     >
                       <option value="monthly">Monthly</option>
                       <option value="weekly">Weekly</option>
@@ -693,8 +715,8 @@ export function FinancialSupportList({
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-muted-foreground">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700">
                       Installment Amount
                     </label>
                     <Input
@@ -703,12 +725,12 @@ export function FinancialSupportList({
                       value={formData.installmentAmount}
                       onChange={(e) => setFormData({ ...formData, installmentAmount: e.target.value })}
                       placeholder="e.g. 5000"
-                      className="rounded-xl"
+                      className="h-10 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:border-[#4F46E5]"
                     />
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-muted-foreground">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700">
                       Number of Installments
                     </label>
                     <Input
@@ -717,40 +739,40 @@ export function FinancialSupportList({
                       value={formData.numberOfInstallments}
                       onChange={(e) => setFormData({ ...formData, numberOfInstallments: e.target.value })}
                       placeholder="e.g. 10"
-                      className="rounded-xl"
+                      className="h-10 rounded-xl border-slate-200 bg-white text-slate-900 text-xs focus:border-[#4F46E5]"
                     />
                   </div>
                 </div>
               </div>
             )}
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-muted-foreground">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700">
                 Visible Note to Recipient
               </label>
               <textarea
                 value={formData.recipientVisibleNote}
                 onChange={(e) => setFormData({ ...formData, recipientVisibleNote: e.target.value })}
                 placeholder="Comforting, clear instructions for recipient..."
-                className="w-full h-16 p-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full h-16 p-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs focus:bg-white focus:border-[#4F46E5] focus:outline-none"
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 onClick={() => setAddModalOpen(false)}
-                className="rounded-xl"
+                className="h-9 px-4 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={submitting}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl"
+                className="h-10 px-5 bg-[#4F46E5] hover:bg-indigo-700 text-white text-xs font-bold rounded-xl gap-2 shadow-xs transition-all cursor-pointer"
               >
-                {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 Save Financial Record
               </Button>
             </div>

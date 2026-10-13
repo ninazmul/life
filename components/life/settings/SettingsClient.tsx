@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Settings,
   Download,
@@ -20,9 +21,13 @@ import {
   Laptop,
   Trash2,
   ChevronRight,
+  ChevronLeft,
+  Lock,
+  Database,
+  Code2,
+  Eye,
+  Zap,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   setVaultPin,
   exportLifeBackup,
@@ -35,6 +40,7 @@ interface SettingsClientProps {
 }
 
 export function SettingsClient({ settings: _settings }: SettingsClientProps) {
+  const router = useRouter();
   const { isInstalled, isInstallable, isIOS, installApp } = usePWA();
   const [newPin, setNewPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
@@ -119,57 +125,74 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
     }
   };
 
+  const systemConfig = [
+    { label: "Security Model", value: "AES-256-GCM", color: "text-[#16A34A]", icon: <Lock className="w-3.5 h-3.5 text-[#16A34A]" /> },
+    { label: "Auth Provider", value: "Clerk.dev", color: "text-[#1E1B4B]", icon: <Shield className="w-3.5 h-3.5 text-[#4F46E5]" /> },
+    { label: "Database", value: "MongoDB Atlas", color: "text-[#1E1B4B]", icon: <Database className="w-3.5 h-3.5 text-[#0284C7]" /> },
+    { label: "Framework", value: "Next.js App Router", color: "text-[#1E1B4B]", icon: <Code2 className="w-3.5 h-3.5 text-[#7C3AED]" /> },
+    { label: "Developer", value: "RIZMEC", color: "text-[#1E1B4B]", isLink: true, icon: <Zap className="w-3.5 h-3.5 text-[#D97706]" /> },
+    { label: "Cache Policy", value: "Zero Cache (Sensitive)", color: "text-[#DC2626]", icon: <Shield className="w-3.5 h-3.5 text-[#DC2626]" /> },
+    { label: "Vault Reveals Audited", value: "Yes ✓", color: "text-[#16A34A]", icon: <Eye className="w-3.5 h-3.5 text-[#16A34A]" /> },
+  ];
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
-          Life Settings & Security
-        </h1>
-        <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-          Configure master vault PIN, PWA install status, and full data backup.
-        </p>
+    <div className="space-y-5 max-w-4xl mx-auto pb-16">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.back()}
+            className="w-8 h-8 rounded-xl bg-white border border-slate-100/90 shadow-[0_1px_4px_rgba(0,0,0,0.04)] flex items-center justify-center text-[#1E1B4B] hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
+            aria-label="Back"
+          >
+            <ChevronLeft className="w-4 h-4" strokeWidth={2.5} />
+          </button>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-[#1E1B4B] tracking-tight">
+              Settings & Security
+            </h1>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              Master PIN, PWA install, and full data backup
+            </p>
+          </div>
+        </div>
       </div>
 
-      <section className="p-5 sm:p-6 rounded-3xl bg-card border border-border space-y-5">
+      {/* PWA Section */}
+      <section className="bg-white rounded-2xl md:rounded-3xl p-5 sm:p-6 border border-slate-100/90 shadow-[0_2px_12px_rgba(30,27,75,0.04)] space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 shrink-0">
-              <Smartphone
-                className="w-5 h-5 shrink-0"
-                strokeWidth={2}
-                aria-hidden="true"
-              />
+            <div className="w-11 h-11 rounded-xl bg-[#DCFCE7] flex items-center justify-center shrink-0">
+              <Smartphone className="w-5 h-5 text-[#16A34A]" strokeWidth={2} />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-foreground truncate">
+                <h3 className="text-sm font-bold text-[#1E1B4B] truncate">
                   Progressive Web App (PWA)
                 </h3>
                 {isInstalled && (
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#DCFCE7] text-[#16A34A] border border-emerald-100/60">
                     Active
                   </span>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
-                Install Life as a native app for fast one-tap home screen access
-                and offline safety.
+              <p className="text-xs text-slate-500 mt-0.5 leading-snug">
+                Install Life as a native app for fast one-tap home screen access.
               </p>
             </div>
           </div>
 
-          {/* Primary Install Button */}
           <div className="shrink-0 flex items-center gap-2">
             {isInstalled ? (
-              <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>Installed on this device</span>
+              <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#DCFCE7] border border-emerald-100/60 text-[#16A34A] text-xs font-bold">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>Installed</span>
               </div>
             ) : (
-              <Button
+              <button
                 onClick={handleInstallPWA}
                 disabled={installing}
-                className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-xs gap-2 transition-all active:scale-95"
+                className="inline-flex items-center gap-1.5 h-9 px-4 rounded-xl bg-[#4F46E5] hover:bg-indigo-700 text-white text-xs font-bold shadow-xs active:scale-95 transition-all cursor-pointer disabled:opacity-50"
               >
                 {installing ? (
                   <Loader2 className="w-4 h-4 animate-spin shrink-0" />
@@ -177,32 +200,24 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
                   <Download className="w-4 h-4 shrink-0" strokeWidth={2.5} />
                 )}
                 <span>Install Life App</span>
-              </Button>
+              </button>
             )}
           </div>
         </div>
 
         {/* 3 Status indicator cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-          <div className="p-3 rounded-xl bg-muted/60 border border-border space-y-1">
-            <span className="text-muted-foreground font-medium uppercase text-[10px] tracking-wider block">
+          <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-100/80 space-y-1">
+            <span className="text-slate-400 font-medium uppercase text-[10px] tracking-wider block">
               Install Status
             </span>
-            <div
-              className={`flex items-center gap-1.5 font-bold ${isInstalled ? "text-emerald-700 dark:text-emerald-300" : "text-emerald-600 dark:text-emerald-400"}`}
-            >
+            <div className={`flex items-center gap-1.5 font-bold ${isInstalled ? "text-[#16A34A]" : "text-[#4F46E5]"}`}>
               {isInstalled ? (
-                <CheckCircle2
-                  className="w-3.5 h-3.5 shrink-0 text-emerald-500"
-                  strokeWidth={2}
-                />
+                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
               ) : isInstallable ? (
-                <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <span className="flex h-2 w-2 rounded-full bg-[#4F46E5] animate-pulse shrink-0" />
               ) : (
-                <CheckCircle2
-                  className="w-3.5 h-3.5 shrink-0"
-                  strokeWidth={2}
-                />
+                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
               )}
               <span>
                 {isInstalled
@@ -216,168 +231,107 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
             </div>
           </div>
 
-          <div className="p-3 rounded-xl bg-muted/60 border border-border space-y-1">
-            <span className="text-muted-foreground font-medium uppercase text-[10px] tracking-wider block">
+          <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-100/80 space-y-1">
+            <span className="text-slate-400 font-medium uppercase text-[10px] tracking-wider block">
               Service Worker
             </span>
-            <div className="flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-300">
-              <CheckCircle2
-                className="w-3.5 h-3.5 shrink-0 text-emerald-500"
-                strokeWidth={2}
-                aria-hidden="true"
-              />
+            <div className="flex items-center gap-1.5 font-bold text-[#16A34A]">
+              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
               <span>Zero-Cache Active</span>
             </div>
           </div>
 
-          <div className="p-3 rounded-xl bg-muted/60 border border-border space-y-1">
-            <span className="text-muted-foreground font-medium uppercase text-[10px] tracking-wider block">
+          <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-100/80 space-y-1">
+            <span className="text-slate-400 font-medium uppercase text-[10px] tracking-wider block">
               Offline Safe APIs
             </span>
-            <div className="flex items-center gap-1.5 font-bold text-amber-700 dark:text-amber-300">
-              <AlertCircle
-                className="w-3.5 h-3.5 shrink-0 text-amber-500"
-                strokeWidth={2}
-                aria-hidden="true"
-              />
+            <div className="flex items-center gap-1.5 font-bold text-[#D97706]">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
               <span>Online Required</span>
             </div>
           </div>
         </div>
 
-        {/* Expandable / Toggleable step-by-step installation instructions */}
-        <div className="rounded-2xl border border-border bg-muted/30 overflow-hidden">
+        {/* Expandable installation guide */}
+        <div className="rounded-xl border border-slate-100/80 bg-slate-50/50 overflow-hidden">
           <button
             type="button"
             onClick={() => setShowGuide((prev) => !prev)}
-            className="w-full px-4 py-3 flex items-center justify-between text-xs font-semibold text-foreground hover:bg-muted/50 transition-colors"
+            className="w-full px-4 py-3 flex items-center justify-between text-xs font-medium text-[#1E1B4B] hover:bg-slate-50 transition-colors cursor-pointer"
           >
             <div className="flex items-center gap-2">
-              <HelpCircle className="w-4 h-4 text-emerald-500 shrink-0" />
-              <span>
-                Step-by-step installation guide (iOS, Android & Desktop)
-              </span>
+              <HelpCircle className="w-4 h-4 text-[#4F46E5] shrink-0" />
+              <span>Step-by-step installation guide (iOS, Android & Desktop)</span>
             </div>
             {showGuide ? (
-              <ChevronUp className="w-4 h-4 text-muted-foreground" />
+              <ChevronUp className="w-4 h-4 text-slate-400" />
             ) : (
-              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              <ChevronDown className="w-4 h-4 text-slate-400" />
             )}
           </button>
 
           {showGuide && (
-            <div className="px-4 pb-4 pt-1 border-t border-border/60 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-              <div className="p-3 rounded-xl bg-card border border-border/80 space-y-1.5">
-                <div className="flex items-center gap-1.5 font-bold text-foreground">
-                  <Smartphone className="w-3.5 h-3.5 text-blue-500" />
+            <div className="px-4 pb-4 pt-1 border-t border-slate-100/60 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+              <div className="p-3 rounded-xl bg-white border border-slate-100/80 space-y-1.5">
+                <div className="flex items-center gap-1.5 font-bold text-[#1E1B4B]">
+                  <Smartphone className="w-3.5 h-3.5 text-[#0284C7]" />
                   <span>iOS (iPhone & iPad)</span>
                 </div>
-                <ol className="text-muted-foreground space-y-1 text-[11px] list-decimal list-inside leading-relaxed">
-                  <li>
-                    Open Life in <strong>Safari</strong>
-                  </li>
-                  <li>
-                    Tap the <strong>Share</strong> button (square with arrow)
-                  </li>
-                  <li>
-                    Scroll down and tap{" "}
-                    <strong>&quot;Add to Home Screen&quot;</strong>
-                  </li>
-                  <li>
-                    Tap <strong>Add</strong> in top right
-                  </li>
+                <ol className="text-slate-500 space-y-1 text-[11px] list-decimal list-inside leading-relaxed">
+                  <li>Open Life in <strong>Safari</strong></li>
+                  <li>Tap the <strong>Share</strong> button (square with arrow)</li>
+                  <li>Scroll down and tap <strong>&quot;Add to Home Screen&quot;</strong></li>
+                  <li>Tap <strong>Add</strong> in top right</li>
                 </ol>
               </div>
 
-              <div className="p-3 rounded-xl bg-card border border-border/80 space-y-1.5">
-                <div className="flex items-center gap-1.5 font-bold text-foreground">
-                  <Smartphone className="w-3.5 h-3.5 text-emerald-500" />
+              <div className="p-3 rounded-xl bg-white border border-slate-100/80 space-y-1.5">
+                <div className="flex items-center gap-1.5 font-bold text-[#1E1B4B]">
+                  <Smartphone className="w-3.5 h-3.5 text-[#16A34A]" />
                   <span>Android (Chrome / Edge)</span>
                 </div>
-                <ol className="text-muted-foreground space-y-1 text-[11px] list-decimal list-inside leading-relaxed">
-                  <li>
-                    Click <strong>&quot;Install Life App&quot;</strong> above
-                  </li>
+                <ol className="text-slate-500 space-y-1 text-[11px] list-decimal list-inside leading-relaxed">
+                  <li>Click <strong>&quot;Install Life App&quot;</strong> above</li>
                   <li>Or tap menu (3 dots) in Chrome</li>
-                  <li>
-                    Tap <strong>&quot;Install app&quot;</strong> or &quot;Add to
-                    Home screen&quot;
-                  </li>
+                  <li>Tap <strong>&quot;Install app&quot;</strong> or &quot;Add to Home screen&quot;</li>
                   <li>Confirm installation</li>
                 </ol>
               </div>
 
-              <div className="p-3 rounded-xl bg-card border border-border/80 space-y-1.5">
-                <div className="flex items-center gap-1.5 font-bold text-foreground">
-                  <Laptop className="w-3.5 h-3.5 text-purple-500" />
+              <div className="p-3 rounded-xl bg-white border border-slate-100/80 space-y-1.5">
+                <div className="flex items-center gap-1.5 font-bold text-[#1E1B4B]">
+                  <Laptop className="w-3.5 h-3.5 text-[#7C3AED]" />
                   <span>Desktop (Mac / Windows)</span>
                 </div>
-                <ol className="text-muted-foreground space-y-1 text-[11px] list-decimal list-inside leading-relaxed">
-                  <li>
-                    In Chrome/Edge address bar, look for the{" "}
-                    <strong>Install</strong> icon (⊕ or computer)
-                  </li>
-                  <li>
-                    Click <strong>&quot;Install Life&quot;</strong>
-                  </li>
+                <ol className="text-slate-500 space-y-1 text-[11px] list-decimal list-inside leading-relaxed">
+                  <li>In Chrome/Edge address bar, look for the <strong>Install</strong> icon (⊕ or computer)</li>
+                  <li>Click <strong>&quot;Install Life&quot;</strong></li>
                   <li>Launch directly from your Dock or Start Menu</li>
                 </ol>
               </div>
 
               {/* Troubleshooting Card */}
-              <div className="md:col-span-3 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs space-y-2">
-                <div className="flex items-center gap-2 font-bold text-amber-900 dark:text-amber-200">
-                  <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
-                  <span>
-                    Don&apos;t see the icon on your phone after installing?
-                    Check these 4 places:
-                  </span>
+              <div className="md:col-span-3 p-3.5 rounded-xl bg-[#FEF3C7]/60 border border-amber-200/60 text-xs space-y-2">
+                <div className="flex items-center gap-2 font-bold text-[#D97706]">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>Don&apos;t see the icon on your phone after installing? Check these 4 places:</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-muted-foreground">
-                  <div className="p-2.5 rounded-lg bg-card/70 border border-border space-y-1">
-                    <p className="font-semibold text-foreground">
-                      1. Swipe Up to Open App Drawer
-                    </p>
-                    <p>
-                      Most modern phones (Samsung, Xiaomi, Pixel) place new apps
-                      into the <strong>All Apps drawer</strong> by default, not
-                      on the desktop. Swipe up from your home screen and search
-                      for &quot;Life&quot;.
-                    </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-600">
+                  <div className="p-2.5 rounded-lg bg-white/80 border border-slate-100/60 space-y-1">
+                    <p className="font-bold text-[#1E1B4B]">1. Swipe Up to Open App Drawer</p>
+                    <p>Most modern phones (Samsung, Xiaomi, Pixel) place new apps into the <strong>All Apps drawer</strong> by default. Swipe up and search for &quot;Life&quot;.</p>
                   </div>
-                  <div className="p-2.5 rounded-lg bg-card/70 border border-border space-y-1">
-                    <p className="font-semibold text-foreground">
-                      2. Check Notification Shade
-                    </p>
-                    <p>
-                      Pull down your notification bar. Chrome often shows a
-                      notification saying <em>&quot;Adding Life...&quot;</em>{" "}
-                      that needs a few seconds to complete.
-                    </p>
+                  <div className="p-2.5 rounded-lg bg-white/80 border border-slate-100/60 space-y-1">
+                    <p className="font-bold text-[#1E1B4B]">2. Check Notification Shade</p>
+                    <p>Pull down your notification bar. Chrome often shows a notification saying <em>&quot;Adding Life...&quot;</em> that needs a few seconds.</p>
                   </div>
-                  <div className="p-2.5 rounded-lg bg-card/70 border border-border space-y-1">
-                    <p className="font-semibold text-foreground">
-                      3. Check Launcher Permission
-                    </p>
-                    <p>
-                      On Xiaomi/MIUI, Vivo, or Oppo: Open phone{" "}
-                      <strong>
-                        Settings → Apps → Chrome → Other permissions
-                      </strong>{" "}
-                      and turn on{" "}
-                      <strong>&quot;Home screen shortcuts&quot;</strong>.
-                    </p>
+                  <div className="p-2.5 rounded-lg bg-white/80 border border-slate-100/60 space-y-1">
+                    <p className="font-bold text-[#1E1B4B]">3. Check Launcher Permission</p>
+                    <p>On Xiaomi/MIUI, Vivo, or Oppo: Open phone <strong>Settings → Apps → Chrome → Other permissions</strong> and turn on <strong>&quot;Home screen shortcuts&quot;</strong>.</p>
                   </div>
-                  <div className="p-2.5 rounded-lg bg-card/70 border border-border space-y-1">
-                    <p className="font-semibold text-foreground">
-                      4. Manual Browser Menu (Always Works)
-                    </p>
-                    <p>
-                      In Chrome or Edge, tap the{" "}
-                      <strong>3 dots menu (⋮)</strong> in the top right, then
-                      tap <strong>&quot;Install app&quot;</strong> or{" "}
-                      <strong>&quot;Add to Home screen&quot;</strong>.
-                    </p>
+                  <div className="p-2.5 rounded-lg bg-white/80 border border-slate-100/60 space-y-1">
+                    <p className="font-bold text-[#1E1B4B]">4. Manual Browser Menu (Always Works)</p>
+                    <p>In Chrome or Edge, tap the <strong>3 dots menu (⋮)</strong> then tap <strong>&quot;Install app&quot;</strong> or <strong>&quot;Add to Home screen&quot;</strong>.</p>
                   </div>
                 </div>
               </div>
@@ -386,49 +340,37 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
         </div>
 
         {/* Security Note */}
-        <div className="p-3.5 rounded-2xl bg-accent border border-border text-xs text-muted-foreground leading-relaxed space-y-1">
-          <p className="text-amber-700 dark:text-amber-300 font-medium flex items-start gap-1.5">
-            <Shield
-              className="w-3.5 h-3.5 mt-0.5 shrink-0"
-              strokeWidth={2}
-              aria-hidden="true"
-            />
-            <span>
-              Zero-Cache Policy: Vault passwords, financial logs, and encrypted
-              notes are never saved into browser cache, ensuring full privacy
-              even if your device is inspected.
-            </span>
-          </p>
+        <div className="p-3.5 rounded-xl bg-[#FEF3C7]/40 border border-amber-100/60 text-xs text-[#D97706] leading-relaxed flex items-start gap-2">
+          <Shield className="w-3.5 h-3.5 mt-0.5 shrink-0" strokeWidth={2} />
+          <span>
+            Zero-Cache Policy: Vault passwords, financial logs, and encrypted notes are never saved into browser cache, ensuring full privacy even if your device is inspected.
+          </span>
         </div>
       </section>
 
-      <section className="p-5 sm:p-6 rounded-3xl bg-card border border-border space-y-4">
+      {/* Master Vault PIN */}
+      <section className="bg-white rounded-2xl md:rounded-3xl p-5 sm:p-6 border border-slate-100/90 shadow-[0_2px_12px_rgba(30,27,75,0.04)] space-y-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 shrink-0">
-            <KeyRound
-              className="w-5 h-5 shrink-0"
-              strokeWidth={2}
-              aria-hidden="true"
-            />
+          <div className="w-11 h-11 rounded-xl bg-[#FEF3C7] flex items-center justify-center shrink-0">
+            <KeyRound className="w-5 h-5 text-[#D97706]" strokeWidth={2} />
           </div>
           <div className="min-w-0">
-            <h3 className="text-sm font-bold text-foreground truncate">
+            <h3 className="text-sm font-bold text-[#1E1B4B] truncate">
               Master Vault PIN
             </h3>
-            <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
-              Required to reveal any encrypted vault secret. Stored hashed —
-              never plaintext.
+            <p className="text-xs text-slate-500 mt-0.5 leading-snug">
+              Required to reveal any encrypted vault secret. Stored hashed — never plaintext.
             </p>
           </div>
         </div>
 
         <form onSubmit={handleSetPin} className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-foreground block">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#1E1B4B] block">
                 New Vault PIN (min. 4 digits)
               </label>
-              <Input
+              <input
                 required
                 type="password"
                 inputMode="numeric"
@@ -436,197 +378,142 @@ export function SettingsClient({ settings: _settings }: SettingsClientProps) {
                 maxLength={12}
                 value={newPin}
                 onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ""))}
-                className="h-11 border-border bg-card text-foreground text-sm text-center font-mono tracking-[0.5em] focus:border-amber-500"
+                className="w-full h-11 px-3 rounded-xl border border-slate-200/80 bg-slate-50/50 text-sm text-center font-mono tracking-[0.5em] text-[#1E1B4B] focus:outline-none focus:ring-2 focus:ring-[#D97706]/30 focus:border-[#D97706] transition-all"
                 aria-label="New vault PIN input"
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-foreground block">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#1E1B4B] block">
                 Confirm Vault PIN
               </label>
-              <Input
+              <input
                 required
                 type="password"
                 inputMode="numeric"
                 placeholder="••••"
                 maxLength={12}
                 value={confirmPin}
-                onChange={(e) =>
-                  setConfirmPin(e.target.value.replace(/\D/g, ""))
-                }
-                className="h-11 border-border bg-card text-foreground text-sm text-center font-mono tracking-[0.5em] focus:border-amber-500"
+                onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ""))}
+                className="w-full h-11 px-3 rounded-xl border border-slate-200/80 bg-slate-50/50 text-sm text-center font-mono tracking-[0.5em] text-[#1E1B4B] focus:outline-none focus:ring-2 focus:ring-[#D97706]/30 focus:border-[#D97706] transition-all"
                 aria-label="Confirm vault PIN input"
               />
             </div>
           </div>
 
           <div className="flex justify-end">
-            <Button
+            <button
               type="submit"
               disabled={pinLoading}
-              className="h-9 px-4 bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold rounded-xl gap-1.5 shadow-md"
+              className="inline-flex items-center gap-1.5 h-9 px-4 rounded-xl bg-[#D97706] hover:bg-amber-700 text-white text-xs font-bold shadow-xs active:scale-95 transition-all cursor-pointer disabled:opacity-50"
               aria-busy={pinLoading}
             >
               {pinLoading ? (
-                <Loader2
-                  className="w-3.5 h-3.5 animate-spin shrink-0"
-                  strokeWidth={2}
-                  aria-hidden="true"
-                />
+                <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
               ) : (
-                <Save
-                  className="w-3.5 h-3.5 shrink-0"
-                  strokeWidth={2}
-                  aria-hidden="true"
-                />
+                <Save className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
               )}
               Set Vault PIN
-            </Button>
+            </button>
           </div>
         </form>
       </section>
 
-      <section className="p-5 sm:p-6 rounded-3xl bg-card border border-border space-y-4">
+      {/* Export Backup */}
+      <section className="bg-white rounded-2xl md:rounded-3xl p-5 sm:p-6 border border-slate-100/90 shadow-[0_2px_12px_rgba(30,27,75,0.04)] space-y-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20 shrink-0">
-            <Download
-              className="w-5 h-5 shrink-0"
-              strokeWidth={2}
-              aria-hidden="true"
-            />
+          <div className="w-11 h-11 rounded-xl bg-[#EEF2FF] flex items-center justify-center shrink-0">
+            <Download className="w-5 h-5 text-[#4F46E5]" strokeWidth={2} />
           </div>
           <div className="min-w-0">
-            <h3 className="text-sm font-bold text-foreground truncate">
+            <h3 className="text-sm font-bold text-[#1E1B4B] truncate">
               Export Full Data Backup
             </h3>
-            <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
-              Download a complete JSON backup of all Life modules (People,
-              Money, Business, Vault metadata, etc).
+            <p className="text-xs text-slate-500 mt-0.5 leading-snug">
+              Download a complete JSON backup of all Life modules (People, Money, Business, Vault metadata, etc).
             </p>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/30 text-xs text-red-700 dark:text-red-300 flex items-start gap-2">
-          <AlertCircle
-            className="w-4 h-4 shrink-0 mt-0.5 text-red-700 dark:text-red-300"
-            strokeWidth={2}
-            aria-hidden="true"
-          />
+        <div className="p-3.5 rounded-xl bg-[#FEE2E2]/60 border border-red-100/60 text-xs text-[#DC2626] flex items-start gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={2} />
           <p className="leading-relaxed">
-            <strong className="text-red-800 dark:text-red-200">
-              Security Notice:
-            </strong>{" "}
-            The backup export includes vault item metadata but{" "}
-            <strong>never</strong> decrypted secrets. Encrypted secret payloads
-            are excluded for your security. Store the backup file in a secure
-            encrypted location.
+            <strong>Security Notice:</strong>{" "}
+            The backup includes vault item metadata but <strong>never</strong> decrypted secrets. Store the backup file in a secure encrypted location.
           </p>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <Button
+          <button
             onClick={handleExportBackup}
             disabled={exportLoading}
-            className="h-10 px-5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl gap-2 shadow-md shrink-0 self-start sm:self-auto"
+            className="inline-flex items-center gap-1.5 h-10 px-5 rounded-xl bg-[#4F46E5] hover:bg-indigo-700 text-white text-xs font-bold shadow-xs active:scale-95 transition-all cursor-pointer disabled:opacity-50 shrink-0 self-start sm:self-auto"
             aria-busy={exportLoading}
           >
             {exportLoading ? (
-              <Loader2
-                className="w-4 h-4 animate-spin shrink-0"
-                strokeWidth={2}
-                aria-hidden="true"
-              />
+              <Loader2 className="w-4 h-4 animate-spin shrink-0" />
             ) : (
-              <Download
-                className="w-4 h-4 shrink-0"
-                strokeWidth={2}
-                aria-hidden="true"
-              />
+              <Download className="w-4 h-4 shrink-0" strokeWidth={2.5} />
             )}
             Download JSON Backup
-          </Button>
+          </button>
 
-          <p className="text-xs text-muted-foreground leading-snug">
-            Includes People, Information, Business, Money, Assets, Contacts,
-            Documents, Legacy (no vault secrets).
+          <p className="text-xs text-slate-500 leading-snug">
+            Includes People, Information, Business, Money, Assets, Contacts, Documents, Legacy (no vault secrets).
           </p>
         </div>
       </section>
 
       {/* Trash & Recovery System */}
-      <section className="p-5 sm:p-6 rounded-3xl bg-card border border-border">
+      <section className="bg-white rounded-2xl md:rounded-3xl p-5 sm:p-6 border border-slate-100/90 shadow-[0_2px_12px_rgba(30,27,75,0.04)]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center border border-rose-500/20 shrink-0">
-              <Trash2 className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-[#FFE4E6] flex items-center justify-center shrink-0">
+              <Trash2 className="w-5 h-5 text-[#E11D48]" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-foreground">Trash & Recovery System</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <h2 className="text-sm font-bold text-[#1E1B4B]">Trash & Recovery System</h2>
+              <p className="text-xs text-slate-500 mt-0.5">
                 Recover accidentally deleted documents, vault records, profiles, or legacy messages.
               </p>
             </div>
           </div>
-          <Button asChild size="sm" variant="outline" className="rounded-xl text-xs font-semibold gap-1.5 border-border shrink-0 self-start sm:self-auto">
-            <Link href="/settings/trash">
-              Open Trash <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
-          </Button>
+          <Link
+            href="/settings/trash"
+            className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl bg-white border border-slate-100/90 shadow-[0_1px_4px_rgba(0,0,0,0.04)] text-xs font-bold text-[#1E1B4B] hover:bg-slate-50 active:scale-95 transition-all shrink-0 self-start sm:self-auto"
+          >
+            Open Trash <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
       </section>
 
-      <section className="p-5 rounded-3xl bg-card border border-border">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
-          <Settings
-            className="w-3.5 h-3.5 shrink-0"
-            strokeWidth={2}
-            aria-hidden="true"
-          />{" "}
+      {/* System Configuration */}
+      <section className="bg-white rounded-2xl md:rounded-3xl p-5 border border-slate-100/90 shadow-[0_2px_12px_rgba(30,27,75,0.04)]">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
+          <Settings className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
           System Configuration
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-          {[
-            [
-              "Security Model",
-              "AES-256-GCM",
-              "text-emerald-700 dark:text-emerald-300",
-            ],
-            ["Auth Provider", "Clerk.dev", "text-foreground"],
-            ["Database", "MongoDB Atlas", "text-foreground"],
-            ["Framework", "Next.js App Router", "text-foreground"],
-            ["Developer", "RIZMEC", "text-foreground"],
-            [
-              "Cache Policy",
-              "Zero Cache (Sensitive)",
-              "text-red-700 dark:text-red-300",
-            ],
-            [
-              "Vault Reveals Audited",
-              "Yes ✓",
-              "text-emerald-700 dark:text-emerald-300",
-            ],
-          ].map(([label, value, color]) => (
+          {systemConfig.map((item) => (
             <div
-              key={label}
-              className="p-3 rounded-xl bg-muted border border-border flex justify-between items-center gap-2"
+              key={item.label}
+              className="p-3 rounded-xl bg-slate-50/80 border border-slate-100/80 flex justify-between items-center gap-2"
             >
-              <span className="text-muted-foreground shrink-0">{label}</span>
-              {label === "Developer" ? (
+              <span className="text-slate-500 flex items-center gap-1.5 shrink-0">
+                {item.icon}
+                {item.label}
+              </span>
+              {item.isLink ? (
                 <a
                   href="https://www.rizmec.com/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`inline-flex min-w-0 items-center gap-1.5 font-bold truncate hover:text-primary ${color}`}
+                  className={`inline-flex min-w-0 items-center gap-1.5 font-bold truncate hover:text-[#4F46E5] ${item.color}`}
                 >
-                  <span className="truncate">{value}</span>
-                  <ExternalLink
-                    className="h-3.5 w-3.5 shrink-0"
-                    strokeWidth={2}
-                    aria-hidden="true"
-                  />
+                  <span className="truncate">{item.value}</span>
+                  <ExternalLink className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
                 </a>
               ) : (
-                <span className={`font-bold truncate ${color}`}>{value}</span>
+                <span className={`font-bold truncate ${item.color}`}>{item.value}</span>
               )}
             </div>
           ))}

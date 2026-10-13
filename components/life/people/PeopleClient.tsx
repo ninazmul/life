@@ -124,41 +124,42 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
   }
 
   return (
-    <div className="space-y-5">
-      {/* Header & Title (§5) */}
+    <div className="space-y-4 sm:space-y-5">
+      {/* Header & Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-bold text-[#1E1B4B] tracking-tight">
               People & Access
             </h1>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#EEF2FF] text-[#4F46E5] border border-indigo-100/80 shadow-2xs">
               {people.length}
             </span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-500 font-medium mt-0.5">
             Designate trusted family, partners, guardians, and advisors with specific access rules.
           </p>
         </div>
 
-        <Button
+        <button
+          type="button"
           onClick={() => setAddModalOpen(true)}
-          className="h-9 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs gap-1.5 shadow-sm shadow-emerald-950/30"
+          className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-xl bg-[#4F46E5] hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs shadow-xs hover:shadow transition-all shrink-0 cursor-pointer"
         >
-          <Plus className="w-3.5 h-3.5" />
-          Add Person
-        </Button>
+          <Plus className="w-3.5 h-3.5" strokeWidth={2.4} />
+          <span>Add Person</span>
+        </button>
       </div>
 
       {/* Search & Relation Filters */}
       <div className="flex flex-col sm:flex-row items-center gap-2.5">
         <div className="relative w-full sm:flex-1">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, relation, phone, or email..."
-            className="pl-9 h-10 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-xs"
+            className="pl-9.5 h-10 rounded-xl border border-slate-200/80 bg-white text-xs text-[#1E1B4B] placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 shadow-2xs"
           />
         </div>
 
@@ -168,10 +169,11 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
             <button
               key={rel}
               onClick={() => setRelationFilter(rel)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${relationFilter === rel
-                ? "bg-emerald-600 text-white font-semibold shadow-xs"
-                : "bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-                }`}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                relationFilter === rel
+                  ? "bg-[#4F46E5] text-white shadow-xs border border-indigo-600"
+                  : "bg-white border border-slate-100/90 text-slate-600 hover:text-[#1E1B4B] hover:border-indigo-200/70 shadow-2xs"
+              }`}
             >
               {rel === "all" ? "All Relations" : rel === "record_only" ? "Record Only" : rel}
             </button>
@@ -181,158 +183,170 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
 
       {/* People Cards Grid */}
       {filteredPeople.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 p-10 text-center space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 flex items-center justify-center mx-auto">
-            <Users className="w-6 h-6" />
+        <div className="rounded-3xl border border-dashed border-slate-200 bg-white/60 p-10 text-center space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center mx-auto shadow-2xs">
+            <Users className="w-6 h-6" strokeWidth={1.8} />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+            <h3 className="text-sm font-bold text-[#1E1B4B]">
               No People Found
             </h3>
             <p className="text-xs text-slate-400 max-w-sm mx-auto mt-1">
               Add trusted individuals who may receive legacy messages, emergency instructions, or financial records.
             </p>
           </div>
-          <Button
-            size="sm"
+          <button
+            type="button"
             onClick={() => setAddModalOpen(true)}
-            className="h-8.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold"
+            className="inline-flex items-center gap-1.5 h-8.5 px-3.5 rounded-xl bg-[#4F46E5] hover:bg-indigo-700 active:scale-95 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
           >
-            + Add Person
-          </Button>
+            <Plus className="w-3.5 h-3.5" strokeWidth={2.4} />
+            <span>Add Person</span>
+          </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-          {filteredPeople.map((person) => (
-            <div
-              key={person._id}
-              className="p-4 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between group shadow-xs"
-            >
-              <div>
-                {/* Top: Avatar, Name, Relation, Status */}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-700 dark:text-emerald-300 font-bold text-base shrink-0">
-                      {person.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100 truncate">
-                          {person.name}
-                        </h3>
-                        {person.guardianStatus && (
-                          <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-600 border border-blue-500/20">
-                            Guardian
-                          </span>
-                        )}
-                        {person.emergencyPriority ? (
-                          <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded bg-red-500/10 text-red-500 border border-red-500/20">
-                            P{person.emergencyPriority}
-                          </span>
-                        ) : null}
-                        {person.isLoginEnabled === false && (
-                          <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20">
-                            Record Only
-                          </span>
-                        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-3.5">
+          {filteredPeople.map((person) => {
+            const isActive = person.accountStatus === "active" || person.status === "active";
+            const isLocked = person.accountStatus === "temporarily_locked" || person.status === "locked";
+
+            return (
+              <div
+                key={person._id}
+                className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-100/90 shadow-[0_2px_12px_rgba(30,27,75,0.04)] hover:border-indigo-200/70 hover:shadow-md transition-all duration-200 flex flex-col justify-between group"
+              >
+                <div>
+                  {/* Top: Avatar, Name, Relation, Status */}
+                  <div className="flex items-start justify-between gap-2.5">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-100 via-indigo-200 to-indigo-300 border border-indigo-200/60 flex items-center justify-center text-[#4F46E5] font-extrabold text-base shrink-0 shadow-2xs">
+                        {person.name.charAt(0).toUpperCase()}
                       </div>
-                      <span className="text-xs text-slate-400 font-medium">
-                        {person.designation ? `${person.designation} • ` : ""}{person.relation}
-                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <Link
+                            href={`/people/${person._id}`}
+                            className="font-bold text-[14px] sm:text-[15px] text-[#1E1B4B] group-hover:text-[#4F46E5] transition-colors truncate"
+                          >
+                            {person.name}
+                          </Link>
+                          {person.guardianStatus && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EEF2FF] text-[#4F46E5] border border-indigo-100/70">
+                              Guardian
+                            </span>
+                          )}
+                          {person.emergencyPriority ? (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200/60">
+                              P{person.emergencyPriority}
+                            </span>
+                          ) : null}
+                          {person.isLoginEnabled === false && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200/60">
+                              Record Only
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[12px] text-slate-400 font-medium truncate mt-0.5">
+                          {person.designation ? `${person.designation} • ` : ""}{person.relation}
+                        </p>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Status chip */}
-                  <span
-                    className={`text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full border shrink-0 ${person.accountStatus === "active" || person.status === "active"
-                      ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
-                      : person.accountStatus === "temporarily_locked" || person.status === "locked"
-                        ? "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/20"
-                        : "bg-muted text-muted-foreground border-border"
+                    {/* Status chip */}
+                    <span
+                      className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border shrink-0 ${
+                        isActive
+                          ? "bg-[#DCFCE7] text-[#16A34A] border-emerald-200/70"
+                          : isLocked
+                          ? "bg-rose-50 text-rose-600 border-rose-200/70"
+                          : "bg-slate-100 text-slate-600 border-slate-200/70"
                       }`}
-                  >
-                    {person.accountStatus || person.status}
-                  </span>
-                </div>
-
-                {/* Role and contact preview with Masking (§5) */}
-                <div className="mt-3.5 space-y-1 text-xs text-slate-400">
-                  <div className="flex items-center gap-1.5">
-                    <Shield className="w-3.5 h-3.5 text-slate-500" />
-                    <span className="capitalize font-medium text-foreground">
-                      {(person.userRole || person.role).replace("_", " ")}
+                    >
+                      {person.accountStatus || person.status || "active"}
                     </span>
                   </div>
-                  {person.phone && (
-                    <div className="flex items-center gap-1.5 truncate">
-                      <Phone className="w-3.5 h-3.5 text-slate-500" />
-                      <span>{maskPhone(person.phone)}</span>
+
+                  {/* Role and contact preview */}
+                  <div className="mt-3.5 space-y-1.5 text-xs text-slate-500">
+                    <div className="flex items-center gap-2">
+                      <Shield className="w-3.5 h-3.5 text-[#4F46E5] shrink-0" strokeWidth={2} />
+                      <span className="capitalize font-semibold text-[#1E1B4B] truncate">
+                        {(person.userRole || person.role || "individual").replace("_", " ")}
+                      </span>
                     </div>
-                  )}
-                  {person.email && (
-                    <div className="flex items-center gap-1.5 truncate">
-                      <Mail className="w-3.5 h-3.5 text-slate-500" />
-                      <span className="truncate">{maskEmail(person.email)}</span>
-                    </div>
-                  )}
+                    {person.phone && (
+                      <div className="flex items-center gap-2 truncate">
+                        <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" strokeWidth={2} />
+                        <span className="font-mono text-slate-600">{maskPhone(person.phone)}</span>
+                      </div>
+                    )}
+                    {person.email && (
+                      <div className="flex items-center gap-2 truncate">
+                        <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" strokeWidth={2} />
+                        <span className="truncate text-slate-600">{maskEmail(person.email)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Bottom Quick Actions: Call, WhatsApp, View Profile */}
+                <div className="mt-4 pt-3 border-t border-slate-100/90 flex items-center justify-between gap-1.5 w-full">
+                  <div className="flex items-center gap-1.5">
+                    {person.phone && (
+                      <a
+                        href={`tel:${person.phone}`}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-50 hover:bg-[#EEF2FF] border border-slate-100 text-slate-700 hover:text-[#4F46E5] text-[11px] font-bold transition-all cursor-pointer shadow-2xs"
+                        title="Call Phone"
+                      >
+                        <Phone className="w-3.5 h-3.5 text-slate-500" strokeWidth={2} />
+                        <span>Call</span>
+                      </a>
+                    )}
+                    {(person.whatsapp || person.phone) && (
+                      <a
+                        href={`https://wa.me/${(person.whatsapp || person.phone || "").replace(/[^0-9]/g, "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#DCFCE7]/70 hover:bg-[#DCFCE7] border border-emerald-200/60 text-[#16A34A] text-[11px] font-bold transition-all cursor-pointer shadow-2xs"
+                        title="WhatsApp Chat"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" strokeWidth={2} />
+                        <span>WhatsApp</span>
+                      </a>
+                    )}
+                  </div>
+
+                  <Link
+                    href={`/people/${person._id}`}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#EEF2FF] hover:bg-indigo-100/80 border border-indigo-100/80 text-[#4F46E5] text-[11px] font-bold transition-all cursor-pointer ml-auto shadow-2xs"
+                    title="View Profile"
+                  >
+                    <span>Profile</span>
+                    <ArrowRight className="w-3.5 h-3.5" strokeWidth={2.4} />
+                  </Link>
                 </div>
               </div>
-
-              {/* Bottom Quick Actions: Call, WhatsApp, View Profile */}
-              <div className="mt-4 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-1.5 w-full">
-                {person.phone && (
-                  <>
-                    <a
-                      href={`tel:${person.phone}`}
-                      className="rounded-xl bg-slate-100 dark:bg-slate-800/80 text-emerald-600 font-bold dark:text-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors flex items-center gap-1"
-                      title="Call Phone"
-                    >
-                      <Phone className="w-5 h-5" /><span>Call</span>
-                    </a>
-                    <span className="w-px h-5 bg-slate-200 dark:bg-slate-700" />
-                  </>
-                )}
-                {(person.whatsapp || person.phone) && (
-                  <>
-                    <a
-                      href={`https://wa.me/${(person.whatsapp || person.phone || "").replace(/[^0-9]/g, "")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="rounded-xl bg-slate-100 dark:bg-slate-800/80 text-emerald-600 font-bold dark:text-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors flex items-center gap-1"
-                      title="WhatsApp Chat"
-                    >
-                      <MessageCircle className="w-5 h-5" /><span>WhatsApp</span>
-                    </a>
-                    <span className="w-px h-5 bg-slate-200 dark:bg-slate-700" />
-                  </>
-                )}
-                <a
-                  href={`/people/${person._id}`}
-                  className="rounded-xl bg-slate-100 dark:bg-slate-800/80 text-emerald-600 font-bold dark:text-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors flex items-center gap-1"
-                  title="View Profile"
-                >
-                  <User className="w-5 h-5" /> <span>Profile</span> <ArrowRight className="w-3 h-3" />
-                </a>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
       {/* Add Person Modal */}
       <Dialog open={addModalOpen} onOpenChange={setAddModalOpen}>
-        <DialogContent className="life-dialog sm:max-w-lg rounded-3xl border border-border/80 dark:border-slate-800 bg-white dark:bg-slate-950 text-foreground max-h-[90vh] overflow-y-auto shadow-2xl">
+        <DialogContent className="life-dialog sm:max-w-lg rounded-3xl border border-slate-100 bg-white text-slate-900 max-h-[90vh] overflow-y-auto shadow-2xl p-6">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
-              <Users className="w-5 h-5 text-emerald-300" />
+            <DialogTitle className="text-base font-bold text-[#1E1B4B] flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center shrink-0">
+                <Users className="w-4 h-4" strokeWidth={2.2} />
+              </div>
               <span>Add Person Profile</span>
             </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleCreate} className="space-y-4 pt-2">
+          <form onSubmit={handleCreate} className="space-y-3.5 pt-2">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label className="text-xs font-semibold text-slate-600">
                   Full Name *
                 </label>
                 <Input
@@ -340,12 +354,12 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
                   placeholder="e.g. Sabbir Ahmed"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="h-10 border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-emerald-500"
+                  className="h-10 border border-slate-200 bg-slate-50/60 text-slate-900 text-xs focus:border-[#4F46E5] rounded-xl"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label className="text-xs font-semibold text-slate-600">
                   Relation / Connection *
                 </label>
                 <Input
@@ -353,26 +367,26 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
                   placeholder="e.g. Brother, Wife, Engineer"
                   value={relation}
                   onChange={(e) => setRelation(e.target.value)}
-                  className="h-10 border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-emerald-500"
+                  className="h-10 border border-slate-200 bg-slate-50/60 text-slate-900 text-xs focus:border-[#4F46E5] rounded-xl"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label className="text-xs font-semibold text-slate-600">
                   Phone Number
                 </label>
                 <Input
                   placeholder="e.g. +880 1700-000000"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="h-10 border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-emerald-500 font-mono"
+                  className="h-10 border border-slate-200 bg-slate-50/60 text-slate-900 text-xs focus:border-[#4F46E5] rounded-xl font-mono"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label className="text-xs font-semibold text-slate-600">
                   {isRecordOnly ? "Email Address (Optional)" : "Email Address (Clerk Account)"}
                 </label>
                 <Input
@@ -381,7 +395,7 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
                   value={email}
                   disabled={isRecordOnly}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="h-10 border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-emerald-500 disabled:opacity-50"
+                  className="h-10 border border-slate-200 bg-slate-50/60 text-slate-900 text-xs focus:border-[#4F46E5] rounded-xl disabled:opacity-50"
                 />
               </div>
             </div>
@@ -390,8 +404,8 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
             <div
               className={`p-3 rounded-2xl border transition-all cursor-pointer ${
                 isRecordOnly
-                  ? "bg-emerald-500/10 border-emerald-500/30"
-                  : "bg-slate-900/60 border-slate-800"
+                  ? "bg-[#EEF2FF] border-indigo-200"
+                  : "bg-slate-50 border-slate-200/80 hover:bg-slate-100/60"
               }`}
               onClick={() => setIsRecordOnly(!isRecordOnly)}
             >
@@ -401,14 +415,14 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
                   id="isRecordOnlyCheck"
                   checked={isRecordOnly}
                   onChange={(e) => setIsRecordOnly(e.target.checked)}
-                  className="rounded border-slate-700 accent-emerald-600"
+                  className="rounded border-slate-300 accent-[#4F46E5] w-4 h-4 cursor-pointer"
                 />
                 <div>
-                  <label htmlFor="isRecordOnlyCheck" className="text-xs font-bold text-slate-200 cursor-pointer">
+                  <label htmlFor="isRecordOnlyCheck" className="text-xs font-bold text-[#1E1B4B] cursor-pointer">
                     Record-Only Person (No login account)
                   </label>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
-                    For financial transactions, gifts, support, deposits, repayments & emergency records without requiring a login account.
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    For financial care, gifts, debt ledger, & emergency records without requiring an email login.
                   </p>
                 </div>
               </div>
@@ -416,17 +430,17 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label className="text-xs font-semibold text-slate-600">
                   Access Role
                 </label>
                 <select
                   value={isRecordOnly ? "individual" : role}
                   disabled={isRecordOnly}
                   onChange={(e) => setRole(e.target.value as LifeRole)}
-                  className="w-full h-10 px-3 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-emerald-500 focus:outline-none disabled:opacity-50"
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50/60 text-slate-900 text-xs focus:border-[#4F46E5] focus:outline-none disabled:opacity-50 cursor-pointer"
                 >
                   <option value="individual">Individual User (Assigned info only)</option>
-                  <option value="guardian">Guardian (Family members, emergency, medical)</option>
+                  <option value="guardian">Guardian (Family, emergency, medical)</option>
                   <option value="business_staff">Business Staff (Assigned business area)</option>
                   <option value="business_partner">Business Partner (Selected business)</option>
                   <option value="admin">Administrator (Permitted records)</option>
@@ -436,7 +450,7 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label className="text-xs font-semibold text-slate-600">
                   Emergency Priority (1 = Highest)
                 </label>
                 <Input
@@ -446,13 +460,13 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
                   placeholder="0 (None), 1, 2, 3..."
                   value={emergencyPriority}
                   onChange={(e) => setEmergencyPriority(Number(e.target.value))}
-                  className="h-10 border-slate-800 bg-slate-900/90 text-slate-100 text-xs"
+                  className="h-10 border border-slate-200 bg-slate-50/60 text-slate-900 text-xs focus:border-[#4F46E5] rounded-xl"
                 />
               </div>
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-300">
+              <label className="text-xs font-semibold text-slate-600">
                 Personal Message / Initial Note
               </label>
               <textarea
@@ -460,27 +474,27 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
                 placeholder="Private instructions or letter intended for this person..."
                 value={personalMessage}
                 onChange={(e) => setPersonalMessage(e.target.value)}
-                className="w-full p-3 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-emerald-500 focus:outline-none"
+                className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/60 text-slate-900 text-xs focus:border-[#4F46E5] focus:outline-none"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => setAddModalOpen(false)}
-                className="text-xs text-slate-400 hover:text-white"
+                className="text-xs text-slate-500 hover:text-slate-800 rounded-xl"
               >
                 Cancel
               </Button>
-              <Button
+              <button
                 type="submit"
                 disabled={loading}
-                className="h-9 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl gap-1.5 shadow-md"
+                className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#4F46E5] hover:bg-indigo-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer disabled:opacity-50"
               >
                 {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                Save Person Profile
-              </Button>
+                <span>Save Person Profile</span>
+              </button>
             </div>
           </form>
         </DialogContent>

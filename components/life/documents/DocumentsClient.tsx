@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   FolderLock,
   Plus,
@@ -12,6 +13,7 @@ import {
   Shield,
   Trash2,
   Loader2,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -130,23 +132,32 @@ export function DocumentsClient({
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-              Private Documents Library
-            </h1>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20">
-              {documents.length}
-            </span>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/"
+            className="w-9 h-9 rounded-xl border border-slate-200/80 bg-white flex items-center justify-center text-slate-600 hover:text-[#4F46E5] hover:border-indigo-100 shadow-xs transition-all active:scale-95 shrink-0"
+            aria-label="Back to Dashboard"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-black text-[#1E1B4B] tracking-tight">
+                Private Documents Library
+              </h1>
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#EEF2FF] text-[#4F46E5] border border-indigo-100/80">
+                {documents.length}
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Encrypted metadata and access-gated storage for contracts, title deeds, financial care records, and receipts.
+            </p>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Encrypted metadata and access-gated storage for contracts, title deeds, financial care records, and receipts.
-          </p>
         </div>
 
         <Button
           onClick={() => setAddModalOpen(true)}
-          className="h-9 px-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs gap-1.5 shadow-sm"
+          className="h-9 px-3.5 rounded-xl bg-[#4F46E5] hover:bg-indigo-700 text-white font-bold text-xs gap-1.5 shadow-xs transition-all active:scale-95"
         >
           <Plus className="w-3.5 h-3.5" />
           Add Document
@@ -161,7 +172,7 @@ export function DocumentsClient({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search document title or category..."
-            className="pl-9 h-10 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-xs"
+            className="pl-9 h-10 rounded-xl border-slate-200/80 bg-white text-xs text-slate-800 placeholder:text-slate-400 focus:border-indigo-400 shadow-xs"
           />
         </div>
 
@@ -170,10 +181,10 @@ export function DocumentsClient({
             <button
               key={cat}
               onClick={() => setCategoryFilter(cat)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap capitalize transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap capitalize transition-all cursor-pointer ${
                 categoryFilter === cat
-                  ? "bg-indigo-600 text-white font-semibold shadow-xs"
-                  : "bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                  ? "bg-[#4F46E5] text-white shadow-xs"
+                  : "bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900 shadow-xs"
               }`}
             >
               {cat === "all" ? "All Documents" : cat}
@@ -184,9 +195,9 @@ export function DocumentsClient({
 
       {/* Documents Grid */}
       {filteredDocuments.length === 0 ? (
-        <div className="p-10 rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 text-center space-y-2">
-          <FolderLock className="w-8 h-8 text-slate-500 mx-auto" />
-          <h3 className="text-sm font-bold text-foreground">No Documents Uploaded</h3>
+        <div className="p-10 rounded-3xl border border-dashed border-slate-200 bg-white text-center space-y-2 shadow-xs">
+          <FolderLock className="w-8 h-8 text-slate-400 mx-auto" />
+          <h3 className="text-sm font-black text-[#1E1B4B]">No Documents Uploaded</h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
             Store scanned copies of passport/NID, property registrations, financial care agreements, and company trade licenses.
           </p>
@@ -196,44 +207,51 @@ export function DocumentsClient({
           {filteredDocuments.map((doc) => (
             <div
               key={doc._id}
-              className="p-4 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between group shadow-xs"
+              className="p-4 sm:p-5 rounded-2xl md:rounded-3xl bg-white border border-slate-100/90 hover:border-indigo-200/70 hover:shadow-md transition-all flex flex-col justify-between group shadow-[0_2px_12px_rgba(30,27,75,0.04)]"
             >
               <div>
                 <div className="flex items-start justify-between gap-2">
-                  <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20">
+                  <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border ${
+                    doc.category === 'agreement' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' :
+                    doc.category === 'property' || doc.category === 'business' ? 'bg-sky-50 text-sky-700 border-sky-100' :
+                    doc.category === 'bank' || doc.category === 'receipt' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                    doc.category === 'loan' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                    doc.category === 'medical' ? 'bg-rose-50 text-rose-700 border-rose-100' :
+                    'bg-purple-50 text-purple-700 border-purple-100'
+                  }`}>
                     {doc.category}
                   </span>
-                  <span className="text-[10px] uppercase font-bold text-slate-500">
+                  <span className="text-[10px] uppercase font-bold text-slate-400">
                     {doc.fileType?.split("/")[1] || "DOC"}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-3 mt-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/40 shrink-0">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#EEF2FF] text-[#4F46E5] border border-indigo-100/80 shrink-0 shadow-xs">
                     <File className="w-5 h-5" />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100 line-clamp-1">
+                    <h3 className="font-bold text-sm text-[#1E1B4B] group-hover:text-[#4F46E5] transition-colors line-clamp-1">
                       {doc.title}
                     </h3>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-[11px] text-slate-400">
                       {new Date(doc.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
 
                 {doc.notes && (
-                  <p className="text-xs text-slate-400 mt-2.5 line-clamp-2">{doc.notes}</p>
+                  <p className="text-xs text-slate-500 mt-2.5 line-clamp-2">{doc.notes}</p>
                 )}
               </div>
 
               {/* Card Footer: View/Download + Delete */}
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
                 <Button
                   asChild
                   size="sm"
                   variant="outline"
-                  className="h-8 px-3 text-xs border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-xl gap-1.5 font-medium"
+                  className="h-8 px-3 text-xs border-indigo-100 bg-[#EEF2FF] text-[#4F46E5] hover:bg-indigo-100 rounded-xl gap-1.5 font-bold transition-all shadow-xs"
                 >
                   <a href={`/api/documents/${doc._id}/download`} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="w-3.5 h-3.5" /> View / Download
@@ -244,7 +262,7 @@ export function DocumentsClient({
                   size="sm"
                   variant="ghost"
                   onClick={() => handleDelete(doc._id, doc.title)}
-                  className="h-7 w-7 p-0 text-slate-500 hover:text-red-700 dark:hover:text-red-300"
+                  className="h-7 w-7 p-0 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
@@ -256,17 +274,17 @@ export function DocumentsClient({
 
       {/* Add Document Modal */}
       <Dialog open={addModalOpen} onOpenChange={setAddModalOpen}>
-        <DialogContent className="life-dialog sm:max-w-md rounded-3xl border border-border/80 dark:border-slate-800 bg-white dark:bg-slate-950 text-foreground shadow-2xl">
+        <DialogContent className="life-dialog sm:max-w-md rounded-3xl border border-slate-100 bg-white text-[#1E1B4B] shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
-              <FolderLock className="w-5 h-5 text-indigo-300" />
+            <DialogTitle className="text-base font-bold text-[#1E1B4B] flex items-center gap-2">
+              <FolderLock className="w-5 h-5 text-[#4F46E5]" />
               <span>Add Document Record</span>
             </DialogTitle>
           </DialogHeader>
 
           <form onSubmit={handleCreate} className="space-y-4 pt-2">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-300">
+              <label className="text-xs font-bold text-slate-700">
                 Document Title *
               </label>
               <Input
@@ -274,18 +292,18 @@ export function DocumentsClient({
                 placeholder="e.g. Uttara Commercial Plot Deed or Partnership Agreement"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="h-10 border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-indigo-500"
+                className="h-10 border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs focus:bg-white focus:border-indigo-400"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-300">
+              <label className="text-xs font-bold text-slate-700">
                 Category
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as DocumentCategory)}
-                className="w-full h-10 px-3 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-indigo-500 focus:outline-none"
+                className="w-full h-10 px-3 rounded-xl border border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs focus:bg-white focus:border-indigo-400 focus:outline-none cursor-pointer"
               >
                 <option value="agreement">Agreement / Contract</option>
                 <option value="receipt">Financial Receipt</option>
@@ -300,7 +318,7 @@ export function DocumentsClient({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-300">
+              <label className="text-xs font-bold text-slate-700">
                 File Storage URL or Secure Link *
               </label>
               <Input
@@ -308,19 +326,19 @@ export function DocumentsClient({
                 placeholder="https:// or /uploads/..."
                 value={fileUrl}
                 onChange={(e) => setFileUrl(e.target.value)}
-                className="h-10 border-slate-800 bg-slate-900/90 text-slate-100 text-xs font-mono"
+                className="h-10 border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs font-mono focus:bg-white focus:border-indigo-400"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label className="text-xs font-bold text-slate-700">
                   Related Person
                 </label>
                 <select
                   value={relatedPersonId}
                   onChange={(e) => setRelatedPersonId(e.target.value)}
-                  className="w-full h-10 px-3 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-indigo-500 focus:outline-none"
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs focus:bg-white focus:border-indigo-400 focus:outline-none cursor-pointer"
                 >
                   <option value="none">-- None --</option>
                   {people.map((p) => (
@@ -332,13 +350,13 @@ export function DocumentsClient({
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label className="text-xs font-bold text-slate-700">
                   Related Business
                 </label>
                 <select
                   value={relatedBusinessId}
                   onChange={(e) => setRelatedBusinessId(e.target.value)}
-                  className="w-full h-10 px-3 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-indigo-500 focus:outline-none"
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs focus:bg-white focus:border-indigo-400 focus:outline-none cursor-pointer"
                 >
                   <option value="none">-- None --</option>
                   {businesses.map((b) => (
@@ -351,30 +369,30 @@ export function DocumentsClient({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-300">
+              <label className="text-xs font-bold text-slate-700">
                 Notes
               </label>
               <Input
                 placeholder="Witness details or notary stamp numbers..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="h-10 border-slate-800 bg-slate-900/90 text-slate-100 text-xs"
+                className="h-10 border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs focus:bg-white focus:border-indigo-400"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => setAddModalOpen(false)}
-                className="text-xs text-slate-400 hover:text-white"
+                className="text-xs text-slate-500 hover:text-slate-800"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={loading}
-                className="h-9 px-4 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl gap-1.5 shadow-md"
+                className="h-9 px-4 bg-[#4F46E5] hover:bg-indigo-700 text-white text-xs font-bold rounded-xl gap-1.5 shadow-xs transition-all active:scale-95"
               >
                 {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 Save Document

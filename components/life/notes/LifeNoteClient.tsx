@@ -738,34 +738,34 @@ export function LifeNoteClient({
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* ── Page Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border/60 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-5">
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="p-2 rounded-xl border border-border bg-card/50 text-muted-foreground hover:text-foreground hover:bg-card transition-all shrink-0"
+            className="h-9 w-9 p-0 rounded-xl bg-white border border-slate-200/80 hover:bg-slate-50 text-slate-700 shadow-xs flex items-center justify-center transition-all shrink-0 cursor-pointer"
             title="Back to Dashboard"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 text-slate-600" />
           </Link>
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-500 text-white flex items-center justify-center shadow-md shadow-violet-500/20 shrink-0">
-            <NotebookPen className="w-6 h-6" />
+          <div className="w-10 h-10 rounded-xl bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center shadow-xs shrink-0">
+            <NotebookPen className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#1E1B4B]">
                 {canManage ? "Notes Management" : "My Notes"}
               </h1>
               {!canManage && userUnreadBadge > 0 ? (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white shadow-sm shadow-rose-500/30 animate-pulse">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-500 text-white shadow-xs animate-pulse">
                   {userUnreadBadge} New
                 </span>
               ) : canManage ? (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#EEF2FF] text-[#4F46E5] border border-indigo-100">
                   Directives &amp; Continuity
                 </span>
               ) : null}
             </div>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+            <p className="text-xs font-medium text-slate-500 mt-0.5">
               {canManage
                 ? "Assign directives, schedule future releases, and monitor acknowledgments across registered people."
                 : "Released notes and directives assigned to you. Acknowledge each one to confirm receipt."}
@@ -776,7 +776,7 @@ export function LifeNoteClient({
         {canManage && (
           <Button
             onClick={handleOpenCreate}
-            className="h-10 px-4 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium gap-2 shadow-md shadow-violet-600/20 shrink-0 self-start sm:self-auto"
+            className="h-10 px-4 rounded-xl bg-[#4F46E5] hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs gap-2 shadow-xs shrink-0 self-start sm:self-auto cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Create LifeNote</span>
@@ -786,44 +786,44 @@ export function LifeNoteClient({
 
       {/* ── Quick Stats Badges ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-3.5 rounded-2xl border border-border bg-card/60 backdrop-blur-xs flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <FileText className="w-4 h-4" />
+        <div className="p-4 rounded-2xl border border-slate-100/90 bg-white shadow-[0_2px_12px_rgba(30,27,75,0.04)] flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center shrink-0">
+            <FileText className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-lg font-bold text-foreground leading-none">
+            <div className="text-xl font-black text-[#1E1B4B] leading-none">
               {totalCount}
             </div>
-            <div className="text-[11px] text-muted-foreground mt-1">
+            <div className="text-[11px] font-medium text-slate-500 mt-1">
               {canManage ? "Total Notes" : "Total Assigned"}
             </div>
           </div>
         </div>
 
         {canManage ? (
-          <div className="p-3.5 rounded-2xl border border-border bg-card/60 backdrop-blur-xs flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-sky-500/10 text-sky-500 flex items-center justify-center shrink-0">
-              <Eye className="w-4 h-4" />
+          <div className="p-4 rounded-2xl border border-slate-100/90 bg-white shadow-[0_2px_12px_rgba(30,27,75,0.04)] flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center shrink-0 border border-sky-100">
+              <Eye className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-lg font-bold text-foreground leading-none">
+              <div className="text-xl font-black text-[#1E1B4B] leading-none">
                 {unseenCount}
               </div>
-              <div className="text-[11px] text-muted-foreground mt-1">
+              <div className="text-[11px] font-medium text-slate-500 mt-1">
                 Unseen by Recipient
               </div>
             </div>
           </div>
         ) : (
-          <div className="p-3.5 rounded-2xl border border-border bg-card/60 backdrop-blur-xs flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-sky-500/10 text-sky-500 flex items-center justify-center shrink-0">
-              <Sparkles className="w-4 h-4" />
+          <div className="p-4 rounded-2xl border border-slate-100/90 bg-white shadow-[0_2px_12px_rgba(30,27,75,0.04)] flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center shrink-0 border border-sky-100">
+              <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-lg font-bold text-foreground leading-none">
+              <div className="text-xl font-black text-[#1E1B4B] leading-none">
                 {userUnreadBadge}
               </div>
-              <div className="text-[11px] text-muted-foreground mt-1">
+              <div className="text-[11px] font-medium text-slate-500 mt-1">
                 New or Updated
               </div>
             </div>
@@ -831,29 +831,29 @@ export function LifeNoteClient({
         )}
 
         {canManage ? (
-          <div className="p-3.5 rounded-2xl border border-border bg-card/60 backdrop-blur-xs flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">
-              <HelpCircle className="w-4 h-4" />
+          <div className="p-4 rounded-2xl border border-slate-100/90 bg-white shadow-[0_2px_12px_rgba(30,27,75,0.04)] flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 border border-amber-100">
+              <HelpCircle className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-lg font-bold text-foreground leading-none">
+              <div className="text-xl font-black text-[#1E1B4B] leading-none">
                 {needHelpCount}
               </div>
-              <div className="text-[11px] text-muted-foreground mt-1">
+              <div className="text-[11px] font-medium text-slate-500 mt-1">
                 Need Help Requests
               </div>
             </div>
           </div>
         ) : (
-          <div className="p-3.5 rounded-2xl border border-border bg-card/60 backdrop-blur-xs flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-4 h-4" />
+          <div className="p-4 rounded-2xl border border-slate-100/90 bg-white shadow-[0_2px_12px_rgba(30,27,75,0.04)] flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-100">
+              <CheckCircle2 className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-lg font-bold text-foreground leading-none">
+              <div className="text-xl font-black text-[#1E1B4B] leading-none">
                 {releasedCount}
               </div>
-              <div className="text-[11px] text-muted-foreground mt-1">
+              <div className="text-[11px] font-medium text-slate-500 mt-1">
                 Released &amp; Active
               </div>
             </div>
@@ -861,29 +861,29 @@ export function LifeNoteClient({
         )}
 
         {canManage ? (
-          <div className="p-3.5 rounded-2xl border border-border bg-card/60 backdrop-blur-xs flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-4 h-4" />
+          <div className="p-4 rounded-2xl border border-slate-100/90 bg-white shadow-[0_2px_12px_rgba(30,27,75,0.04)] flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-100">
+              <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-lg font-bold text-foreground leading-none">
+              <div className="text-xl font-black text-[#1E1B4B] leading-none">
                 {releasedCount}
               </div>
-              <div className="text-[11px] text-muted-foreground mt-1">
+              <div className="text-[11px] font-medium text-slate-500 mt-1">
                 Released &amp; Active
               </div>
             </div>
           </div>
         ) : (
-          <div className="p-3.5 rounded-2xl border border-border bg-card/60 backdrop-blur-xs flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
-              <Pin className="w-4 h-4" />
+          <div className="p-4 rounded-2xl border border-slate-100/90 bg-white shadow-[0_2px_12px_rgba(30,27,75,0.04)] flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 border border-amber-100">
+              <Pin className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-lg font-bold text-foreground leading-none">
+              <div className="text-xl font-black text-[#1E1B4B] leading-none">
                 {pinnedCount}
               </div>
-              <div className="text-[11px] text-muted-foreground mt-1">
+              <div className="text-[11px] font-medium text-slate-500 mt-1">
                 Pinned Notes
               </div>
             </div>
@@ -892,19 +892,19 @@ export function LifeNoteClient({
       </div>
 
       {/* ── Filters & Search Controls ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3 rounded-2xl border border-border bg-card/50">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3.5 rounded-2xl border border-slate-100/90 bg-white shadow-[0_2px_12px_rgba(30,27,75,0.04)]">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search notes by title, content, tag, or assigned person..."
-            className="pl-9 h-9 rounded-xl text-xs bg-background/50"
+            className="pl-10 h-10 rounded-xl text-xs bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-[#4F46E5] shadow-xs"
           />
           {search && (
             <button
               onClick={() => setSearch("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs p-1"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-xs p-1"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -914,7 +914,7 @@ export function LifeNoteClient({
         <div className="flex flex-wrap items-center gap-2">
           {/* Person Filter */}
           <Select value={personFilter} onValueChange={setPersonFilter}>
-            <SelectTrigger className="h-9 text-xs rounded-xl min-w-[140px] bg-background/50">
+            <SelectTrigger className="h-10 text-xs rounded-xl min-w-[140px] bg-slate-50 border-slate-200 text-slate-700 font-semibold focus:bg-white focus:border-[#4F46E5]">
               <SelectValue placeholder="Filter Person" />
             </SelectTrigger>
             <SelectContent>
@@ -929,7 +929,7 @@ export function LifeNoteClient({
 
           {/* Type Filter */}
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="h-9 text-xs rounded-xl min-w-[130px] bg-background/50">
+            <SelectTrigger className="h-10 text-xs rounded-xl min-w-[130px] bg-slate-50 border-slate-200 text-slate-700 font-semibold focus:bg-white focus:border-[#4F46E5]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -952,7 +952,7 @@ export function LifeNoteClient({
 
           {/* Priority Filter */}
           <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-            <SelectTrigger className="h-9 text-xs rounded-xl min-w-[110px] bg-background/50">
+            <SelectTrigger className="h-10 text-xs rounded-xl min-w-[110px] bg-slate-50 border-slate-200 text-slate-700 font-semibold focus:bg-white focus:border-[#4F46E5]">
               <SelectValue placeholder="Priority" />
             </SelectTrigger>
             <SelectContent>
@@ -971,14 +971,14 @@ export function LifeNoteClient({
 
       {/* ── Notes Grid ── */}
       {filteredNotes.length === 0 ? (
-        <div className="text-center py-16 p-6 rounded-3xl border border-dashed border-border bg-card/40">
-          <div className="w-12 h-12 rounded-2xl bg-violet-500/10 text-violet-500 flex items-center justify-center mx-auto mb-3">
+        <div className="text-center py-16 p-6 rounded-3xl border border-dashed border-slate-200 bg-white shadow-xs space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center mx-auto mb-2 shadow-xs">
             <NotebookPen className="w-6 h-6" />
           </div>
-          <h3 className="text-base font-semibold text-foreground">
+          <h3 className="text-base font-bold text-slate-900">
             No notes found
           </h3>
-          <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+          <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
             {search || typeFilter !== "all" || personFilter !== "all"
               ? "No notes matched your current search filters. Try resetting them."
               : "Create personal directives, continuity notes, and secret emergency instructions."}
@@ -986,9 +986,8 @@ export function LifeNoteClient({
           {canManage && (
             <Button
               onClick={handleOpenCreate}
-              variant="outline"
               size="sm"
-              className="mt-4 rounded-xl text-xs font-semibold gap-1.5 border-violet-500/30 text-violet-600 hover:bg-violet-500/10"
+              className="mt-2 rounded-xl text-xs font-bold gap-1.5 bg-[#4F46E5] hover:bg-indigo-700 text-white shadow-xs cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               Create First Note
@@ -1015,47 +1014,46 @@ export function LifeNoteClient({
             return (
               <div
                 key={note._id}
-                className={`p-4 rounded-3xl border transition-all flex flex-col justify-between group ${
+                className={`p-5 rounded-2xl border transition-all flex flex-col justify-between group bg-white shadow-[0_2px_12px_rgba(30,27,75,0.04)] hover:shadow-md hover:border-slate-200 ${
                   note.isPinned
-                    ? "bg-card border-violet-500/40 shadow-sm"
-                    : "bg-card border-border hover:border-border/80"
+                    ? "border-amber-200 ring-1 ring-amber-300"
+                    : "border-slate-100/90"
                 }`}
               >
                 <div>
                   {/* Top Tags & Type Header */}
-                  <div className="flex items-start justify-between gap-2 mb-2.5">
+                  <div className="flex items-start justify-between gap-2 mb-3">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {/* New / Updated Badge */}
                       {!canManage &&
                         (note.isUpdated || !note.userActions?.readAt) && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[10px] font-bold border border-rose-500/20">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-rose-50 text-rose-700 text-[10px] font-black border border-rose-200">
                             {note.isUpdated ? "UPDATED" : "NEW"}
                           </span>
                         )}
                       {/* Need Help Requested (Admin) */}
                       {note.hasNeedHelp && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold border border-blue-500/20">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700 text-[10px] font-black border border-blue-200">
                           <HelpCircle className="w-2.5 h-2.5" /> Need Help
                         </span>
                       )}
                       {/* Acknowledged indicator for admin */}
                       {canManage && note.userActions?.acknowledgedAt && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold border border-emerald-500/20">
-                          <CheckCircle2 className="w-2.5 h-2.5" /> Read
-                          Confirmed
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 text-[10px] font-black border border-emerald-200">
+                          <CheckCircle2 className="w-2.5 h-2.5" /> Read Confirmed
                         </span>
                       )}
                       {note.isPinned && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-bold">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-black">
                           <Pin className="w-2.5 h-2.5" /> Pinned
                         </span>
                       )}
 
                       <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase border ${
+                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase border ${
                           isSecret
-                            ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
-                            : "bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20"
+                            ? "bg-rose-50 text-rose-700 border-rose-200"
+                            : "bg-[#EEF2FF] text-[#4F46E5] border-indigo-100"
                         }`}
                       >
                         {isSecret ? (
@@ -1070,14 +1068,14 @@ export function LifeNoteClient({
                         note.priority !== "normal" &&
                         note.priority !== "medium" && (
                           <span
-                            className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold uppercase border ${
+                            className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase border ${
                               note.priority === "critical" ||
                               note.priority === "emergency"
-                                ? "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20"
+                                ? "bg-rose-50 text-rose-700 border-rose-200"
                                 : note.priority === "high" ||
                                     note.priority === "important"
-                                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
-                                  : "bg-slate-500/10 text-slate-500 border-slate-500/20"
+                                  ? "bg-amber-50 text-amber-700 border-amber-200"
+                                  : "bg-slate-50 text-slate-600 border-slate-200"
                             }`}
                           >
                             {note.priority === "emergency"
@@ -1090,7 +1088,7 @@ export function LifeNoteClient({
                     </div>
 
                     {note.category && (
-                      <span className="text-[10px] font-semibold text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md truncate max-w-[110px]">
+                      <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md truncate max-w-[110px]">
                         {note.category}
                       </span>
                     )}
@@ -1099,7 +1097,7 @@ export function LifeNoteClient({
                   {/* Note Title */}
                   <h3
                     onClick={() => handleOpenView(note)}
-                    className="text-sm font-bold text-foreground mb-1 leading-snug group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors cursor-pointer"
+                    className="text-base font-black text-[#1E1B4B] mb-1 leading-snug group-hover:text-[#4F46E5] transition-colors cursor-pointer"
                   >
                     {note.title}
                   </h3>
@@ -1107,7 +1105,7 @@ export function LifeNoteClient({
                   {/* Content Preview */}
                   <div
                     onClick={() => handleOpenView(note)}
-                    className="mt-2 text-xs text-muted-foreground whitespace-pre-wrap line-clamp-4 leading-relaxed bg-muted/20 p-2.5 rounded-xl border border-border/40 font-mono text-[11px] cursor-pointer hover:bg-muted/30 transition-colors"
+                    className="mt-2.5 text-xs text-slate-700 whitespace-pre-wrap line-clamp-4 leading-relaxed bg-slate-50/80 p-3 rounded-xl border border-slate-100 font-mono text-[11px] cursor-pointer hover:bg-slate-100 transition-colors"
                   >
                     {note.content}
                   </div>
@@ -1141,17 +1139,17 @@ export function LifeNoteClient({
 
                   {/* Assigned Person Meta */}
                   {assignedPerson && (
-                    <div className="mt-3 flex items-center gap-2 pt-2.5 border-t border-border/40 text-xs text-muted-foreground">
-                      <div className="w-5 h-5 rounded-full bg-violet-500/10 text-violet-600 flex items-center justify-center shrink-0 text-[10px] font-bold">
+                    <div className="mt-3 flex items-center gap-2 pt-2.5 border-t border-slate-100 text-xs text-slate-500">
+                      <div className="w-5 h-5 rounded-full bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center shrink-0 text-[10px] font-bold">
                         {assignedPerson.name?.[0]?.toUpperCase() || (
                           <User className="w-3 h-3" />
                         )}
                       </div>
-                      <span className="font-medium text-foreground truncate">
+                      <span className="font-bold text-slate-800 truncate">
                         {assignedPerson.name}
                       </span>
                       {assignedPerson.relation && (
-                        <span className="text-[10px] text-muted-foreground">
+                        <span className="text-[10px] text-slate-400 font-medium">
                           • {assignedPerson.relation}
                         </span>
                       )}
@@ -1164,7 +1162,7 @@ export function LifeNoteClient({
                       {note.tags.map((tag, idx) => (
                         <span
                           key={idx}
-                          className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground text-[10px]"
+                          className="px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-medium"
                         >
                           #{tag}
                         </span>
@@ -1174,14 +1172,14 @@ export function LifeNoteClient({
                 </div>
 
                 {/* Card Bottom Actions */}
-                <div className="mt-4 pt-3 border-t border-border/40 flex items-center justify-between gap-2">
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {/* View Full Note Button */}
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handleOpenView(note)}
-                      className="h-7 px-2.5 rounded-lg text-xs font-semibold border-violet-500/30 text-violet-600 dark:text-violet-400 hover:bg-violet-500/10 gap-1"
+                      className="h-7 px-2.5 rounded-lg text-xs font-bold border-indigo-200 bg-[#EEF2FF] text-[#4F46E5] hover:bg-indigo-100 gap-1 cursor-pointer"
                     >
                       <Eye className="w-3 h-3" />
                       <span>View</span>
@@ -1193,7 +1191,7 @@ export function LifeNoteClient({
                         size="sm"
                         variant="ghost"
                         onClick={() => handleOpenHelp(note)}
-                        className="h-7 px-2 rounded-lg text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 gap-1"
+                        className="h-7 px-2 rounded-lg text-xs font-semibold text-blue-600 hover:bg-blue-50 gap-1 cursor-pointer"
                         title="Need assistance or have questions regarding this note?"
                       >
                         <HelpCircle className="w-3.5 h-3.5" />
@@ -1210,7 +1208,7 @@ export function LifeNoteClient({
                           size="sm"
                           variant="outline"
                           onClick={() => handleReleaseNowCard(note._id)}
-                          className="h-7 px-2 rounded-lg text-[11px] font-semibold text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/10 gap-1"
+                          className="h-7 px-2 rounded-lg text-[11px] font-bold text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 gap-1 cursor-pointer"
                         >
                           <RefreshCcw className="w-3 h-3" />
                           <span>Release Now</span>
@@ -1225,7 +1223,7 @@ export function LifeNoteClient({
                           size="sm"
                           variant="outline"
                           onClick={() => setRelockModalNote(note)}
-                          className="h-7 px-2 rounded-lg text-[11px] font-semibold text-amber-600 border-amber-500/30 hover:bg-amber-500/10 gap-1"
+                          className="h-7 px-2 rounded-lg text-[11px] font-bold text-amber-700 border-amber-200 bg-amber-50 hover:bg-amber-100 gap-1 cursor-pointer"
                         >
                           <Lock className="w-3 h-3" />
                           <span>Relock</span>
@@ -1236,7 +1234,7 @@ export function LifeNoteClient({
                     {note.history && note.history.length > 0 && (
                       <button
                         onClick={() => setHistoryModalNote(note)}
-                        className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition-colors"
+                        className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
                         title="View audit history"
                       >
                         <History className="w-3.5 h-3.5" />
@@ -1326,21 +1324,22 @@ export function LifeNoteClient({
 
       {/* ── Create / Edit Note Dialog ── */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold flex items-center gap-2">
-              <NotebookPen className="w-5 h-5 text-violet-600" />
+        <DialogContent className="life-dialog sm:max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-100 bg-white p-6 text-slate-900 shadow-2xl">
+          <DialogHeader className="pb-3 border-b border-slate-100">
+            <DialogTitle className="text-base font-black text-[#1E1B4B] flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center">
+                <NotebookPen className="w-4 h-4" />
+              </div>
               <span>
                 {editingNote ? "Edit LifeNote" : "Create New LifeNote"}
               </span>
             </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
-              Directives, continuity instructions, and confidential secret files
-              assigned to a designated person.
+            <DialogDescription className="text-xs text-slate-500 font-medium">
+              Directives, continuity instructions, and confidential secret files assigned to a designated person.
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmitNote} className="space-y-4 mt-2">
+          <form onSubmit={handleSubmitNote} className="space-y-4 pt-2">
             <div>
               <Label className="text-xs font-semibold">Note Title *</Label>
               <Input
@@ -1706,12 +1705,12 @@ export function LifeNoteClient({
               </div>
             </div>
 
-            <DialogFooter className="gap-2 pt-3">
+            <DialogFooter className="gap-2.5 pt-4 border-t border-slate-100">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 onClick={() => setIsModalOpen(false)}
-                className="rounded-xl text-xs h-9"
+                className="rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 h-9 px-4 cursor-pointer"
               >
                 Cancel
               </Button>
@@ -1721,7 +1720,7 @@ export function LifeNoteClient({
                   variant="outline"
                   onClick={handleSaveDraft}
                   disabled={isPending}
-                  className="rounded-xl text-xs h-9 gap-1.5 border-slate-500/30 text-slate-600 hover:bg-slate-500/10"
+                  className="rounded-xl text-xs font-bold h-9 px-4 gap-1.5 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 cursor-pointer shadow-xs"
                 >
                   <Save className="w-3.5 h-3.5" />
                   Save Draft
@@ -1730,7 +1729,7 @@ export function LifeNoteClient({
               <Button
                 type="submit"
                 disabled={isPending}
-                className="rounded-xl text-xs h-9 bg-violet-600 hover:bg-violet-700 text-white gap-1.5"
+                className="rounded-xl text-xs font-bold h-10 px-5 bg-[#4F46E5] hover:bg-indigo-700 active:scale-95 text-white gap-2 shadow-xs cursor-pointer transition-all"
               >
                 {editingNote ? (
                   "Save Changes"

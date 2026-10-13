@@ -243,7 +243,7 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
                 <span className="font-extrabold text-base tracking-tight text-sidebar-foreground/95">
                   Life
                 </span>
-                <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
+                <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.2 rounded bg-[#EEF2FF] text-[#4F46E5] border border-indigo-100/80 shrink-0">
                   PWA
                 </span>
               </div>
@@ -263,7 +263,7 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {isCollapsed ? (
-            <PanelLeftOpen className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <PanelLeftOpen className="w-4 h-4 text-[#4F46E5]" />
           ) : (
             <PanelLeftClose className="w-4 h-4" />
           )}
@@ -299,7 +299,7 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
                         : "justify-between px-3 py-2"
                     } ${
                       item.isActive
-                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold border border-emerald-500/20 shadow-xs"
+                        ? "bg-[#EEF2FF] text-[#4F46E5] font-bold border border-indigo-100/90 shadow-2xs"
                         : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
                     }`}
                     aria-label={
@@ -313,7 +313,7 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
                       <Icon
                         className={`w-4 h-4 transition-transform group-hover:scale-110 shrink-0 ${
                           item.isActive
-                            ? "text-emerald-500 dark:text-emerald-400"
+                            ? "text-[#4F46E5]"
                             : "text-sidebar-foreground/50"
                         }`}
                         strokeWidth={2}
@@ -340,7 +340,7 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
 
                     {item.isActive && (
                       <span
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-emerald-500 dark:bg-emerald-400"
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-[#4F46E5]"
                         aria-hidden="true"
                       />
                     )}

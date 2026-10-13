@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Briefcase,
   Plus,
@@ -16,6 +17,7 @@ import {
   ChevronUp,
   Loader2,
   ExternalLink,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -212,24 +214,33 @@ export function BusinessClient({
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
-              Business Continuity & Operations
-            </h1>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20">
-              {businesses.length}
-            </span>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/"
+            className="w-9 h-9 rounded-xl border border-slate-200/80 bg-white flex items-center justify-center text-slate-600 hover:text-[#4F46E5] hover:border-indigo-100 shadow-xs transition-all active:scale-95 shrink-0"
+            aria-label="Back to Dashboard"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-black text-[#1E1B4B] tracking-tight">
+                Business Continuity & Operations
+              </h1>
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#EEF2FF] text-[#4F46E5] border border-indigo-100/80">
+                {businesses.length}
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Structured business operations and dedicated &quot;If I Am Not
+              Available&quot; contingency protocols.
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Structured business operations and dedicated &quot;If I Am Not
-            Available&quot; contingency protocols.
-          </p>
         </div>
 
         <Button
           onClick={() => setAddBizModalOpen(true)}
-          className="h-9 px-3.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs gap-1.5 shadow-sm"
+          className="h-9 px-3.5 rounded-xl bg-[#4F46E5] hover:bg-indigo-700 text-white font-bold text-xs gap-1.5 shadow-xs transition-all active:scale-95"
         >
           <Plus className="w-3.5 h-3.5" />
           Add Business Entity
@@ -237,15 +248,15 @@ export function BusinessClient({
       </div>
 
       {/* Continuity Highlight Banner */}
-      <div className="p-4 sm:p-5 rounded-3xl bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-500/30 flex items-start gap-3.5">
-        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-100 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 shrink-0 border border-cyan-200 dark:border-cyan-500/40">
+      <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-indigo-500/10 via-white to-slate-50 border border-indigo-100/80 flex items-start gap-3.5 shadow-xs">
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#EEF2FF] text-[#4F46E5] shrink-0 border border-indigo-100 shadow-xs">
           <Briefcase className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-sm font-bold text-foreground">
+          <h2 className="text-sm font-black text-[#1E1B4B]">
             &quot;If I Am Not Available&quot; Continuity Protocol
           </h2>
-          <p className="text-xs text-muted-foreground mt-0.5 max-w-2xl leading-relaxed">
+          <p className="text-xs text-slate-500 mt-0.5 max-w-2xl leading-relaxed">
             Actionable step-by-step instructions for trusted partners or staff
             in case you are unreachable (server trouble, supplier contacts,
             salary payroll, or accounts).
@@ -255,19 +266,19 @@ export function BusinessClient({
 
       {/* Businesses List */}
       {businesses.length === 0 ? (
-        <div className="p-10 rounded-3xl border border-dashed border-border text-center space-y-3">
-          <Briefcase className="w-8 h-8 text-slate-500 mx-auto" />
-          <h3 className="text-sm font-bold text-foreground">
+        <div className="p-10 rounded-3xl border border-dashed border-slate-200 bg-white text-center space-y-3 shadow-xs">
+          <Briefcase className="w-8 h-8 text-slate-400 mx-auto" />
+          <h3 className="text-sm font-black text-[#1E1B4B]">
             No Business Entities Added
           </h3>
-          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+          <p className="text-xs text-slate-500 max-w-sm mx-auto">
             Add your ventures, partnerships, server infrastructure, and
             contingency instructions.
           </p>
           <Button
             size="sm"
             onClick={() => setAddBizModalOpen(true)}
-            className="h-8.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold"
+            className="h-8.5 rounded-xl bg-[#4F46E5] hover:bg-indigo-700 text-white text-xs font-bold shadow-xs transition-all active:scale-95"
           >
             + Add Business
           </Button>
@@ -282,27 +293,27 @@ export function BusinessClient({
             return (
               <div
                 key={biz._id}
-                className="rounded-3xl bg-card border border-border overflow-hidden shadow-xs"
+                className="rounded-3xl bg-white border border-slate-100/90 overflow-hidden shadow-[0_2px_12px_rgba(30,27,75,0.04)]"
               >
                 {/* Accordion Card Header */}
                 <div
                   onClick={() => setExpandedBizId(isExpanded ? null : biz._id)}
-                  className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer hover:bg-secondary transition-colors"
+                  className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer hover:bg-slate-50/70 transition-colors"
                 >
                   <div className="flex items-center gap-3.5">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20 font-bold shrink-0">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#EEF2FF] text-[#4F46E5] border border-indigo-100/80 font-black text-lg shrink-0 shadow-xs">
                       {biz.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-base font-extrabold text-foreground">
+                        <h3 className="text-base font-black text-[#1E1B4B]">
                           {biz.name}
                         </h3>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
                           {biz.ownershipPercentage}% Ownership
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">
+                      <p className="text-xs text-slate-500 mt-0.5">
                         {biz.serverInfo?.domain ||
                           biz.legalName ||
                           "Active Business Entity"}
@@ -312,10 +323,10 @@ export function BusinessClient({
 
                   <div className="flex items-center gap-3 self-end sm:self-center">
                     <div className="text-right">
-                      <span className="text-xs font-bold text-foreground font-mono">
+                      <span className="text-xs font-bold text-[#1E1B4B] font-mono">
                         {completedCount}/{steps.length}
                       </span>
-                      <p className="text-[10px] text-slate-500">Steps Ready</p>
+                      <p className="text-[10px] text-slate-400">Steps Ready</p>
                     </div>
                     {isExpanded ? (
                       <ChevronUp className="w-5 h-5 text-slate-400" />
@@ -327,43 +338,43 @@ export function BusinessClient({
 
                 {/* Expanded Details */}
                 {isExpanded && (
-                  <div className="p-5 pt-0 border-t border-border space-y-5">
+                  <div className="p-5 pt-0 border-t border-slate-100 space-y-5">
                     {/* Operational Details Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 text-xs">
                       {/* Server & Hosting */}
-                      <div className="p-3.5 rounded-2xl bg-muted border border-border space-y-1">
-                        <span className="font-bold text-muted-foreground flex items-center gap-1.5 uppercase text-[10px] tracking-wider">
-                          <Server className="w-3.5 h-3.5 text-cyan-700 dark:text-cyan-300" />{" "}
+                      <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100/90 space-y-1">
+                        <span className="font-bold text-slate-500 flex items-center gap-1.5 uppercase text-[10px] tracking-wider">
+                          <Server className="w-3.5 h-3.5 text-[#4F46E5]" />{" "}
                           Server & Domain
                         </span>
-                        <p className="text-foreground font-medium">
+                        <p className="text-[#1E1B4B] font-bold">
                           {biz.serverInfo?.hosting || "Standard Hosting"}
                         </p>
                         {biz.serverInfo?.ip && (
-                          <p className="text-muted-foreground font-mono text-[11px]">
+                          <p className="text-slate-500 font-mono text-[11px]">
                             IP: {biz.serverInfo.ip}
                           </p>
                         )}
                         {biz.serverInfo?.domain && (
-                          <p className="text-cyan-700 dark:text-cyan-300 font-mono text-[11px] truncate">
+                          <p className="text-[#4F46E5] font-mono text-[11px] truncate">
                             {biz.serverInfo.domain}
                           </p>
                         )}
                       </div>
 
                       {/* Key Engineer */}
-                      <div className="p-3.5 rounded-2xl bg-muted border border-border space-y-1">
-                        <span className="font-bold text-muted-foreground flex items-center gap-1.5 uppercase text-[10px] tracking-wider">
-                          <Users className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-300" />{" "}
+                      <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100/90 space-y-1">
+                        <span className="font-bold text-slate-500 flex items-center gap-1.5 uppercase text-[10px] tracking-wider">
+                          <Users className="w-3.5 h-3.5 text-emerald-600" />{" "}
                           Technical Contact
                         </span>
-                        <p className="text-foreground font-medium">
+                        <p className="text-[#1E1B4B] font-bold">
                           {biz.engineerContact?.name || "No Engineer Assigned"}
                         </p>
                         {biz.engineerContact?.phone && (
                           <a
                             href={`tel:${biz.engineerContact.phone}`}
-                            className="text-emerald-700 dark:text-emerald-300 font-mono text-[11px] flex items-center gap-1"
+                            className="text-emerald-700 font-mono text-[11px] flex items-center gap-1 font-semibold"
                           >
                             <Phone className="w-3 h-3" />{" "}
                             {biz.engineerContact.phone}
@@ -372,14 +383,14 @@ export function BusinessClient({
                       </div>
 
                       {/* Financials */}
-                      <div className="p-3.5 rounded-2xl bg-muted border border-border space-y-1">
-                        <span className="font-bold text-muted-foreground uppercase text-[10px] tracking-wider">
+                      <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100/90 space-y-1">
+                        <span className="font-bold text-slate-500 uppercase text-[10px] tracking-wider">
                           Monthly Expenses
                         </span>
-                        <p className="text-lg font-bold text-foreground font-mono">
+                        <p className="text-lg font-black text-[#1E1B4B] font-mono">
                           ৳{(biz.monthlyExpenses || 0).toLocaleString()}
                         </p>
-                        <p className="text-[11px] text-slate-500">
+                        <p className="text-[11px] text-slate-400">
                           Fixed operational overhead
                         </p>
                       </div>
@@ -388,8 +399,8 @@ export function BusinessClient({
                     {/* "If I Am Not Available" Checklist */}
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-cyan-700 dark:text-cyan-300 flex items-center gap-1.5">
-                          <AlertTriangle className="w-4 h-4 text-cyan-700 dark:text-cyan-300" />
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-[#1E1B4B] flex items-center gap-1.5">
+                          <AlertTriangle className="w-4 h-4 text-amber-500" />
                           <span>
                             Actionable &quot;If I Am Not Available&quot; Steps
                           </span>
@@ -397,14 +408,14 @@ export function BusinessClient({
                         <Button
                           size="sm"
                           onClick={() => handleOpenAddStep(biz._id)}
-                          className="h-7 text-xs bg-cyan-50 hover:bg-cyan-100 dark:bg-cyan-950/80 dark:hover:bg-cyan-900/80 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-500/30 rounded-xl gap-1"
+                          className="h-7.5 text-xs bg-[#EEF2FF] hover:bg-indigo-100 text-[#4F46E5] border border-indigo-100 rounded-xl gap-1 font-bold shadow-xs transition-all cursor-pointer"
                         >
                           <Plus className="w-3 h-3" /> Add Step
                         </Button>
                       </div>
 
                       {steps.length === 0 ? (
-                        <div className="p-6 rounded-2xl border border-dashed border-slate-800 text-center text-xs text-slate-500">
+                        <div className="p-6 rounded-2xl border border-dashed border-slate-200 text-center text-xs text-slate-400 bg-slate-50/50">
                           No emergency steps added yet. Add step-by-step
                           instructions for when you are away.
                         </div>
@@ -422,28 +433,28 @@ export function BusinessClient({
                               }
                               className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
                                 step.isCompleted
-                                  ? "bg-muted border-border opacity-70"
-                                  : "bg-card border-border hover:border-cyan-300 dark:bg-slate-900/80 dark:border-slate-800 dark:hover:border-cyan-500/40"
+                                  ? "bg-slate-50/80 border-slate-100 opacity-70"
+                                  : "bg-white border-slate-200/70 hover:border-indigo-200 hover:shadow-xs"
                               }`}
                             >
                               <div className="flex items-start gap-3">
-                                <button className="mt-0.5 text-cyan-700 dark:text-cyan-300">
+                                <button className="mt-0.5 text-slate-400 cursor-pointer">
                                   {step.isCompleted ? (
-                                    <CheckCircle2 className="w-5 h-5 text-emerald-700 dark:text-emerald-300" />
+                                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                                   ) : (
-                                    <Circle className="w-5 h-5 text-slate-500" />
+                                    <Circle className="w-5 h-5 text-slate-300" />
                                   )}
                                 </button>
                                 <div>
                                   <div className="flex items-center gap-2">
-                                    <span className="text-xs font-mono font-bold text-muted-foreground">
+                                    <span className="text-xs font-mono font-bold text-slate-400">
                                       #{idx + 1}
                                     </span>
                                     <h5
                                       className={`text-xs font-bold ${
                                         step.isCompleted
                                           ? "line-through text-slate-400"
-                                          : "text-foreground"
+                                          : "text-[#1E1B4B]"
                                       }`}
                                     >
                                       {step.title}
@@ -478,10 +489,10 @@ export function BusinessClient({
 
       {/* Add Business Modal */}
       <Dialog open={addBizModalOpen} onOpenChange={setAddBizModalOpen}>
-        <DialogContent className="life-dialog sm:max-w-lg rounded-3xl border border-border/80 dark:border-slate-800 bg-white dark:bg-slate-950 text-foreground max-h-[90vh] overflow-y-auto shadow-2xl">
+        <DialogContent className="life-dialog sm:max-w-lg rounded-3xl border border-slate-100 bg-white text-[#1E1B4B] max-h-[90vh] overflow-y-auto shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
-              <Briefcase className="w-5 h-5 text-cyan-300" />
+            <DialogTitle className="text-base font-bold text-[#1E1B4B] flex items-center gap-2">
+              <Briefcase className="w-5 h-5 text-[#4F46E5]" />
               <span>Add Business Entity</span>
             </DialogTitle>
           </DialogHeader>
@@ -489,7 +500,7 @@ export function BusinessClient({
           <form onSubmit={handleCreateBusiness} className="space-y-4 pt-2">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label className="text-xs font-bold text-slate-700">
                   Business Name *
                 </label>
                 <Input
@@ -497,26 +508,26 @@ export function BusinessClient({
                   placeholder="e.g. CloudNet ISP or Tech Ventures"
                   value={bizName}
                   onChange={(e) => setBizName(e.target.value)}
-                  className="h-10 border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-cyan-500"
+                  className="h-10 border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs focus:bg-white focus:border-indigo-400"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label className="text-xs font-bold text-slate-700">
                   Legal / Trade Name
                 </label>
                 <Input
                   placeholder="e.g. CloudNet Services Ltd."
                   value={legalName}
                   onChange={(e) => setLegalName(e.target.value)}
-                  className="h-10 border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-cyan-500"
+                  className="h-10 border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs focus:bg-white focus:border-indigo-400"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label className="text-xs font-bold text-slate-700">
                   Ownership Percentage (%)
                 </label>
                 <Input
@@ -524,12 +535,12 @@ export function BusinessClient({
                   placeholder="100"
                   value={ownershipPercentage}
                   onChange={(e) => setOwnershipPercentage(e.target.value)}
-                  className="h-10 border-slate-800 bg-slate-900/90 text-slate-100 text-xs"
+                  className="h-10 border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs focus:bg-white focus:border-indigo-400"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label className="text-xs font-bold text-slate-700">
                   Monthly Expenses (৳)
                 </label>
                 <Input
@@ -537,13 +548,13 @@ export function BusinessClient({
                   placeholder="e.g. 50000"
                   value={monthlyExpenses}
                   onChange={(e) => setMonthlyExpenses(e.target.value)}
-                  className="h-10 border-slate-800 bg-slate-900/90 text-slate-100 text-xs font-mono"
+                  className="h-10 border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs font-mono focus:bg-white focus:border-indigo-400"
                 />
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
-              <h4 className="text-xs font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-1.5">
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100/90 space-y-3">
+              <h4 className="text-xs font-bold text-[#4F46E5] uppercase tracking-wider flex items-center gap-1.5">
                 <Server className="w-3.5 h-3.5" /> Server Information
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -551,57 +562,56 @@ export function BusinessClient({
                   placeholder="Hosting Provider"
                   value={serverHosting}
                   onChange={(e) => setServerHosting(e.target.value)}
-                  className="h-9 border-slate-800 bg-slate-900 text-slate-100 text-xs"
+                  className="h-9 border-slate-200/80 bg-white text-[#1E1B4B] text-xs focus:border-indigo-400"
                 />
                 <Input
                   placeholder="Domain Name"
                   value={serverDomain}
                   onChange={(e) => setServerDomain(e.target.value)}
-                  className="h-9 border-slate-800 bg-slate-900 text-slate-100 text-xs"
+                  className="h-9 border-slate-200/80 bg-white text-[#1E1B4B] text-xs focus:border-indigo-400"
                 />
                 <Input
                   placeholder="Server IP"
                   value={serverIp}
                   onChange={(e) => setServerIp(e.target.value)}
-                  className="h-9 border-slate-800 bg-slate-900 text-slate-100 text-xs font-mono"
+                  className="h-9 border-slate-200/80 bg-white text-[#1E1B4B] text-xs font-mono focus:border-indigo-400"
                 />
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
-              <h4 className="text-xs font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5" /> Key Engineer / Technical
-                Contact
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100/90 space-y-3">
+              <h4 className="text-xs font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5" /> Key Engineer / Technical Contact
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <Input
                   placeholder="Engineer Name"
                   value={engineerName}
                   onChange={(e) => setEngineerName(e.target.value)}
-                  className="h-9 border-slate-800 bg-slate-900 text-slate-100 text-xs"
+                  className="h-9 border-slate-200/80 bg-white text-[#1E1B4B] text-xs focus:border-indigo-400"
                 />
                 <Input
                   placeholder="Engineer Phone"
                   value={engineerPhone}
                   onChange={(e) => setEngineerPhone(e.target.value)}
-                  className="h-9 border-slate-800 bg-slate-900 text-slate-100 text-xs font-mono"
+                  className="h-9 border-slate-200/80 bg-white text-[#1E1B4B] text-xs font-mono focus:border-indigo-400"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => setAddBizModalOpen(false)}
-                className="text-xs text-slate-400 hover:text-white"
+                className="text-xs text-slate-500 hover:text-slate-800"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={bizLoading}
-                className="h-9 px-4 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold rounded-xl gap-1.5 shadow-md"
+                className="h-9 px-4 bg-[#4F46E5] hover:bg-indigo-700 text-white text-xs font-bold rounded-xl gap-1.5 shadow-xs transition-all active:scale-95"
               >
                 {bizLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 Save Business
@@ -613,17 +623,17 @@ export function BusinessClient({
 
       {/* Add Continuity Step Modal */}
       <Dialog open={addStepModalOpen} onOpenChange={setAddStepModalOpen}>
-        <DialogContent className="life-dialog sm:max-w-md rounded-3xl border border-border/80 dark:border-slate-800 bg-white dark:bg-slate-950 text-foreground shadow-2xl">
+        <DialogContent className="life-dialog sm:max-w-md rounded-3xl border border-slate-100 bg-white text-[#1E1B4B] shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-cyan-300" />
+            <DialogTitle className="text-base font-bold text-[#1E1B4B] flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-500" />
               <span>Add &quot;If I Am Not Available&quot; Instruction</span>
             </DialogTitle>
           </DialogHeader>
 
           <form onSubmit={handleCreateStep} className="space-y-4 pt-2">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-300">
+              <label className="text-xs font-bold text-slate-700">
                 Action Title *
               </label>
               <Input
@@ -631,19 +641,19 @@ export function BusinessClient({
                 placeholder="e.g. 1. If server problem, contact Engineer X"
                 value={stepTitle}
                 onChange={(e) => setStepTitle(e.target.value)}
-                className="h-10 border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-cyan-500"
+                className="h-10 border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs focus:bg-white focus:border-indigo-400"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label className="text-xs font-bold text-slate-700">
                   Responsible Person
                 </label>
                 <select
                   value={stepPersonId}
                   onChange={(e) => setStepPersonId(e.target.value)}
-                  className="w-full h-10 px-3 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-cyan-500 focus:outline-none"
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs focus:bg-white focus:border-indigo-400 focus:outline-none cursor-pointer"
                 >
                   <option value="none">-- Select Person --</option>
                   {people.map((p) => (
@@ -655,20 +665,20 @@ export function BusinessClient({
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label className="text-xs font-bold text-slate-700">
                   Direct Phone Shortcut
                 </label>
                 <Input
                   placeholder="e.g. +880 1700..."
                   value={stepContactPhone}
                   onChange={(e) => setStepContactPhone(e.target.value)}
-                  className="h-10 border-slate-800 bg-slate-900/90 text-slate-100 text-xs font-mono"
+                  className="h-10 border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs font-mono focus:bg-white focus:border-indigo-400"
                 />
               </div>
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-300">
+              <label className="text-xs font-bold text-slate-700">
                 Detailed Instructions
               </label>
               <textarea
@@ -676,23 +686,23 @@ export function BusinessClient({
                 placeholder="Describe exact credentials to check, supplier terms, or steps to take..."
                 value={stepInstructions}
                 onChange={(e) => setStepInstructions(e.target.value)}
-                className="w-full p-3 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:border-cyan-500 focus:outline-none"
+                className="w-full p-3 rounded-xl border border-slate-200/80 bg-slate-50/50 text-[#1E1B4B] text-xs focus:bg-white focus:border-indigo-400 focus:outline-none resize-none"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => setAddStepModalOpen(false)}
-                className="text-xs text-slate-400 hover:text-white"
+                className="text-xs text-slate-500 hover:text-slate-800"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={stepLoading}
-                className="h-9 px-4 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold rounded-xl gap-1.5 shadow-md"
+                className="h-9 px-4 bg-[#4F46E5] hover:bg-indigo-700 text-white text-xs font-bold rounded-xl gap-1.5 shadow-xs transition-all active:scale-95"
               >
                 {stepLoading && (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />

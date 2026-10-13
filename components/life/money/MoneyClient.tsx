@@ -130,105 +130,105 @@ export function MoneyClient({
   const payables = takenRecords.filter((r) => r.remainingAmount > 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-5">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-bold text-[#1E1B4B] tracking-tight">
               Money Management
             </h1>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#EEF2FF] text-[#4F46E5] border border-indigo-100/80 shadow-2xs">
               Financial Care & Equity
             </span>
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Transparent tracking of financial care provided, received,
-            and active investments.
+          <p className="text-xs text-slate-500 font-medium mt-0.5">
+            Transparent tracking of financial care provided, received, and active investments.
           </p>
         </div>
 
-        <Button
+        <button
+          type="button"
           onClick={() => setAddModalOpen(true)}
-          className="h-9 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs gap-1.5 shadow-sm shadow-emerald-950/30"
+          className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-xl bg-[#4F46E5] hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs shadow-xs hover:shadow transition-all shrink-0 cursor-pointer"
         >
-          <Plus className="w-3.5 h-3.5" />
-          Add Money Record
-        </Button>
+          <Plus className="w-3.5 h-3.5" strokeWidth={2.4} />
+          <span>Add Money Record</span>
+        </button>
       </div>
 
       {/* Snapshot Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div className="p-3.5 rounded-2xl bg-card border border-border">
-          <span className="text-[11px] font-medium text-muted-foreground">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-100/90 shadow-[0_2px_12px_rgba(30,27,75,0.04)] hover:border-indigo-200/70 hover:shadow-md transition-all">
+          <span className="text-[11px] font-semibold text-slate-500">
             Care Provided
           </span>
-          <div className="text-lg sm:text-xl font-extrabold text-foreground font-mono mt-1">
+          <div className="text-lg sm:text-xl font-bold text-[#1E1B4B] font-mono mt-1">
             ৳{overview?.given?.total?.toLocaleString() || 0}
           </div>
-          <span className="text-[10px] text-emerald-500">
+          <span className="text-[10px] font-semibold text-[#16A34A] block mt-0.5">
             Rem: ৳{overview?.given?.remaining?.toLocaleString() || 0}
           </span>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-card border border-border">
-          <span className="text-[11px] font-medium text-muted-foreground">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-100/90 shadow-[0_2px_12px_rgba(30,27,75,0.04)] hover:border-amber-200/70 hover:shadow-md transition-all">
+          <span className="text-[11px] font-semibold text-slate-500">
             Care Received
           </span>
-          <div className="text-lg sm:text-xl font-extrabold text-amber-500 font-mono mt-1">
+          <div className="text-lg sm:text-xl font-bold text-[#D97706] font-mono mt-1">
             ৳{overview?.taken?.total?.toLocaleString() || 0}
           </div>
-          <span className="text-[10px] text-muted-foreground">
+          <span className="text-[10px] font-semibold text-slate-400 block mt-0.5">
             Due: ৳{overview?.taken?.remaining?.toLocaleString() || 0}
           </span>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-card border border-border">
-          <span className="text-[11px] font-medium text-muted-foreground">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-100/90 shadow-[0_2px_12px_rgba(30,27,75,0.04)] hover:border-sky-200/70 hover:shadow-md transition-all">
+          <span className="text-[11px] font-semibold text-slate-500">
             Investment Made
           </span>
-          <div className="text-lg sm:text-xl font-extrabold text-cyan-700 dark:text-cyan-300 font-mono mt-1">
+          <div className="text-lg sm:text-xl font-bold text-[#0284C7] font-mono mt-1">
             ৳{overview?.investMade?.total?.toLocaleString() || 0}
           </div>
-          <span className="text-[10px] text-muted-foreground">
+          <span className="text-[10px] font-semibold text-slate-400 block mt-0.5">
             Equity/Return
           </span>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-card border border-border">
-          <span className="text-[11px] font-medium text-muted-foreground">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-100/90 shadow-[0_2px_12px_rgba(30,27,75,0.04)] hover:border-indigo-200/70 hover:shadow-md transition-all">
+          <span className="text-[11px] font-semibold text-slate-500">
             Investment Received
           </span>
-          <div className="text-lg sm:text-xl font-extrabold text-indigo-700 dark:text-indigo-300 font-mono mt-1">
+          <div className="text-lg sm:text-xl font-bold text-[#4F46E5] font-mono mt-1">
             ৳{overview?.investReceived?.total?.toLocaleString() || 0}
           </div>
-          <span className="text-[10px] text-muted-foreground">
+          <span className="text-[10px] font-semibold text-slate-400 block mt-0.5">
             Partner capital
           </span>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-500/30">
-          <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
-            <ArrowDownLeft className="w-3 h-3" />
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-[#DCFCE7]/40 border border-emerald-200/80 shadow-[0_2px_12px_rgba(22,163,74,0.04)] hover:shadow-md transition-all">
+          <span className="text-[11px] font-semibold text-[#16A34A] flex items-center gap-1">
+            <ArrowDownLeft className="w-3 h-3" strokeWidth={2.4} />
             Receivable
           </span>
-          <div className="text-lg sm:text-xl font-extrabold text-emerald-700 dark:text-emerald-300 font-mono mt-1">
+          <div className="text-lg sm:text-xl font-bold text-[#16A34A] font-mono mt-1">
             ৳{overview?.receivables?.toLocaleString() || 0}
           </div>
-          <span className="text-[10px] text-emerald-700/80 dark:text-emerald-300/80">
+          <span className="text-[10px] font-semibold text-[#16A34A]/80 block mt-0.5">
             Pending returns
           </span>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-500/30">
-          <span className="text-[11px] font-medium text-rose-700 dark:text-rose-300 flex items-center gap-1">
-            <ArrowUpRight className="w-3 h-3" />
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-rose-50/50 border border-rose-200/80 shadow-[0_2px_12px_rgba(225,29,72,0.04)] hover:shadow-md transition-all">
+          <span className="text-[11px] font-semibold text-rose-600 flex items-center gap-1">
+            <ArrowUpRight className="w-3 h-3" strokeWidth={2.4} />
             Payable
           </span>
-          <div className="text-lg sm:text-xl font-extrabold text-rose-700 dark:text-rose-300 font-mono mt-1">
+          <div className="text-lg sm:text-xl font-bold text-rose-600 font-mono mt-1">
             ৳{overview?.payables?.toLocaleString() || 0}
           </div>
-          <span className="text-[10px] text-rose-700/80 dark:text-rose-300/80">Obligations</span>
+          <span className="text-[10px] font-semibold text-rose-500 block mt-0.5">Obligations</span>
         </div>
       </div>
 
@@ -238,46 +238,46 @@ export function MoneyClient({
         onValueChange={setActiveTab}
         className="space-y-4"
       >
-        <TabsList className="bg-muted p-1 rounded-2xl border border-border flex overflow-x-auto scrollbar-none max-w-full justify-start h-auto">
+        <TabsList className="bg-white p-1 rounded-2xl border border-slate-100/90 shadow-2xs flex overflow-x-auto scrollbar-none max-w-full justify-start h-auto gap-1">
           <TabsTrigger
             value="overview"
-            className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
+            className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white data-[state=active]:shadow-xs text-slate-600 hover:text-[#1E1B4B] transition-all cursor-pointer"
           >
             Overview
           </TabsTrigger>
           <TabsTrigger
             value="given"
-            className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
+            className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white data-[state=active]:shadow-xs text-slate-600 hover:text-[#1E1B4B] transition-all cursor-pointer"
           >
             Care Provided ({givenRecords.length})
           </TabsTrigger>
           <TabsTrigger
             value="taken"
-            className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
+            className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white data-[state=active]:shadow-xs text-slate-600 hover:text-[#1E1B4B] transition-all cursor-pointer"
           >
             Care Received ({takenRecords.length})
           </TabsTrigger>
           <TabsTrigger
             value="investments"
-            className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
+            className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white data-[state=active]:shadow-xs text-slate-600 hover:text-[#1E1B4B] transition-all cursor-pointer"
           >
             Investments ({investmentRecords.length})
           </TabsTrigger>
           <TabsTrigger
             value="receivables"
-            className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
+            className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white data-[state=active]:shadow-xs text-slate-600 hover:text-[#1E1B4B] transition-all cursor-pointer"
           >
             Receivables ({receivables.length})
           </TabsTrigger>
           <TabsTrigger
             value="payables"
-            className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
+            className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white data-[state=active]:shadow-xs text-slate-600 hover:text-[#1E1B4B] transition-all cursor-pointer"
           >
             Payables ({payables.length})
           </TabsTrigger>
           <TabsTrigger
             value="transactions"
-            className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
+            className="rounded-xl px-3 py-2 text-xs font-semibold data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white data-[state=active]:shadow-xs text-slate-600 hover:text-[#1E1B4B] transition-all cursor-pointer"
           >
             Transactions Ledger
           </TabsTrigger>
@@ -287,18 +287,18 @@ export function MoneyClient({
         <TabsContent value="overview" className="space-y-4 outline-none">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Urgent Receivables List */}
-            <div className="p-5 rounded-2xl bg-card border border-border space-y-3">
+            <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-100/90 shadow-[0_2px_12px_rgba(30,27,75,0.04)] space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-500 flex items-center gap-1.5">
-                  <ArrowDownLeft className="w-4 h-4" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#16A34A] flex items-center gap-1.5">
+                  <ArrowDownLeft className="w-4 h-4" strokeWidth={2.4} />
                   <span>Pending Receivables</span>
                 </h3>
-                <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300 font-mono">
+                <span className="text-xs font-bold text-[#16A34A] font-mono px-2 py-0.5 rounded-full bg-[#DCFCE7] border border-emerald-200/70">
                   {receivables.length} Active
                 </span>
               </div>
               {receivables.length === 0 ? (
-                <p className="text-xs text-muted-foreground italic">
+                <p className="text-xs text-slate-400 italic py-2">
                   No pending receivables.
                 </p>
               ) : (
@@ -306,29 +306,28 @@ export function MoneyClient({
                   {receivables.slice(0, 5).map((rec) => (
                     <div
                       key={rec._id}
-                      className="p-3 rounded-xl bg-secondary border border-border flex items-center justify-between"
+                      className="p-3 rounded-xl bg-slate-50/80 border border-slate-100 flex items-center justify-between hover:bg-[#EEF2FF]/40 transition-colors"
                     >
                       <div>
-                        <h4 className="text-xs font-bold text-foreground">
+                        <h4 className="text-xs font-bold text-[#1E1B4B]">
                           {rec.personName || "Counterparty"}
                         </h4>
-                        <span className="text-[11px] text-muted-foreground">
+                        <span className="text-[11px] text-slate-400 font-medium">
                           {rec.purpose || "Money Lent"}
                         </span>
                       </div>
                       <div className="text-right">
-                        <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-300 font-mono">
+                        <span className="text-xs font-extrabold text-[#16A34A] font-mono">
                           ৳{rec.remainingAmount.toLocaleString()}
                         </span>
                         <div className="mt-1">
-                          <Button
-                            size="sm"
-                            variant="ghost"
+                          <button
+                            type="button"
                             onClick={() => handleOpenSettlement(rec)}
-                            className="h-6 px-2 text-[10px] bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded-lg"
+                            className="h-6 px-2.5 text-[10px] font-bold bg-[#DCFCE7] text-[#16A34A] hover:bg-emerald-200/80 rounded-lg transition-colors cursor-pointer"
                           >
                             + Settle
-                          </Button>
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -338,18 +337,18 @@ export function MoneyClient({
             </div>
 
             {/* Urgent Payables List */}
-            <div className="p-5 rounded-2xl bg-card border border-border space-y-3">
+            <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-100/90 shadow-[0_2px_12px_rgba(30,27,75,0.04)] space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-rose-500 flex items-center gap-1.5">
-                  <ArrowUpRight className="w-4 h-4" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-rose-600 flex items-center gap-1.5">
+                  <ArrowUpRight className="w-4 h-4" strokeWidth={2.4} />
                   <span>Pending Payables</span>
                 </h3>
-                <span className="text-xs font-bold text-rose-700 dark:text-rose-300 font-mono">
+                <span className="text-xs font-bold text-rose-600 font-mono px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200/70">
                   {payables.length} Active
                 </span>
               </div>
               {payables.length === 0 ? (
-                <p className="text-xs text-muted-foreground italic">
+                <p className="text-xs text-slate-400 italic py-2">
                   No pending debts or payables.
                 </p>
               ) : (
@@ -357,29 +356,28 @@ export function MoneyClient({
                   {payables.slice(0, 5).map((rec) => (
                     <div
                       key={rec._id}
-                      className="p-3 rounded-xl bg-secondary border border-border flex items-center justify-between"
+                      className="p-3 rounded-xl bg-slate-50/80 border border-slate-100 flex items-center justify-between hover:bg-rose-50/40 transition-colors"
                     >
                       <div>
-                        <h4 className="text-xs font-bold text-foreground">
+                        <h4 className="text-xs font-bold text-[#1E1B4B]">
                           {rec.personName || "Lender"}
                         </h4>
-                        <span className="text-[11px] text-muted-foreground">
+                        <span className="text-[11px] text-slate-400 font-medium">
                           {rec.purpose || "Money Borrowed"}
                         </span>
                       </div>
                       <div className="text-right">
-                        <span className="text-xs font-extrabold text-rose-700 dark:text-rose-300 font-mono">
+                        <span className="text-xs font-extrabold text-rose-600 font-mono">
                           ৳{rec.remainingAmount.toLocaleString()}
                         </span>
                         <div className="mt-1">
-                          <Button
-                            size="sm"
-                            variant="ghost"
+                          <button
+                            type="button"
                             onClick={() => handleOpenSettlement(rec)}
-                            className="h-6 px-2 text-[10px] bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/60 rounded-lg"
+                            className="h-6 px-2.5 text-[10px] font-bold bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg transition-colors cursor-pointer"
                           >
                             + Repay
-                          </Button>
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -619,23 +617,23 @@ export function MoneyClient({
               />
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => setAddModalOpen(false)}
-                className="text-xs text-slate-400 hover:text-white"
+                className="text-xs text-slate-500 hover:text-slate-800 rounded-xl"
               >
                 Cancel
               </Button>
-              <Button
+              <button
                 type="submit"
                 disabled={loading}
-                className="h-9 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl gap-1.5 shadow-md"
+                className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#4F46E5] hover:bg-indigo-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer disabled:opacity-50"
               >
                 {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                Save Financial Record
-              </Button>
+                <span>Save Financial Record</span>
+              </button>
             </div>
           </form>
         </DialogContent>
@@ -658,39 +656,39 @@ function renderRecordList(
 ) {
   if (records.length === 0) {
     return (
-      <div className="p-10 rounded-2xl border border-dashed border-border text-center text-xs text-muted-foreground">
+      <div className="p-10 rounded-3xl border border-dashed border-slate-200 bg-white/60 text-center text-xs text-slate-400">
         {emptyMessage}
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-3.5">
       {records.map((rec) => (
         <div
           key={rec._id}
-          className="p-4 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between"
+          className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-slate-100/90 shadow-[0_2px_12px_rgba(30,27,75,0.04)] hover:border-indigo-200/70 hover:shadow-md transition-all duration-200 flex flex-col justify-between group"
         >
           <div>
             <div className="flex items-start justify-between gap-2">
               <div>
-                <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-slate-800 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-slate-700/60">
+                <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#EEF2FF] text-[#4F46E5] border border-indigo-100/70">
                   {rec.type.replace("_", " ")}
                 </span>
-                <h3 className="font-bold text-sm text-foreground mt-1">
+                <h3 className="font-bold text-[15px] text-[#1E1B4B] mt-1.5">
                   {rec.personName || "Counterparty"}
                 </h3>
                 {rec.purpose && (
-                  <p className="text-xs text-muted-foreground">{rec.purpose}</p>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">{rec.purpose}</p>
                 )}
               </div>
               <span
-                className={`text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full border ${
+                className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${
                   rec.status === "fully_returned"
-                    ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
+                    ? "bg-[#DCFCE7] text-[#16A34A] border-emerald-200/70"
                     : rec.status === "overdue"
-                      ? "bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/20"
-                      : "bg-muted text-muted-foreground border-border"
+                    ? "bg-rose-50 text-rose-600 border-rose-200/70"
+                    : "bg-slate-100 text-slate-600 border-slate-200/70"
                 }`}
               >
                 {rec.status.replace("_", " ")}
@@ -698,22 +696,22 @@ function renderRecordList(
             </div>
 
             {/* Financial Amounts breakdown */}
-            <div className="mt-3 grid grid-cols-3 gap-2 p-2.5 rounded-xl bg-slate-100 dark:bg-slate-950/50 text-xs">
+            <div className="mt-3.5 grid grid-cols-3 gap-2 p-3 rounded-xl bg-slate-50 border border-slate-100/80 text-xs">
               <div>
-                <span className="text-[10px] text-slate-500">Total</span>
-                <p className="font-bold text-foreground font-mono">
+                <span className="text-[10px] font-semibold text-slate-400">Total</span>
+                <p className="font-bold text-[#1E1B4B] font-mono mt-0.5">
                   ৳{rec.amount.toLocaleString()}
                 </p>
               </div>
               <div>
-                <span className="text-[10px] text-slate-500">Returned</span>
-                <p className="font-bold text-muted-foreground font-mono">
+                <span className="text-[10px] font-semibold text-slate-400">Returned</span>
+                <p className="font-bold text-slate-500 font-mono mt-0.5">
                   ৳{rec.paidAmount.toLocaleString()}
                 </p>
               </div>
               <div>
-                <span className="text-[10px] text-slate-500">Remaining</span>
-                <p className="font-bold text-emerald-700 dark:text-emerald-300 font-mono">
+                <span className="text-[10px] font-semibold text-slate-400">Remaining</span>
+                <p className="font-bold text-[#16A34A] font-mono mt-0.5">
                   ৳{rec.remainingAmount.toLocaleString()}
                 </p>
               </div>
@@ -721,21 +719,21 @@ function renderRecordList(
 
             {/* Settlements history snapshot */}
             {rec.settlements && rec.settlements.length > 0 && (
-              <div className="mt-3 pt-2 border-t border-border space-y-1">
-                <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+              <div className="mt-3 pt-2.5 border-t border-slate-100 space-y-1.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                   Settlements History ({rec.settlements.length})
                 </span>
                 <div className="space-y-1">
                   {rec.settlements.map((s, idx) => (
                     <div
                       key={s._id || idx}
-                      className="flex items-center justify-between text-[11px] text-muted-foreground"
+                      className="flex items-center justify-between text-[11px] text-slate-500"
                     >
                       <span>
                         Settlement #{idx + 1} (
                         {new Date(s.date).toLocaleDateString()})
                       </span>
-                      <span className="font-mono font-bold text-foreground">
+                      <span className="font-mono font-bold text-[#1E1B4B]">
                         ৳{s.amount.toLocaleString()}
                       </span>
                     </div>
@@ -747,14 +745,14 @@ function renderRecordList(
 
           {/* Bottom Settle action */}
           {rec.remainingAmount > 0 && (
-            <div className="mt-4 pt-3 border-t border-border flex justify-end">
-              <Button
-                size="sm"
+            <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
+              <button
+                type="button"
                 onClick={() => onSettle(rec)}
-                className="h-7.5 px-3 text-xs bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold gap-1"
+                className="h-7.5 px-3.5 text-xs bg-[#4F46E5] hover:bg-indigo-700 active:scale-95 text-white rounded-xl font-bold gap-1 shadow-2xs transition-all cursor-pointer"
               >
                 + Record Settlement
-              </Button>
+              </button>
             </div>
           )}
         </div>
