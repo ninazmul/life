@@ -36,6 +36,7 @@ export default async function RootLayout({
           isOwner: authContext.isOwner,
           isAdmin: authContext.isAdmin,
           permissions: authContext.permissions,
+          avatarUrl: authContext.avatarUrl,
         }}
       >
         {children}

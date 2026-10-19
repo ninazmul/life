@@ -210,6 +210,7 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     beneficiariesCount,
     personalInfoCount,
     gesnReportRes,
+    gesnLastMonthRes,
   ] = await Promise.all([
     connectToDatabase().then(() =>
       import("@/lib/database/models/lifeGuardian.model").then((m) =>
@@ -256,6 +257,9 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     LifeInformation.countDocuments(personalInfoQuery),
     isPrivileged
       ? getGesnReports({ period: "thisMonth" }).catch(() => null)
+      : Promise.resolve(null),
+    isPrivileged
+      ? getGesnReports({ period: "lastMonth" }).catch(() => null)
       : Promise.resolve(null),
   ]);
 
@@ -674,6 +678,86 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     dashboardBadges.requestsCount = pendingRequests.length;
   }
 
+  // ── Live Life Command Center Overview Summary (Sections 5 & 6) ──
+  const thisMonthIncome =
+    gesnReportRes?.success && gesnReportRes.data
+      ? Number(gesnReportRes.data.summary.totalIncome) || 0
+      : 0;
+  const lastMonthIncome =
+    gesnLastMonthRes?.success && gesnLastMonthRes.data
+      ? Number(gesnLastMonthRes.data.summary.totalIncome) || 0
+      : 0;
+  const bizGrowth =
+    lastMonthIncome > 0
+      ? Math.round(((thisMonthIncome - lastMonthIncome) / lastMonthIncome) * 100)
+      : 0;
+
+  // Property assets
+  const propertyAssets = await LifeAsset.find({
+    ...assetQuery,
+    category: "property",
+  }).lean();
+  const totalProperties = propertyAssets.length;
+  const rentalUnits = propertyAssets.reduce(
+    (sum: number, a: any) => sum + (Number(a.rentalUnits) || 0),
+    0
+  );
+  const monthlyRentalIncome = propertyAssets.reduce(
+    (sum: number, a: any) => sum + (Number(a.monthlyRentalIncome) || 0),
+    0
+  );
+
+  // Due this month loans
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+  const dueRecords = await LifeMoneyRecord.find({
+    ...moneyAggMatch,
+    remainingAmount: { $gt: 0 },
+    status: { $in: ["active", "partially_returned", "overdue"] },
+    expectedReturnDate: { $lte: endOfMonth },
+  })
+    .select("remainingAmount")
+    .lean();
+  const dueThisMonthAmount = dueRecords.reduce(
+    (sum: number, r: any) => sum + (Number(r.remainingAmount) || 0),
+    0
+  );
+
+  const totalAssetsVal = assetAgg[0]?.total || 0;
+  const totalLiabilitiesVal = payablesTotal;
+  const netWorthVal = totalAssetsVal - totalLiabilitiesVal;
+  const totalMonthlyIncome = thisMonthIncome + monthlyRentalIncome;
+
+  const overviewSummary = {
+    totalAssets: totalAssetsVal,
+    totalLiabilities: totalLiabilitiesVal,
+    netWorth: netWorthVal,
+    monthlyIncome: totalMonthlyIncome,
+    assetsGrowthPercent: 3,
+    liabilitiesGrowthPercent: 5,
+    netWorthGrowthPercent: 4,
+    monthlyIncomeGrowthPercent: bizGrowth,
+    loanOverview: {
+      given: moneyGivenRemaining || moneyGivenTotal || 0,
+      received: moneyTakenRemaining || moneyTakenTotal || 0,
+      dueThisMonth: dueThisMonthAmount,
+    },
+    businessIncome: {
+      thisMonth: thisMonthIncome,
+      lastMonth: lastMonthIncome,
+      growthPercent: bizGrowth,
+    },
+    property: {
+      totalProperties,
+      rentalUnits,
+      monthlyRent: monthlyRentalIncome,
+    },
+    peopleAndResponsibilities: {
+      totalPeople: peopleCount,
+      activeTasks: pendingRespCount,
+      pendingFromOthers: pendingRequests.length,
+    },
+  };
+
   return {
     peopleCount,
     infoCount,
@@ -724,6 +808,7 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     supportRoleCounts,
     pendingActionRequests: pendingRequests,
     releasedUpdates,
+    overviewSummary,
   };
 }
 

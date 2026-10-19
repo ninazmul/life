@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Search, Command, ShieldAlert, BookOpen, Bell, Check, ExternalLink, Lock, CheckCircle2, Clock } from "lucide-react";
-import { UserButton } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { LifeSearchDialog } from "@/components/life/shared/LifeSearchDialog";
 import {
@@ -22,13 +22,17 @@ import { ILifeNotification } from "@/types";
 
 interface LifeHeaderProps {
   userName?: string;
+  avatarUrl?: string;
   isEmergencyActive?: boolean;
 }
 
 export function LifeHeader({
   userName = "Owner",
+  avatarUrl,
   isEmergencyActive = false,
 }: LifeHeaderProps) {
+  const { user } = useUser();
+  const effectiveAvatar = avatarUrl || user?.imageUrl || "";
   const [searchOpen, setSearchOpen] = useState(false);
   const [notifications, setNotifications] = useState<ILifeNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -111,17 +115,17 @@ export function LifeHeader({
         className="sticky top-0 z-30 flex items-center justify-between px-3 sm:px-6 py-2.5 w-full border-b border-border bg-background/85 backdrop-blur-xl transition-colors"
         role="banner"
       >
-        {/* Left: Life Official Logo & Greeting */}
-        <div className="flex items-center gap-3 min-w-0">
+        {/* Left: Life Official Logo & Name */}
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
           <Link
             href="/"
-            className="flex items-center gap-2.5 group min-w-0"
+            className="flex items-center gap-2 sm:gap-2.5 group min-w-0"
             aria-label="Go to Life Home Dashboard"
           >
-            <div className="relative w-9 h-9 group-hover:scale-105 transition-transform shrink-0">
+            <div className="relative w-8 h-8 sm:w-9 sm:h-9 group-hover:scale-105 transition-transform shrink-0">
               <Image
                 src="/assets/images/logo.png"
-                alt="Life Logo"
+                alt="Life VAULT Logo"
                 fill
                 className="object-contain"
                 priority
@@ -130,15 +134,12 @@ export function LifeHeader({
             </div>
             <div className="flex flex-col min-w-0">
               <div className="flex items-center gap-1.5 min-w-0">
-                <span className="text-sm font-extrabold tracking-tight text-foreground shrink-0">
-                  Life
-                </span>
-                <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded bg-[#EEF2FF] text-[#4F46E5] border border-indigo-100/80 shrink-0">
-                  Vault
+                <span className="text-[14px] sm:text-[15px] font-extrabold tracking-tight text-[#1E1B4B] dark:text-white shrink-0">
+                  Life VAULT
                 </span>
               </div>
-              <span className="text-[11px] text-muted-foreground font-medium truncate max-w-[130px] sm:max-w-[200px]">
-                {getGreeting()}, {userName.split(" ")[0]}
+              <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium truncate max-w-[140px] sm:max-w-[200px]">
+                Life Command Center
               </span>
             </div>
           </Link>
@@ -164,26 +165,18 @@ export function LifeHeader({
           <button
             type="button"
             onClick={() => setSearchOpen(true)}
-            className="flex h-9 w-9 md:w-auto items-center justify-center md:justify-start px-0 md:px-3 rounded-xl border border-border bg-card/60 dark:bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted/80 active:scale-95 text-xs font-medium gap-2 transition-all shrink-0 shadow-none"
+            className="flex h-9 w-9 sm:w-auto items-center justify-center sm:justify-start sm:px-3 rounded-xl border border-border bg-card/60 dark:bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted/80 active:scale-95 transition-all shrink-0 gap-1.5"
             aria-label="Open global search (⌘K)"
             title="Quick Search (⌘K)"
           >
             <Search
-              className="w-4 h-4 text-muted-foreground shrink-0"
+              className="w-4 h-4 shrink-0"
               strokeWidth={2}
               aria-hidden="true"
             />
-            <span className="hidden md:inline text-xs text-muted-foreground font-normal">
-              Quick Search...
+            <span className="hidden sm:inline text-xs text-muted-foreground font-normal">
+              Search...
             </span>
-            <kbd className="hidden md:inline-flex items-center gap-0.5 text-[10px] font-semibold bg-muted dark:bg-background/80 px-1.5 py-0.5 rounded-md border border-border text-muted-foreground shrink-0 font-mono">
-              <Command
-                className="w-2.5 h-2.5 shrink-0"
-                strokeWidth={2}
-                aria-hidden="true"
-              />
-              K
-            </kbd>
           </button>
 
           {/* In-App Notifications Bell (§16) */}
@@ -314,37 +307,25 @@ export function LifeHeader({
           <ThemeToggle />
 
           <div className="pl-1 sm:pl-1.5 border-l border-border flex items-center shrink-0">
-            <UserButton
-              afterSwitchSessionUrl="/"
-              userProfileMode="modal"
-              appearance={{
-                elements: {
-                  avatarBox: "w-9 h-9 rounded-xl ring-1 ring-border shadow-xs",
-                  // Backdrop: center on desktop, stretch on mobile (CSS handles full-screen)
-                  modalBackdrop: "items-center justify-center",
-                  // Modal content: full-width mobile via CSS, capped at 900px on desktop
-                  modalContent:
-                    "w-full max-w-[900px] min-h-0 max-h-[90dvh] overflow-hidden rounded-2xl sm:rounded-3xl",
-                  // Inner card: column on mobile, row on desktop
-                  card: "w-full h-full min-h-0 flex flex-col sm:flex-row shadow-none rounded-2xl sm:rounded-3xl overflow-hidden",
-                  // Nav bar: horizontal scroll on mobile, vertical sidebar on desktop
-                  navbar:
-                    "flex flex-row sm:flex-col w-full sm:w-52 sm:min-w-[13rem] border-b sm:border-b-0 sm:border-r border-border bg-muted/30 p-2 sm:p-3 gap-1 overflow-x-auto sm:overflow-x-visible shrink-0",
-                  navbarButton:
-                    "text-xs sm:text-sm whitespace-nowrap shrink-0",
-                  // Scrollable content area
-                  pageScrollBox:
-                    "flex-1 overflow-y-auto p-4 sm:p-6 min-h-0",
-                  page: "w-full",
-                  profileSection: "gap-3",
-                  profileSectionTitle: "text-sm font-semibold",
-                  formFieldLabel: "text-xs font-medium",
-                  formFieldInput: "text-sm h-10",
-                  headerTitle: "text-base sm:text-lg font-bold",
-                  headerSubtitle: "text-xs text-muted-foreground",
-                },
-              }}
-            />
+            <Link
+              href="/profile"
+              className="relative flex items-center justify-center shrink-0 group active:scale-95 transition-transform"
+              aria-label="Open complete profile"
+              title="Open Profile"
+            >
+              {effectiveAvatar ? (
+                <img
+                  src={effectiveAvatar}
+                  alt={userName}
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover ring-2 ring-purple-100 dark:ring-purple-900/40 shadow-xs"
+                />
+              ) : (
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 text-white font-bold flex items-center justify-center text-xs shadow-xs ring-2 ring-purple-100 dark:ring-purple-900/40">
+                  {userName.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-slate-900 shadow-2xs" />
+            </Link>
           </div>
         </div>
       </header>

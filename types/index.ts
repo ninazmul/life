@@ -335,6 +335,8 @@ export interface ILifeAsset {
   relatedBusinessId?: string | ILifeBusiness;
   documents?: string[];
   notes?: string;
+  rentalUnits?: number;
+  monthlyRentalIncome?: number;
   status: "active" | "disposed" | "pledged";
   createdAt: Date | string;
   updatedAt: Date | string;
@@ -656,6 +658,39 @@ export interface LifeDashboardStats {
   pendingActionRequests?: ILifeRequest[];
   /** Released updates requiring acknowledgement (Section 12) */
   releasedUpdates?: ILifeRequest[];
+  /** Live Life Command Center overview summary (Sections 5 & 6) */
+  overviewSummary?: LifeOverviewSummary;
+}
+
+export interface LifeOverviewSummary {
+  totalAssets: number;
+  totalLiabilities: number;
+  netWorth: number;
+  monthlyIncome: number;
+  assetsGrowthPercent?: number;
+  liabilitiesGrowthPercent?: number;
+  netWorthGrowthPercent?: number;
+  monthlyIncomeGrowthPercent?: number;
+  loanOverview: {
+    given: number;
+    received: number;
+    dueThisMonth: number;
+  };
+  businessIncome: {
+    thisMonth: number;
+    lastMonth: number;
+    growthPercent: number;
+  };
+  property: {
+    totalProperties: number;
+    rentalUnits: number;
+    monthlyRent: number;
+  };
+  peopleAndResponsibilities: {
+    totalPeople: number;
+    activeTasks: number;
+    pendingFromOthers: number;
+  };
 }
 
 // ------------------------------------------------------------

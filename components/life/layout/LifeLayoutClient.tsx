@@ -36,6 +36,7 @@ export function LifeLayoutClient({
           {/* Top Header */}
           <LifeHeader
             userName={userName}
+            avatarUrl={userAccess?.avatarUrl}
             isEmergencyActive={isEmergencyActive}
           />
 

@@ -12,6 +12,8 @@ export interface ILifeAssetDoc extends Document {
   relatedBusinessId?: mongoose.Types.ObjectId;
   documents?: string[];
   notes?: string;
+  rentalUnits?: number;
+  monthlyRentalIncome?: number;
   status: "active" | "disposed" | "pledged";
   createdAt: Date;
   updatedAt: Date;
@@ -51,6 +53,8 @@ const LifeAssetSchema = new Schema<ILifeAssetDoc>(
     },
     documents: [{ type: String }],
     notes: { type: String, default: "" },
+    rentalUnits: { type: Number, default: 0 },
+    monthlyRentalIncome: { type: Number, default: 0 },
     status: {
       type: String,
       enum: ["active", "disposed", "pledged"],
