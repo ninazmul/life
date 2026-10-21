@@ -22,6 +22,7 @@ import {
   Scale,
   Users,
   Inbox,
+  FolderKanban,
 } from "lucide-react";
 
 interface LifeVaultMoreSheetProps {
@@ -33,6 +34,7 @@ const MORE_SECTIONS = [
   {
     title: "Life Modules",
     items: [
+      { label: "Life Workspace", href: "/workspace", icon: FolderKanban, desc: "Unified life management" },
       { label: "Money & Debt", href: "/money", icon: Wallet, desc: "Given, taken, investments" },
       { label: "Financial Care", href: "/finance", icon: HeartHandshake, desc: "Allowances & installments" },
       { label: "Business", href: "/business", icon: Briefcase, desc: "Ventures & continuity" },

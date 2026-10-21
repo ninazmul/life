@@ -23,6 +23,7 @@ import {
   NotebookPen,
   PanelLeftClose,
   PanelLeftOpen,
+  FolderKanban,
 } from "lucide-react";
 import { canAccessModule, UserModuleAccess } from "@/lib/life/module-access";
 
@@ -80,6 +81,12 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
           url: "/",
           icon: Home,
           isActive: pathname === "/",
+        },
+        {
+          title: "Life Workspace",
+          url: "/workspace",
+          icon: FolderKanban,
+          isActive: pathname.startsWith("/workspace"),
         },
         {
           title: "People & Access",
