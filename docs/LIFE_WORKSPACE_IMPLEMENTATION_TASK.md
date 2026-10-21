@@ -177,16 +177,27 @@ components/life/layout/LifeVaultMoreSheet.tsx                   -> Mobile more s
 
 ---
 
-## 6. Next Steps & Future Category Rollout Plan
+## 6. Progressive Category Rollout Status
 
-With Phase 1 (Finance & Loans) complete and verified, the next implementation phases can follow the identical workspace shell pattern:
+### ✅ Integrated Categories within Workspace Shell:
+1. **Finance & Loans** (`/workspace?section=core_vault&category=finance_loans`):
+   - Comprehensive ledger engine: Income, Expenses, Loans Given/Taken, Repayments, Support/Gifts, Transfers, Bills.
+   - Contextual summaries in BDT (`৳`), smart Add Record modal, repayment & principal forgiveness.
+2. **Assets & Property** (`/workspace?section=core_vault&category=assets_property`):
+   - Integrated with existing `LifeAsset` models and `AssetsClient`.
+   - Real-time portfolio totals, property records, deeds, and asset management.
+3. **Documents** (`/workspace?section=core_vault&category=documents`):
+   - Integrated with existing `LifeDocument` models and `DocumentsClient`.
+   - Classification tiers (`public`, `internal`, `confidential`, `emergency_only`).
+4. **Business & Ventures** (`/workspace?section=my_spaces&category=business`):
+   - Integrated with existing `LifeBusiness` models and `BusinessClient`.
+   - Venture equity, partner ownership %, and infrastructure handover checklists.
+5. **Responsibilities & Instructions** (`/workspace?section=continuity&category=responsibilities` / `instructions`):
+   - Integrated with existing `LifeResponsibility`, `LifeInstruction` models and `InstructionsClient`.
+   - Operational directives, handover workflows, and assigned duty tracking.
 
-1. **Assets & Property (Phase 2)**:
-   - Connect existing `LifeAsset` model inside `/workspace?section=core_vault&category=assets_property`.
-   - Implement property valuation, deeds, and beneficiary allocations within the unified record list.
-2. **Documents & Legal Papers (Phase 3)**:
-   - Embed `LifeDocument` classification tiers (`public`, `internal`, `confidential`, `emergency_only`).
-3. **Business & Ventures (Phase 4)**:
-   - Surface venture equity, partner checklists, and server handover under `/workspace?section=my_spaces&category=business`.
-4. **Digital Vault (Phase 5)**:
-   - Embed AES-256 encrypted secrets management and scrypt PIN verification inside the workspace shell.
+### ⏳ Remaining Specialized Security Workflows (Under Development / In Roadmap):
+The remaining categories maintain their honest **Under Development** card with 1-tap links to existing modules where applicable:
+- *Core Vault*: **Personal** & **Health** (Medical directives & dossier in `/information`), **Digital Vault** (AES-256 secrets in `/vault`).
+- *Continuity*: **Emergency** (SOS triggers & contacts in `/contacts`), **Access Control** (Guardian consensus in `/access`), **After-Death** (Legacy letters in `/legacy`), **Will & Legal** (Statutory wills in `/documents`).
+- *My Spaces*: **Family Care**, **Kids**, **Staff & Office**, **Projects**, **Community** (Profiles in `/people` and projects in `/instructions`).

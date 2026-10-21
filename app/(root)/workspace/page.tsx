@@ -2,6 +2,11 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getLifeAuthContext } from "@/lib/life/auth";
 import { getPeople } from "@/lib/actions/lifePeople.actions";
+import { getAssets } from "@/lib/actions/lifeAsset.actions";
+import { getDocuments } from "@/lib/actions/lifeDocument.actions";
+import { getBusinesses } from "@/lib/actions/lifeBusiness.actions";
+import { getResponsibilities } from "@/lib/actions/lifeResponsibility.actions";
+import { getInstructions } from "@/lib/actions/lifeInstruction.actions";
 import { LifeWorkspaceClient } from "@/components/life/workspace/LifeWorkspaceClient";
 
 export const dynamic = "force-dynamic";
@@ -21,10 +26,24 @@ interface WorkspacePageProps {
 }
 
 export default async function WorkspacePage({ searchParams }: WorkspacePageProps) {
-  const [authContext, sp, people] = await Promise.all([
+  const [
+    authContext,
+    sp,
+    people,
+    assets,
+    documents,
+    businesses,
+    responsibilities,
+    instructions,
+  ] = await Promise.all([
     getLifeAuthContext(),
     searchParams ? await searchParams : Promise.resolve({} as any),
     getPeople({ status: "active" }),
+    getAssets(),
+    getDocuments(),
+    getBusinesses(),
+    getResponsibilities(),
+    getInstructions(),
   ]);
 
   if (!authContext) {
@@ -50,6 +69,13 @@ export default async function WorkspacePage({ searchParams }: WorkspacePageProps
         initialFilter={filter}
         initialSubFilter={subFilter}
         peopleList={people}
+        assets={assets}
+        documents={documents}
+        businesses={businesses}
+        responsibilities={responsibilities}
+        instructions={instructions}
+        isOwner={Boolean(authContext.isOwner)}
+        isAdmin={Boolean(authContext.isAdmin)}
         currencySymbol="৳"
       />
     </Suspense>

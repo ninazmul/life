@@ -12,7 +12,18 @@ import {
 import { WorkspaceHeader } from "./WorkspaceHeader";
 import { UnderDevelopmentCategory } from "./UnderDevelopmentCategory";
 import { FinanceWorkspace } from "./finance/FinanceWorkspace";
-import { ILifePerson } from "@/types";
+import { AssetsClient } from "@/components/life/assets/AssetsClient";
+import { DocumentsClient } from "@/components/life/documents/DocumentsClient";
+import { BusinessClient } from "@/components/life/business/BusinessClient";
+import { InstructionsClient } from "@/components/life/instructions/InstructionsClient";
+import {
+  ILifePerson,
+  ILifeAsset,
+  ILifeDocument,
+  ILifeBusiness,
+  ILifeResponsibility,
+  ILifeInstruction,
+} from "@/types";
 
 interface LifeWorkspaceClientProps {
   initialSectionId?: string;
@@ -20,6 +31,13 @@ interface LifeWorkspaceClientProps {
   initialFilter?: string;
   initialSubFilter?: string;
   peopleList: ILifePerson[];
+  assets?: ILifeAsset[];
+  documents?: ILifeDocument[];
+  businesses?: ILifeBusiness[];
+  responsibilities?: ILifeResponsibility[];
+  instructions?: ILifeInstruction[];
+  isOwner?: boolean;
+  isAdmin?: boolean;
   currencySymbol?: string;
 }
 
@@ -29,6 +47,13 @@ export function LifeWorkspaceClient({
   initialFilter = "all",
   initialSubFilter,
   peopleList,
+  assets = [],
+  documents = [],
+  businesses = [],
+  responsibilities = [],
+  instructions = [],
+  isOwner = false,
+  isAdmin = false,
   currencySymbol = "৳",
 }: LifeWorkspaceClientProps) {
   const router = useRouter();
@@ -115,13 +140,39 @@ export function LifeWorkspaceClient({
         onSelectCategory={handleSelectCategory}
       />
 
-      {/* 2. Dynamic Content: Category Engine vs Honest Under Development State */}
+      {/* 2. Dynamic Content: Connected Modules vs Category Engine vs Honest Under Development State */}
       {activeCategory.id === "finance_loans" ? (
         <FinanceWorkspace
           initialFilter={queryFilter}
           initialSubFilter={initialSubFilter}
           peopleList={peopleList}
           currencySymbol={currencySymbol}
+        />
+      ) : activeCategory.id === "assets_property" ? (
+        <AssetsClient
+          initialAssets={assets}
+          people={peopleList}
+          businesses={businesses}
+        />
+      ) : activeCategory.id === "documents" ? (
+        <DocumentsClient
+          initialDocuments={documents}
+          people={peopleList}
+          businesses={businesses}
+        />
+      ) : activeCategory.id === "business" ? (
+        <BusinessClient
+          initialBusinesses={businesses}
+          people={peopleList}
+        />
+      ) : activeCategory.id === "responsibilities" || activeCategory.id === "instructions" ? (
+        <InstructionsClient
+          responsibilities={responsibilities}
+          instructions={instructions}
+          people={peopleList}
+          businesses={businesses}
+          isOwner={isOwner}
+          isAdmin={isAdmin}
         />
       ) : (
         <UnderDevelopmentCategory
