@@ -189,15 +189,36 @@ components/life/layout/LifeVaultMoreSheet.tsx                   -> Mobile more s
 3. **Documents** (`/workspace?section=core_vault&category=documents`):
    - Integrated with existing `LifeDocument` models and `DocumentsClient`.
    - Classification tiers (`public`, `internal`, `confidential`, `emergency_only`).
-4. **Business & Ventures** (`/workspace?section=my_spaces&category=business`):
+4. **Personal** (`/workspace?section=core_vault&category=personal`):
+   - Integrated with existing `LifeInformation` models and `InformationClient`.
+   - Personal identity dossier, official IDs & biometrics.
+5. **Health** (`/workspace?section=core_vault&category=health`):
+   - Integrated with existing `LifeInformation` models and `InformationClient`.
+   - Medical directives, prescriptions, allergies & health histories.
+6. **Business & Ventures** (`/workspace?section=my_spaces&category=business`):
    - Integrated with existing `LifeBusiness` models and `BusinessClient`.
    - Venture equity, partner ownership %, and infrastructure handover checklists.
-5. **Responsibilities & Instructions** (`/workspace?section=continuity&category=responsibilities` / `instructions`):
+7. **Family Care, Kids, Staff & Office, Community** (`/workspace?section=my_spaces&category=family_care|kids|staff_office|community`):
+   - Integrated with existing `LifePerson` models and `PeopleClient`.
+   - People directory filtered by category/relation for each life context.
+8. **Projects** (`/workspace?section=my_spaces&category=projects`):
+   - Integrated with existing `LifeResponsibility`, `LifeInstruction` models and `InstructionsClient`.
+   - Personal, technical & commercial initiative tracking.
+9. **Responsibilities & Instructions** (`/workspace?section=continuity&category=responsibilities` / `instructions`):
    - Integrated with existing `LifeResponsibility`, `LifeInstruction` models and `InstructionsClient`.
    - Operational directives, handover workflows, and assigned duty tracking.
+10. **Emergency** (`/workspace?section=continuity&category=emergency`):
+    - Integrated with existing `LifeContact` models and `ContactsClient`.
+    - Emergency contacts, 1-tap Call/WhatsApp/Email triggers.
+11. **After-Death** (`/workspace?section=continuity&category=after_death`):
+    - Integrated with existing `LifeLegacyMessage` models and `LegacyClient`.
+    - Condition-sealed posthumous letters with release triggers.
+12. **Will & Legal** (`/workspace?section=continuity&category=will_legal`):
+    - Integrated with existing `LifeDocument` models and `DocumentsClient`.
+    - Statutory wills, legal trusts & formal guardianship documents.
 
-### ⏳ Remaining Specialized Security Workflows (Under Development / In Roadmap):
-The remaining categories maintain their honest **Under Development** card with 1-tap links to existing modules where applicable:
-- *Core Vault*: **Personal** & **Health** (Medical directives & dossier in `/information`), **Digital Vault** (AES-256 secrets in `/vault`).
-- *Continuity*: **Emergency** (SOS triggers & contacts in `/contacts`), **Access Control** (Guardian consensus in `/access`), **After-Death** (Legacy letters in `/legacy`), **Will & Legal** (Statutory wills in `/documents`).
-- *My Spaces*: **Family Care**, **Kids**, **Staff & Office**, **Projects**, **Community** (Profiles in `/people` and projects in `/instructions`).
+### ⏳ Remaining Specialized Security Workflows (Under Development):
+Only **2 of 18** categories remain under development with honest Under Development cards and 1-tap fallback links:
+- *Core Vault*: **Digital Vault** — Requires Master PIN encryption gate and AES-256 vault UI (`/vault`).
+- *Continuity*: **Access Control** — Requires guardian consensus triggers, permissions grid, and emergency switch (`/access`).
+
