@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Toaster } from "react-hot-toast";
 import { getLifeAuthContext } from "@/lib/life/auth";
 import { getEmergencyAccessState } from "@/lib/actions/lifeAccess.actions";
+import { getPeopleCount } from "@/lib/actions/lifePeople.actions";
 import { LifeLayoutClient } from "@/components/life/layout/LifeLayoutClient";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +19,10 @@ export default async function RootLayout({
   const authContext = await getLifeAuthContext();
   if (!authContext) redirect("/access-denied");
 
-  const emergencyState = await getEmergencyAccessState();
+  const [emergencyState, peopleCount] = await Promise.all([
+    getEmergencyAccessState(),
+    getPeopleCount(),
+  ]);
 
   return (
     <>
@@ -32,6 +36,7 @@ export default async function RootLayout({
       <LifeLayoutClient
         userName={authContext?.name || "Owner"}
         isEmergencyActive={emergencyState?.isEmergencyActive || false}
+        peopleCount={peopleCount}
         userAccess={{
           isOwner: authContext.isOwner,
           isAdmin: authContext.isAdmin,

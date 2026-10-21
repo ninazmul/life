@@ -22,10 +22,5 @@ export default async function ProfilePage() {
     redirect("/");
   }
 
-  return (
-    <>
-      <ProfileClient initialData={profileRes.data} />
-      <LifeVaultBottomNav peopleCount={peopleCount} />
-    </>
-  );
+  return <ProfileClient initialData={profileRes.data} />;
 }

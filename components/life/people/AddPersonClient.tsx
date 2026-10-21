@@ -195,9 +195,9 @@ export function AddPersonClient({
   };
 
   return (
-    <div className={`w-full ${isModal ? "p-4 sm:p-6" : "max-w-2xl mx-auto pb-24 pt-2 sm:pt-4 px-3 sm:px-6"}`}>
+    <div className={`w-full ${isModal ? "p-1 sm:p-2" : "max-w-2xl mx-auto pb-24 pt-2 sm:pt-4 px-3 sm:px-6"}`}>
       {/* Top Header */}
-      {!isModal && (
+      {!isModal ? (
         <div className="mb-5 sm:mb-6">
           <button
             type="button"
@@ -214,10 +214,24 @@ export function AddPersonClient({
             Create a contact or invite a user to Life VAULT
           </p>
         </div>
+      ) : (
+        <div className="flex items-center justify-between pb-3 mb-2 border-b border-slate-100">
+          <div>
+            <h2 className="text-lg font-bold text-[#1E1B4B]">Add Person</h2>
+            <p className="text-xs text-slate-500 font-medium">Create a contact or invite a user to Life VAULT</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleBack}
+            className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       )}
 
-      {/* Main Form Card */}
-      <div className="bg-white rounded-3xl p-5 sm:p-7 border border-slate-100 shadow-[0_2px_12px_rgba(30,27,75,0.04)] space-y-5">
+      {/* Main Form Content */}
+      <div className={isModal ? "space-y-4 pt-1" : "bg-white rounded-3xl p-5 sm:p-7 border border-slate-100 shadow-[0_2px_12px_rgba(30,27,75,0.04)] space-y-5"}>
         {/* Profile Photo Section */}
         <div className="flex items-center gap-4 sm:gap-5 pb-1">
           <div className="relative group shrink-0">

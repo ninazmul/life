@@ -60,12 +60,12 @@ export function LifeVaultBottomNav({ peopleCount = 0 }: LifeVaultBottomNavProps)
                     strokeWidth={isActive ? 2.4 : 1.9}
                     aria-hidden="true"
                   />
-                  {item.label === "People" && (
+                  {item.label === "People" && typeof peopleCount === "number" && (
                     <span
                       className="absolute -top-1 -right-3 px-1 py-[0.5px] min-w-[15px] text-[9px] font-bold leading-none rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/90 dark:border-slate-700 text-center shadow-2xs"
-                      aria-label={`${peopleCount || 12} people registered`}
+                      aria-label={`${peopleCount} people registered`}
                     >
-                      {peopleCount > 0 ? peopleCount : 12}
+                      {peopleCount}
                     </span>
                   )}
                 </div>

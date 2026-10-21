@@ -217,14 +217,13 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
         </div>
 
         {/* + Add Person Button */}
-        <button
-          type="button"
-          onClick={() => setAddModalOpen(true)}
+        <Link
+          href="/people/new"
           className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl bg-[#6366F1] hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs sm:text-sm shadow-xs transition-all cursor-pointer shrink-0"
         >
           <Plus className="w-4 h-4" strokeWidth={2.4} />
           <span>Add Person</span>
-        </button>
+        </Link>
       </div>
 
       {/* ── Category Filter Tabs ── */}
@@ -370,14 +369,13 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
                 Clear Filters
               </button>
             ) : (
-              <button
-                type="button"
-                onClick={() => setAddModalOpen(true)}
+              <Link
+                href="/people/new"
                 className="inline-flex items-center gap-1.5 h-8.5 px-3.5 rounded-xl bg-[#6366F1] hover:bg-indigo-700 active:scale-95 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" strokeWidth={2.4} />
                 <span>Add Person</span>
-              </button>
+              </Link>
             )}
           </div>
         ) : (
@@ -463,14 +461,12 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
 
       {/* ── Add Person Dialog Modal ── */}
       <Dialog open={addModalOpen} onOpenChange={setAddModalOpen}>
-        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto p-0 border-0 rounded-3xl">
-          <div className="p-1 sm:p-2">
-            <AddPersonClient
-              isModal
-              onSuccess={handlePersonAdded}
-              onCancel={() => setAddModalOpen(false)}
-            />
-          </div>
+        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto p-5 rounded-3xl bg-white border border-slate-100 shadow-xl">
+          <AddPersonClient
+            isModal
+            onSuccess={handlePersonAdded}
+            onCancel={() => setAddModalOpen(false)}
+          />
         </DialogContent>
       </Dialog>
     </div>

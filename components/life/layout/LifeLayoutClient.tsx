@@ -11,6 +11,7 @@ interface LifeLayoutClientProps {
   children: React.ReactNode;
   userName?: string;
   isEmergencyActive?: boolean;
+  peopleCount?: number;
   userAccess: UserModuleAccess;
 }
 
@@ -18,6 +19,7 @@ export function LifeLayoutClient({
   children,
   userName = "Owner",
   isEmergencyActive = false,
+  peopleCount,
   userAccess,
 }: LifeLayoutClientProps) {
   const pathname = usePathname();
@@ -54,7 +56,7 @@ export function LifeLayoutClient({
           </main>
 
           {/* Mobile Native Bottom Navigation — Always visible on mobile */}
-          <LifeVaultBottomNav />
+          <LifeVaultBottomNav peopleCount={peopleCount} />
         </div>
       </div>
     </PWAProvider>

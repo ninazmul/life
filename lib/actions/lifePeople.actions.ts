@@ -1131,3 +1131,26 @@ export async function removeSupportRole(
   }
 }
 
+export async function getPeopleCount(): Promise<number> {
+  await connectToDatabase();
+  const auth = await getLifeAuthContext();
+  if (!auth) return 0;
+
+  const query: Record<string, unknown> = {
+    status: { $ne: "archived" },
+    isDeleted: { $ne: true },
+  };
+
+  if (!auth.isOwner && !auth.isAdmin) {
+    const allowedIds: string[] = [];
+    if (auth.personId) allowedIds.push(String(auth.personId));
+    if (auth.permissions?.allowedPersonIds?.length) {
+      allowedIds.push(...auth.permissions.allowedPersonIds.map(String));
+    }
+    if (allowedIds.length === 0) return 0;
+    query._id = { $in: allowedIds };
+  }
+
+  return LifePerson.countDocuments(query);
+}
+
