@@ -20,14 +20,8 @@ import {
   Siren,
   Sprout,
   HeartPulse,
-  UserPlus,
-  FilePlus,
-  BarChart3,
-  History,
-  Sliders,
   Home,
   Database,
-  Zap,
   PieChart,
   Coins,
   Crown,
@@ -35,8 +29,17 @@ import {
   MapPin,
   Sun,
   HandCoins,
-  MessageSquare,
   Sparkles,
+  ShieldCheck,
+  Lock,
+  Baby,
+  FolderKanban,
+  Globe2,
+  UserCog,
+  Fingerprint,
+  AlertTriangle,
+  ScrollText,
+  X,
 } from "lucide-react";
 import { LifeDashboardStats } from "@/types";
 import { UserModuleAccess } from "@/lib/life/module-access";
@@ -108,7 +111,6 @@ export function LifeVaultDashboard({
   const badges = stats.dashboardBadges;
   const profile = stats.ownerProfile;
   const pendingRequests = stats.pendingActionRequests || [];
-  const releasedUpdates = stats.releasedUpdates || [];
   const symbol = stats.currencySymbol || "৳";
 
   // Search dialog state
@@ -116,7 +118,7 @@ export function LifeVaultDashboard({
 
   // Master Navigation active dropdown: only one open at a time
   const [activeDropdown, setActiveDropdown] = useState<
-    "spaces" | "vault" | "actions" | "more" | null
+    "spaces" | "vault" | "continuity" | null
   >(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -146,8 +148,8 @@ export function LifeVaultDashboard({
   }, []);
 
   // Resolve user display name
-  const rawName = profile?.name || userAccess?.name || "Saurav";
-  const firstName = rawName.split(" ")[0] || "Saurav";
+  const rawName = profile?.name || userAccess?.name || "Owner";
+  const firstName = rawName.split(" ")[0] || "Owner";
 
   // Dynamic greeting based on current hour
   const getGreetingText = () => {
@@ -171,19 +173,10 @@ export function LifeVaultDashboard({
     totalLiabilities: stats.payablesTotal || 0,
     netWorth: Math.max(0, (stats.assetsTotalValue || 0) - (stats.payablesTotal || 0)),
     monthlyIncome: stats.gesnSummary?.totalIncome || 0,
-    assetsGrowthPercent: 3,
-    liabilitiesGrowthPercent: 5,
-    netWorthGrowthPercent: 4,
-    monthlyIncomeGrowthPercent: 17,
     loanOverview: {
       given: stats.moneyGivenRemaining || stats.moneyGivenTotal || 0,
       received: stats.moneyTakenRemaining || stats.moneyTakenTotal || 0,
       dueThisMonth: 0,
-    },
-    businessIncome: {
-      thisMonth: stats.gesnSummary?.totalIncome || 0,
-      lastMonth: 0,
-      growthPercent: 17,
     },
     property: {
       totalProperties: 0,
@@ -197,148 +190,189 @@ export function LifeVaultDashboard({
     },
   };
 
+  // ── Notes/Requests/Duties badge counts ──
+  const notesCount = badges?.notesCount ?? 0;
+  const requestsCount = (pendingRequests.length > 0 ? pendingRequests.length : badges?.requestsCount ?? 0);
+  const dutiesCount = stats.pendingResponsibilitiesCount ?? 0;
+
   // ── Master Navigation Menu Definitions ──
+  // 6.1 My Spaces — 6 Sections
   const mySpacesItems = [
     {
       title: "Family Care",
-      desc: "Medical directives & personal records",
+      desc: "Family members, relationships & care",
       icon: Users,
       href: "/information",
       color: "text-[#6366F1] bg-[#EEF2FF] dark:bg-indigo-950/40",
     },
     {
-      title: "Business",
-      desc: "Ventures, partners & equity handover",
-      icon: Briefcase,
-      href: "/business",
+      title: "Kids",
+      desc: "Children's info, education & planning",
+      icon: Baby,
+      href: "/people",
+      color: "text-[#EC4899] bg-[#FCE7F3] dark:bg-pink-950/40",
+    },
+    {
+      title: "Staff & Office",
+      desc: "Employees, office operations",
+      icon: UserCog,
+      href: "/people",
       color: "text-[#0284C7] bg-[#E0F2FE] dark:bg-sky-950/40",
     },
     {
-      title: "Responsibilities",
-      desc: "Delegated tasks & directives",
-      icon: ClipboardCheck,
-      href: "/instructions",
+      title: "Business",
+      desc: "Ventures, partners & operations",
+      icon: Briefcase,
+      href: "/business",
       color: "text-[#16A34A] bg-[#DCFCE7] dark:bg-emerald-950/40",
     },
     {
-      title: "Emergency",
-      desc: "Immediate contacts & protocols",
-      icon: Siren,
-      href: "/contacts",
-      color: "text-[#DC2626] bg-[#FEE2E2] dark:bg-red-950/40",
+      title: "Projects",
+      desc: "Personal & business projects",
+      icon: FolderKanban,
+      href: "/instructions",
+      color: "text-[#D97706] bg-[#FEF3C7] dark:bg-amber-950/40",
     },
     {
-      title: "Legacy",
-      desc: "Condition-sealed legacy letters",
-      icon: Sprout,
-      href: "/legacy",
-      color: "text-[#E11D48] bg-[#FFE4E6] dark:bg-rose-950/40",
-    },
-    {
-      title: "Legal & Guidance",
-      desc: "Wills, deeds & legal contracts",
-      icon: Scale,
-      href: "/documents",
-      color: "text-[#4338CA] bg-[#E0E7FF] dark:bg-indigo-950/40",
+      title: "Community",
+      desc: "Social relationships & activities",
+      icon: Globe2,
+      href: "/people",
+      color: "text-[#7C3AED] bg-[#F3E8FF] dark:bg-purple-950/40",
     },
   ];
 
+  // 6.2 Core Vault — 6 Sections
   const coreVaultItems = [
     {
+      title: "Personal",
+      desc: "Personal identity & essential info",
+      icon: Fingerprint,
+      href: "/information",
+      color: "text-[#6366F1] bg-[#EEF2FF] dark:bg-indigo-950/40",
+    },
+    {
       title: "Health",
-      desc: "Medical dossier & emergency directives",
+      desc: "Medical info, medications & records",
       icon: HeartPulse,
       href: "/information",
       color: "text-[#DC2626] bg-[#FEE2E2] dark:bg-red-950/40",
     },
     {
-      title: "Finance",
-      desc: "Dependent care & installment plans",
+      title: "Finance & Loans",
+      desc: "Income, expenses, loans & payables",
       icon: Wallet,
       href: "/finance",
       color: "text-[#16A34A] bg-[#DCFCE7] dark:bg-emerald-950/40",
     },
     {
-      title: "Assets",
-      desc: "Physical & digital asset portfolio",
+      title: "Assets & Property",
+      desc: "Land, houses & personal assets",
       icon: Landmark,
       href: "/assets",
       color: "text-[#0284C7] bg-[#E0F2FE] dark:bg-sky-950/40",
     },
     {
       title: "Documents",
-      desc: "Critical classified files & deeds",
+      desc: "Legal papers, certificates & files",
       icon: FileText,
       href: "/documents",
       color: "text-[#4338CA] bg-[#E0E7FF] dark:bg-indigo-950/40",
     },
-  ];
-
-  const quickActionItems = [
     {
-      title: "Add Note",
-      desc: "Create secret, scheduled or standard note",
-      icon: NotebookPen,
-      href: "/lifenote",
+      title: "Digital Vault",
+      desc: "Digital accounts & secure records",
+      icon: Lock,
+      href: "/vault",
       color: "text-[#7C3AED] bg-[#F3E8FF] dark:bg-purple-950/40",
     },
+  ];
+
+  // 6.3 Continuity — 6 Sections
+  const continuityItems = [
     {
-      title: "Add Task",
-      desc: "Assign handover task or directive",
-      icon: CheckSquare,
+      title: "Responsibilities",
+      desc: "Assign & monitor delegated duties",
+      icon: ClipboardCheck,
       href: "/instructions",
       color: "text-[#16A34A] bg-[#DCFCE7] dark:bg-emerald-950/40",
     },
     {
-      title: "Add Expense",
-      desc: "Record debt, loan or financial record",
-      icon: Wallet,
-      href: "/money",
-      color: "text-[#D97706] bg-[#FEF3C7] dark:bg-amber-950/40",
-    },
-    {
-      title: "Add Person",
-      desc: "Register trusted contact or family member",
-      icon: UserPlus,
-      href: "/people",
+      title: "Instructions",
+      desc: "Important instructions for people",
+      icon: ScrollText,
+      href: "/instructions",
       color: "text-[#0284C7] bg-[#E0F2FE] dark:bg-sky-950/40",
     },
     {
-      title: "Add Document",
-      desc: "Upload and classify critical legal document",
-      icon: FilePlus,
+      title: "Emergency",
+      desc: "Emergency contacts & procedures",
+      icon: Siren,
+      href: "/contacts",
+      color: "text-[#DC2626] bg-[#FEE2E2] dark:bg-red-950/40",
+    },
+    {
+      title: "Access Control",
+      desc: "Manage who can access information",
+      icon: ShieldCheck,
+      href: "/access",
+      color: "text-[#D97706] bg-[#FEF3C7] dark:bg-amber-950/40",
+    },
+    {
+      title: "After-Death",
+      desc: "Posthumous instructions & handover",
+      icon: Sprout,
+      href: "/legacy",
+      color: "text-[#E11D48] bg-[#FFE4E6] dark:bg-rose-950/40",
+    },
+    {
+      title: "Will & Legal",
+      desc: "Wills, guardianship & legal plans",
+      icon: Scale,
       href: "/documents",
       color: "text-[#4338CA] bg-[#E0E7FF] dark:bg-indigo-950/40",
     },
   ];
 
-  const moreItems = [
-    {
-      title: "Reports",
-      desc: "Live accounting & business financial summary",
-      icon: BarChart3,
-      href: "/business",
-      color: "text-[#0284C7] bg-[#E0F2FE] dark:bg-sky-950/40",
-    },
-    {
-      title: "Activity History",
-      desc: "Tamper-evident system audit log",
-      icon: History,
-      href: "/activity",
-      color: "text-[#6366F1] bg-[#EEF2FF] dark:bg-indigo-950/40",
-    },
-    {
-      title: "Additional Tools",
-      desc: "Master PIN, vault security & system export",
-      icon: Sliders,
-      href: "/settings",
-      color: "text-[#475569] bg-slate-100 dark:bg-slate-800",
-    },
-  ];
-
-  const handleDropdownToggle = (key: "spaces" | "vault" | "actions" | "more") => {
+  const handleDropdownToggle = (key: "spaces" | "vault" | "continuity") => {
     setActiveDropdown((prev) => (prev === key ? null : key));
   };
+
+  const activeItems =
+    activeDropdown === "spaces"
+      ? mySpacesItems
+      : activeDropdown === "vault"
+        ? coreVaultItems
+        : activeDropdown === "continuity"
+          ? continuityItems
+          : [];
+
+  const activeLabel =
+    activeDropdown === "spaces"
+      ? "My Spaces — 6 Areas"
+      : activeDropdown === "vault"
+        ? "Core Vault — 6 Sections"
+        : activeDropdown === "continuity"
+          ? "Continuity — 6 Sections"
+          : "";
+
+  const activeHoverColor =
+    activeDropdown === "spaces"
+      ? "hover:bg-[#FFF2F2] dark:hover:bg-rose-950/30"
+      : activeDropdown === "vault"
+        ? "hover:bg-[#E8F8F0] dark:hover:bg-emerald-950/30"
+        : "hover:bg-[#EEF2FF] dark:hover:bg-indigo-950/30";
+
+  const activeTextHover =
+    activeDropdown === "spaces"
+      ? "group-hover:text-rose-700"
+      : activeDropdown === "vault"
+        ? "group-hover:text-emerald-700"
+        : "group-hover:text-purple-700";
+
+  // ── Live Overview data — 6 cards ──
+  const loansGiven = overview.loanOverview?.given ?? stats.moneyGivenRemaining ?? 0;
+  const propertyCount = overview.property?.totalProperties ?? 0;
 
   return (
     <div className="lv-dashboard w-full min-h-[calc(100vh-4rem)] text-slate-800 dark:text-slate-100 transition-colors">
@@ -371,13 +405,20 @@ export function LifeVaultDashboard({
         .scrollbar-thin::-webkit-scrollbar-thumb:hover {
           background: rgba(139, 92, 246, 0.8);
         }
+        @keyframes lv-slide-down {
+          from { opacity: 0; transform: translateY(-8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .lv-dropdown-enter {
+          animation: lv-slide-down 0.2s ease-out forwards;
+        }
       `}</style>
 
       {/* Main Container — Samsung Galaxy S25 Ultra Mobile-First */}
       <div className="w-full max-w-5xl mx-auto space-y-3 sm:space-y-3.5">
 
         {/* ══════════════════════════════════════════════════
-            2. WELCOME & LIVE UPDATES SECTION (SLIM PREMIUM)
+            1. WELCOME HERO SECTION (COMPACT)
         ══════════════════════════════════════════════════ */}
         <section
           className="relative overflow-hidden rounded-3xl p-4 sm:p-5 border border-white/80 dark:border-purple-900/40 shadow-[0_4px_24px_rgba(124,58,237,0.06)] transition-all"
@@ -464,12 +505,12 @@ export function LifeVaultDashboard({
             </div>
           </div>
 
-          {/* Four Compact Transparent Glass Buttons — horizontally scrollable on mobile with scrollbar */}
-          <div className="relative z-10 flex overflow-x-auto pb-2 pt-0.5 gap-2 mt-4 sm:grid sm:grid-cols-4 sm:overflow-visible scrollbar-thin">
-            {/* 1. Notes */}
+          {/* ── Smart Information Cards: Notes | Requests | Duties ── */}
+          <div className="relative z-10 grid grid-cols-3 gap-2 mt-3.5">
+            {/* Notes */}
             <Link
               href="/lifenote"
-              className="min-w-[110px] sm:min-w-0 flex-1 shrink-0 bg-white/80 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-900 backdrop-blur-md rounded-2xl py-2.5 px-3 flex items-center justify-center gap-2 border border-white/90 dark:border-slate-800 shadow-xs hover:shadow-sm active:scale-95 transition-all text-center relative group cursor-pointer"
+              className="bg-white/80 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-900 backdrop-blur-md rounded-2xl py-2.5 px-3 flex items-center justify-center gap-2 border border-white/90 dark:border-slate-800 shadow-xs hover:shadow-sm active:scale-95 transition-all text-center relative group cursor-pointer"
               aria-label="Open Notes"
             >
               <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-purple-500 to-indigo-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
@@ -478,36 +519,18 @@ export function LifeVaultDashboard({
               <span className="text-[11px] sm:text-[12px] font-bold text-[#1E1B4B] dark:text-slate-200 whitespace-nowrap">
                 Notes
               </span>
-              {(badges?.notesCount ?? 0) > 0 && (
+              <ChevronRight className="w-3 h-3 text-slate-400 shrink-0" />
+              {notesCount > 0 && (
                 <span className="absolute -top-1 -right-1 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-[#EF4444] text-white text-[9px] font-bold shadow-xs">
-                  {badges?.notesCount}
+                  {notesCount}
                 </span>
               )}
             </Link>
 
-            {/* 2. Messages */}
+            {/* Requests */}
             <Link
               href="/requests"
-              className="min-w-[110px] sm:min-w-0 flex-1 shrink-0 bg-white/80 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-900 backdrop-blur-md rounded-2xl py-2.5 px-3 flex items-center justify-center gap-2 border border-white/90 dark:border-slate-800 shadow-xs hover:shadow-sm active:scale-95 transition-all text-center relative group cursor-pointer"
-              aria-label="Open Messages"
-            >
-              <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-blue-500 to-sky-400 text-white flex items-center justify-center shrink-0 shadow-2xs">
-                <MessageSquare className="w-3.5 h-3.5" />
-              </div>
-              <span className="text-[11px] sm:text-[12px] font-bold text-[#1E1B4B] dark:text-slate-200 whitespace-nowrap">
-                Messages
-              </span>
-              {(badges?.messagesCount ?? 0) > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-[#EF4444] text-white text-[9px] font-bold shadow-xs">
-                  {badges?.messagesCount}
-                </span>
-              )}
-            </Link>
-
-            {/* 3. Requests */}
-            <Link
-              href="/requests"
-              className="min-w-[110px] sm:min-w-0 flex-1 shrink-0 bg-white/80 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-900 backdrop-blur-md rounded-2xl py-2.5 px-3 flex items-center justify-center gap-2 border border-white/90 dark:border-slate-800 shadow-xs hover:shadow-sm active:scale-95 transition-all text-center relative group cursor-pointer"
+              className="bg-white/80 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-900 backdrop-blur-md rounded-2xl py-2.5 px-3 flex items-center justify-center gap-2 border border-white/90 dark:border-slate-800 shadow-xs hover:shadow-sm active:scale-95 transition-all text-center relative group cursor-pointer"
               aria-label="Open Requests"
             >
               <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
@@ -516,28 +539,30 @@ export function LifeVaultDashboard({
               <span className="text-[11px] sm:text-[12px] font-bold text-[#1E1B4B] dark:text-slate-200 whitespace-nowrap">
                 Requests
               </span>
-              {(pendingRequests.length > 0 || (badges?.requestsCount ?? 0) > 0) && (
+              <ChevronRight className="w-3 h-3 text-slate-400 shrink-0" />
+              {requestsCount > 0 && (
                 <span className="absolute -top-1 -right-1 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-[#EF4444] text-white text-[9px] font-bold shadow-xs">
-                  {pendingRequests.length || badges?.requestsCount}
+                  {requestsCount}
                 </span>
               )}
             </Link>
 
-            {/* 4. Updates */}
+            {/* Duties */}
             <Link
-              href="/requests"
-              className="min-w-[110px] sm:min-w-0 flex-1 shrink-0 bg-white/80 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-900 backdrop-blur-md rounded-2xl py-2.5 px-3 flex items-center justify-center gap-2 border border-white/90 dark:border-slate-800 shadow-xs hover:shadow-sm active:scale-95 transition-all text-center relative group cursor-pointer"
-              aria-label="Open Updates"
+              href="/instructions"
+              className="bg-white/80 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-900 backdrop-blur-md rounded-2xl py-2.5 px-3 flex items-center justify-center gap-2 border border-white/90 dark:border-slate-800 shadow-xs hover:shadow-sm active:scale-95 transition-all text-center relative group cursor-pointer"
+              aria-label="Open Duties"
             >
-              <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-indigo-500 to-slate-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
-                <Briefcase className="w-3.5 h-3.5" />
+              <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                <CheckSquare className="w-3.5 h-3.5" />
               </div>
               <span className="text-[11px] sm:text-[12px] font-bold text-[#1E1B4B] dark:text-slate-200 whitespace-nowrap">
-                Updates
+                Duties
               </span>
-              {releasedUpdates.length > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-emerald-500 text-white text-[9px] font-bold shadow-xs">
-                  {releasedUpdates.length}
+              <ChevronRight className="w-3 h-3 text-slate-400 shrink-0" />
+              {dutiesCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-[#EF4444] text-white text-[9px] font-bold shadow-xs">
+                  {dutiesCount}
                 </span>
               )}
             </Link>
@@ -545,17 +570,32 @@ export function LifeVaultDashboard({
         </section>
 
         {/* ══════════════════════════════════════════════════
-            3. MASTER NAVIGATION — FOUR BUTTONS WITH DROPDOWNS
+            2. MAIN SECTIONS — My Spaces, Core Vault, Continuity
         ══════════════════════════════════════════════════ */}
         <div className="relative" ref={dropdownRef}>
-          <div className="flex overflow-x-auto pb-2.5 pt-0.5 gap-2 sm:gap-2.5 sm:grid sm:grid-cols-4 sm:overflow-visible scrollbar-thin">
-            {/* Button 1: My Spaces */}
+          {/* Section Header */}
+          <div className="flex items-center justify-between px-1 mb-2">
+            <h2 className="text-[15px] sm:text-[16px] font-bold text-[#1E1B4B] dark:text-white">
+              Main Sections
+            </h2>
+            <Link
+              href="/guide"
+              className="text-[12px] font-bold text-[#4F46E5] hover:text-indigo-700 dark:text-indigo-400 flex items-center gap-0.5 transition-colors"
+            >
+              View All
+              <ChevronRight className="w-3.5 h-3.5" strokeWidth={2.4} />
+            </Link>
+          </div>
+
+          {/* Three Primary Cards — equal width row */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
+            {/* Card 1: My Spaces */}
             <button
               type="button"
               onClick={() => handleDropdownToggle("spaces")}
-              className={`min-w-[130px] sm:min-w-0 flex-1 shrink-0 rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 text-center border transition-all duration-200 flex flex-col items-center justify-center gap-1 cursor-pointer active:scale-95 shadow-xs ${
+              className={`rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 text-center border transition-all duration-200 flex flex-col items-center justify-center gap-1 cursor-pointer active:scale-95 shadow-xs ${
                 activeDropdown === "spaces"
-                  ? "bg-[#FFE8E8] dark:bg-rose-950/60 border-rose-300 dark:border-rose-700 shadow-sm"
+                  ? "bg-[#FFE8E8] dark:bg-rose-950/60 border-rose-300 dark:border-rose-700 shadow-sm ring-1 ring-rose-200 dark:ring-rose-800"
                   : "bg-[#FFF2F2]/90 hover:bg-[#FFEAEB] dark:bg-rose-950/30 border-rose-100/90 dark:border-rose-900/40"
               }`}
               aria-expanded={activeDropdown === "spaces"}
@@ -579,17 +619,17 @@ export function LifeVaultDashboard({
               />
             </button>
 
-            {/* Button 2: Core Vault */}
+            {/* Card 2: Core Vault */}
             <button
               type="button"
               onClick={() => handleDropdownToggle("vault")}
-              className={`min-w-[130px] sm:min-w-0 flex-1 shrink-0 rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 text-center border transition-all duration-200 flex flex-col items-center justify-center gap-1 cursor-pointer active:scale-95 shadow-xs ${
+              className={`rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 text-center border transition-all duration-200 flex flex-col items-center justify-center gap-1 cursor-pointer active:scale-95 shadow-xs ${
                 activeDropdown === "vault"
-                  ? "bg-[#D8F5E5] dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700 shadow-sm"
+                  ? "bg-[#D8F5E5] dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700 shadow-sm ring-1 ring-emerald-200 dark:ring-emerald-800"
                   : "bg-[#EAFBF2]/90 hover:bg-[#DEF7E9] dark:bg-emerald-950/30 border-emerald-100/90 dark:border-emerald-900/40"
               }`}
               aria-expanded={activeDropdown === "vault"}
-              aria-label="Core Vault dropdown (4 sections)"
+              aria-label="Core Vault dropdown (6 sections)"
             >
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-300 flex items-center justify-center shrink-0">
                 <Database className="w-4 h-4 sm:w-4.5 sm:h-4.5" strokeWidth={2.2} />
@@ -599,7 +639,7 @@ export function LifeVaultDashboard({
                   Core Vault
                 </span>
                 <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block mt-0.5 truncate leading-none">
-                  4 sections
+                  6 sections
                 </span>
               </div>
               <ChevronDown
@@ -609,62 +649,32 @@ export function LifeVaultDashboard({
               />
             </button>
 
-            {/* Button 3: Quick Actions */}
+            {/* Card 3: Continuity */}
             <button
               type="button"
-              onClick={() => handleDropdownToggle("actions")}
-              className={`min-w-[130px] sm:min-w-0 flex-1 shrink-0 rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 text-center border transition-all duration-200 flex flex-col items-center justify-center gap-1 cursor-pointer active:scale-95 shadow-xs ${
-                activeDropdown === "actions"
-                  ? "bg-[#FFE8CC] dark:bg-amber-950/60 border-amber-300 dark:border-amber-700 shadow-sm"
-                  : "bg-[#FFF6EA]/90 hover:bg-[#FFEFD9] dark:bg-amber-950/30 border-amber-100/90 dark:border-amber-900/40"
+              onClick={() => handleDropdownToggle("continuity")}
+              className={`rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 text-center border transition-all duration-200 flex flex-col items-center justify-center gap-1 cursor-pointer active:scale-95 shadow-xs ${
+                activeDropdown === "continuity"
+                  ? "bg-[#E8E0FF] dark:bg-purple-950/60 border-purple-300 dark:border-purple-700 shadow-sm ring-1 ring-purple-200 dark:ring-purple-800"
+                  : "bg-[#F3EDFF]/90 hover:bg-[#ECE5FF] dark:bg-purple-950/30 border-purple-100/90 dark:border-purple-900/40"
               }`}
-              aria-expanded={activeDropdown === "actions"}
-              aria-label="Quick Actions dropdown (5 actions)"
+              aria-expanded={activeDropdown === "continuity"}
+              aria-label="Continuity dropdown (6 sections)"
             >
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-600 dark:text-amber-300 flex items-center justify-center shrink-0">
-                <Zap className="w-4 h-4 sm:w-4.5 sm:h-4.5" strokeWidth={2.2} />
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-purple-100 dark:bg-purple-900/60 text-purple-600 dark:text-purple-300 flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-4 h-4 sm:w-4.5 sm:h-4.5" strokeWidth={2.2} />
               </div>
               <div className="min-w-0 w-full">
                 <span className="text-[12px] sm:text-[13px] font-bold text-[#1E1B4B] dark:text-white block truncate leading-tight">
-                  Quick Actions
+                  Continuity
                 </span>
                 <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block mt-0.5 truncate leading-none">
-                  5 actions
+                  6 sections
                 </span>
               </div>
               <ChevronDown
                 className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
-                  activeDropdown === "actions" ? "rotate-180 text-amber-600" : ""
-                }`}
-              />
-            </button>
-
-            {/* Button 4: More */}
-            <button
-              type="button"
-              onClick={() => handleDropdownToggle("more")}
-              className={`min-w-[130px] sm:min-w-0 flex-1 shrink-0 rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 text-center border transition-all duration-200 flex flex-col items-center justify-center gap-1 cursor-pointer active:scale-95 shadow-xs ${
-                activeDropdown === "more"
-                  ? "bg-[#D9EAFE] dark:bg-sky-950/60 border-sky-300 dark:border-sky-700 shadow-sm"
-                  : "bg-[#EDF5FF]/90 hover:bg-[#E2F0FE] dark:bg-sky-950/30 border-sky-100/90 dark:border-sky-900/40"
-              }`}
-              aria-expanded={activeDropdown === "more"}
-              aria-label="More dropdown (Reports & Tools)"
-            >
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-sky-100 dark:bg-sky-900/60 text-sky-600 dark:text-sky-300 flex items-center justify-center shrink-0">
-                <BarChart3 className="w-4 h-4 sm:w-4.5 sm:h-4.5" strokeWidth={2.2} />
-              </div>
-              <div className="min-w-0 w-full">
-                <span className="text-[12px] sm:text-[13px] font-bold text-[#1E1B4B] dark:text-white block truncate leading-tight">
-                  More
-                </span>
-                <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block mt-0.5 truncate leading-none">
-                  Reports & Tools
-                </span>
-              </div>
-              <ChevronDown
-                className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
-                  activeDropdown === "more" ? "rotate-180 text-sky-600" : ""
+                  activeDropdown === "continuity" ? "rotate-180 text-purple-600" : ""
                 }`}
               />
             </button>
@@ -672,141 +682,53 @@ export function LifeVaultDashboard({
 
           {/* ── Expandable Dropdown Container (Only ONE active at a time) ── */}
           {activeDropdown && (
-            <div className="mt-2.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-3xl p-3.5 sm:p-4 border border-slate-100/90 dark:border-slate-800 shadow-[0_8px_30px_rgba(30,27,75,0.08)] animate-in fade-in slide-in-from-top-2 duration-150 z-30">
+            <div className="mt-2.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-3xl p-3.5 sm:p-4 border border-slate-100/90 dark:border-slate-800 shadow-[0_8px_30px_rgba(30,27,75,0.08)] lv-dropdown-enter z-30">
               {/* Header indicator */}
               <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                  {activeDropdown === "spaces" && "My Spaces — 6 Areas"}
-                  {activeDropdown === "vault" && "Core Vault — 4 Sections"}
-                  {activeDropdown === "actions" && "Quick Actions — 5 Direct Actions"}
-                  {activeDropdown === "more" && "More — Reports & Management Tools"}
+                  {activeLabel}
                 </p>
                 <button
                   type="button"
                   onClick={() => setActiveDropdown(null)}
-                  className="text-[11px] font-semibold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                  className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-800 transition-all"
+                  aria-label="Close dropdown"
                 >
-                  Close
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
 
-              {/* Dropdown 1: My Spaces (6 items) */}
-              {activeDropdown === "spaces" && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {mySpacesItems.map((item) => (
-                    <Link
-                      key={item.title}
-                      href={item.href}
-                      onClick={() => setActiveDropdown(null)}
-                      className="p-2.5 rounded-2xl bg-slate-50/70 hover:bg-[#EEF2FF] dark:bg-slate-800/40 dark:hover:bg-indigo-950/40 border border-slate-100/90 dark:border-slate-800 transition-all flex items-center gap-2.5 group"
+              {/* 2-column × 3-row grid */}
+              <div className="grid grid-cols-2 gap-2">
+                {activeItems.map((item) => (
+                  <Link
+                    key={item.title}
+                    href={item.href}
+                    onClick={() => setActiveDropdown(null)}
+                    className={`p-2.5 rounded-2xl bg-slate-50/70 ${activeHoverColor} dark:bg-slate-800/40 border border-slate-100/90 dark:border-slate-800 transition-all flex items-start gap-2.5 group`}
+                  >
+                    <div
+                      className={`w-9 h-9 rounded-xl ${item.color} flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform`}
                     >
-                      <div
-                        className={`w-9 h-9 rounded-xl ${item.color} flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform`}
-                      >
-                        <item.icon className="w-4 h-4" strokeWidth={2.2} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <span className="text-[12px] sm:text-[13px] font-bold text-[#1E1B4B] dark:text-white block truncate leading-tight group-hover:text-indigo-600 transition-colors">
-                          {item.title}
-                        </span>
-                        <span className="text-[10px] text-slate-500 truncate block mt-0.5 leading-tight">
-                          {item.desc}
-                        </span>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
-
-              {/* Dropdown 2: Core Vault (4 items) */}
-              {activeDropdown === "vault" && (
-                <div className="grid grid-cols-2 gap-2">
-                  {coreVaultItems.map((item) => (
-                    <Link
-                      key={item.title}
-                      href={item.href}
-                      onClick={() => setActiveDropdown(null)}
-                      className="p-3 rounded-2xl bg-slate-50/70 hover:bg-[#E8F8F0] dark:bg-slate-800/40 dark:hover:bg-emerald-950/40 border border-slate-100/90 dark:border-slate-800 transition-all flex items-center gap-3 group"
-                    >
-                      <div
-                        className={`w-9 h-9 rounded-xl ${item.color} flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform`}
-                      >
-                        <item.icon className="w-4 h-4" strokeWidth={2.2} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <span className="text-[13px] font-bold text-[#1E1B4B] dark:text-white block truncate leading-tight group-hover:text-emerald-700 transition-colors">
-                          {item.title}
-                        </span>
-                        <span className="text-[11px] text-slate-500 truncate block mt-0.5 leading-tight">
-                          {item.desc}
-                        </span>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
-
-              {/* Dropdown 3: Quick Actions (5 items) */}
-              {activeDropdown === "actions" && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                  {quickActionItems.map((item) => (
-                    <Link
-                      key={item.title}
-                      href={item.href}
-                      onClick={() => setActiveDropdown(null)}
-                      className="p-2.5 rounded-2xl bg-slate-50/70 hover:bg-[#FFF6EA] dark:bg-slate-800/40 dark:hover:bg-amber-950/40 border border-slate-100/90 dark:border-slate-800 transition-all flex items-center gap-2.5 group"
-                    >
-                      <div
-                        className={`w-9 h-9 rounded-xl ${item.color} flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform`}
-                      >
-                        <item.icon className="w-4 h-4" strokeWidth={2.2} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <span className="text-[12px] sm:text-[13px] font-bold text-[#1E1B4B] dark:text-white block truncate leading-tight group-hover:text-amber-700 transition-colors">
-                          {item.title}
-                        </span>
-                        <span className="text-[10px] text-slate-500 truncate block mt-0.5 leading-tight">
-                          {item.desc}
-                        </span>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
-
-              {/* Dropdown 4: More (3 items) */}
-              {activeDropdown === "more" && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  {moreItems.map((item) => (
-                    <Link
-                      key={item.title}
-                      href={item.href}
-                      onClick={() => setActiveDropdown(null)}
-                      className="p-3 rounded-2xl bg-slate-50/70 hover:bg-[#EDF5FF] dark:bg-slate-800/40 dark:hover:bg-sky-950/40 border border-slate-100/90 dark:border-slate-800 transition-all flex items-center gap-3 group"
-                    >
-                      <div
-                        className={`w-9 h-9 rounded-xl ${item.color} flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform`}
-                      >
-                        <item.icon className="w-4 h-4" strokeWidth={2.2} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <span className="text-[13px] font-bold text-[#1E1B4B] dark:text-white block truncate leading-tight group-hover:text-sky-700 transition-colors">
-                          {item.title}
-                        </span>
-                        <span className="text-[11px] text-slate-500 truncate block mt-0.5 leading-tight">
-                          {item.desc}
-                        </span>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
+                      <item.icon className="w-4 h-4" strokeWidth={2.2} />
+                    </div>
+                    <div className="min-w-0 flex-1 pt-0.5">
+                      <span className={`text-[12px] sm:text-[13px] font-bold text-[#1E1B4B] dark:text-white block leading-tight ${activeTextHover} transition-colors`}>
+                        {item.title}
+                      </span>
+                      <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5 leading-snug">
+                        {item.desc}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
           )}
         </div>
 
         {/* ══════════════════════════════════════════════════
-            4. LIVE OVERVIEW — FINANCIAL SUMMARY (4 CARDS ROW)
+            3. LIVE OVERVIEW — 6 CARDS IN 2×3 GRID
         ══════════════════════════════════════════════════ */}
         <section className="space-y-2">
           {/* Section Header */}
@@ -824,30 +746,28 @@ export function LifeVaultDashboard({
             </Link>
           </div>
 
-          {/* 4 Overview Cards in One Horizontal Row — Scrollable on mobile, 4-col grid on sm+ */}
-          <div className="flex overflow-x-auto pb-2.5 pt-0.5 gap-2 sm:gap-2.5 sm:grid sm:grid-cols-4 sm:overflow-visible scrollbar-thin">
+          {/* 6 Overview Cards — strict 2×3 grid */}
+          <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
             {/* Card 1: Total Assets */}
             <Link
               href="/assets"
-              className="min-w-[145px] sm:min-w-0 flex-1 shrink-0 bg-white/95 dark:bg-slate-900/90 rounded-2xl p-2.5 sm:p-3 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all flex flex-col justify-between group active:scale-95"
+              className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-3 sm:p-3.5 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all flex items-start gap-2.5 group active:scale-[0.98]"
             >
-              <div className="flex items-center gap-1.5">
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-300 flex items-center justify-center shrink-0">
-                  <Home className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={2.2} />
-                </div>
-                <span className="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate">
-                  Total Assets
-                </span>
+              <div className="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-300 flex items-center justify-center shrink-0">
+                <Home className="w-4 h-4" strokeWidth={2.2} />
               </div>
-              <div className="mt-1 sm:mt-1.5 min-w-0">
-                <p className="text-[13px] sm:text-[14px] md:text-[15px] font-extrabold text-[#1E1B4B] dark:text-white truncate leading-tight">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                    Total Assets
+                  </span>
+                  <ChevronRight className="w-3 h-3 text-slate-300 group-hover:text-indigo-500 transition-colors shrink-0" />
+                </div>
+                <p className="text-[15px] sm:text-[16px] font-extrabold text-[#1E1B4B] dark:text-white truncate leading-tight mt-0.5">
                   {formatMoney(overview.totalAssets, symbol)}
                 </p>
-                <div className="flex items-center justify-between gap-1 mt-1">
-                  <span className="text-[9px] sm:text-[10px] font-bold text-emerald-600">
-                    ↑ {overview.assetsGrowthPercent ?? 3}%
-                  </span>
-                  <WaveSparkline color="#8B5CF6" />
+                <div className="flex items-center gap-1.5 mt-1">
+                  <WaveSparkline color="#0EA5E9" />
                 </div>
               </div>
             </Link>
@@ -855,24 +775,22 @@ export function LifeVaultDashboard({
             {/* Card 2: Total Liabilities */}
             <Link
               href="/money"
-              className="min-w-[145px] sm:min-w-0 flex-1 shrink-0 bg-white/95 dark:bg-slate-900/90 rounded-2xl p-2.5 sm:p-3 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all flex flex-col justify-between group active:scale-95"
+              className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-3 sm:p-3.5 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all flex items-start gap-2.5 group active:scale-[0.98]"
             >
-              <div className="flex items-center gap-1.5">
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 flex items-center justify-center shrink-0">
-                  <Wallet className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={2.2} />
-                </div>
-                <span className="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate">
-                  Total Liabilities
-                </span>
+              <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 flex items-center justify-center shrink-0">
+                <Wallet className="w-4 h-4" strokeWidth={2.2} />
               </div>
-              <div className="mt-1 sm:mt-1.5 min-w-0">
-                <p className="text-[13px] sm:text-[14px] md:text-[15px] font-extrabold text-[#1E1B4B] dark:text-white truncate leading-tight">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                    Total Liabilities
+                  </span>
+                  <ChevronRight className="w-3 h-3 text-slate-300 group-hover:text-indigo-500 transition-colors shrink-0" />
+                </div>
+                <p className="text-[15px] sm:text-[16px] font-extrabold text-[#1E1B4B] dark:text-white truncate leading-tight mt-0.5">
                   {formatMoney(overview.totalLiabilities, symbol)}
                 </p>
-                <div className="flex items-center justify-between gap-1 mt-1">
-                  <span className="text-[9px] sm:text-[10px] font-bold text-rose-500">
-                    ↑ {overview.liabilitiesGrowthPercent ?? 5}%
-                  </span>
+                <div className="flex items-center gap-1.5 mt-1">
                   <WaveSparkline color="#F43F5E" />
                 </div>
               </div>
@@ -881,24 +799,22 @@ export function LifeVaultDashboard({
             {/* Card 3: Net Worth */}
             <Link
               href="/finance"
-              className="min-w-[145px] sm:min-w-0 flex-1 shrink-0 bg-white/95 dark:bg-slate-900/90 rounded-2xl p-2.5 sm:p-3 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all flex flex-col justify-between group active:scale-95"
+              className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-3 sm:p-3.5 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all flex items-start gap-2.5 group active:scale-[0.98]"
             >
-              <div className="flex items-center gap-1.5">
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300 flex items-center justify-center shrink-0">
-                  <PieChart className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={2.2} />
-                </div>
-                <span className="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate">
-                  Net Worth
-                </span>
+              <div className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300 flex items-center justify-center shrink-0">
+                <PieChart className="w-4 h-4" strokeWidth={2.2} />
               </div>
-              <div className="mt-1 sm:mt-1.5 min-w-0">
-                <p className="text-[13px] sm:text-[14px] md:text-[15px] font-extrabold text-[#1E1B4B] dark:text-white truncate leading-tight">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                    Net Worth
+                  </span>
+                  <ChevronRight className="w-3 h-3 text-slate-300 group-hover:text-indigo-500 transition-colors shrink-0" />
+                </div>
+                <p className="text-[15px] sm:text-[16px] font-extrabold text-[#1E1B4B] dark:text-white truncate leading-tight mt-0.5">
                   {formatMoney(overview.netWorth, symbol)}
                 </p>
-                <div className="flex items-center justify-between gap-1 mt-1">
-                  <span className="text-[9px] sm:text-[10px] font-bold text-emerald-600">
-                    ↑ {overview.netWorthGrowthPercent ?? 4}%
-                  </span>
+                <div className="flex items-center gap-1.5 mt-1">
                   <BarSparkline color="#8B5CF6" />
                 </div>
               </div>
@@ -907,201 +823,193 @@ export function LifeVaultDashboard({
             {/* Card 4: Monthly Income */}
             <Link
               href="/business"
-              className="min-w-[145px] sm:min-w-0 flex-1 shrink-0 bg-white/95 dark:bg-slate-900/90 rounded-2xl p-2.5 sm:p-3 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all flex flex-col justify-between group active:scale-95"
+              className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-3 sm:p-3.5 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all flex items-start gap-2.5 group active:scale-[0.98]"
             >
-              <div className="flex items-center gap-1.5">
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300 flex items-center justify-center shrink-0">
-                  <Coins className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={2.2} />
-                </div>
-                <span className="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate">
-                  Monthly Income
-                </span>
+              <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300 flex items-center justify-center shrink-0">
+                <Coins className="w-4 h-4" strokeWidth={2.2} />
               </div>
-              <div className="mt-1 sm:mt-1.5 min-w-0">
-                <p className="text-[13px] sm:text-[14px] md:text-[15px] font-extrabold text-[#1E1B4B] dark:text-white truncate leading-tight">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                    Monthly Income
+                  </span>
+                  <ChevronRight className="w-3 h-3 text-slate-300 group-hover:text-indigo-500 transition-colors shrink-0" />
+                </div>
+                <p className="text-[15px] sm:text-[16px] font-extrabold text-[#1E1B4B] dark:text-white truncate leading-tight mt-0.5">
                   {formatMoney(overview.monthlyIncome, symbol)}
                 </p>
-                <div className="flex items-center justify-between gap-1 mt-1">
-                  <span className="text-[9px] sm:text-[10px] font-bold text-emerald-600">
-                    ↑ {overview.monthlyIncomeGrowthPercent ?? 17}%
-                  </span>
+                <div className="flex items-center gap-1.5 mt-1">
                   <BarSparkline color="#10B981" />
                 </div>
+              </div>
+            </Link>
+
+            {/* Card 5: Loans Given */}
+            <Link
+              href="/money"
+              className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-3 sm:p-3.5 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all flex items-start gap-2.5 group active:scale-[0.98]"
+            >
+              <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-300 flex items-center justify-center shrink-0">
+                <HandCoins className="w-4 h-4" strokeWidth={2.2} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                    Loans Given
+                  </span>
+                  <ChevronRight className="w-3 h-3 text-slate-300 group-hover:text-indigo-500 transition-colors shrink-0" />
+                </div>
+                <p className="text-[15px] sm:text-[16px] font-extrabold text-[#1E1B4B] dark:text-white truncate leading-tight mt-0.5">
+                  {formatMoney(loansGiven, symbol)}
+                </p>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <BarSparkline color="#D97706" />
+                </div>
+              </div>
+            </Link>
+
+            {/* Card 6: Property */}
+            <Link
+              href="/assets"
+              className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-3 sm:p-3.5 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all flex items-start gap-2.5 group active:scale-[0.98]"
+            >
+              <div className="w-8 h-8 rounded-xl bg-cyan-100 dark:bg-cyan-950/60 text-cyan-600 dark:text-cyan-300 flex items-center justify-center shrink-0">
+                <Building2 className="w-4 h-4" strokeWidth={2.2} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                    Property
+                  </span>
+                  <ChevronRight className="w-3 h-3 text-slate-300 group-hover:text-indigo-500 transition-colors shrink-0" />
+                </div>
+                <p className="text-[15px] sm:text-[16px] font-extrabold text-[#1E1B4B] dark:text-white truncate leading-tight mt-0.5">
+                  {propertyCount}
+                </p>
+                <p className="text-[10px] text-slate-400 mt-0.5">
+                  Rental Units: {overview.property?.rentalUnits ?? 0}
+                </p>
               </div>
             </Link>
           </div>
         </section>
 
         {/* ══════════════════════════════════════════════════
-            5. DETAILED LIVE OVERVIEW — FOUR COMPACT CARDS (2-COL)
+            4. QUICK SUMMARY — 4 COMPACT CARDS
         ══════════════════════════════════════════════════ */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
-          {/* Card A: Loan Overview */}
-          <Link
-            href="/money"
-            className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-3 sm:p-3.5 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all flex flex-col justify-between group active:scale-[0.98]"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <div className="w-6 h-6 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-300 flex items-center justify-center shrink-0">
-                  <HandCoins className="w-3.5 h-3.5" strokeWidth={2.2} />
-                </div>
-                <span className="text-[12px] sm:text-[13px] font-bold text-[#1E1B4B] dark:text-white truncate">
-                  Loan Overview
-                </span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-600 group-hover:translate-x-0.5 transition-all shrink-0" />
-            </div>
+        <section className="space-y-2">
+          {/* Section Header */}
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-[15px] sm:text-[16px] font-bold text-[#1E1B4B] dark:text-white">
+              Quick Summary
+            </h2>
+            <Link
+              href="/guide"
+              className="text-[12px] font-bold text-[#4F46E5] hover:text-indigo-700 dark:text-indigo-400 flex items-center gap-0.5 transition-colors"
+            >
+              View All
+              <ChevronRight className="w-3.5 h-3.5" strokeWidth={2.4} />
+            </Link>
+          </div>
 
-            {/* Rows */}
-            <div className="space-y-1 text-[11px] sm:text-[12px]">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Given</span>
-                <span className="font-bold text-[#1E1B4B] dark:text-slate-100">
-                  {formatMoney(overview.loanOverview.given, symbol)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Received</span>
-                <span className="font-bold text-[#1E1B4B] dark:text-slate-100">
-                  {formatMoney(overview.loanOverview.received, symbol)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Due This Month</span>
-                <span className="font-bold text-rose-500">
-                  {formatMoney(overview.loanOverview.dueThisMonth, symbol)}
-                </span>
-              </div>
-            </div>
-          </Link>
-
-          {/* Card B: Business Income */}
-          <Link
-            href="/business"
-            className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-3 sm:p-3.5 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all flex flex-col justify-between group active:scale-[0.98]"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <div className="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300 flex items-center justify-center shrink-0">
-                  <Briefcase className="w-3.5 h-3.5" strokeWidth={2.2} />
-                </div>
-                <span className="text-[12px] sm:text-[13px] font-bold text-[#1E1B4B] dark:text-white truncate">
-                  Business Income
-                </span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-600 group-hover:translate-x-0.5 transition-all shrink-0" />
-            </div>
-
-            {/* Rows */}
-            <div className="space-y-1 text-[11px] sm:text-[12px]">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-slate-400">This Month</span>
-                <span className="font-bold text-[#1E1B4B] dark:text-slate-100">
-                  {formatMoney(overview.businessIncome.thisMonth, symbol)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Last Month</span>
-                <span className="font-bold text-[#1E1B4B] dark:text-slate-100">
-                  {formatMoney(overview.businessIncome.lastMonth, symbol)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Growth</span>
-                <div className="flex items-center gap-1">
-                  <span className="font-bold text-emerald-600">
-                    ↑ {overview.businessIncome.growthPercent}%
+          {/* 4 Summary Cards — responsive: 4-col on wider mobile, 2×2 on narrow */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {/* People */}
+            <Link
+              href="/people"
+              className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-2.5 sm:p-3 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all group active:scale-[0.98]"
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-6 h-6 rounded-lg bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300 flex items-center justify-center shrink-0">
+                    <Users className="w-3 h-3" strokeWidth={2.4} />
+                  </div>
+                  <span className="text-[11px] sm:text-[12px] font-bold text-slate-600 dark:text-slate-300">
+                    People
                   </span>
-                  <BarSparkline color="#8B5CF6" />
                 </div>
+                <ChevronRight className="w-3 h-3 text-slate-300 group-hover:text-indigo-500 transition-colors shrink-0" />
               </div>
-            </div>
-          </Link>
+              <p className="text-[18px] sm:text-[20px] font-extrabold text-[#1E1B4B] dark:text-white leading-tight">
+                {stats.peopleCount || 0}
+              </p>
+              <p className="text-[10px] text-slate-400 mt-0.5">
+                Active Tasks: {overview.peopleAndResponsibilities?.activeTasks ?? 0}
+              </p>
+            </Link>
 
-          {/* Card C: Property */}
-          <Link
-            href="/assets"
-            className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-3 sm:p-3.5 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all flex flex-col justify-between group active:scale-[0.98]"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <div className="w-6 h-6 rounded-lg bg-cyan-100 dark:bg-cyan-950/60 text-cyan-600 dark:text-cyan-300 flex items-center justify-center shrink-0">
-                  <Building2 className="w-3.5 h-3.5" strokeWidth={2.2} />
+            {/* Tasks */}
+            <Link
+              href="/instructions"
+              className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-2.5 sm:p-3 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all group active:scale-[0.98]"
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300 flex items-center justify-center shrink-0">
+                    <CheckSquare className="w-3 h-3" strokeWidth={2.4} />
+                  </div>
+                  <span className="text-[11px] sm:text-[12px] font-bold text-slate-600 dark:text-slate-300">
+                    Tasks
+                  </span>
                 </div>
-                <span className="text-[12px] sm:text-[13px] font-bold text-[#1E1B4B] dark:text-white truncate">
-                  Property
-                </span>
+                <ChevronRight className="w-3 h-3 text-slate-300 group-hover:text-indigo-500 transition-colors shrink-0" />
               </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-600 group-hover:translate-x-0.5 transition-all shrink-0" />
-            </div>
+              <p className="text-[18px] sm:text-[20px] font-extrabold text-[#1E1B4B] dark:text-white leading-tight">
+                {stats.pendingResponsibilitiesCount ?? 0}
+              </p>
+              <p className="text-[10px] text-slate-400 mt-0.5">
+                Due This Week
+              </p>
+            </Link>
 
-            {/* Rows */}
-            <div className="space-y-1 text-[11px] sm:text-[12px]">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Total Properties</span>
-                <span className="font-bold text-[#1E1B4B] dark:text-slate-100">
-                  {overview.property.totalProperties}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Rental Units</span>
-                <span className="font-bold text-[#1E1B4B] dark:text-slate-100">
-                  {overview.property.rentalUnits}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Monthly Rent</span>
-                <span className="font-bold text-[#1E1B4B] dark:text-slate-100">
-                  {formatMoney(overview.property.monthlyRent, symbol)}
-                </span>
-              </div>
-            </div>
-          </Link>
-
-          {/* Card D: People & Responsibilities */}
-          <Link
-            href="/people"
-            className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-3 sm:p-3.5 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all flex flex-col justify-between group active:scale-[0.98]"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <div className="w-6 h-6 rounded-lg bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300 flex items-center justify-center shrink-0">
-                  <Users className="w-3.5 h-3.5" strokeWidth={2.2} />
+            {/* Overdue */}
+            <Link
+              href="/money"
+              className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-2.5 sm:p-3 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all group active:scale-[0.98]"
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-6 h-6 rounded-lg bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-300 flex items-center justify-center shrink-0">
+                    <AlertTriangle className="w-3 h-3" strokeWidth={2.4} />
+                  </div>
+                  <span className="text-[11px] sm:text-[12px] font-bold text-slate-600 dark:text-slate-300">
+                    Overdue
+                  </span>
                 </div>
-                <span className="text-[12px] sm:text-[13px] font-bold text-[#1E1B4B] dark:text-white truncate">
-                  People & Responsibilities
-                </span>
+                <ChevronRight className="w-3 h-3 text-slate-300 group-hover:text-indigo-500 transition-colors shrink-0" />
               </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-600 group-hover:translate-x-0.5 transition-all shrink-0" />
-            </div>
+              <p className="text-[18px] sm:text-[20px] font-extrabold text-[#1E1B4B] dark:text-white leading-tight">
+                {stats.overduePaymentsCount ?? 0}
+              </p>
+              <p className="text-[10px] text-slate-400 mt-0.5">
+                Payments / Tasks
+              </p>
+            </Link>
 
-            {/* Rows */}
-            <div className="space-y-1 text-[11px] sm:text-[12px]">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Total People</span>
-                <span className="font-bold text-[#1E1B4B] dark:text-slate-100">
-                  {overview.peopleAndResponsibilities.totalPeople}
-                </span>
+            {/* Documents */}
+            <Link
+              href="/documents"
+              className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-2.5 sm:p-3 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all group active:scale-[0.98]"
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-6 h-6 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 flex items-center justify-center shrink-0">
+                    <FileText className="w-3 h-3" strokeWidth={2.4} />
+                  </div>
+                  <span className="text-[11px] sm:text-[12px] font-bold text-slate-600 dark:text-slate-300">
+                    Documents
+                  </span>
+                </div>
+                <ChevronRight className="w-3 h-3 text-slate-300 group-hover:text-indigo-500 transition-colors shrink-0" />
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Active Tasks</span>
-                <span className="font-bold text-[#1E1B4B] dark:text-slate-100">
-                  {overview.peopleAndResponsibilities.activeTasks}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Pending from Others</span>
-                <span className="font-bold text-rose-500">
-                  {overview.peopleAndResponsibilities.pendingFromOthers}
-                </span>
-              </div>
-            </div>
-          </Link>
+              <p className="text-[18px] sm:text-[20px] font-extrabold text-[#1E1B4B] dark:text-white leading-tight">
+                {stats.documentsCount ?? 0}
+              </p>
+              <p className="text-[10px] text-slate-400 mt-0.5">
+                Need Review
+              </p>
+            </Link>
+          </div>
         </section>
 
       </div>
