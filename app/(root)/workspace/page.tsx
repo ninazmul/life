@@ -10,6 +10,12 @@ import { getInstructions } from "@/lib/actions/lifeInstruction.actions";
 import { getContacts } from "@/lib/actions/lifeContact.actions";
 import { getLegacyMessages } from "@/lib/actions/lifeLegacy.actions";
 import { getInformationList } from "@/lib/actions/lifeInformation.actions";
+import { getVaultItems } from "@/lib/actions/lifeVault.actions";
+import { getEmergencyAccessState } from "@/lib/actions/lifeAccess.actions";
+import {
+  getActiveRecoveryEvent,
+  getRecoveryEventsHistory,
+} from "@/lib/actions/lifeEmergencyRecovery.actions";
 import { LifeWorkspaceClient } from "@/components/life/workspace/LifeWorkspaceClient";
 
 export const dynamic = "force-dynamic";
@@ -41,6 +47,10 @@ export default async function WorkspacePage({ searchParams }: WorkspacePageProps
     contacts,
     legacyMessages,
     informationList,
+    vaultItems,
+    emergencyState,
+    recoveryData,
+    recoveryHistory,
   ] = await Promise.all([
     getLifeAuthContext(),
     searchParams ? await searchParams : Promise.resolve({} as any),
@@ -53,6 +63,10 @@ export default async function WorkspacePage({ searchParams }: WorkspacePageProps
     getContacts(),
     getLegacyMessages(),
     getInformationList(),
+    getVaultItems(),
+    getEmergencyAccessState(),
+    getActiveRecoveryEvent(),
+    getRecoveryEventsHistory(),
   ]);
 
   if (!authContext) {
@@ -63,6 +77,17 @@ export default async function WorkspacePage({ searchParams }: WorkspacePageProps
   const category = sp?.category || "finance_loans";
   const filter = sp?.filter || "all";
   const subFilter = sp?.subFilter;
+
+  // Derive access control props
+  const userEmail = authContext?.email?.toLowerCase().trim() || "";
+  const primaryEmail = (emergencyState?.primaryAdminEmail || "").toLowerCase().trim();
+  const secondaryEmail = (emergencyState?.secondaryAdminEmail || "").toLowerCase().trim();
+  const isOwner = Boolean(authContext.isOwner);
+  const isDesignated = Boolean(
+    (primaryEmail && userEmail === primaryEmail) ||
+    (secondaryEmail && userEmail === secondaryEmail)
+  );
+  const canAccessEmergency = Boolean(authContext?.permissions?.canAccessEmergency);
 
   return (
     <Suspense
@@ -86,7 +111,16 @@ export default async function WorkspacePage({ searchParams }: WorkspacePageProps
         contacts={contacts}
         legacyMessages={legacyMessages}
         informationList={informationList}
-        isOwner={Boolean(authContext.isOwner)}
+        vaultItems={vaultItems}
+        isVaultLocked={Boolean(emergencyState?.isVaultLocked)}
+        emergencyState={emergencyState}
+        isDesignated={isDesignated}
+        canAccessEmergency={canAccessEmergency}
+        currentUserEmail={userEmail}
+        initialActiveRecovery={recoveryData.activeEvent}
+        initialSecondsRemaining={recoveryData.secondsRemaining}
+        recoveryHistory={recoveryHistory}
+        isOwner={isOwner}
         isAdmin={Boolean(authContext.isAdmin)}
         currencySymbol="৳"
       />

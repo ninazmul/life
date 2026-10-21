@@ -20,6 +20,9 @@ import { ContactsClient } from "@/components/life/contacts/ContactsClient";
 import { LegacyClient } from "@/components/life/legacy/LegacyClient";
 import { InformationClient } from "@/components/life/information/InformationClient";
 import { PeopleClient } from "@/components/life/people/PeopleClient";
+import { VaultClient } from "@/components/life/vault/VaultClient";
+import { AccessClient } from "@/components/life/access/AccessClient";
+import { VaultListItem } from "@/lib/actions/lifeVault.actions";
 import {
   ILifePerson,
   ILifeAsset,
@@ -30,6 +33,8 @@ import {
   ILifeContact,
   ILifeLegacyMessage,
   ILifeInformation,
+  ILifeEmergencyAccess,
+  ILifeEmergencyRecoveryEvent,
 } from "@/types";
 
 interface LifeWorkspaceClientProps {
@@ -46,6 +51,18 @@ interface LifeWorkspaceClientProps {
   contacts?: ILifeContact[];
   legacyMessages?: ILifeLegacyMessage[];
   informationList?: ILifeInformation[];
+  // Vault props
+  vaultItems?: VaultListItem[];
+  isVaultLocked?: boolean;
+  // Access Control props
+  emergencyState?: ILifeEmergencyAccess;
+  isDesignated?: boolean;
+  canAccessEmergency?: boolean;
+  currentUserEmail?: string;
+  initialActiveRecovery?: ILifeEmergencyRecoveryEvent | null;
+  initialSecondsRemaining?: number;
+  recoveryHistory?: ILifeEmergencyRecoveryEvent[];
+  // General
   isOwner?: boolean;
   isAdmin?: boolean;
   currencySymbol?: string;
@@ -65,6 +82,15 @@ export function LifeWorkspaceClient({
   contacts = [],
   legacyMessages = [],
   informationList = [],
+  vaultItems = [],
+  isVaultLocked = false,
+  emergencyState,
+  isDesignated = false,
+  canAccessEmergency = false,
+  currentUserEmail = "",
+  initialActiveRecovery = null,
+  initialSecondsRemaining = 0,
+  recoveryHistory = [],
   isOwner = false,
   isAdmin = false,
   currencySymbol = "৳",
@@ -222,6 +248,23 @@ export function LifeWorkspaceClient({
           businesses={businesses}
           isOwner={isOwner}
           isAdmin={isAdmin}
+        />
+      ) : activeCategory.id === "digital_vault" ? (
+        <VaultClient
+          initialItems={vaultItems}
+          isVaultLocked={isVaultLocked}
+        />
+      ) : activeCategory.id === "access_control" && emergencyState ? (
+        <AccessClient
+          emergencyState={emergencyState}
+          people={peopleList}
+          isOwner={isOwner}
+          isDesignated={isDesignated}
+          canAccessEmergency={canAccessEmergency}
+          currentUserEmail={currentUserEmail}
+          initialActiveRecovery={initialActiveRecovery}
+          initialSecondsRemaining={initialSecondsRemaining}
+          recoveryHistory={recoveryHistory}
         />
       ) : (
         <UnderDevelopmentCategory
