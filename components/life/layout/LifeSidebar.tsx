@@ -222,16 +222,14 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
 
   return (
     <aside
-      className={`hidden md:flex flex-col border-r border-sidebar-border bg-sidebar-background shrink-0 h-screen sticky top-0 overflow-y-auto transition-[width] duration-300 ease-in-out ${
-        isCollapsed ? "w-16" : "w-64"
-      }`}
+      className={`hidden md:flex flex-col border-r border-sidebar-border bg-sidebar-background shrink-0 h-screen sticky top-0 overflow-y-auto transition-[width] duration-300 ease-in-out ${isCollapsed ? "w-16" : "w-64"
+        }`}
       aria-label="Main navigation"
     >
       {/* Brand Header */}
       <div
-        className={`p-3.5 border-b border-sidebar-border flex items-center transition-all ${
-          isCollapsed ? "flex-col gap-2.5 justify-center px-2" : "justify-between"
-        }`}
+        className={`p-3.5 border-b border-sidebar-border flex items-center transition-all ${isCollapsed ? "flex-col gap-2.5 justify-center px-2" : "justify-between"
+          }`}
       >
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="relative w-8 h-8 shrink-0">
@@ -300,15 +298,13 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
                     key={item.url}
                     href={item.url}
                     title={isCollapsed ? item.title : undefined}
-                    className={`flex items-center rounded-xl text-xs font-medium transition-all group relative ${
-                      isCollapsed
+                    className={`flex items-center rounded-xl text-xs font-medium transition-all group relative ${isCollapsed
                         ? "justify-center p-2.5"
                         : "justify-between px-3 py-2"
-                    } ${
-                      item.isActive
+                      } ${item.isActive
                         ? "bg-[#EEF2FF] text-[#4F46E5] font-bold border border-indigo-100/90 shadow-2xs"
                         : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
-                    }`}
+                      }`}
                     aria-label={
                       item.isActive
                         ? `${item.title} (current page)`
@@ -318,11 +314,10 @@ export function LifeSidebar({ activeCareCount = 0, userAccess }: LifeSidebarProp
                   >
                     <div className={`flex items-center min-w-0 ${isCollapsed ? "justify-center" : "gap-2.5"}`}>
                       <Icon
-                        className={`w-4 h-4 transition-transform group-hover:scale-110 shrink-0 ${
-                          item.isActive
+                        className={`w-4 h-4 transition-transform group-hover:scale-110 shrink-0 ${item.isActive
                             ? "text-[#4F46E5]"
                             : "text-sidebar-foreground/50"
-                        }`}
+                          }`}
                         strokeWidth={2}
                         aria-hidden="true"
                       />

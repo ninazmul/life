@@ -110,21 +110,18 @@ export function LifeVaultMoreSheet({ open, onOpenChange }: LifeVaultMoreSheetPro
                     key={item.href}
                     href={item.href}
                     onClick={() => onOpenChange(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
-                      isActive
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${isActive
                         ? "bg-indigo-50 text-indigo-700"
                         : "hover:bg-slate-50 text-slate-700"
-                    }`}
+                      }`}
                   >
                     <div
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                        isActive ? "bg-indigo-100" : "bg-slate-100"
-                      }`}
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${isActive ? "bg-indigo-100" : "bg-slate-100"
+                        }`}
                     >
                       <Icon
-                        className={`w-4.5 h-4.5 ${
-                          isActive ? "text-indigo-600" : "text-slate-500"
-                        }`}
+                        className={`w-4.5 h-4.5 ${isActive ? "text-indigo-600" : "text-slate-500"
+                          }`}
                         strokeWidth={1.8}
                       />
                     </div>
