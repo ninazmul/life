@@ -16,6 +16,10 @@ import { AssetsClient } from "@/components/life/assets/AssetsClient";
 import { DocumentsClient } from "@/components/life/documents/DocumentsClient";
 import { BusinessClient } from "@/components/life/business/BusinessClient";
 import { InstructionsClient } from "@/components/life/instructions/InstructionsClient";
+import { ContactsClient } from "@/components/life/contacts/ContactsClient";
+import { LegacyClient } from "@/components/life/legacy/LegacyClient";
+import { InformationClient } from "@/components/life/information/InformationClient";
+import { PeopleClient } from "@/components/life/people/PeopleClient";
 import {
   ILifePerson,
   ILifeAsset,
@@ -23,6 +27,9 @@ import {
   ILifeBusiness,
   ILifeResponsibility,
   ILifeInstruction,
+  ILifeContact,
+  ILifeLegacyMessage,
+  ILifeInformation,
 } from "@/types";
 
 interface LifeWorkspaceClientProps {
@@ -36,6 +43,9 @@ interface LifeWorkspaceClientProps {
   businesses?: ILifeBusiness[];
   responsibilities?: ILifeResponsibility[];
   instructions?: ILifeInstruction[];
+  contacts?: ILifeContact[];
+  legacyMessages?: ILifeLegacyMessage[];
+  informationList?: ILifeInformation[];
   isOwner?: boolean;
   isAdmin?: boolean;
   currencySymbol?: string;
@@ -52,6 +62,9 @@ export function LifeWorkspaceClient({
   businesses = [],
   responsibilities = [],
   instructions = [],
+  contacts = [],
+  legacyMessages = [],
+  informationList = [],
   isOwner = false,
   isAdmin = false,
   currencySymbol = "৳",
@@ -166,6 +179,42 @@ export function LifeWorkspaceClient({
           people={peopleList}
         />
       ) : activeCategory.id === "responsibilities" || activeCategory.id === "instructions" ? (
+        <InstructionsClient
+          responsibilities={responsibilities}
+          instructions={instructions}
+          people={peopleList}
+          businesses={businesses}
+          isOwner={isOwner}
+          isAdmin={isAdmin}
+        />
+      ) : activeCategory.id === "emergency" ? (
+        <ContactsClient
+          initialContacts={contacts}
+          people={peopleList}
+          businesses={businesses}
+        />
+      ) : activeCategory.id === "after_death" ? (
+        <LegacyClient
+          initialMessages={legacyMessages}
+          people={peopleList}
+        />
+      ) : activeCategory.id === "personal" || activeCategory.id === "health" ? (
+        <InformationClient
+          initialItems={informationList}
+          people={peopleList}
+          businesses={businesses}
+        />
+      ) : activeCategory.id === "will_legal" ? (
+        <DocumentsClient
+          initialDocuments={documents}
+          people={peopleList}
+          businesses={businesses}
+        />
+      ) : activeCategory.id === "family_care" || activeCategory.id === "kids" || activeCategory.id === "staff_office" || activeCategory.id === "community" ? (
+        <PeopleClient
+          initialPeople={peopleList}
+        />
+      ) : activeCategory.id === "projects" ? (
         <InstructionsClient
           responsibilities={responsibilities}
           instructions={instructions}
