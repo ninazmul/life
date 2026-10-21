@@ -61,6 +61,20 @@ export interface ILifePersonDoc extends Document {
     youtube?: string;
     website?: string;
   };
+  category?: string;
+  registrationStatus?:
+    | "not_invited"
+    | "invitation_sent"
+    | "invite_expired"
+    | "active_user"
+    | "disabled";
+  tags?: string[];
+  isImportant?: boolean;
+  isEmergencyContact?: boolean;
+  shortNote?: string;
+  invitationSentAt?: Date;
+  invitationExpiresAt?: Date;
+  invitationToken?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -81,6 +95,39 @@ const LifePersonSchema = new Schema<ILifePersonDoc>(
     dateOfBirth: { type: String, trim: true, default: "" },
     avatarUrl: { type: String, default: "" },
     profilePhoto: { type: String, default: "" },
+    category: {
+      type: String,
+      enum: [
+        "Guardian",
+        "Family Member",
+        "Staff",
+        "Business Partner",
+        "Friend",
+        "General User",
+        "Other",
+      ],
+      default: "Family Member",
+      index: true,
+    },
+    registrationStatus: {
+      type: String,
+      enum: [
+        "not_invited",
+        "invitation_sent",
+        "invite_expired",
+        "active_user",
+        "disabled",
+      ],
+      default: "not_invited",
+      index: true,
+    },
+    tags: [{ type: String }],
+    isImportant: { type: Boolean, default: false },
+    isEmergencyContact: { type: Boolean, default: false },
+    shortNote: { type: String, trim: true, default: "" },
+    invitationSentAt: { type: Date },
+    invitationExpiresAt: { type: Date },
+    invitationToken: { type: String },
     status: {
       type: String,
       enum: ["active", "locked", "disabled", "archived"],

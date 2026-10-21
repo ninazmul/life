@@ -135,6 +135,24 @@ export interface ILifePerson {
     youtube?: string;
     website?: string;
   };
+  category?: string;
+  registrationStatus?:
+    | "not_invited"
+    | "invitation_sent"
+    | "invite_expired"
+    | "active_user"
+    | "disabled";
+  tags?: string[];
+  isImportant?: boolean;
+  isEmergencyContact?: boolean;
+  shortNote?: string;
+  invitationSentAt?: Date | string;
+  invitationExpiresAt?: Date | string;
+  invitationToken?: string;
+  notesCount?: number;
+  dutiesCount?: number;
+  loansCount?: number;
+  sharedFilesCount?: number;
   createdAt: Date | string;
   updatedAt: Date | string;
 }

@@ -13,12 +13,15 @@ import LifeResponsibility from "@/lib/database/models/lifeResponsibility.model";
 import LifeLegacyMessage from "@/lib/database/models/lifeLegacyMessage.model";
 import LifeAsset from "@/lib/database/models/lifeAsset.model";
 import LifeGuardian from "@/lib/database/models/lifeGuardian.model";
+import LifeNote from "@/lib/database/models/lifeNote.model";
+import LifeInvitation from "@/lib/database/models/lifeInvitation.model";
 import Admin from "@/lib/database/models/admin.model";
 import {
   getLifeAuthContext,
   logLifeActivity,
   DEFAULT_OWNER_PERMS,
 } from "@/lib/life/auth";
+import { sendPersonInvitation } from "./lifeInvitation.actions";
 import { createInAppNotification } from "./lifeNotification.actions";
 import {
   ILifePerson,
@@ -36,6 +39,7 @@ import {
 export async function getPeople(params?: {
   search?: string;
   relation?: string;
+  category?: string;
   status?: PersonStatus;
 }): Promise<ILifePerson[]> {
   await connectToDatabase();
@@ -54,11 +58,16 @@ export async function getPeople(params?: {
     query.relation = params.relation;
   }
 
+  if (params?.category) {
+    query.category = params.category;
+  }
+
   if (params?.search) {
     const regex = new RegExp(params.search.trim(), "i");
     query.$or = [
       { name: regex },
       { relation: regex },
+      { category: regex },
       { phone: regex },
       { email: regex },
     ];
@@ -74,13 +83,170 @@ export async function getPeople(params?: {
     query._id = { $in: allowedIds };
   }
 
-  const people = await LifePerson.find(query)
+  const people = (await LifePerson.find(query)
     .sort({ emergencyPriority: -1, createdAt: -1 })
-    .lean();
+    .lean()) as any[];
+
+  if (!people || people.length === 0) return [];
 
   const enriched = await enrichWithClerkAvatars(people);
+  const personIds = enriched.map((p) => String(p._id));
+  const personObjIds = enriched.map((p) => p._id);
 
-  return JSON.parse(JSON.stringify(enriched));
+  // Compute counts in parallel across domain collections
+  const [
+    notesByPerson,
+    instructionsByPerson,
+    responsibilitiesByPerson,
+    moneyByPerson,
+    financialSupportByPerson,
+    documentsByPerson,
+  ] = await Promise.all([
+    LifeNote.aggregate([
+      { $match: { assignedPersonId: { $in: personObjIds }, isArchived: { $ne: true } } },
+      { $group: { _id: "$assignedPersonId", count: { $sum: 1 } } },
+    ]).catch(() => []),
+    LifeInstruction.aggregate([
+      {
+        $match: {
+          $or: [
+            { assignedPersonId: { $in: personIds } },
+            { backupPersonId: { $in: personIds } },
+          ],
+        },
+      },
+      { $group: { _id: "$assignedPersonId", count: { $sum: 1 } } },
+    ]).catch(() => []),
+    LifeResponsibility.aggregate([
+      {
+        $match: {
+          $or: [
+            { assignedPersonId: { $in: personIds } },
+            { backupPersonId: { $in: personIds } },
+          ],
+        },
+      },
+      { $group: { _id: "$assignedPersonId", count: { $sum: 1 } } },
+    ]).catch(() => []),
+    LifeMoneyRecord.aggregate([
+      { $match: { personId: { $in: personIds } } },
+      { $group: { _id: "$personId", count: { $sum: 1 } } },
+    ]).catch(() => []),
+    LifeFinancialSupport.aggregate([
+      { $match: { recipientPersonId: { $in: personIds } } },
+      { $group: { _id: "$recipientPersonId", count: { $sum: 1 } } },
+    ]).catch(() => []),
+    LifeDocument.aggregate([
+      {
+        $match: {
+          $or: [
+            { relatedPersonId: { $in: personIds } },
+            { assignedToPersonIds: { $in: personIds } },
+          ],
+        },
+      },
+      { $group: { _id: "$relatedPersonId", count: { $sum: 1 } } },
+    ]).catch(() => []),
+  ]);
+
+  const noteMap = new Map<string, number>();
+  for (const item of notesByPerson) {
+    if (item._id) noteMap.set(String(item._id), item.count);
+  }
+
+  const instMap = new Map<string, number>();
+  for (const item of instructionsByPerson) {
+    if (item._id) instMap.set(String(item._id), item.count);
+  }
+
+  const respMap = new Map<string, number>();
+  for (const item of responsibilitiesByPerson) {
+    if (item._id) respMap.set(String(item._id), item.count);
+  }
+
+  const moneyMap = new Map<string, number>();
+  for (const item of moneyByPerson) {
+    if (item._id) moneyMap.set(String(item._id), item.count);
+  }
+
+  const fsMap = new Map<string, number>();
+  for (const item of financialSupportByPerson) {
+    if (item._id) fsMap.set(String(item._id), item.count);
+  }
+
+  const docMap = new Map<string, number>();
+  for (const item of documentsByPerson) {
+    if (item._id) docMap.set(String(item._id), item.count);
+  }
+
+  const result = enriched.map((p) => {
+    const idStr = String(p._id);
+    const nNotes = noteMap.get(idStr) || 0;
+    const nDuties = (instMap.get(idStr) || 0) + (respMap.get(idStr) || 0);
+    const nLoans = (moneyMap.get(idStr) || 0) + (fsMap.get(idStr) || 0);
+    const nFiles = docMap.get(idStr) || 0;
+
+    // Resolve accurate registration status
+    let regStatus = p.registrationStatus;
+    if (p.status === "disabled" || p.accountStatus === "disabled") {
+      regStatus = "disabled";
+    } else if (p.clerkUserId) {
+      regStatus = "active_user";
+    } else if (
+      p.invitationExpiresAt &&
+      new Date() > new Date(p.invitationExpiresAt) &&
+      p.registrationStatus === "invitation_sent"
+    ) {
+      regStatus = "invite_expired";
+    } else if (!regStatus) {
+      regStatus = "not_invited";
+    }
+
+    // Default category if absent
+    let cat = p.category;
+    if (!cat) {
+      const rel = (p.relation || "").toLowerCase();
+      if (
+        [
+          "wife",
+          "husband",
+          "son",
+          "daughter",
+          "brother",
+          "sister",
+          "father",
+          "mother",
+          "parents",
+          "cousin",
+          "relative",
+        ].some((r) => rel.includes(r))
+      ) {
+        cat = "Family Member";
+      } else if (["staff", "assistant", "employee", "driver"].some((r) => rel.includes(r))) {
+        cat = "Staff";
+      } else if (["partner", "business", "colleague"].some((r) => rel.includes(r))) {
+        cat = "Business Partner";
+      } else if (["guardian"].some((r) => rel.includes(r))) {
+        cat = "Guardian";
+      } else if (["friend"].some((r) => rel.includes(r))) {
+        cat = "Friend";
+      } else {
+        cat = "Family Member";
+      }
+    }
+
+    return {
+      ...p,
+      category: cat,
+      registrationStatus: regStatus,
+      notesCount: nNotes,
+      dutiesCount: nDuties,
+      loansCount: nLoans,
+      sharedFilesCount: nFiles,
+    };
+  });
+
+  return JSON.parse(JSON.stringify(result));
 }
 
 export async function getPersonById(id: string) {
@@ -172,8 +338,66 @@ export async function getPersonById(id: string) {
         )
       : messages;
 
+  // Resolve accurate registration status
+  let regStatus = person.registrationStatus;
+  if (person.status === "disabled" || person.accountStatus === "disabled") {
+    regStatus = "disabled";
+  } else if (person.clerkUserId) {
+    regStatus = "active_user";
+  } else if (
+    person.invitationExpiresAt &&
+    new Date() > new Date(person.invitationExpiresAt) &&
+    person.registrationStatus === "invitation_sent"
+  ) {
+    regStatus = "invite_expired";
+  } else if (!regStatus) {
+    regStatus = "not_invited";
+  }
+
+  let cat = person.category;
+  if (!cat) {
+    const rel = (person.relation || "").toLowerCase();
+    if (
+      [
+        "wife",
+        "husband",
+        "son",
+        "daughter",
+        "brother",
+        "sister",
+        "father",
+        "mother",
+        "parents",
+        "cousin",
+        "relative",
+      ].some((r) => rel.includes(r))
+    ) {
+      cat = "Family Member";
+    } else if (["staff", "assistant", "employee", "driver"].some((r) => rel.includes(r))) {
+      cat = "Staff";
+    } else if (["partner", "business", "colleague"].some((r) => rel.includes(r))) {
+      cat = "Business Partner";
+    } else if (["guardian"].some((r) => rel.includes(r))) {
+      cat = "Guardian";
+    } else if (["friend"].some((r) => rel.includes(r))) {
+      cat = "Friend";
+    } else {
+      cat = "Family Member";
+    }
+  }
+
+  const enrichedPerson = {
+    ...person,
+    category: cat,
+    registrationStatus: regStatus,
+    notesCount: notes.length,
+    dutiesCount: instructions.length + responsibilities.length,
+    loansCount: financialCare.length + moneyRecords.length,
+    sharedFilesCount: documents.length,
+  };
+
   return {
-    person: JSON.parse(JSON.stringify(person)),
+    person: JSON.parse(JSON.stringify(enrichedPerson)),
     financialCare: JSON.parse(JSON.stringify(financialCare)),
     moneyRecords: JSON.parse(JSON.stringify(moneyRecords)),
     documents: JSON.parse(JSON.stringify(documents)),
@@ -188,10 +412,20 @@ export async function getPersonById(id: string) {
 
 export async function createPerson(data: {
   name: string;
+  category?: string;
   relation: string;
   phone?: string;
   whatsapp?: string;
   email?: string;
+  address?: string;
+  location?: string;
+  shortNote?: string;
+  tags?: string[];
+  isImportant?: boolean;
+  isEmergencyContact?: boolean;
+  inviteAsUser?: boolean;
+  profilePhoto?: string;
+  avatarUrl?: string;
   role?: LifeRole;
   status?: PersonStatus;
   accountStatus?: AccountStatus;
@@ -212,6 +446,19 @@ export async function createPerson(data: {
     );
   }
 
+  const cleanEmail = data.email?.toLowerCase().trim() || "";
+
+  // Prevent duplicate Person records with the same email in this owner directory
+  if (cleanEmail) {
+    const existing = await LifePerson.findOne({
+      email: cleanEmail,
+      isDeleted: { $ne: true },
+    });
+    if (existing) {
+      throw new Error(`A person profile with the email "${cleanEmail}" already exists in your directory.`);
+    }
+  }
+
   const isSuper = data.role === "super_admin" || data.role === "owner";
   const finalRole = data.role || "individual";
   const isRecordOnly = Boolean(data.isRecordOnly);
@@ -227,19 +474,27 @@ export async function createPerson(data: {
         canAccessEmergency: false,
       };
 
-  const cleanEmail = isRecordOnly ? "" : data.email?.toLowerCase().trim() || "";
   const clerkAvatar = cleanEmail
     ? await getClerkAvatar({ email: cleanEmail })
     : undefined;
 
+  const photo = data.profilePhoto || data.avatarUrl || clerkAvatar || "";
+
   const person = await LifePerson.create({
-    name: data.name,
-    relation: data.relation,
-    phone: data.phone || "",
-    whatsapp: data.whatsapp || data.phone || "",
+    name: data.name.trim(),
+    category: data.category || "Family Member",
+    relation: data.relation.trim(),
+    phone: data.phone?.trim() || "",
+    whatsapp: data.whatsapp?.trim() || data.phone?.trim() || "",
     email: cleanEmail,
-    avatarUrl: clerkAvatar || "",
-    profilePhoto: clerkAvatar || "",
+    address: (data.address || data.location || "").trim(),
+    shortNote: data.shortNote?.trim() || "",
+    tags: data.tags || [],
+    isImportant: Boolean(data.isImportant),
+    isEmergencyContact: Boolean(data.isEmergencyContact),
+    registrationStatus: "not_invited",
+    avatarUrl: photo,
+    profilePhoto: photo,
     role: finalRole,
     userRole: finalRole,
     status: data.status || "active",
@@ -249,10 +504,18 @@ export async function createPerson(data: {
     personalMessage: data.personalMessage || "",
     responsibilities: data.responsibilities || [],
     businessInstructions: data.businessInstructions || [],
-    notes: data.notes || "",
-    emergencyPriority: data.emergencyPriority || 0,
+    notes: data.notes || data.shortNote || "",
+    emergencyPriority: data.isEmergencyContact ? 1 : (data.emergencyPriority || 0),
     permissions: finalPerms,
   });
+
+  // If Invite as User toggle is enabled, send invitation now
+  if (data.inviteAsUser && cleanEmail) {
+    const inviteRes = await sendPersonInvitation(String(person._id), cleanEmail);
+    if (!inviteRes.success) {
+      console.warn("Failed to deliver invitation during createPerson:", inviteRes.message);
+    }
+  }
 
   if (isSuper && person.email) {
     const targetEmail = person.email.toLowerCase().trim();
@@ -275,7 +538,7 @@ export async function createPerson(data: {
     resourceType: "people",
     resourceId: String(person._id),
     resourceName: person.name,
-    details: `Added new person profile: ${person.name} (${person.relation})`,
+    details: `Added new person profile: ${person.name} (${person.relation} • ${person.category || "Family Member"})${data.inviteAsUser ? " with invitation" : ""}`,
   });
 
   revalidatePath("/people");
@@ -287,10 +550,25 @@ export async function updatePerson(
   id: string,
   data: Partial<{
     name: string;
+    category: string;
     relation: string;
     phone: string;
     whatsapp: string;
     email: string;
+    address: string;
+    location: string;
+    shortNote: string;
+    tags: string[];
+    isImportant: boolean;
+    isEmergencyContact: boolean;
+    profilePhoto: string;
+    avatarUrl: string;
+    registrationStatus:
+      | "not_invited"
+      | "invitation_sent"
+      | "invite_expired"
+      | "active_user"
+      | "disabled";
     role: LifeRole;
     status: PersonStatus;
     accountStatus: AccountStatus;

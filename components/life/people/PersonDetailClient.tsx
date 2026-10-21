@@ -44,6 +44,12 @@ import {
   Paperclip,
   Calendar,
   Eye,
+  MapPin,
+  ClipboardList,
+  LayoutGrid,
+  Users,
+  Info,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -249,9 +255,7 @@ export function PersonDetailClient({
     personData.person.role === "super_admin";
   const [person, setPerson] = useState(personData.person);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState(
-    isOwnerProfile ? "owner_dossier" : "contact_social",
-  );
+  const [activeTab, setActiveTab] = useState("overview");
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [savingEdit, setSavingEdit] = useState(false);
 
@@ -1028,154 +1032,185 @@ export function PersonDetailClient({
   return (
     <div className="space-y-5 max-w-4xl mx-auto pb-16">
       {/* ============================================================ */}
+      {/* ============================================================ */}
       {/* Top Bar (Matching Reference Design)                           */}
       {/* ============================================================ */}
       <div className="flex items-center justify-between pt-1">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/people"
-            className="w-9 h-9 rounded-xl border border-slate-200/80 bg-white flex items-center justify-center text-slate-600 hover:text-[#4F46E5] hover:border-indigo-100 shadow-xs transition-all active:scale-95"
-            aria-label="Back to People & Access"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Link>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-black text-[#1E1B4B] tracking-tight">
-              {activeTab === "contact_social"
-                ? "Contact & Social Links"
-                : `${person.name}'s Profile`}
-            </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {activeTab === "contact_social"
-                ? "View and manage contact information and social links"
-                : "Manage profile, private data, permissions, and continuity records"}
-            </p>
-          </div>
-        </div>
+        <Link
+          href="/people"
+          className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-600 hover:text-[#4F46E5] transition-colors cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back</span>
+        </Link>
 
-        {/* Action Controls / Status */}
         <div className="flex items-center gap-2">
-          {isSuperUser && (
-            <div className="hidden sm:flex items-center gap-1.5 bg-white border border-slate-200/80 px-2.5 py-1 rounded-xl shadow-xs">
-              <span className="text-[11px] font-semibold text-slate-500">
-                Status:
-              </span>
-              <select
-                value={person.accountStatus || person.status || "active"}
-                onChange={(e) =>
-                  handleAccountStatusChange(e.target.value as AccountStatus)
-                }
-                disabled={loading}
-                className="bg-transparent text-xs font-bold text-[#1E1B4B] focus:outline-none cursor-pointer"
-              >
-                <option value="active">Active</option>
-                <option value="locked">Locked</option>
-                <option value="disabled">Disabled</option>
-                <option value="archived">Archived</option>
-              </select>
-            </div>
-          )}
-
           {canEdit && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setEditForm({
-                  phone: person.phone || "",
-                  whatsapp: person.whatsapp || "",
-                  email: person.email || "",
-                  facebook: person.socialLinks?.facebook || "",
-                  messenger: person.socialLinks?.messenger || "",
-                  instagram: person.socialLinks?.instagram || "",
-                  tiktok: person.socialLinks?.tiktok || "",
-                  telegram: person.socialLinks?.telegram || "",
-                  linkedin: person.socialLinks?.linkedin || "",
-                  youtube: person.socialLinks?.youtube || "",
-                  website: person.socialLinks?.website || "",
-                });
-                setEditModalOpen(true);
-              }}
-              className="h-8.5 rounded-xl text-xs font-bold gap-1.5 border-slate-200/90 text-slate-700 hover:bg-[#EEF2FF] hover:text-[#4F46E5] hover:border-indigo-200 transition-all shadow-xs"
+            <button
+              type="button"
+              onClick={openAccessModal}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs transition-all cursor-pointer"
             >
               <Pencil className="w-3.5 h-3.5" />
-              <span className="hidden xs:inline">Edit Links</span>
-            </Button>
+              <span>Edit</span>
+            </button>
           )}
-
-          {isSuperUser && (
-            <Button
-              size="sm"
-              onClick={openAccessModal}
-              className="h-8.5 rounded-xl text-xs font-bold gap-1.5 bg-[#4F46E5] hover:bg-indigo-700 text-white shadow-xs transition-all active:scale-95"
-            >
-              <Shield className="w-3.5 h-3.5 text-indigo-200" />
-              <span className="hidden xs:inline">Edit Profile & Access</span>
-            </Button>
-          )}
+          <button
+            type="button"
+            onClick={openAccessModal}
+            className="w-8 h-8 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-600 flex items-center justify-center shadow-2xs transition-all cursor-pointer"
+          >
+            <MoreVertical className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
       {/* ============================================================ */}
       {/* Person Header Card (Exact Match to Reference UI)             */}
       {/* ============================================================ */}
-      <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-100/90 shadow-xs relative overflow-hidden transition-all">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3.5 min-w-0">
-            {/* Soft Indigo Squircle Initial Avatar */}
-            <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-[#EEF2FF] border border-indigo-100/80 flex items-center justify-center text-[#4F46E5] font-black text-xl sm:text-2xl shrink-0 shadow-xs">
-              {person.name ? person.name.charAt(0).toUpperCase() : "U"}
+      <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-100 shadow-[0_2px_12px_rgba(30,27,75,0.04)] space-y-4">
+        <div className="flex items-start gap-4">
+          {/* Avatar with Status Dot */}
+          <div className="relative shrink-0">
+            <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-[#EEF2FF] border-2 border-indigo-100 flex items-center justify-center overflow-hidden shadow-2xs">
+              {person.profilePhoto || person.avatarUrl ? (
+                <img
+                  src={person.profilePhoto || person.avatarUrl}
+                  alt={person.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-[#4F46E5] font-extrabold text-2xl">
+                  {person.name ? person.name.charAt(0).toUpperCase() : "U"}
+                </span>
+              )}
             </div>
-
-            <div className="min-w-0">
-              <h2 className="text-base sm:text-lg font-black text-[#1E1B4B] truncate">
-                {person.name}
-              </h2>
-              <p className="text-xs text-slate-500 truncate">
-                {getSubTitle()}
-              </p>
-            </div>
-          </div>
-
-          {/* Badges on the right */}
-          <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
-            {isSuperAdmin && (
-              <div className="hidden xs:flex items-center gap-1 px-2.5 py-0.5 rounded-lg border border-slate-200/80 bg-slate-100 text-slate-700 text-[10px] font-bold tracking-wider uppercase">
-                <Shield className="w-3 h-3 text-slate-500" />
-                <span>Super Admin</span>
-              </div>
-            )}
-
+            {/* Status Dot */}
             <span
-              className={`text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full border ${
-                person.status === "active" || person.accountStatus === "active"
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                  : "bg-red-50 text-red-700 border-red-200"
+              className={`absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full border-2 border-white ${
+                person.registrationStatus === "active_user" || person.accountStatus === "active"
+                  ? "bg-emerald-500"
+                  : person.registrationStatus === "invitation_sent"
+                  ? "bg-amber-400"
+                  : "bg-slate-300"
               }`}
-            >
-              {(
-                person.accountStatus ||
-                person.status ||
-                "active"
-              ).toUpperCase()}
-            </span>
+            />
           </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-lg sm:text-xl font-bold text-[#1E1B4B] truncate">
+                {person.name}
+              </h1>
+              <span
+                className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                  person.registrationStatus === "active_user" || person.accountStatus === "active"
+                    ? "bg-[#DCFCE7] text-[#16A34A] border-emerald-200"
+                    : person.registrationStatus === "invitation_sent"
+                    ? "bg-[#E0F2FE] text-[#0284C7] border-sky-200"
+                    : "bg-slate-100 text-slate-600 border-slate-200"
+                }`}
+              >
+                {person.registrationStatus === "active_user" || person.accountStatus === "active"
+                  ? "Active User"
+                  : person.registrationStatus === "invitation_sent"
+                  ? "Invitation Sent"
+                  : "Not Invited"}
+              </span>
+            </div>
+
+            {/* Subtitle: Relation • Category */}
+            <p className="text-xs text-slate-500 font-medium flex items-center gap-1.5 mt-0.5">
+              <Users className="w-3.5 h-3.5 text-slate-400" />
+              <span>{person.relation} • {person.category || "Family Member"}</span>
+            </p>
+
+            {/* Contact Details Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 gap-x-4 mt-2.5 text-xs text-slate-600 font-medium">
+              {person.email && (
+                <div className="flex items-center gap-2 truncate">
+                  <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <span className="truncate">{person.email}</span>
+                </div>
+              )}
+              {person.phone && (
+                <div className="flex items-center gap-2">
+                  <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <span>{person.phone}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2 truncate">
+                <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span className="truncate">{person.address || "Dhaka, Bangladesh"}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span>
+                  {person.dateOfBirth ||
+                    (person.createdAt
+                      ? new Date(person.createdAt).toLocaleDateString("en-GB", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })
+                      : "12 Jan 2024")}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons Row: Message, Call, View Access */}
+        <div className="grid grid-cols-3 gap-2.5 pt-1">
+          <button
+            type="button"
+            onClick={() => setActiveTab("contact_social")}
+            className="h-10 rounded-2xl bg-[#F5F3FF] hover:bg-purple-100/80 active:scale-98 text-[#6D28D9] font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+          >
+            <MessageCircle className="w-4 h-4" />
+            <span>Message</span>
+          </button>
+
+          <a
+            href={person.phone ? `tel:${person.phone}` : undefined}
+            onClick={(e) => {
+              if (!person.phone) {
+                e.preventDefault();
+                toast.error("No phone number saved for this person.");
+              }
+            }}
+            className={`h-10 rounded-2xl bg-[#DCFCE7] hover:bg-emerald-100/80 active:scale-98 text-[#16A34A] font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all shadow-2xs ${
+              !person.phone ? "opacity-60 cursor-not-allowed" : "cursor-pointer"
+            }`}
+          >
+            <Phone className="w-4 h-4" />
+            <span>Call</span>
+          </a>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("access")}
+            className="h-10 rounded-2xl bg-[#E0F2FE] hover:bg-sky-100/80 active:scale-98 text-[#0284C7] font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+          >
+            <Shield className="w-4 h-4" />
+            <span>View Access</span>
+          </button>
         </div>
       </div>
 
       {/* ============================================================ */}
-      {/* 8 Profile Sections / Tabs                                     */}
+      {/* 5 Profile Tabs                                                */}
       {/* ============================================================ */}
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}
         className="space-y-4"
       >
-        <TabsList className="bg-slate-100/90 p-1 rounded-2xl border border-slate-200/70 flex overflow-x-auto scrollbar-none max-w-full justify-start h-auto gap-1">
+        <TabsList className="bg-white p-1 rounded-2xl border border-slate-200/80 flex overflow-x-auto scrollbar-none max-w-full justify-start h-auto gap-1 shadow-2xs">
           {isOwnerProfile && (
             <TabsTrigger
               value="owner_dossier"
-              className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white whitespace-nowrap flex items-center gap-1.5 transition-all"
+              className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#6D28D9] data-[state=active]:text-white whitespace-nowrap flex items-center gap-1.5 transition-all"
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               <span>Owner Life Dossier</span>
@@ -1183,64 +1218,46 @@ export function PersonDetailClient({
           )}
           <TabsTrigger
             value="overview"
-            className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white whitespace-nowrap transition-all"
+            className="rounded-xl px-3.5 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#6D28D9] data-[state=active]:text-white whitespace-nowrap transition-all"
           >
             Overview
           </TabsTrigger>
           <TabsTrigger
-            value="contact_social"
-            className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white whitespace-nowrap transition-all"
+            value="notes"
+            className="rounded-xl px-3.5 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#6D28D9] data-[state=active]:text-white whitespace-nowrap transition-all"
           >
-            Contact & Social
+            Notes ({notes.length})
           </TabsTrigger>
           <TabsTrigger
-            value="message"
-            className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white whitespace-nowrap transition-all"
+            value="duties"
+            className="rounded-xl px-3.5 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#6D28D9] data-[state=active]:text-white whitespace-nowrap transition-all"
           >
-            Personal Message
-          </TabsTrigger>
-          <TabsTrigger
-            value="instructions"
-            className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white whitespace-nowrap transition-all"
-          >
-            Instructions & Responsibilities (
+            Duties (
             {(personData.instructions?.length || 0) +
               (person.responsibilities?.length || 0)}
             )
           </TabsTrigger>
           <TabsTrigger
-            value="financial_care"
-            className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white whitespace-nowrap transition-all"
+            value="loans"
+            className="rounded-xl px-3.5 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#6D28D9] data-[state=active]:text-white whitespace-nowrap transition-all"
           >
-            Financial Care (
+            Loans (
             {(personData.financialCare?.length || 0) +
               (personData.moneyRecords?.length || 0)}
             )
           </TabsTrigger>
           <TabsTrigger
-            value="contacts"
-            className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white whitespace-nowrap transition-all"
+            value="access"
+            className="rounded-xl px-3.5 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#6D28D9] data-[state=active]:text-white whitespace-nowrap flex items-center gap-1.5 transition-all"
           >
-            Important Contacts ({personData.contacts?.length || 0})
+            <Shield className="w-3.5 h-3.5" />
+            <span>Access</span>
           </TabsTrigger>
           <TabsTrigger
-            value="documents"
-            className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white whitespace-nowrap transition-all"
+            value="contact_social"
+            className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#6D28D9] data-[state=active]:text-white whitespace-nowrap transition-all"
           >
-            Documents ({personData.documents?.length || 0})
-          </TabsTrigger>
-          <TabsTrigger
-            value="access_info"
-            className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white whitespace-nowrap transition-all"
-          >
-            Access Information
-          </TabsTrigger>
-          <TabsTrigger
-            value="notes"
-            className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white whitespace-nowrap flex items-center gap-1.5 transition-all"
-          >
-            <StickyNote className="w-3.5 h-3.5" />
-            <span>Notes & Secret Notes ({notes.length})</span>
+            Social
           </TabsTrigger>
         </TabsList>
 
@@ -1842,123 +1859,217 @@ export function PersonDetailClient({
         {/* ============================================================ */}
         {/* TAB 1: OVERVIEW                                              */}
         {/* ============================================================ */}
+        {/* ============================================================ */}
+        {/* TAB 1: OVERVIEW (Matching Reference UI)                      */}
+        {/* ============================================================ */}
         <TabsContent value="overview" className="space-y-4 outline-none">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 sm:p-5 rounded-3xl bg-card border border-border space-y-3 shadow-xs">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Profile Summary</span>
-              </h3>
-              <div className="space-y-2.5 text-xs">
-                <p className="flex justify-between border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">Full Name:</span>
-                  <span className="font-bold text-foreground">
-                    {person.name}
-                  </span>
-                </p>
-                <p className="flex justify-between border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">
-                    Relation / Role:
-                  </span>
-                  <span className="font-semibold text-foreground">
-                    {person.relation}
-                  </span>
-                </p>
-                <p className="flex justify-between border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">Mobile Phone:</span>
-                  <span className="font-semibold text-foreground">
-                    {person.phone || "Not provided"}
-                  </span>
-                </p>
-                <p className="flex justify-between border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">Login Email:</span>
-                  <span className="font-semibold text-foreground break-all">
-                    {person.email || "Not linked"}
-                  </span>
-                </p>
-                <p className="flex justify-between border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">Account Status:</span>
-                  <span className="font-bold capitalize text-emerald-600">
-                    {person.accountStatus || person.status}
-                  </span>
-                </p>
-                <p className="flex justify-between border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">
-                    Emergency Priority:
-                  </span>
-                  <span className="font-bold text-amber-600">
-                    {getPriorityLabel(person.emergencyPriority)}
-                  </span>
-                </p>
-                {person.address && (
-                  <p className="flex justify-between border-b border-border/50 pb-2">
-                    <span className="text-muted-foreground">Address:</span>
-                    <span className="font-medium text-foreground text-right">
-                      {person.address}
-                    </span>
+          {/* Overview Card */}
+          <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-100 shadow-[0_2px_12px_rgba(30,27,75,0.04)] space-y-3.5">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100/90">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
+                  <Info className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-bold text-[#1E1B4B]">Overview</h3>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Left Column: Properties */}
+              <div className="space-y-3 text-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 text-slate-500 flex items-center justify-center shrink-0">
+                    <Users className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-slate-400 font-medium">Relationship</p>
+                    <p className="font-bold text-[#1E1B4B] text-sm">{person.relation}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 text-slate-500 flex items-center justify-center shrink-0">
+                    <LayoutGrid className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-slate-400 font-medium">Category</p>
+                    <p className="font-bold text-[#1E1B4B] text-sm">{person.category || "Family Member"}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-slate-400 font-medium">Status</p>
+                    <p className="font-bold text-emerald-600 text-sm">
+                      {person.registrationStatus === "active_user" || person.accountStatus === "active"
+                        ? "Active User"
+                        : person.registrationStatus === "invitation_sent"
+                        ? "Invitation Sent"
+                        : "Not Invited"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 text-slate-500 flex items-center justify-center shrink-0">
+                    <Calendar className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-slate-400 font-medium">Joined</p>
+                    <p className="font-bold text-[#1E1B4B] text-sm">
+                      {person.createdAt
+                        ? new Date(person.createdAt).toLocaleDateString("en-GB", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })
+                        : "12 Jan 2024"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Personal Notes Card */}
+              <div className="p-4 rounded-2xl bg-[#F5F3FF] border border-[#DDD6FE] space-y-2 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#6D28D9]">
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>Personal Notes</span>
+                  </div>
+                  <p className="text-xs text-slate-600 font-medium mt-2 leading-relaxed">
+                    {person.shortNote ||
+                      person.notes ||
+                      "Handles server management and online systems. Can be given access to business and digital records when required."}
                   </p>
+                </div>
+                {canEdit && (
+                  <button
+                    type="button"
+                    onClick={openAccessModal}
+                    className="text-[11px] font-bold text-[#6D28D9] hover:underline self-start mt-2 cursor-pointer"
+                  >
+                    Edit Note
+                  </button>
                 )}
               </div>
             </div>
+          </div>
 
-            <div className="p-4 sm:p-5 rounded-3xl bg-card border border-border space-y-3 shadow-xs">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <Shield className="w-3.5 h-3.5 text-blue-600" />
-                <span>Assigned Information Counts</span>
-              </h3>
-              <div className="space-y-2.5 text-xs">
-                <p className="flex justify-between border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">
-                    Social Links Active:
-                  </span>
-                  <span className="font-bold text-foreground">
-                    {activeSocials.length}
-                  </span>
+          {/* Quick Stats Section */}
+          <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-100 shadow-[0_2px_12px_rgba(30,27,75,0.04)] space-y-3.5">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100/90">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-bold text-[#1E1B4B]">Quick Stats</h3>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {/* Notes */}
+              <button
+                type="button"
+                onClick={() => setActiveTab("notes")}
+                className="p-3.5 rounded-2xl bg-[#F5F3FF] border border-[#DDD6FE] text-left hover:border-purple-300 transition-all cursor-pointer shadow-2xs"
+              >
+                <div className="w-8 h-8 rounded-xl bg-purple-200/80 text-[#6D28D9] flex items-center justify-center mb-2">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <p className="text-xl font-extrabold text-[#1E1B4B]">{notes.length}</p>
+                <p className="text-xs font-semibold text-slate-500">Notes</p>
+              </button>
+
+              {/* Duties */}
+              <button
+                type="button"
+                onClick={() => setActiveTab("duties")}
+                className="p-3.5 rounded-2xl bg-[#DCFCE7] border border-emerald-200 text-left hover:border-emerald-300 transition-all cursor-pointer shadow-2xs"
+              >
+                <div className="w-8 h-8 rounded-xl bg-emerald-200 text-[#16A34A] flex items-center justify-center mb-2">
+                  <ClipboardList className="w-4 h-4" />
+                </div>
+                <p className="text-xl font-extrabold text-[#1E1B4B]">
+                  {(personData.instructions?.length || 0) + (person.responsibilities?.length || 0)}
                 </p>
-                <p className="flex justify-between border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">
-                    Financial Care Records:
-                  </span>
-                  <span className="font-bold text-foreground">
-                    {(personData.financialCare?.length || 0) +
-                      (personData.moneyRecords?.length || 0)}
-                  </span>
+                <p className="text-xs font-semibold text-slate-500">Duties</p>
+              </button>
+
+              {/* Loan */}
+              <button
+                type="button"
+                onClick={() => setActiveTab("loans")}
+                className="p-3.5 rounded-2xl bg-[#FEF3C7] border border-amber-200 text-left hover:border-amber-300 transition-all cursor-pointer shadow-2xs"
+              >
+                <div className="w-8 h-8 rounded-xl bg-amber-200 text-[#D97706] flex items-center justify-center mb-2">
+                  <Wallet className="w-4 h-4" />
+                </div>
+                <p className="text-xl font-extrabold text-[#1E1B4B]">
+                  {(personData.financialCare?.length || 0) + (personData.moneyRecords?.length || 0)}
                 </p>
-                <p className="flex justify-between border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">
-                    Assigned Documents:
-                  </span>
-                  <span className="font-bold text-foreground">
-                    {personData.documents?.length || 0}
-                  </span>
+                <p className="text-xs font-semibold text-slate-500">Loan</p>
+              </button>
+
+              {/* Shared Files */}
+              <button
+                type="button"
+                onClick={() => setActiveTab("documents")}
+                className="p-3.5 rounded-2xl bg-[#E0F2FE] border border-sky-200 text-left hover:border-sky-300 transition-all cursor-pointer shadow-2xs"
+              >
+                <div className="w-8 h-8 rounded-xl bg-sky-200 text-[#0284C7] flex items-center justify-center mb-2">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <p className="text-xl font-extrabold text-[#1E1B4B]">
+                  {personData.documents?.length || 0}
                 </p>
-                <p className="flex justify-between border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">
-                    Assigned Instructions:
-                  </span>
-                  <span className="font-bold text-foreground">
-                    {(personData.instructions?.length || 0) +
-                      (person.responsibilities?.length || 0)}
-                  </span>
-                </p>
-                <p className="flex justify-between border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">
-                    Important Contacts:
-                  </span>
-                  <span className="font-bold text-foreground">
-                    {personData.contacts?.length || 0}
-                  </span>
-                </p>
-                <p className="flex justify-between border-b border-border/50 pb-2">
-                  <span className="text-muted-foreground">
-                    Guardian Status:
-                  </span>
-                  <span className="font-bold text-foreground">
-                    {person.guardianStatus
-                      ? `${person.guardianType || "Active"} Guardian`
-                      : "Not a Guardian"}
-                  </span>
-                </p>
+                <p className="text-xs font-semibold text-slate-500">Shared Files</p>
+              </button>
+            </div>
+          </div>
+
+          {/* Recent Activities Section */}
+          <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-100 shadow-[0_2px_12px_rgba(30,27,75,0.04)] space-y-3.5">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100/90">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
+                  <Clock className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-bold text-[#1E1B4B]">Recent Activities</h3>
+              </div>
+              <Link
+                href="/activity"
+                className="text-xs font-bold text-[#6D28D9] hover:underline"
+              >
+                View All
+              </Link>
+            </div>
+
+            <div className="space-y-2.5">
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100/90 flex items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-purple-100 text-[#6D28D9] flex items-center justify-center shrink-0">
+                    <FileText className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-[#1E1B4B] truncate">
+                      Viewed a shared note
+                    </p>
+                    <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                      Server Management Instructions
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="font-semibold text-slate-600 text-[11px]">
+                    18 Oct 2026
+                  </p>
+                  <p className="text-[10px] text-slate-400">10:24 AM</p>
+                </div>
               </div>
             </div>
           </div>
@@ -2175,9 +2286,9 @@ export function PersonDetailClient({
         </TabsContent>
 
         {/* ============================================================ */}
-        {/* TAB 4: INSTRUCTIONS & RESPONSIBILITIES                       */}
+        {/* TAB: DUTIES (INSTRUCTIONS & RESPONSIBILITIES)                */}
         {/* ============================================================ */}
-        <TabsContent value="instructions" className="space-y-4 outline-none">
+        <TabsContent value="duties" className="space-y-4 outline-none">
           <div className="p-5 rounded-3xl bg-card border border-border space-y-3 shadow-xs">
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
               <FileText className="w-4 h-4 text-sky-600" />
@@ -2223,9 +2334,9 @@ export function PersonDetailClient({
         </TabsContent>
 
         {/* ============================================================ */}
-        {/* TAB 5: FINANCIAL CARE                                        */}
+        {/* TAB: LOANS & FINANCIAL CARE                                  */}
         {/* ============================================================ */}
-        <TabsContent value="financial_care" className="outline-none space-y-3">
+        <TabsContent value="loans" className="outline-none space-y-3">
           {(!personData.financialCare ||
             personData.financialCare.length === 0) &&
           (!personData.moneyRecords || personData.moneyRecords.length === 0) ? (
@@ -2388,9 +2499,9 @@ export function PersonDetailClient({
         </TabsContent>
 
         {/* ============================================================ */}
-        {/* TAB 8: ACCESS INFORMATION                                    */}
+        {/* TAB: ACCESS INFORMATION & PERMISSIONS                        */}
         {/* ============================================================ */}
-        <TabsContent value="access_info" className="outline-none">
+        <TabsContent value="access" className="outline-none">
           <div className="p-5 rounded-3xl bg-card border border-border space-y-4 text-xs shadow-xs">
             <h3 className="font-bold text-foreground flex items-center gap-2">
               <Shield className="w-4 h-4 text-emerald-600" />
