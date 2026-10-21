@@ -835,7 +835,9 @@ export type RecordType =
   | "legacy_message"
   | "instruction"
   | "contact"
-  | "asset";
+  | "asset"
+  | "money_record"
+  | "transaction";
 
 export interface ILifeRecordPermission {
   _id?: string;

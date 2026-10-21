@@ -39,6 +39,8 @@ const LifeRecordPermissionSchema = new Schema<ILifeRecordPermissionDoc>(
         "instruction",
         "contact",
         "asset",
+        "money_record",
+        "transaction",
       ],
       required: true,
       index: true,

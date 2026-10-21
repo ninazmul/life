@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -116,24 +116,7 @@ export function LifeVaultDashboard({
   // Search dialog state
   const [searchOpen, setSearchOpen] = useState(false);
 
-  // Master Navigation active dropdown: only one open at a time
-  const [activeDropdown, setActiveDropdown] = useState<
-    "spaces" | "vault" | "continuity" | null
-  >(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on outside click
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setActiveDropdown(null);
-      }
-    }
-    if (activeDropdown) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
-    }
-  }, [activeDropdown]);
 
   // Keyboard shortcut (Cmd+K / Ctrl+K)
   useEffect(() => {
@@ -334,41 +317,7 @@ export function LifeVaultDashboard({
     },
   ];
 
-  const handleDropdownToggle = (key: "spaces" | "vault" | "continuity") => {
-    setActiveDropdown((prev) => (prev === key ? null : key));
-  };
 
-  const activeItems =
-    activeDropdown === "spaces"
-      ? mySpacesItems
-      : activeDropdown === "vault"
-        ? coreVaultItems
-        : activeDropdown === "continuity"
-          ? continuityItems
-          : [];
-
-  const activeLabel =
-    activeDropdown === "spaces"
-      ? "My Spaces — 6 Areas"
-      : activeDropdown === "vault"
-        ? "Core Vault — 6 Sections"
-        : activeDropdown === "continuity"
-          ? "Continuity — 6 Sections"
-          : "";
-
-  const activeHoverColor =
-    activeDropdown === "spaces"
-      ? "hover:bg-[#FFF2F2] dark:hover:bg-rose-950/30"
-      : activeDropdown === "vault"
-        ? "hover:bg-[#E8F8F0] dark:hover:bg-emerald-950/30"
-        : "hover:bg-[#EEF2FF] dark:hover:bg-indigo-950/30";
-
-  const activeTextHover =
-    activeDropdown === "spaces"
-      ? "group-hover:text-rose-700"
-      : activeDropdown === "vault"
-        ? "group-hover:text-emerald-700"
-        : "group-hover:text-purple-700";
 
   // ── Live Overview data — 6 cards ──
   const loansGiven = overview.loanOverview?.given ?? stats.moneyGivenRemaining ?? 0;
@@ -570,162 +519,51 @@ export function LifeVaultDashboard({
         </section>
 
         {/* ══════════════════════════════════════════════════
-            2. MAIN SECTIONS — My Spaces, Core Vault, Continuity
+            2. UNIFIED LIFE WORKSPACE ENTRY CARD
         ══════════════════════════════════════════════════ */}
-        <div className="relative" ref={dropdownRef}>
-          {/* Section Header */}
-          <div className="flex items-center justify-between px-1 mb-2">
+        <section className="space-y-1.5">
+          <div className="flex items-center justify-between px-1">
             <h2 className="text-[15px] sm:text-[16px] font-bold text-[#1E1B4B] dark:text-white">
-              Main Sections
+              Life Workspace
             </h2>
             <Link
-              href="/guide"
+              href="/workspace"
               className="text-[12px] font-bold text-[#4F46E5] hover:text-indigo-700 dark:text-indigo-400 flex items-center gap-0.5 transition-colors"
             >
-              View All
+              Open Workspace
               <ChevronRight className="w-3.5 h-3.5" strokeWidth={2.4} />
             </Link>
           </div>
 
-          {/* Three Primary Cards — equal width row */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
-            {/* Card 1: My Spaces */}
-            <button
-              type="button"
-              onClick={() => handleDropdownToggle("spaces")}
-              className={`rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 text-center border transition-all duration-200 flex flex-col items-center justify-center gap-1 cursor-pointer active:scale-95 shadow-xs ${
-                activeDropdown === "spaces"
-                  ? "bg-[#FFE8E8] dark:bg-rose-950/60 border-rose-300 dark:border-rose-700 shadow-sm ring-1 ring-rose-200 dark:ring-rose-800"
-                  : "bg-[#FFF2F2]/90 hover:bg-[#FFEAEB] dark:bg-rose-950/30 border-rose-100/90 dark:border-rose-900/40"
-              }`}
-              aria-expanded={activeDropdown === "spaces"}
-              aria-label="My Spaces dropdown (6 areas)"
-            >
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-300 flex items-center justify-center shrink-0">
-                <Home className="w-4 h-4 sm:w-4.5 sm:h-4.5" strokeWidth={2.2} />
+          <Link
+            href="/workspace"
+            className="group relative overflow-hidden rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 bg-white/95 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-[0_2px_12px_rgba(30,27,75,0.04)] hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-800 transition-all flex items-center justify-between gap-3 cursor-pointer active:scale-[0.99]"
+            aria-label="Open Unified Life Workspace"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-[#4F46E5] dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
+                <FolderKanban className="w-5 h-5 sm:w-5.5 sm:h-5.5" strokeWidth={2.2} />
               </div>
-              <div className="min-w-0 w-full">
-                <span className="text-[12px] sm:text-[13px] font-bold text-[#1E1B4B] dark:text-white block truncate leading-tight">
-                  My Spaces
-                </span>
-                <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block mt-0.5 truncate leading-none">
-                  6 areas
-                </span>
-              </div>
-              <ChevronDown
-                className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
-                  activeDropdown === "spaces" ? "rotate-180 text-rose-600" : ""
-                }`}
-              />
-            </button>
-
-            {/* Card 2: Core Vault */}
-            <button
-              type="button"
-              onClick={() => handleDropdownToggle("vault")}
-              className={`rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 text-center border transition-all duration-200 flex flex-col items-center justify-center gap-1 cursor-pointer active:scale-95 shadow-xs ${
-                activeDropdown === "vault"
-                  ? "bg-[#D8F5E5] dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700 shadow-sm ring-1 ring-emerald-200 dark:ring-emerald-800"
-                  : "bg-[#EAFBF2]/90 hover:bg-[#DEF7E9] dark:bg-emerald-950/30 border-emerald-100/90 dark:border-emerald-900/40"
-              }`}
-              aria-expanded={activeDropdown === "vault"}
-              aria-label="Core Vault dropdown (6 sections)"
-            >
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-300 flex items-center justify-center shrink-0">
-                <Database className="w-4 h-4 sm:w-4.5 sm:h-4.5" strokeWidth={2.2} />
-              </div>
-              <div className="min-w-0 w-full">
-                <span className="text-[12px] sm:text-[13px] font-bold text-[#1E1B4B] dark:text-white block truncate leading-tight">
-                  Core Vault
-                </span>
-                <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block mt-0.5 truncate leading-none">
-                  6 sections
-                </span>
-              </div>
-              <ChevronDown
-                className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
-                  activeDropdown === "vault" ? "rotate-180 text-emerald-600" : ""
-                }`}
-              />
-            </button>
-
-            {/* Card 3: Continuity */}
-            <button
-              type="button"
-              onClick={() => handleDropdownToggle("continuity")}
-              className={`rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 text-center border transition-all duration-200 flex flex-col items-center justify-center gap-1 cursor-pointer active:scale-95 shadow-xs ${
-                activeDropdown === "continuity"
-                  ? "bg-[#E8E0FF] dark:bg-purple-950/60 border-purple-300 dark:border-purple-700 shadow-sm ring-1 ring-purple-200 dark:ring-purple-800"
-                  : "bg-[#F3EDFF]/90 hover:bg-[#ECE5FF] dark:bg-purple-950/30 border-purple-100/90 dark:border-purple-900/40"
-              }`}
-              aria-expanded={activeDropdown === "continuity"}
-              aria-label="Continuity dropdown (6 sections)"
-            >
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-purple-100 dark:bg-purple-900/60 text-purple-600 dark:text-purple-300 flex items-center justify-center shrink-0">
-                <ShieldCheck className="w-4 h-4 sm:w-4.5 sm:h-4.5" strokeWidth={2.2} />
-              </div>
-              <div className="min-w-0 w-full">
-                <span className="text-[12px] sm:text-[13px] font-bold text-[#1E1B4B] dark:text-white block truncate leading-tight">
-                  Continuity
-                </span>
-                <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block mt-0.5 truncate leading-none">
-                  6 sections
-                </span>
-              </div>
-              <ChevronDown
-                className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
-                  activeDropdown === "continuity" ? "rotate-180 text-purple-600" : ""
-                }`}
-              />
-            </button>
-          </div>
-
-          {/* ── Expandable Dropdown Container (Only ONE active at a time) ── */}
-          {activeDropdown && (
-            <div className="mt-2.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-3xl p-3.5 sm:p-4 border border-slate-100/90 dark:border-slate-800 shadow-[0_8px_30px_rgba(30,27,75,0.08)] lv-dropdown-enter z-30">
-              {/* Header indicator */}
-              <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                  {activeLabel}
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-[14px] sm:text-[15px] font-bold text-[#1E1B4B] dark:text-white tracking-tight leading-tight">
+                    Life Workspace
+                  </span>
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900">
+                    Unified
+                  </span>
+                </div>
+                <p className="text-[11px] sm:text-[12px] text-slate-500 dark:text-slate-400 mt-0.5 truncate leading-snug">
+                  All your information, records and management in one place.
                 </p>
-                <button
-                  type="button"
-                  onClick={() => setActiveDropdown(null)}
-                  className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-800 transition-all"
-                  aria-label="Close dropdown"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              {/* 2-column × 3-row grid */}
-              <div className="grid grid-cols-2 gap-2">
-                {activeItems.map((item) => (
-                  <Link
-                    key={item.title}
-                    href={item.href}
-                    onClick={() => setActiveDropdown(null)}
-                    className={`p-2.5 rounded-2xl bg-slate-50/70 ${activeHoverColor} dark:bg-slate-800/40 border border-slate-100/90 dark:border-slate-800 transition-all flex items-start gap-2.5 group`}
-                  >
-                    <div
-                      className={`w-9 h-9 rounded-xl ${item.color} flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform`}
-                    >
-                      <item.icon className="w-4 h-4" strokeWidth={2.2} />
-                    </div>
-                    <div className="min-w-0 flex-1 pt-0.5">
-                      <span className={`text-[12px] sm:text-[13px] font-bold text-[#1E1B4B] dark:text-white block leading-tight ${activeTextHover} transition-colors`}>
-                        {item.title}
-                      </span>
-                      <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5 leading-snug">
-                        {item.desc}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
               </div>
             </div>
-          )}
-        </div>
+
+            <div className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 text-slate-400 group-hover:text-indigo-600 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-950/50 group-hover:border-indigo-200 transition-all flex items-center justify-center shrink-0 shadow-2xs">
+              <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" strokeWidth={2.4} />
+            </div>
+          </Link>
+        </section>
 
         {/* ══════════════════════════════════════════════════
             3. LIVE OVERVIEW — 6 CARDS IN 2×3 GRID
@@ -750,7 +588,7 @@ export function LifeVaultDashboard({
           <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
             {/* Card 1: Total Assets */}
             <Link
-              href="/assets"
+              href="/workspace?section=core_vault&category=assets_property"
               className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-3 sm:p-3.5 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all flex items-start gap-2.5 group active:scale-[0.98]"
             >
               <div className="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-300 flex items-center justify-center shrink-0">
@@ -774,7 +612,7 @@ export function LifeVaultDashboard({
 
             {/* Card 2: Total Liabilities */}
             <Link
-              href="/money"
+              href="/workspace?section=core_vault&category=finance_loans&filter=loans_received"
               className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-3 sm:p-3.5 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all flex items-start gap-2.5 group active:scale-[0.98]"
             >
               <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 flex items-center justify-center shrink-0">
@@ -798,7 +636,7 @@ export function LifeVaultDashboard({
 
             {/* Card 3: Net Worth */}
             <Link
-              href="/finance"
+              href="/workspace?section=core_vault&category=finance_loans&filter=all"
               className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-3 sm:p-3.5 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all flex items-start gap-2.5 group active:scale-[0.98]"
             >
               <div className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300 flex items-center justify-center shrink-0">
@@ -822,7 +660,7 @@ export function LifeVaultDashboard({
 
             {/* Card 4: Monthly Income */}
             <Link
-              href="/business"
+              href="/workspace?section=core_vault&category=finance_loans&filter=income"
               className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-3 sm:p-3.5 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all flex items-start gap-2.5 group active:scale-[0.98]"
             >
               <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300 flex items-center justify-center shrink-0">
@@ -846,7 +684,7 @@ export function LifeVaultDashboard({
 
             {/* Card 5: Loans Given */}
             <Link
-              href="/money"
+              href="/workspace?section=core_vault&category=finance_loans&filter=loans_given"
               className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-3 sm:p-3.5 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all flex items-start gap-2.5 group active:scale-[0.98]"
             >
               <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-300 flex items-center justify-center shrink-0">
@@ -870,7 +708,7 @@ export function LifeVaultDashboard({
 
             {/* Card 6: Property */}
             <Link
-              href="/assets"
+              href="/workspace?section=core_vault&category=assets_property"
               className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-3 sm:p-3.5 border border-slate-100/90 dark:border-slate-800 shadow-[0_2px_10px_rgba(30,27,75,0.03)] hover:shadow-md transition-all flex items-start gap-2.5 group active:scale-[0.98]"
             >
               <div className="w-8 h-8 rounded-xl bg-cyan-100 dark:bg-cyan-950/60 text-cyan-600 dark:text-cyan-300 flex items-center justify-center shrink-0">
