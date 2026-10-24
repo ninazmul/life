@@ -678,6 +678,113 @@ export interface LifeDashboardStats {
   releasedUpdates?: ILifeRequest[];
   /** Live Life Command Center overview summary (Sections 5 & 6) */
   overviewSummary?: LifeOverviewSummary;
+  /** Final Approved Single Update Slider updates */
+  sliderUpdates?: LifeDashboardUpdate[];
+  /** Financial Overview detailed breakdowns for the 4 cards */
+  financialBreakdowns?: LifeFinancialBreakdowns;
+}
+
+export interface LifeDashboardUpdate {
+  id: string;
+  sourceModule: string;
+  relatedRecordId?: string;
+  priority:
+    | "critical"
+    | "action_required"
+    | "pending_approval"
+    | "important_info"
+    | "general_update";
+  priorityBadge: string;
+  badgeColor?: string;
+  iconType:
+    | "shield_alert"
+    | "shield_check"
+    | "insurance"
+    | "wallet"
+    | "document"
+    | "key"
+    | "clock"
+    | "bell"
+    | "file";
+  title: string;
+  shortDescription: string;
+  deadline?: string;
+  formattedDate?: string;
+  destinationUrl: string;
+  actionButtonLabel: string;
+  actionSubtext?: string;
+  isActionRequired: boolean;
+  status?: "new" | "viewed" | "completed" | "info_viewed";
+}
+
+export interface LifeFinancialBreakdowns {
+  totalAssets: {
+    total: number;
+    growthPercent: number;
+    categories: Array<{
+      id: string;
+      label: string;
+      amount: number;
+      percentage: number;
+      iconType: string;
+      color: string;
+      link: string;
+    }>;
+    accounts?: Array<{
+      name: string;
+      type: string;
+      balance: number;
+      institution?: string;
+    }>;
+    history?: Array<{
+      date: string;
+      title: string;
+      change: string;
+      amount: number;
+    }>;
+  };
+  totalLiabilities: {
+    total: number;
+    growthPercent: number;
+    categories: Array<{
+      id: string;
+      label: string;
+      amount: number;
+      percentage: number;
+      iconType: string;
+      color: string;
+      link: string;
+    }>;
+    items?: Array<{
+      id: string;
+      title: string;
+      counterparty: string;
+      remainingAmount: number;
+      dueDate?: string;
+      status: string;
+    }>;
+  };
+  netWorth: {
+    total: number;
+    growthPercent: number;
+    totalAssets: number;
+    totalLiabilities: number;
+  };
+  loansGiven: {
+    total: number;
+    activeCount: number;
+    loans: Array<{
+      id: string;
+      borrowerName: string;
+      borrowerRelation?: string;
+      originalAmount: number;
+      totalRepaid: number;
+      forgivenAmount: number;
+      remainingAmount: number;
+      status: string;
+      dueDate?: string;
+    }>;
+  };
 }
 
 export interface LifeOverviewSummary {

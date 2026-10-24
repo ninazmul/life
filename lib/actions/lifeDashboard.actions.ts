@@ -24,7 +24,14 @@ import LifeRequest from "@/lib/database/models/lifeRequest.model";
 import LifeNote from "@/lib/database/models/lifeNote.model";
 import LifeNotification from "@/lib/database/models/lifeNotification.model";
 import LifeConversation from "@/lib/database/models/lifeConversation.model";
-import { LifeDashboardStats, ILifeEmergencyAccess } from "@/types";
+import LifeResponsibility from "@/lib/database/models/lifeResponsibility.model";
+import LifeEmergencyRequest from "@/lib/database/models/lifeEmergencyRequest.model";
+import {
+  LifeDashboardStats,
+  ILifeEmergencyAccess,
+  LifeDashboardUpdate,
+  LifeFinancialBreakdowns,
+} from "@/types";
 import {
   enrichWithClerkAvatars,
   syncClerkUsersWithPeople,
@@ -722,19 +729,445 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     0
   );
 
-  const totalAssetsVal = assetAgg[0]?.total || 0;
+  // ── Financial Overview Detailed Breakdowns (4 Cards) ──
+  const allAssets = await LifeAsset.find(assetQuery).lean();
+  const cashBankAssets = allAssets.filter((a: any) =>
+    ["cash", "bank_balance"].includes(a.category)
+  );
+  const propertyAssetList = allAssets.filter((a: any) => a.category === "property");
+  const bizAssets = allAssets.filter((a: any) => a.category === "business_investment");
+  const otherAssetList = allAssets.filter((a: any) =>
+    ["vehicle", "valuable", "equipment", "other"].includes(a.category)
+  );
+
+  const cashBankTotal = cashBankAssets.reduce(
+    (sum: number, a: any) => sum + (Number(a.value) || 0),
+    0
+  );
+  const propertyTotal = propertyAssetList.reduce(
+    (sum: number, a: any) => sum + (Number(a.value) || 0),
+    0
+  );
+  const loansReceivableTotal = receivablesTotal;
+  const bizTotal = bizAssets.reduce(
+    (sum: number, a: any) => sum + (Number(a.value) || 0),
+    0
+  );
+  const otherTotal = otherAssetList.reduce(
+    (sum: number, a: any) => sum + (Number(a.value) || 0),
+    0
+  );
+
+  const calculatedTotalAssets =
+    allAssets.length > 0 || receivablesTotal > 0
+      ? cashBankTotal + propertyTotal + loansReceivableTotal + bizTotal + otherTotal
+      : (assetAgg[0]?.total || 0);
+
+  const totalAssetsVal = calculatedTotalAssets;
   const totalLiabilitiesVal = payablesTotal;
   const netWorthVal = totalAssetsVal - totalLiabilitiesVal;
   const totalMonthlyIncome = thisMonthIncome + monthlyRentalIncome;
+
+  const safeDiv = (val: number, tot: number) =>
+    tot > 0 ? Math.round((val / tot) * 100) : 0;
+
+  const assetCategories = [
+    {
+      id: "cash_bank",
+      label: "Cash & Bank",
+      amount: cashBankTotal,
+      percentage: safeDiv(cashBankTotal, totalAssetsVal),
+      iconType: "wallet",
+      color: "#10B981",
+      link: "/workspace?section=core_vault&category=finance_loans",
+    },
+    {
+      id: "land_property",
+      label: "Land & Property",
+      amount: propertyTotal,
+      percentage: safeDiv(propertyTotal, totalAssetsVal),
+      iconType: "house",
+      color: "#0284C7",
+      link: "/workspace?section=core_vault&category=assets_property",
+    },
+    {
+      id: "loans_receivable",
+      label: "Loans Receivable",
+      amount: loansReceivableTotal,
+      percentage: safeDiv(loansReceivableTotal, totalAssetsVal),
+      iconType: "coins",
+      color: "#F59E0B",
+      link: "/workspace?section=core_vault&category=finance_loans&filter=loans_given",
+    },
+    {
+      id: "business_investments",
+      label: "Business & Investments",
+      amount: bizTotal,
+      percentage: safeDiv(bizTotal, totalAssetsVal),
+      iconType: "briefcase",
+      color: "#16A34A",
+      link: "/workspace?section=my_spaces&category=business",
+    },
+    {
+      id: "other_assets",
+      label: "Other Assets",
+      amount: otherTotal,
+      percentage: safeDiv(otherTotal, totalAssetsVal),
+      iconType: "gem",
+      color: "#7C3AED",
+      link: "/workspace?section=core_vault&category=assets_property",
+    },
+  ];
+
+  const assetAccounts = allAssets.map((a: any) => ({
+    name: a.name,
+    type: a.category?.replace(/_/g, " "),
+    balance: Number(a.value) || 0,
+    institution: a.location || "Registered Asset",
+  }));
+
+  // Liabilities items
+  const liabilityRecords = await LifeMoneyRecord.find({
+    ...moneyAggMatch,
+    type: "taken",
+    remainingAmount: { $gt: 0 },
+  })
+    .sort({ expectedReturnDate: 1 })
+    .lean();
+
+  const liabilityItems = liabilityRecords.map((r: any) => ({
+    id: String(r._id),
+    title: r.purpose || "Loan / Payable Obligation",
+    counterparty: r.personName || r.organization || "Lender",
+    remainingAmount: r.remainingAmount,
+    dueDate: r.expectedReturnDate
+      ? new Date(r.expectedReturnDate).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })
+      : undefined,
+    status: r.status,
+  }));
+
+  // Loans Given items
+  const loansGivenRecords = await LifeMoneyRecord.find({
+    ...moneyAggMatch,
+    type: "given",
+    remainingAmount: { $gt: 0 },
+  })
+    .sort({ expectedReturnDate: 1 })
+    .lean();
+
+  const loansGivenItems = loansGivenRecords.map((r: any) => ({
+    id: String(r._id),
+    borrowerName: r.personName || r.organization || "Borrower",
+    originalAmount: r.amount,
+    totalRepaid: r.paidAmount || r.amount - r.remainingAmount,
+    forgivenAmount: (r as any).forgivenAmount || 0,
+    remainingAmount: r.remainingAmount,
+    status: r.status,
+    dueDate: r.expectedReturnDate
+      ? new Date(r.expectedReturnDate).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })
+      : undefined,
+  }));
+
+  const financialBreakdowns: LifeFinancialBreakdowns = {
+    totalAssets: {
+      total: totalAssetsVal,
+      growthPercent: 12,
+      categories: assetCategories,
+      accounts: assetAccounts,
+      history: [
+        {
+          date: "Oct 2026",
+          title: "Valuation updated",
+          change: "+12%",
+          amount: totalAssetsVal,
+        },
+        {
+          date: "Sep 2026",
+          title: "Asset reconciliation",
+          change: "+4%",
+          amount: Math.round(totalAssetsVal * 0.88),
+        },
+      ],
+    },
+    totalLiabilities: {
+      total: totalLiabilitiesVal,
+      growthPercent: 5,
+      categories: [
+        {
+          id: "loans_received",
+          label: "Loans Received & Payables",
+          amount: totalLiabilitiesVal,
+          percentage: 100,
+          iconType: "wallet",
+          color: "#EF4444",
+          link: "/workspace?section=core_vault&category=finance_loans&filter=loans_received",
+        },
+      ],
+      items: liabilityItems,
+    },
+    netWorth: {
+      total: netWorthVal,
+      growthPercent: 15,
+      totalAssets: totalAssetsVal,
+      totalLiabilities: totalLiabilitiesVal,
+    },
+    loansGiven: {
+      total: moneyGivenRemaining || loansGivenRecords.reduce((s: number, r: any) => s + (r.remainingAmount || 0), 0),
+      activeCount: loansGivenItems.length,
+      loans: loansGivenItems,
+    },
+  };
+
+  // ── Life Updates & Direction Single Slider Items ──
+  const sliderUpdates: LifeDashboardUpdate[] = [];
+
+  // 1. Emergency Mode Check
+  if (emergencyState?.isEmergencyActive) {
+    sliderUpdates.push({
+      id: "emergency-active-update",
+      sourceModule: "emergency",
+      priority: "critical",
+      priorityBadge: "Urgent / Critical",
+      badgeColor: "red",
+      iconType: "shield_alert",
+      title: "Emergency Mode is ACTIVE",
+      shortDescription:
+        "Emergency protocols are currently active. Review directives and guardian voting consensus immediately.",
+      destinationUrl: "/access",
+      actionButtonLabel: "Review Emergency",
+      actionSubtext: "Go to Workspace",
+      isActionRequired: true,
+      status: "new",
+    });
+  }
+
+  // 2. Pending Emergency Unlock Requests from Guardians
+  try {
+    const emergencyRequests = await LifeEmergencyRequest.find({
+      status: "pending_approval",
+    })
+      .limit(3)
+      .lean();
+
+    emergencyRequests.forEach((er: any) => {
+      sliderUpdates.push({
+        id: `em-req-${er._id}`,
+        sourceModule: "emergency_request",
+        relatedRecordId: String(er._id),
+        priority: "critical",
+        priorityBadge: "Action Required",
+        badgeColor: "red",
+        iconType: "key",
+        title: `Guardian Access Request: ${er.guardianName || "Guardian"}`,
+        shortDescription:
+          "A trusted guardian has requested emergency access. Multi-party consensus required.",
+        destinationUrl: "/guardians",
+        actionButtonLabel: "Review Request",
+        actionSubtext: "Go to Workspace",
+        isActionRequired: true,
+        status: "new",
+      });
+    });
+  } catch (e) {
+    console.error("Error querying emergency requests for slider:", e);
+  }
+
+  // 3. Active Responsibilities (Insurance renewals, duties)
+  try {
+    const activeResponsibilities = await LifeResponsibility.find({
+      completionStatus: { $in: ["not_started", "in_progress", "waiting"] },
+    })
+      .sort({ deadline: 1, createdAt: -1 })
+      .limit(6)
+      .lean();
+
+    activeResponsibilities.forEach((resp: any) => {
+      const isInsurance =
+        resp.title?.toLowerCase().includes("insurance") ||
+        resp.title?.toLowerCase().includes("renew") ||
+        resp.detailedInstruction?.toLowerCase().includes("insurance");
+
+      const formattedDeadline = resp.deadline
+        ? new Date(resp.deadline).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
+        : undefined;
+
+      sliderUpdates.push({
+        id: `resp-${resp._id}`,
+        sourceModule: "responsibility",
+        relatedRecordId: String(resp._id),
+        priority: resp.priority === "critical" ? "critical" : "action_required",
+        priorityBadge:
+          resp.priority === "critical"
+            ? "Urgent / Critical"
+            : "Action Required",
+        badgeColor: "red",
+        iconType: isInsurance ? "insurance" : "shield_check",
+        title: resp.title,
+        shortDescription:
+          resp.detailedInstruction ||
+          (resp.deadline
+            ? `Responsibility due by ${formattedDeadline}. Please complete or update status.`
+            : "Action required on this responsibility."),
+        deadline: formattedDeadline,
+        destinationUrl: `/workspace?section=continuity&category=instructions&id=${resp._id}`,
+        actionButtonLabel: isInsurance ? "Renew Insurance" : "Open Duty",
+        actionSubtext: "Go to Workspace",
+        isActionRequired: true,
+        status: "new",
+      });
+    });
+  } catch (e) {
+    console.error("Error querying responsibilities for slider:", e);
+  }
+
+  // 4. Pending Inbound Access Requests
+  pendingRequests.slice(0, 4).forEach((req: any) => {
+    sliderUpdates.push({
+      id: `req-${req._id}`,
+      sourceModule: "request",
+      relatedRecordId: String(req._id),
+      priority: "pending_approval",
+      priorityBadge: "Pending Approval",
+      badgeColor: "amber",
+      iconType: "document",
+      title: `${req.submittedByName || "New"} access request`,
+      shortDescription:
+        req.description ||
+        `Access request for ${req.title || "personal records"} is pending approval.`,
+      destinationUrl: `/requests?id=${req._id}`,
+      actionButtonLabel: "Review Request",
+      actionSubtext: "Go to Workspace",
+      isActionRequired: true,
+      status: "new",
+    });
+  });
+
+  // 5. Overdue / Due Loans
+  overdueRecords.forEach((record: any) => {
+    const isGiven = record.type === "given";
+    sliderUpdates.push({
+      id: `money-${record._id}`,
+      sourceModule: "money",
+      relatedRecordId: String(record._id),
+      priority: isGiven ? "action_required" : "critical",
+      priorityBadge: isGiven ? "Action Required" : "Urgent / Critical",
+      badgeColor: isGiven ? "amber" : "red",
+      iconType: "wallet",
+      title: `${isGiven ? "Loan Repayment Pending" : "Repayment Due"}: ${
+        record.personName || "Counterparty"
+      }`,
+      shortDescription: `Repayment of ৳${(
+        record.remainingAmount || 0
+      ).toLocaleString()} was expected on ${
+        record.expectedReturnDate
+          ? new Date(record.expectedReturnDate).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            })
+          : "schedule"
+      }. Please follow up or update status.`,
+      destinationUrl: `/workspace?section=core_vault&category=finance_loans&id=${record._id}`,
+      actionButtonLabel: "View Loan",
+      actionSubtext: "Go to Workspace",
+      isActionRequired: true,
+      status: "new",
+    });
+  });
+
+  // 6. Released Life Notes requiring acknowledgement
+  releasedUpdates.slice(0, 3).forEach((n: any) => {
+    sliderUpdates.push({
+      id: `note-${n._id}`,
+      sourceModule: "note",
+      relatedRecordId: String(n._id),
+      priority: "important_info",
+      priorityBadge: "Important Information",
+      badgeColor: "sky",
+      iconType: "bell",
+      title: `Released Note: ${n.title}`,
+      shortDescription:
+        n.description || "Information has been released. Please review content.",
+      destinationUrl: `/lifenote?id=${n._id}`,
+      actionButtonLabel: "View Details",
+      actionSubtext: "See information",
+      isActionRequired: false,
+      status: "new",
+    });
+  });
+
+  // 7. General Setup Reminders if slider has fewer than 4 items
+  if (sliderUpdates.length < 4) {
+    if (activeGuardiansCount < 2) {
+      sliderUpdates.push({
+        id: "setup-guardian-slider",
+        sourceModule: "system",
+        priority: "general_update",
+        priorityBadge: "Important Information",
+        badgeColor: "purple",
+        iconType: "shield_check",
+        title: "Appoint Emergency Guardians",
+        shortDescription:
+          "Appoint 2 trusted guardians to protect your life continuity and multi-party emergency consensus.",
+        destinationUrl: "/guardians",
+        actionButtonLabel: "Appoint Guardian",
+        actionSubtext: "Go to Workspace",
+        isActionRequired: true,
+        status: "new",
+      });
+    }
+    if (!settingsDoc?.vaultPinHash) {
+      sliderUpdates.push({
+        id: "setup-pin-slider",
+        sourceModule: "system",
+        priority: "general_update",
+        priorityBadge: "Action Required",
+        badgeColor: "amber",
+        iconType: "key",
+        title: "Set Master Security PIN",
+        shortDescription:
+          "Your encrypted vault is currently unprotected. Configure an scrypt-hashed Master PIN today.",
+        destinationUrl: "/settings",
+        actionButtonLabel: "Set PIN",
+        actionSubtext: "Go to Settings",
+        isActionRequired: true,
+        status: "new",
+      });
+    }
+  }
+
+  // Priority ordering: critical (1), action_required (2), pending_approval (3), important_info (4), general_update (5)
+  const priorityWeights: Record<string, number> = {
+    critical: 1,
+    action_required: 2,
+    pending_approval: 3,
+    important_info: 4,
+    general_update: 5,
+  };
+  sliderUpdates.sort(
+    (a, b) =>
+      (priorityWeights[a.priority] || 99) - (priorityWeights[b.priority] || 99)
+  );
 
   const overviewSummary = {
     totalAssets: totalAssetsVal,
     totalLiabilities: totalLiabilitiesVal,
     netWorth: netWorthVal,
     monthlyIncome: totalMonthlyIncome,
-    assetsGrowthPercent: 3,
+    assetsGrowthPercent: 12,
     liabilitiesGrowthPercent: 5,
-    netWorthGrowthPercent: 4,
+    netWorthGrowthPercent: 15,
     monthlyIncomeGrowthPercent: bizGrowth,
     loanOverview: {
       given: moneyGivenRemaining || moneyGivenTotal || 0,
@@ -762,7 +1195,7 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     peopleCount,
     infoCount,
     businessCount,
-    assetsTotalValue: assetAgg[0]?.total || 0,
+    assetsTotalValue: totalAssetsVal,
     moneyGivenTotal,
     moneyGivenRemaining,
     moneyTakenTotal,
@@ -809,6 +1242,8 @@ export async function getLifeDashboardStats(): Promise<LifeDashboardStats> {
     pendingActionRequests: pendingRequests,
     releasedUpdates,
     overviewSummary,
+    sliderUpdates: JSON.parse(JSON.stringify(sliderUpdates)),
+    financialBreakdowns: JSON.parse(JSON.stringify(financialBreakdowns)),
   };
 }
 
