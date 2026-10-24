@@ -1,21 +1,10 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getLifeAuthContext } from "@/lib/life/auth";
-import { getPeople } from "@/lib/actions/lifePeople.actions";
-import { getAssets } from "@/lib/actions/lifeAsset.actions";
-import { getDocuments } from "@/lib/actions/lifeDocument.actions";
-import { getBusinesses } from "@/lib/actions/lifeBusiness.actions";
-import { getResponsibilities } from "@/lib/actions/lifeResponsibility.actions";
-import { getInstructions } from "@/lib/actions/lifeInstruction.actions";
-import { getContacts } from "@/lib/actions/lifeContact.actions";
-import { getLegacyMessages } from "@/lib/actions/lifeLegacy.actions";
-import { getInformationList } from "@/lib/actions/lifeInformation.actions";
-import { getVaultItems } from "@/lib/actions/lifeVault.actions";
-import { getEmergencyAccessState } from "@/lib/actions/lifeAccess.actions";
 import {
-  getActiveRecoveryEvent,
-  getRecoveryEventsHistory,
-} from "@/lib/actions/lifeEmergencyRecovery.actions";
+  getWorkspaceModuleRecords,
+  getWorkspaceRecordDetail,
+} from "@/lib/actions/lifeWorkspace.actions";
 import { LifeWorkspaceClient } from "@/components/life/workspace/LifeWorkspaceClient";
 
 export const dynamic = "force-dynamic";
@@ -27,100 +16,67 @@ export const metadata = {
 
 interface WorkspacePageProps {
   searchParams?: Promise<{
-    section?: string;
     category?: string;
+    module?: string;
+    id?: string;
+    action?: string;
     filter?: string;
-    subFilter?: string;
   }>;
 }
 
 export default async function WorkspacePage({ searchParams }: WorkspacePageProps) {
-  const [
-    authContext,
-    sp,
-    people,
-    assets,
-    documents,
-    businesses,
-    responsibilities,
-    instructions,
-    contacts,
-    legacyMessages,
-    informationList,
-    vaultItems,
-    emergencyState,
-    recoveryData,
-    recoveryHistory,
-  ] = await Promise.all([
-    getLifeAuthContext(),
-    searchParams ? await searchParams : Promise.resolve({} as any),
-    getPeople({ status: "active" }),
-    getAssets(),
-    getDocuments(),
-    getBusinesses(),
-    getResponsibilities(),
-    getInstructions(),
-    getContacts(),
-    getLegacyMessages(),
-    getInformationList(),
-    getVaultItems(),
-    getEmergencyAccessState(),
-    getActiveRecoveryEvent(),
-    getRecoveryEventsHistory(),
-  ]);
-
+  const authContext = await getLifeAuthContext();
   if (!authContext) {
     redirect("/sign-in");
   }
 
-  const section = sp?.section || "core_vault";
-  const category = sp?.category || "finance_loans";
+  const sp = searchParams ? await searchParams : ({} as any);
+  const category = sp?.category;
+  const moduleName = sp?.module;
+  const recordId = sp?.id;
+  const action = sp?.action;
   const filter = sp?.filter || "all";
-  const subFilter = sp?.subFilter;
 
-  // Derive access control props
-  const userEmail = authContext?.email?.toLowerCase().trim() || "";
-  const primaryEmail = (emergencyState?.primaryAdminEmail || "").toLowerCase().trim();
-  const secondaryEmail = (emergencyState?.secondaryAdminEmail || "").toLowerCase().trim();
-  const isOwner = Boolean(authContext.isOwner);
-  const isDesignated = Boolean(
-    (primaryEmail && userEmail === primaryEmail) ||
-    (secondaryEmail && userEmail === secondaryEmail)
-  );
-  const canAccessEmergency = Boolean(authContext?.permissions?.canAccessEmergency);
+  let initialModuleData = null;
+  let initialRecordDetail = null;
+
+  if (category && moduleName) {
+    try {
+      initialModuleData = await getWorkspaceModuleRecords({
+        categoryId: category,
+        subcategoryId: moduleName,
+        filter,
+      });
+
+      if (recordId) {
+        initialRecordDetail = await getWorkspaceRecordDetail({
+          categoryId: category,
+          subcategoryId: moduleName,
+          recordId,
+        });
+      }
+    } catch (err) {
+      console.error("Error pre-fetching workspace data on server:", err);
+    }
+  }
 
   return (
     <Suspense
       fallback={
-        <div className="w-full min-h-[50vh] flex items-center justify-center text-slate-400 text-[13px]">
+        <div className="w-full min-h-[50vh] flex items-center justify-center text-slate-400 text-xs">
           Loading Life Workspace...
         </div>
       }
     >
       <LifeWorkspaceClient
-        initialSectionId={section}
         initialCategoryId={category}
+        initialModuleId={moduleName}
+        initialRecordId={recordId}
+        initialAction={action}
         initialFilter={filter}
-        initialSubFilter={subFilter}
-        peopleList={people}
-        assets={assets}
-        documents={documents}
-        businesses={businesses}
-        responsibilities={responsibilities}
-        instructions={instructions}
-        contacts={contacts}
-        legacyMessages={legacyMessages}
-        informationList={informationList}
-        vaultItems={vaultItems}
-        isVaultLocked={Boolean(emergencyState?.isVaultLocked)}
-        emergencyState={emergencyState}
-        isDesignated={isDesignated}
-        canAccessEmergency={canAccessEmergency}
-        currentUserEmail={userEmail}
-        initialActiveRecovery={recoveryData.activeEvent}
-        initialSecondsRemaining={recoveryData.secondsRemaining}
-        recoveryHistory={recoveryHistory}
-        isOwner={isOwner}
+        initialModuleData={initialModuleData}
+        initialRecordDetail={initialRecordDetail}
+        isOwner={Boolean(authContext.isOwner)}
         isAdmin={Boolean(authContext.isAdmin)}
         currencySymbol="৳"
       />

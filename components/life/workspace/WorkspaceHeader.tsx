@@ -131,7 +131,7 @@ export function WorkspaceHeader({
               aria-label="Select category"
               className="w-full appearance-none rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700 py-2 pl-3 pr-8 text-[12px] sm:text-[13px] font-bold text-[#1E1B4B] dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer transition-all shadow-2xs"
             >
-              {currentSection.categories.map((cat) => (
+              {currentSection.categories.map((cat: any) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.title} {!cat.isImplemented ? "(Roadmap)" : ""}
                 </option>
