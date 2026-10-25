@@ -41,10 +41,12 @@ life/
 ├── app/
 │   ├── (auth)/                          # Clerk authentication routes
 │   │   ├── sign-in/[[...sign-in]]/      # Clerk Sign-In Page
-│   │   └── sign-up/[[...sign-up]]/      # Clerk Sign-Up Page
+│   │   ├── sign-up/[[...sign-up]]/      # Clerk Sign-Up Page
+│   │   └── recovery/page.tsx            # Logged-Out Verified Account Recovery Stepper
 │   ├── (root)/                          # Authenticated application shell
 │   │   ├── layout.tsx                   # Auth guard, Clerk session check, LifeLayoutClient wrapper
 │   │   ├── page.tsx                     # Dashboard (/): aggregated balances, health check, alerts
+│   │   ├── workspace/page.tsx           # Unified Life Workspace (/workspace) - 6 Core Command Categories
 │   │   ├── guide/page.tsx               # Interactive User Guide & Flow Roadmap (/guide)
 │   │   ├── business/page.tsx            # Business Continuity, Ventures & Server Handover (/business)
 │   │   ├── information/page.tsx         # Medical Dossier, Emergency IDs & Legal Records (/information)
@@ -86,6 +88,13 @@ life/
 │   │   ├── notes/                       # LifeNoteClient, LifeNoteModal, LifeNoteReader
 │   │   ├── messaging/                   # LifeConversationClient (1-on-1 isolated messaging)
 │   │   ├── shared/                      # VaultRevealModal, LifeSearchDialog, ConfirmationDialog
+│   │   ├── workspace/                   # Unified 6-Category Single-Page Management Modules
+│   │   │   ├── family-community/        # FamilyCommunityPage (Family Care, Kids, Community)
+│   │   │   ├── work-business/           # WorkBusinessPage (Staff & Office, Business, Projects)
+│   │   │   ├── finance-assets/          # FinanceAssetsPage & SiS Care (Commitments & Installments)
+│   │   │   ├── secure-vault/            # SecureVaultPage (Documents, Digital Accounts, Access Control)
+│   │   │   ├── life-continuity/         # LifeContinuityPage (Responsibilities, Instructions, Emergency, Legacy)
+│   │   │   └── tools-support/           # ToolsSupportPage (Security, Settings, Unified Requests, Audit, Backup)
 │   │   └── PWAProvider.tsx              # PWA lifecycle, offline indicator, install banner prompt
 │   ├── providers/                       # ThemeProvider
 │   └── ui/                              # Radix / shadcn UI primitive components (button, dialog, etc.)
@@ -112,8 +121,10 @@ life/
 │   │   ├── lifePeople.actions.ts        # People directory & 8-tab dossier aggregations
 │   │   ├── lifeRequest.actions.ts       # Request center actions
 │   │   ├── lifeSettings.actions.ts      # Master PIN, currency symbol, full JSON backup
+│   │   ├── lifeToolsSupport.actions.ts  # Tools overview, sessions, recovery guardians, unified requests
 │   │   ├── lifeTrash.actions.ts         # Soft-delete restoration & permanent purge
-│   │   └── lifeVault.actions.ts         # AES-256 vault items CRUD & decrypted reveal
+│   │   ├── lifeVault.actions.ts         # AES-256 vault items CRUD & decrypted reveal
+│   │   └── lifeWorkspace.actions.ts     # Unified CRUD across all 6 workspace categories
 │   ├── database/
 │   │   ├── index.ts                     # Cached MongoDB connection pool handler
 │   │   ├── models/                      # 32 Mongoose data models
@@ -174,6 +185,7 @@ All models reside in `lib/database/models/` and are registered with cached Mongo
 | `lifeInformation.model.ts` | `lifeinformations` | Medical conditions, blood group, allergies, passport, NID, e-TIN. |
 | `lifeFinancialHistory.model.ts` | `lifefinancialhistories` | Historic balance snapshot audit logs. |
 | `lifeTransaction.model.ts` | `lifetransactions` | Generic financial ledger transaction entries. |
+| `lifeAccountRecovery.model.ts` | `lifeaccountrecoveries` | Verified 5-step account recovery requests and guardian consensus votes. |
 
 ---
 

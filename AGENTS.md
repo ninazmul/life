@@ -51,8 +51,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
   - `requests/`: Inbound & Outbound Request Center (/requests)
   - `settings/`: Master PIN, Currency, Auto-Conceal & System JSON Export (/settings)
   - `settings/trash/`: Soft-Delete Trash Recovery Center (/settings/trash)
-- `components/life/`: Domain-specific client components (e.g. `layout/`, `dashboard/`, `money/`, `vault/`, `notes/`, `messaging/`).
-- `lib/actions/`: Next.js Server Actions (`'use server'`) for all database operations and business logic.
+  - `workspace/`: Unified 6-Category Life Command Center (/workspace)
+- `app/(auth)/recovery/`: Logged-Out Verified Account Recovery Stepper (/recovery)
+- `components/life/`: Domain-specific client components (e.g. `layout/`, `dashboard/`, `workspace/`, `money/`, `vault/`, `notes/`, `messaging/`).
+- `lib/actions/`: Next.js Server Actions (`'use server'`) for all database operations and business logic (including `lifeWorkspace.actions.ts` and `lifeToolsSupport.actions.ts`).
 - `lib/database/`: Mongoose connection handler (`index.ts`) and all 32 Mongoose models (`models/`).
 - `lib/life/`:
   - `auth.ts`: `getLifeAuthContext()`, RBAC permissions matrix, and role resolution.
@@ -90,7 +92,8 @@ All models are located in `lib/database/models/` and utilize `mongoose.models.X 
 21. **`lifeCategory.model.ts` (`LifeCategory`)**: Dynamic category taxonomy for notes and records.
 22. **`lifeActivityLog.model.ts` (`LifeActivityLog`)**: Immutable audit log: `userId`, `action`, `module`, `details`, `ipAddress`, `deviceInfo`.
 23. **`lifeTrash.actions.ts` / Soft-Delete Plugin**: Mongoose plugin marking `isDeleted: true` for soft-deletion and recovery in `/settings/trash`.
-24. **Other Supporting Models**: `lifeNotification.model.ts`, `lifeRequest.model.ts`, `lifeResponsibility.model.ts`, `lifePaymentConfirmation.model.ts`, `lifeShareHistory.model.ts`, `lifeRecordPermission.model.ts`, `lifeInformation.model.ts`, `lifeFinancialHistory.model.ts`, `lifeTransaction.model.ts`.
+24. **`lifeAccountRecovery.model.ts` (`LifeAccountRecovery`)**: Verified 5-step account recovery: `recoveryCode`, `accountEmail`, `claimantContactEmail`, `reason`, `status`, `currentStep` (1-5), `guardianApprovals`, `requiredApprovals`, `waitingPeriodHours`, `waitingPeriodEnd`.
+25. **Other Supporting Models**: `lifeNotification.model.ts`, `lifeRequest.model.ts`, `lifeResponsibility.model.ts`, `lifePaymentConfirmation.model.ts`, `lifeShareHistory.model.ts`, `lifeRecordPermission.model.ts`, `lifeInformation.model.ts`, `lifeFinancialHistory.model.ts`, `lifeTransaction.model.ts`.
 
 ---
 

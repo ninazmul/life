@@ -493,6 +493,45 @@ flowchart TD
   - **Trash & Soft-Delete Recovery**: Restore accidentally deleted records or permanently erase items.
   - **PWA Diagnostics**: Monitor Service Worker registration and local cache state.
 
+### 4.19 Unified Life Workspace (`/workspace`)
+- **Route**: `app/(root)/workspace/page.tsx`
+- **Controller Component**: `components/life/workspace/LifeWorkspaceClient.tsx`
+- **Actions**: `lib/actions/lifeWorkspace.actions.ts`, `lib/actions/lifeToolsSupport.actions.ts`
+- **Development Principle**: *One Category · One Management Page · Three to Four Record Types · Dynamic Forms · Connected Records · Minimum Navigation*.
+- **Integrated Categories**:
+  1. **Family & Community** (`/workspace?category=people_family`):
+     - Component: `components/life/workspace/family-community/FamilyCommunityPage.tsx`
+     - Record types: Family Care allowances, Kids dependency/education, Community commitments.
+  2. **Work & Business** (`/workspace?category=work_business`):
+     - Component: `components/life/workspace/work-business/WorkBusinessPage.tsx`
+     - Record types: Staff & Office duties, Business ventures & partner equity, Active projects.
+  3. **Finance & Assets** (`/workspace?category=finance_assets`):
+     - Component: `components/life/workspace/finance-assets/FinanceAssetsPage.tsx`
+     - Record types: Accurate 4-way money ledger (given, taken, invest_made, invest_received), physical/digital asset portfolio, and SiS Care (Systematic Support Commitments) with flexible installment schedules.
+  4. **Secure Vault** (`/workspace?category=secure_vault`):
+     - Component: `components/life/workspace/secure-vault/SecureVaultPage.tsx`
+     - Record types: Critical documents, digital credentials/secrets (AES-256-GCM), and emergency classification rules.
+  5. **Life Continuity** (`/workspace?category=life_continuity`):
+     - Component: `components/life/workspace/life-continuity/LifeContinuityPage.tsx`
+     - Record types: Delegated responsibilities, operational instructions, emergency protocols, and sealed legacy letters / Wasiyyah.
+  6. **Tools & Support** (`/workspace?category=tools_support`):
+     - Component: `components/life/workspace/tools-support/ToolsSupportPage.tsx`
+     - Five Approved Utility Sections: Security & Recovery, App Settings, Requests & Approvals, Activity History, and Data & Backup.
+
+### 4.20 Verified Account Recovery Stepper (`/recovery`)
+- **Route**: `app/(auth)/recovery/page.tsx`
+- **Component**: `components/life/workspace/tools-support/AccountRecoveryView.tsx`
+- **Actions**: `lib/actions/lifeToolsSupport.actions.ts`
+- **Capabilities**:
+  - **Logged-Out Safety**: Allows legitimate owners to initiate account recovery when phone, credentials, or 2FA authenticators are lost or compromised, without requiring authenticated sessions.
+  - **Five-Step Stepper**:
+    1. *Request Submitted*: Input account email/username, claimant contact email, and reason.
+    2. *Guardian Verification*: Designated Recovery Guardians review claimant identity and record consensus votes.
+    3. *Waiting Period*: Enforces a mandatory 72-hour delay to prevent account takeover.
+    4. *Final Checks*: Verification of control over the new sign-in arrangement.
+    5. *Restore Sign-in*: Previous compromised sessions are revoked and credentials reset.
+  - **Encryption Boundary**: Distinctly separates account login restoration from Master Vault key decryption.
+
 ---
 
 ## 5. Security, Cryptography & Access Control

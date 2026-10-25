@@ -39,6 +39,8 @@
   - [10. Access Delegation & Emergency Mode](#10-access-delegation--emergency-mode-)
   - [11. Tamper-Evident Activity Audit](#11-tamper-evident-activity-audit-)
   - [12. Settings & Encrypted Backup](#12-settings--encrypted-backup-)
+  - [13. Unified Life Workspace (6 Categories)](#13-unified-life-workspace-6-categories-)
+  - [14. Verified Account Recovery Flow](#14-verified-account-recovery-flow-)
 - [🛡️ Security & Encryption Architecture](#️-security--encryption-architecture)
   - [AES-256-GCM Vault Encryption](#aes-256-gcm-vault-encryption)
   - [Master PIN Gate with Timed Concealment](#master-pin-gate-with-timed-concealment)
@@ -215,6 +217,46 @@ flowchart TD
 - **Encrypted Snapshot Export**: Download complete encrypted JSON backups for offline cold storage.
 - **Trash & Soft-Delete Recovery**: Restore accidentally deleted records or permanently erase items.
 - **PWA Diagnostics**: Monitor Service Worker registration and local cache state.
+
+### 17. Unified Life Workspace (`/workspace`)
+- **Philosophy**: *One Category · One Management Page · Three to Four Record Types · Dynamic Forms · Connected Records · Minimum Navigation*.
+- **Category 1: Family & Community** (`/workspace?category=people_family`):
+  - *Family Care*: Recurring dependent allowances, commitments, and health support.
+  - *Kids*: Child welfare, education fees, medical cards, and guardian provisions.
+  - *Community*: Charitable donations, community trusts, and societal responsibilities.
+- **Category 2: Work & Business** (`/workspace?category=work_business`):
+  - *Staff & Office*: Domestic staff, office teams, responsibilities, and payroll records.
+  - *Business*: Enterprise ventures, trade licenses, partner equity, and server infrastructure.
+  - *Projects*: Ongoing personal, technical, and commercial initiatives.
+- **Category 3: Finance & Assets** (`/workspace?category=finance_assets`):
+  - *Accurate 4-Way Ledger*: Given (Receivables), Taken (Payables), Invested, Received.
+  - *Physical & Digital Assets*: Real estate, vehicles, gold/valuables, and bank deposits.
+  - *SiS Care*: Systematic Support Commitments with flexible repayment installment plans.
+- **Category 4: Secure Vault** (`/workspace?category=secure_vault`):
+  - *Critical Documents*: Scanned deeds, incorporation papers, insurance policies, and access tiers.
+  - *Digital Accounts*: AES-256-GCM encrypted passwords, server root keys, and SSH credentials.
+  - *Access Control*: Emergency classification rules and Master PIN validation.
+- **Category 5: Life Continuity** (`/workspace?category=life_continuity`):
+  - *Responsibilities*: Delegated handover duties and key person assignments.
+  - *Instructions*: Operational step-by-step procedures and protocols.
+  - *Emergency*: Immediate activation plans and medical directives.
+  - *Legacy & Legal*: Condition-sealed legacy letters and Wasiyyah (Islamic Will).
+- **Category 6: Tools & Support** (`/workspace?category=tools_support`):
+  - *Security & Recovery*: Protection score checklist, active sessions, and session revocation.
+  - *App Settings*: Language (English/বাংলা), Theme (Light/Dark/System), and Currency.
+  - *Requests & Approvals*: Unified review inbox for authorized access and continuity requests.
+  - *Activity History*: Complete audit trail of system events with zero secret exposure.
+  - *Data & Backup*: Encrypted JSON system export and pre-inspection database restore.
+
+### 18. Verified Account Recovery Flow (`/recovery`)
+- **Logged-Out & In-App Access**: Accessible from the Sign-in page without authenticated bottom navigation.
+- **Five-Step Verified Stepper**:
+  1. *Request Submitted*: Claimant inputs account identifier, recovery reason, and secure contact email.
+  2. *Guardian Verification*: Designated Recovery Guardians vote through their own accounts.
+  3. *Waiting Period*: Server-side 72-hour safety countdown to prevent hostile account takeover.
+  4. *Final Checks*: Verification of claimant's control over the new sign-in arrangement.
+  5. *Restore Sign-in*: Revocation of compromised sessions and issuance of new login access.
+- **Encryption Distinction**: Recovers login identity only; Master Vault decryption strictly requires the Master PIN or offline key material.
 
 ---
 
@@ -397,6 +439,7 @@ All entities are modeled with Mongoose under `lib/database/models/`:
 | `LifeEmergencyAccess`| `lifeEmergencyAccess.model.ts`| Emergency mode state and delegated trustee access records |
 | `LifeActivityLog` | `lifeActivityLog.model.ts` | Tamper-evident immutable audit log of all critical operations |
 | `LifeSettings` | `lifeSettings.model.ts` | Master Security PIN hash, emergency contacts, and system config |
+| `LifeAccountRecovery` | `lifeAccountRecovery.model.ts` | Verified 5-step account recovery requests and guardian consensus votes |
 
 ---
 
@@ -405,7 +448,9 @@ All entities are modeled with Mongoose under `lib/database/models/`:
 | Route | Purpose | Owner / Admin | Trustee / Individual | Business Partner |
 | :--- | :--- | :---: | :---: | :---: |
 | `/` | Dashboard & Quick Actions | Full View | Delegated Summary | Venture Summary |
+| `/workspace` | Unified 6-Category Life Command Center | Full View | Permitted Categories | Assigned Categories |
 | `/guide` | Interactive User Guide & Flow | Full Access | Full Access | Full Access |
+| `/recovery` | Logged-Out Verified Account Recovery | Public / Claimant | Public / Claimant | Public / Claimant |
 | `/business` | Business Continuity & Steps | Full Access | Emergency View | Assigned Ventures |
 | `/information` | Personal Info & Medical Records | Full Access | Family View | Hidden |
 | `/finance` | Financial Care & Support Ledger | Full Access | View Own Support | Hidden |

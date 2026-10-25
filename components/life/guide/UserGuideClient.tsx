@@ -269,6 +269,76 @@ const sections: GuideSection[] = [
   },
 
   // ─────────────────────────────────────────────────────────────────────────────
+  // 01B. Life Workspace — 6 Core Command Categories
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    id: "workspace",
+    category: "Core Command",
+    serial: "01B",
+    icon: Layers,
+    color: "text-indigo-600 dark:text-indigo-400",
+    bg: "bg-indigo-50 dark:bg-indigo-950/50",
+    border: "border-indigo-200 dark:border-indigo-800/40",
+    title: "01B. Life Workspace — 6 Core Command Categories",
+    subtitle: "Unified Single-Page Management Architecture for all 6 life areas",
+    description:
+      "Life Workspace (/workspace) consolidates all records, operational management, financial care, security, continuity directives, and account utilities into 6 dedicated single-page management categories with zero complex sub-page navigation.",
+    steps: [
+      {
+        title: "Category 1 → Family & Community (/workspace?category=people_family)",
+        detail:
+          "Manage family members, child dependency, and community commitments on a single page. Switch between Family Care (living allowances & support), Kids Care (education & healthcare), and Community Records with dynamic modal forms.",
+      },
+      {
+        title: "Category 2 → Work & Business (/workspace?category=work_business)",
+        detail:
+          "Manage office staff, domestic employees, active commercial ventures, partner equity splits, and infrastructure handover directives ('If I Am Not Available') in one unified command center.",
+      },
+      {
+        title: "Category 3 → Finance & Assets (/workspace?category=finance_assets)",
+        detail:
+          "Accurate 4-way money ledger (Given, Taken, Invested, Received) paired with physical and digital asset portfolios and SiS Care (Systematic Support Commitments) with flexible installment schedules.",
+      },
+      {
+        title: "Category 4 → Secure Vault (/workspace?category=secure_vault)",
+        detail:
+          "AES-256-GCM encrypted credentials vault, critical document classification (Public, Internal, Confidential, Emergency Only), and granular access control rules guarded by the Master PIN.",
+      },
+      {
+        title: "Category 5 → Life Continuity (/workspace?category=life_continuity)",
+        detail:
+          "Four operational record types: Responsibilities (delegated duties), Instructions (step-by-step procedures), Emergency Protocols (immediate activation plans), and Legacy & Legal (condition-sealed letters & Wasiyyah).",
+      },
+      {
+        title: "Category 6 → Tools & Support (/workspace?category=tools_support)",
+        detail:
+          "One utility center containing 5 sections: (1) Security & Recovery (sessions, 2FA, alerts); (2) App Settings (currency, auto-conceal, language, theme); (3) Requests & Approvals (unified review inbox); (4) Activity History (audit trail); (5) Data & Backup (JSON export/restore).",
+      },
+      {
+        title: "Verified Account Recovery (/recovery)",
+        detail:
+          "A 5-step verified recovery stepper accessible both in-app and from the logged-out sign-in page: Request Submitted → Guardian Verification → Waiting Period (72h) → Final Checks → Restore Sign-in.",
+      },
+    ],
+    tips: [
+      {
+        type: "tip",
+        text: "The bottom navigation bar provides instant one-tap switching between Home, People, and Workspace on any screen.",
+      },
+      {
+        type: "security",
+        text: "Account Recovery restores login credentials only; decrypting Master Vault secrets requires your Master PIN or configured offline recovery keys.",
+      },
+      {
+        type: "info",
+        text: "The Guide is always accessible via the top-bar book icon on every page without cluttering your Workspace settings.",
+      },
+    ],
+    whoCanAccess:
+      "All registered users can access their permitted categories. Owners and Super Admins manage all 6 categories without restriction.",
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
   // 2. BUSINESSES
   // ─────────────────────────────────────────────────────────────────────────────,
 
