@@ -21,6 +21,7 @@ import { WorkspaceRecordListView } from "./screens/WorkspaceRecordListView";
 import { WorkspaceRecordDetailView } from "./screens/WorkspaceRecordDetailView";
 import { WorkspaceRecordFormView } from "./screens/WorkspaceRecordFormView";
 import { FamilyCommunityPage } from "./family-community/FamilyCommunityPage";
+import { WorkBusinessPage } from "./work-business/WorkBusinessPage";
 
 interface LifeWorkspaceClientProps {
   initialCategoryId?: string;
@@ -261,6 +262,21 @@ export function LifeWorkspaceClient({
 
     return (
       <FamilyCommunityPage
+        onBack={handleBackFromCategory}
+        initialRecordType={initialType}
+      />
+    );
+  }
+
+  // Special Case: Work & Business (Single Unified Management Page)
+  if (activeCategory?.id === "work_business") {
+    const validTypes = ["staff_office", "business", "projects"];
+    const initialType = validTypes.includes(queryModule)
+      ? (queryModule as "staff_office" | "business" | "projects")
+      : "all";
+
+    return (
+      <WorkBusinessPage
         onBack={handleBackFromCategory}
         initialRecordType={initialType}
       />

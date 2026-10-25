@@ -19,6 +19,7 @@ import LifeLegacyMessage from "@/lib/database/models/lifeLegacyMessage.model";
 import LifeVaultItem from "@/lib/database/models/lifeVaultItem.model";
 import LifeRecordPermission from "@/lib/database/models/lifeRecordPermission.model";
 import LifeFamilyCommunityRecord from "@/lib/database/models/lifeFamilyCommunityRecord.model";
+import LifeWorkBusinessRecord from "@/lib/database/models/lifeWorkBusinessRecord.model";
 import { WORKSPACE_CATEGORIES } from "@/lib/life/workspaceCategories";
 
 export interface WorkspaceRecordItem {
@@ -1338,4 +1339,652 @@ export async function updateFamilyCommunityStatus(
     return { success: false, error: err.message || "Failed to update status" };
   }
 }
+
+// ─────────────────────────────────────────────────────────────
+// Work & Business Unified Management Server Actions
+// ─────────────────────────────────────────────────────────────
+
+export interface WorkBusinessRecordDTO {
+  id: string;
+  recordType: "staff_office" | "business" | "projects";
+  subType?: string;
+  title: string;
+  subtitle?: string;
+  description: string;
+  status: "active" | "in_progress" | "pending" | "planning" | "completed" | "inactive";
+  priority?: "low" | "medium" | "high" | "urgent";
+
+  relatedBusinessId?: string;
+  relatedBusinessName?: string;
+  relatedPersonId?: string;
+  relatedPersonName?: string;
+  relatedPersonAvatar?: string;
+  responsiblePersonId?: string;
+  responsiblePersonName?: string;
+
+  designation?: string;
+  department?: string;
+  salaryReference?: string;
+
+  country?: string;
+  city?: string;
+  address?: string;
+  registrationNumber?: string;
+  ownershipType?: string;
+  owners: Array<{
+    personId?: string;
+    name: string;
+    percentage: number;
+    role?: string;
+    avatarUrl?: string;
+  }>;
+
+  importantDate?: string;
+  startDate?: string;
+  endDate?: string;
+
+  budgetReference?: string;
+  milestones: Array<{
+    title: string;
+    description?: string;
+    targetDate?: string;
+    status: "planned" | "in_progress" | "completed";
+    responsiblePersonName?: string;
+  }>;
+
+  linkedDocuments: Array<{
+    name: string;
+    url?: string;
+    size?: string;
+    date?: string;
+    type?: string;
+  }>;
+  linkedFinancials: Array<{
+    title: string;
+    institution?: string;
+    accountNumber?: string;
+    amount?: number;
+    type?: string;
+  }>;
+
+  notes?: string;
+  accessPermission?: "private" | "owner_only" | "team_shared" | "guardian_accessible";
+  history?: Array<{
+    action: string;
+    performedBy: string;
+    timestamp: string;
+    details?: string;
+  }>;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface WorkBusinessResponse {
+  records: WorkBusinessRecordDTO[];
+  counts: {
+    all: number;
+    active: number;
+    pending: number;
+    completed: number;
+  };
+  peopleList: Array<{
+    id: string;
+    name: string;
+    relation?: string;
+    avatarUrl?: string;
+  }>;
+  businessList: Array<{
+    id: string;
+    name: string;
+  }>;
+}
+
+async function ensureWorkBusinessSeed(userId: string) {
+  const count = await LifeWorkBusinessRecord.countDocuments();
+  if (count > 0) return;
+
+  const seedRecords = [
+    {
+      recordType: "staff_office",
+      subType: "staff",
+      title: "Sabbir Employment Record",
+      subtitle: "Staff & Office • Employee Profile",
+      relatedPersonName: "Sabbir Ahmed",
+      designation: "Senior Operations Lead",
+      relatedBusinessName: "GESN",
+      status: "active",
+      importantDate: new Date("2020-01-15"),
+      description: "Full-time employment managing operations and client delivery across regional teams.",
+      accessPermission: "owner_only",
+      createdBy: userId,
+      history: [
+        { action: "Created", performedBy: "Shahidul (Owner)", timestamp: new Date("2020-01-15"), details: "Employment agreement signed." },
+      ],
+    },
+    {
+      recordType: "business",
+      subType: "Technology Company",
+      title: "GESN",
+      subtitle: "IT Services & Technology Solutions",
+      status: "active",
+      importantDate: new Date("2019-03-01"),
+      country: "Bangladesh",
+      city: "Dhaka",
+      ownershipType: "Private Limited",
+      owners: [
+        { name: "Shahidul", percentage: 70, role: "Founder & CEO" },
+        { name: "Rahat", percentage: 30, role: "Co-Founder & CTO" },
+      ],
+      description: "GESN is a technology company providing IT services, software solutions and digital transformation support for businesses.",
+      linkedDocuments: [
+        { name: "Trade License.pdf", size: "1.2 MB", date: "Apr 15, 2019", type: "pdf" },
+        { name: "Office Lease Agreement", size: "0.8 MB", date: "Mar 10, 2019", type: "doc" },
+      ],
+      linkedFinancials: [
+        { title: "Bank Account - GESN", institution: "BRAC Bank", accountNumber: "•••• 4521" },
+      ],
+      accessPermission: "owner_only",
+      createdBy: userId,
+      history: [
+        { action: "Created", performedBy: "Shahidul (Owner)", timestamp: new Date("2019-03-01") },
+      ],
+    },
+    {
+      recordType: "business",
+      subType: "Technology Solutions",
+      title: "SiS Link",
+      subtitle: "Technology Solutions",
+      status: "active",
+      importantDate: new Date("2021-06-12"),
+      country: "Bangladesh",
+      city: "Dhaka",
+      ownershipType: "Partnership",
+      owners: [
+        { name: "Shahidul", percentage: 60, role: "Managing Partner" },
+        { name: "Partner Associate", percentage: 40, role: "Partner" },
+      ],
+      description: "Digital networking infrastructure and connectivity provider for enterprise clients.",
+      accessPermission: "owner_only",
+      createdBy: userId,
+    },
+    {
+      recordType: "projects",
+      subType: "Infrastructure",
+      title: "Network Expansion Project",
+      subtitle: "Projects • Infrastructure",
+      relatedBusinessName: "GESN",
+      responsiblePersonName: "Rahat (Responsible)",
+      status: "in_progress",
+      importantDate: new Date("2026-07-20"),
+      description: "Expanding core datacenter bandwidth and regional routing nodes for failover redundancy.",
+      milestones: [
+        { title: "Procure hardware", status: "completed" },
+        { title: "Install router racks", status: "in_progress" },
+        { title: "Fiber connection testing", status: "planned" },
+      ],
+      accessPermission: "team_shared",
+      createdBy: userId,
+    },
+    {
+      recordType: "staff_office",
+      subType: "office",
+      title: "Uttara Office Setup",
+      subtitle: "Staff & Office • Office & Facility",
+      relatedBusinessName: "SiS Link",
+      responsiblePersonName: "Shahidul (Owner)",
+      status: "pending",
+      importantDate: new Date("2026-12-10"),
+      country: "Bangladesh",
+      city: "Dhaka",
+      address: "Sector 3, Uttara, Dhaka",
+      description: "New branch office lease negotiation, interior fit-out, and high-speed fiber termination.",
+      accessPermission: "owner_only",
+      createdBy: userId,
+    },
+    {
+      recordType: "projects",
+      subType: "Product Development",
+      title: "Life VAULT Development",
+      subtitle: "Projects • Product Development",
+      responsiblePersonName: "Shahidul (Project Manager)",
+      status: "active",
+      importantDate: new Date("2026-12-31"),
+      description: "Core Life Command Center roadmap development, encryption vault and unified workspace.",
+      milestones: [
+        { title: "Dashboard slider release", status: "completed" },
+        { title: "Workspace category architecture", status: "completed" },
+        { title: "Security audit & access keys", status: "in_progress" },
+      ],
+      accessPermission: "owner_only",
+      createdBy: userId,
+    },
+    {
+      recordType: "projects",
+      subType: "Infrastructure",
+      title: "Server Expansion",
+      subtitle: "Projects • Infrastructure",
+      responsiblePersonName: "Rahat (Responsible)",
+      status: "in_progress",
+      importantDate: new Date("2026-08-15"),
+      description: "High availability Kubernetes cluster deployment and automated snapshot replication.",
+      milestones: [
+        { title: "Cluster provisioning", status: "completed" },
+        { title: "Database sharding", status: "in_progress" },
+      ],
+      accessPermission: "team_shared",
+      createdBy: userId,
+    },
+    {
+      recordType: "projects",
+      subType: "Office & Facility",
+      title: "Office Relocation",
+      subtitle: "Projects • Office & Facility",
+      responsiblePersonName: "Shahidul (Project Manager)",
+      status: "planning",
+      importantDate: new Date("2026-11-01"),
+      description: "Moving corporate headquarters to new tech park facility with dedicated server rooms.",
+      milestones: [
+        { title: "Site inspection", status: "completed" },
+        { title: "Lease signing", status: "in_progress" },
+      ],
+      accessPermission: "owner_only",
+      createdBy: userId,
+    },
+    {
+      recordType: "projects",
+      subType: "Legal & Partnership",
+      title: "Partner Settlement Setup",
+      subtitle: "Projects • Legal & Partnership",
+      responsiblePersonName: "Abdullah (Responsible)",
+      status: "completed",
+      importantDate: new Date("2025-03-10"),
+      description: "Legal entity equity documentation and partnership deed finalization with legal counsel.",
+      milestones: [
+        { title: "Legal review", status: "completed" },
+        { title: "Notarization", status: "completed" },
+      ],
+      accessPermission: "owner_only",
+      createdBy: userId,
+    },
+  ];
+
+  await LifeWorkBusinessRecord.insertMany(seedRecords);
+}
+
+export async function getWorkBusinessRecords(params?: {
+  recordType?: "all" | "staff_office" | "business" | "projects";
+  status?: string;
+  search?: string;
+}): Promise<WorkBusinessResponse> {
+  await connectToDatabase();
+  const auth = await getLifeAuthContext();
+  if (!auth) {
+    return {
+      records: [],
+      counts: { all: 0, active: 0, pending: 0, completed: 0 },
+      peopleList: [],
+      businessList: [],
+    };
+  }
+
+  // Ensure initial demonstration data
+  await ensureWorkBusinessSeed(auth.userId || "owner");
+
+  const query: Record<string, any> = {};
+
+  if (params?.recordType && params.recordType !== "all") {
+    query.recordType = params.recordType;
+  }
+
+  if (params?.search?.trim()) {
+    const s = new RegExp(params.search.trim(), "i");
+    query.$or = [
+      { title: s },
+      { subtitle: s },
+      { subType: s },
+      { description: s },
+      { relatedBusinessName: s },
+      { relatedPersonName: s },
+      { responsiblePersonName: s },
+      { designation: s },
+      { notes: s },
+    ];
+  }
+
+  // Calculate status counts on the current recordType selection
+  const countQuery = { ...query };
+  delete countQuery.status;
+
+  const allMatching = await LifeWorkBusinessRecord.find(countQuery).lean();
+  const counts = {
+    all: allMatching.length,
+    active: allMatching.filter(
+      (r: any) => r.status === "active" || r.status === "in_progress" || r.status === "planning"
+    ).length,
+    pending: allMatching.filter((r: any) => r.status === "pending").length,
+    completed: allMatching.filter((r: any) => r.status === "completed").length,
+  };
+
+  // Apply status filter if specified and not "all"
+  if (params?.status && params.status !== "all") {
+    if (params.status === "active") {
+      query.status = { $in: ["active", "in_progress", "planning"] };
+    } else {
+      query.status = params.status;
+    }
+  }
+
+  const rawDocs = await LifeWorkBusinessRecord.find(query)
+    .sort({ importantDate: -1, createdAt: -1 })
+    .lean();
+
+  // Load existing people directory for owner/partner/staff dropdowns
+  const people = await LifePerson.find({ status: { $ne: "archived" } })
+    .select("_id name relation avatarUrl phone email")
+    .sort({ name: 1 })
+    .lean();
+
+  const peopleList = people.map((p: any) => ({
+    id: String(p._id),
+    name: p.name,
+    relation: p.relation,
+    avatarUrl: p.avatarUrl,
+  }));
+
+  // Load registered businesses
+  const businesses = await LifeWorkBusinessRecord.find({ recordType: "business" })
+    .select("_id title")
+    .sort({ title: 1 })
+    .lean();
+
+  const businessList = businesses.map((b: any) => ({
+    id: String(b._id),
+    name: b.title,
+  }));
+
+  const records: WorkBusinessRecordDTO[] = (rawDocs as any[]).map((doc) => ({
+    id: String(doc._id),
+    recordType: doc.recordType,
+    subType: doc.subType || "",
+    title: doc.title,
+    subtitle: doc.subtitle || "",
+    description: doc.description || "",
+    status: doc.status || "active",
+    priority: doc.priority || "medium",
+    relatedBusinessId: doc.relatedBusinessId ? String(doc.relatedBusinessId) : undefined,
+    relatedBusinessName: doc.relatedBusinessName || "",
+    relatedPersonId: doc.relatedPersonId ? String(doc.relatedPersonId) : undefined,
+    relatedPersonName: doc.relatedPersonName || "",
+    relatedPersonAvatar: doc.relatedPersonAvatar || "",
+    responsiblePersonId: doc.responsiblePersonId ? String(doc.responsiblePersonId) : undefined,
+    responsiblePersonName: doc.responsiblePersonName || "",
+    designation: doc.designation || "",
+    department: doc.department || "",
+    salaryReference: doc.salaryReference || "",
+    country: doc.country || "",
+    city: doc.city || "",
+    address: doc.address || "",
+    registrationNumber: doc.registrationNumber || "",
+    ownershipType: doc.ownershipType || "Private Limited",
+    owners: (doc.owners || []).map((o: any) => ({
+      personId: o.personId ? String(o.personId) : undefined,
+      name: o.name,
+      percentage: o.percentage || 0,
+      role: o.role || "",
+      avatarUrl: o.avatarUrl || "",
+    })),
+    importantDate: doc.importantDate ? new Date(doc.importantDate).toISOString() : undefined,
+    startDate: doc.startDate ? new Date(doc.startDate).toISOString() : undefined,
+    endDate: doc.endDate ? new Date(doc.endDate).toISOString() : undefined,
+    budgetReference: doc.budgetReference || "",
+    milestones: (doc.milestones || []).map((m: any) => ({
+      title: m.title,
+      description: m.description || "",
+      targetDate: m.targetDate ? new Date(m.targetDate).toISOString() : undefined,
+      status: m.status || "planned",
+      responsiblePersonName: m.responsiblePersonName || "",
+    })),
+    linkedDocuments: doc.linkedDocuments || [],
+    linkedFinancials: doc.linkedFinancials || [],
+    notes: doc.notes || "",
+    accessPermission: doc.accessPermission || "private",
+    history: (doc.history || []).map((h: any) => ({
+      action: h.action,
+      performedBy: h.performedBy,
+      timestamp: new Date(h.timestamp).toISOString(),
+      details: h.details,
+    })),
+    createdAt: doc.createdAt ? new Date(doc.createdAt).toISOString() : undefined,
+    updatedAt: doc.updatedAt ? new Date(doc.updatedAt).toISOString() : undefined,
+  }));
+
+  return {
+    records: JSON.parse(JSON.stringify(records)),
+    counts,
+    peopleList: JSON.parse(JSON.stringify(peopleList)),
+    businessList: JSON.parse(JSON.stringify(businessList)),
+  };
+}
+
+export async function saveWorkBusinessRecord(data: {
+  id?: string;
+  recordType: "staff_office" | "business" | "projects";
+  subType?: string;
+  title: string;
+  subtitle?: string;
+  description?: string;
+  status?: "active" | "in_progress" | "pending" | "planning" | "completed" | "inactive";
+  priority?: "low" | "medium" | "high" | "urgent";
+
+  relatedBusinessId?: string;
+  relatedBusinessName?: string;
+  relatedPersonId?: string;
+  relatedPersonName?: string;
+  responsiblePersonId?: string;
+  responsiblePersonName?: string;
+
+  designation?: string;
+  department?: string;
+  salaryReference?: string;
+
+  country?: string;
+  city?: string;
+  address?: string;
+  registrationNumber?: string;
+  ownershipType?: string;
+  owners?: Array<{
+    personId?: string;
+    name: string;
+    percentage: number;
+    role?: string;
+  }>;
+
+  importantDate?: string;
+  startDate?: string;
+  endDate?: string;
+
+  budgetReference?: string;
+  milestones?: Array<{
+    title: string;
+    description?: string;
+    targetDate?: string;
+    status: "planned" | "in_progress" | "completed";
+  }>;
+
+  linkedDocuments?: Array<{ name: string; url?: string; size?: string; date?: string; type?: string }>;
+  linkedFinancials?: Array<{ title: string; institution?: string; accountNumber?: string; amount?: number; type?: string }>;
+  notes?: string;
+  accessPermission?: "private" | "owner_only" | "team_shared" | "guardian_accessible";
+}): Promise<{ success: boolean; id?: string; error?: string }> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return { success: false, error: "Forbidden: Unauthorized to save records." };
+    }
+
+    let personName = data.relatedPersonName?.trim() || "";
+    if (data.relatedPersonId && !personName) {
+      const person = await LifePerson.findById(data.relatedPersonId).lean();
+      if (person) personName = (person as any).name;
+    }
+
+    const payload: Record<string, any> = {
+      recordType: data.recordType,
+      subType: data.subType?.trim() || "",
+      title: data.title.trim(),
+      subtitle: data.subtitle?.trim() || "",
+      description: data.description?.trim() || "",
+      status: data.status || "active",
+      priority: data.priority || "medium",
+      relatedBusinessId: data.relatedBusinessId && data.relatedBusinessId !== "none" ? data.relatedBusinessId : undefined,
+      relatedBusinessName: data.relatedBusinessName?.trim() || "",
+      relatedPersonId: data.relatedPersonId && data.relatedPersonId !== "none" ? data.relatedPersonId : undefined,
+      relatedPersonName: personName,
+      responsiblePersonId: data.responsiblePersonId && data.responsiblePersonId !== "none" ? data.responsiblePersonId : undefined,
+      responsiblePersonName: data.responsiblePersonName?.trim() || "",
+      designation: data.designation?.trim() || "",
+      department: data.department?.trim() || "",
+      salaryReference: data.salaryReference?.trim() || "",
+      country: data.country?.trim() || "",
+      city: data.city?.trim() || "",
+      address: data.address?.trim() || "",
+      registrationNumber: data.registrationNumber?.trim() || "",
+      ownershipType: data.ownershipType || "Private Limited",
+      importantDate: data.importantDate ? new Date(data.importantDate) : undefined,
+      startDate: data.startDate ? new Date(data.startDate) : undefined,
+      endDate: data.endDate ? new Date(data.endDate) : undefined,
+      budgetReference: data.budgetReference?.trim() || "",
+      notes: data.notes?.trim() || "",
+      accessPermission: data.accessPermission || "private",
+    };
+
+    if (data.owners) {
+      payload.owners = data.owners;
+    }
+    if (data.milestones) {
+      payload.milestones = data.milestones.map((m) => ({
+        ...m,
+        targetDate: m.targetDate ? new Date(m.targetDate) : undefined,
+      }));
+    }
+    if (data.linkedDocuments) {
+      payload.linkedDocuments = data.linkedDocuments;
+    }
+    if (data.linkedFinancials) {
+      payload.linkedFinancials = data.linkedFinancials;
+    }
+
+    let savedDoc: any;
+    if (data.id) {
+      payload.$push = {
+        history: {
+          action: "Updated",
+          performedBy: auth.name || auth.email || "Admin",
+          timestamp: new Date(),
+          details: `Updated ${data.title}`,
+        },
+      };
+      savedDoc = await LifeWorkBusinessRecord.findByIdAndUpdate(data.id, payload, { new: true });
+    } else {
+      payload.createdBy = auth.userId || "owner";
+      payload.history = [
+        {
+          action: "Created",
+          performedBy: auth.name || auth.email || "Admin",
+          timestamp: new Date(),
+          details: `Created new ${data.recordType} record`,
+        },
+      ];
+      savedDoc = await LifeWorkBusinessRecord.create(payload);
+    }
+
+    await logLifeActivity({
+      action: data.id ? "UPDATE_WORKSPACE_RECORD" : "CREATE_WORKSPACE_RECORD",
+      resourceType: data.recordType,
+      resourceId: String(savedDoc._id),
+      resourceName: data.title,
+      details: `${data.id ? "Updated" : "Created"} ${data.recordType} record: ${data.title}`,
+    });
+
+    revalidatePath("/workspace");
+    revalidatePath("/");
+    return { success: true, id: String(savedDoc._id) };
+  } catch (err: any) {
+    console.error("saveWorkBusinessRecord error:", err);
+    return { success: false, error: err.message || "Failed to save record" };
+  }
+}
+
+export async function deleteWorkBusinessRecord(id: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return { success: false, error: "Forbidden: Unauthorized to delete records." };
+    }
+
+    const doc = await LifeWorkBusinessRecord.findByIdAndDelete(id);
+    if (doc) {
+      await logLifeActivity({
+        action: "DELETE_WORKSPACE_RECORD",
+        resourceType: doc.recordType,
+        resourceId: id,
+        resourceName: doc.title,
+        details: `Deleted ${doc.recordType} record: ${doc.title}`,
+      });
+    }
+
+    revalidatePath("/workspace");
+    revalidatePath("/");
+    return { success: true };
+  } catch (err: any) {
+    console.error("deleteWorkBusinessRecord error:", err);
+    return { success: false, error: err.message || "Failed to delete record" };
+  }
+}
+
+export async function updateWorkBusinessStatus(
+  id: string,
+  status: "active" | "in_progress" | "pending" | "planning" | "completed" | "inactive"
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth) return { success: false, error: "Unauthorized" };
+
+    const doc = await LifeWorkBusinessRecord.findByIdAndUpdate(
+      id,
+      {
+        status,
+        $push: {
+          history: {
+            action: `Status changed to ${status}`,
+            performedBy: auth.name || auth.email || "User",
+            timestamp: new Date(),
+          },
+        },
+      },
+      { new: true }
+    );
+
+    if (doc) {
+      await logLifeActivity({
+        action: "STATUS_CHANGE_WORKSPACE_RECORD",
+        resourceType: doc.recordType,
+        resourceId: id,
+        resourceName: doc.title,
+        details: `Changed status to ${status} for ${doc.title}`,
+      });
+    }
+
+    revalidatePath("/workspace");
+    revalidatePath("/");
+    return { success: true };
+  } catch (err: any) {
+    console.error("updateWorkBusinessStatus error:", err);
+    return { success: false, error: err.message || "Failed to update status" };
+  }
+}
+
 
