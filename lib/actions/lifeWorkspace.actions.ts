@@ -18,6 +18,7 @@ import LifeContact from "@/lib/database/models/lifeContact.model";
 import LifeLegacyMessage from "@/lib/database/models/lifeLegacyMessage.model";
 import LifeVaultItem from "@/lib/database/models/lifeVaultItem.model";
 import LifeRecordPermission from "@/lib/database/models/lifeRecordPermission.model";
+import LifeFamilyCommunityRecord from "@/lib/database/models/lifeFamilyCommunityRecord.model";
 import { WORKSPACE_CATEGORIES } from "@/lib/life/workspaceCategories";
 
 export interface WorkspaceRecordItem {
@@ -900,3 +901,441 @@ export async function saveWorkspaceRecord(params: {
   revalidatePath("/");
   return { success: true };
 }
+
+// ─────────────────────────────────────────────────────────────
+// Family & Community Unified Management Server Actions
+// ─────────────────────────────────────────────────────────────
+
+export interface FamilyCommunityRecordDTO {
+  id: string;
+  recordType: "family_care" | "kids" | "community";
+  title: string;
+  relatedPersonId?: string;
+  relatedPersonName?: string;
+  relatedPersonAvatar?: string;
+  subType?: string;
+  description: string;
+  institution?: string;
+  assignedPersonId?: string;
+  assignedPersonName?: string;
+  startDate?: string;
+  dueDate?: string;
+  priority: "low" | "medium" | "high" | "urgent";
+  status: "active" | "pending" | "action_required" | "completed";
+  notes?: string;
+  attachments?: Array<{
+    name: string;
+    url?: string;
+    size?: string;
+    date?: string;
+    type?: string;
+  }>;
+  linkedFinancialId?: string;
+  linkedDocumentId?: string;
+  linkedResponsibilityId?: string;
+  accessPermission?: string;
+  history?: Array<{
+    action: string;
+    performedBy: string;
+    timestamp: string;
+    details?: string;
+  }>;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface FamilyCommunityResponse {
+  records: FamilyCommunityRecordDTO[];
+  counts: {
+    all: number;
+    active: number;
+    pending: number;
+    completed: number;
+  };
+  peopleList: Array<{
+    id: string;
+    name: string;
+    relation?: string;
+    avatarUrl?: string;
+  }>;
+}
+
+async function ensureFamilyCommunitySeed(userId: string) {
+  const count = await LifeFamilyCommunityRecord.countDocuments();
+  if (count > 0) return;
+
+  const seedRecords = [
+    {
+      recordType: "family_care",
+      title: "Mother's Medical Care",
+      relatedPersonName: "Mother",
+      subType: "Health Care",
+      status: "action_required",
+      priority: "high",
+      dueDate: new Date("2026-10-28"),
+      assignedPersonName: "Shahidul (Owner)",
+      description: "Regular medical checkup, medication and health monitoring for mother.",
+      attachments: [
+        { name: "Doctor Report.pdf", size: "1.2 MB", date: "Oct 10, 2025", type: "pdf" },
+        { name: "Prescription.jpg", size: "0.8 MB", date: "Sep 28, 2025", type: "image" },
+      ],
+      accessPermission: "family_shared",
+      createdBy: userId,
+      history: [
+        { action: "Created", performedBy: "Shahidul (Owner)", timestamp: new Date("2026-10-20"), details: "Initial care plan scheduled." },
+      ],
+    },
+    {
+      recordType: "kids",
+      title: "Rahaf Education Plan",
+      relatedPersonName: "Rahaf",
+      subType: "Education",
+      status: "active",
+      priority: "medium",
+      dueDate: new Date("2026-11-10"),
+      description: "Class 2, School Program and ongoing early care milestone tracking.",
+      institution: "Scholastica International",
+      assignedPersonName: "Shahidul (Owner)",
+      accessPermission: "private",
+      createdBy: userId,
+      history: [
+        { action: "Created", performedBy: "Shahidul (Owner)", timestamp: new Date("2026-10-18") },
+      ],
+    },
+    {
+      recordType: "family_care",
+      title: "Family Home Maintenance",
+      relatedPersonName: "Family",
+      subType: "Living Arrangement",
+      status: "pending",
+      priority: "medium",
+      dueDate: new Date("2026-12-01"),
+      assignedPersonName: "Shahidul (Owner)",
+      description: "Quarterly inspection and servicing for family residence electrical and plumbing fixtures.",
+      accessPermission: "family_shared",
+      createdBy: userId,
+    },
+    {
+      recordType: "community",
+      title: "Community Support",
+      relatedPersonName: "Relative",
+      subType: "Financial Help",
+      status: "completed",
+      priority: "low",
+      dueDate: new Date("2026-10-15"),
+      assignedPersonName: "Shahidul (Owner)",
+      description: "Monthly community assistance contribution and educational sponsorship.",
+      accessPermission: "owner_only",
+      createdBy: userId,
+    },
+    {
+      recordType: "kids",
+      title: "Abdullah",
+      relatedPersonName: "Abdullah",
+      subType: "Education",
+      status: "active",
+      priority: "medium",
+      dueDate: new Date("2026-11-15"),
+      institution: "Class 2, School Program",
+      description: "Primary curriculum progress, Quran tutor scheduling and martial arts classes.",
+      accessPermission: "family_shared",
+      createdBy: userId,
+    },
+    {
+      recordType: "kids",
+      title: "Kids Future Plan",
+      relatedPersonName: "Both Kids",
+      subType: "Guardianship",
+      status: "pending",
+      priority: "high",
+      dueDate: new Date("2027-01-10"),
+      description: "Comprehensive guardianship directives, education trust allocation and emergency protocols.",
+      accessPermission: "guardian_accessible",
+      createdBy: userId,
+    },
+  ];
+
+  await LifeFamilyCommunityRecord.insertMany(seedRecords);
+}
+
+export async function getFamilyCommunityRecords(params?: {
+  recordType?: "all" | "family_care" | "kids" | "community";
+  status?: string;
+  search?: string;
+}): Promise<FamilyCommunityResponse> {
+  await connectToDatabase();
+  const auth = await getLifeAuthContext();
+  if (!auth) {
+    return {
+      records: [],
+      counts: { all: 0, active: 0, pending: 0, completed: 0 },
+      peopleList: [],
+    };
+  }
+
+  // Ensure seed data exists
+  await ensureFamilyCommunitySeed(auth.userId || "owner");
+
+  const query: Record<string, any> = {};
+
+  // Record type filter (unless "all")
+  if (params?.recordType && params.recordType !== "all") {
+    query.recordType = params.recordType;
+  }
+
+  // Search filter
+  if (params?.search?.trim()) {
+    const s = new RegExp(params.search.trim(), "i");
+    query.$or = [
+      { title: s },
+      { relatedPersonName: s },
+      { subType: s },
+      { description: s },
+      { institution: s },
+      { notes: s },
+    ];
+  }
+
+  // Calculate status counts on the current recordType selection
+  const countQuery = { ...query };
+  delete countQuery.status;
+
+  const allMatching = await LifeFamilyCommunityRecord.find(countQuery).lean();
+  const counts = {
+    all: allMatching.length,
+    active: allMatching.filter((r: any) => r.status === "active" || r.status === "action_required").length,
+    pending: allMatching.filter((r: any) => r.status === "pending").length,
+    completed: allMatching.filter((r: any) => r.status === "completed").length,
+  };
+
+  // Apply status filter if specified and not "all"
+  if (params?.status && params.status !== "all") {
+    if (params.status === "active") {
+      query.status = { $in: ["active", "action_required"] };
+    } else {
+      query.status = params.status;
+    }
+  }
+
+  const rawDocs = await LifeFamilyCommunityRecord.find(query)
+    .sort({ dueDate: 1, createdAt: -1 })
+    .lean();
+
+  // Load existing people directory for dropdowns and name resolution
+  const people = await LifePerson.find({ status: { $ne: "archived" } })
+    .select("_id name relation avatarUrl phone email")
+    .sort({ name: 1 })
+    .lean();
+
+  const peopleList = people.map((p: any) => ({
+    id: String(p._id),
+    name: p.name,
+    relation: p.relation,
+    avatarUrl: p.avatarUrl,
+  }));
+
+  const records: FamilyCommunityRecordDTO[] = (rawDocs as any[]).map((doc) => ({
+    id: String(doc._id),
+    recordType: doc.recordType,
+    title: doc.title,
+    relatedPersonId: doc.relatedPersonId ? String(doc.relatedPersonId) : undefined,
+    relatedPersonName: doc.relatedPersonName || "",
+    relatedPersonAvatar: doc.relatedPersonAvatar || "",
+    subType: doc.subType || "",
+    description: doc.description || "",
+    institution: doc.institution || "",
+    assignedPersonId: doc.assignedPersonId ? String(doc.assignedPersonId) : undefined,
+    assignedPersonName: doc.assignedPersonName || "",
+    startDate: doc.startDate ? new Date(doc.startDate).toISOString() : undefined,
+    dueDate: doc.dueDate ? new Date(doc.dueDate).toISOString() : undefined,
+    priority: doc.priority || "medium",
+    status: doc.status || "active",
+    notes: doc.notes || "",
+    attachments: doc.attachments || [],
+    linkedFinancialId: doc.linkedFinancialId ? String(doc.linkedFinancialId) : undefined,
+    linkedDocumentId: doc.linkedDocumentId ? String(doc.linkedDocumentId) : undefined,
+    linkedResponsibilityId: doc.linkedResponsibilityId ? String(doc.linkedResponsibilityId) : undefined,
+    accessPermission: doc.accessPermission || "private",
+    history: (doc.history || []).map((h: any) => ({
+      action: h.action,
+      performedBy: h.performedBy,
+      timestamp: new Date(h.timestamp).toISOString(),
+      details: h.details,
+    })),
+    createdAt: doc.createdAt ? new Date(doc.createdAt).toISOString() : undefined,
+    updatedAt: doc.updatedAt ? new Date(doc.updatedAt).toISOString() : undefined,
+  }));
+
+  return {
+    records: JSON.parse(JSON.stringify(records)),
+    counts,
+    peopleList: JSON.parse(JSON.stringify(peopleList)),
+  };
+}
+
+export async function saveFamilyCommunityRecord(data: {
+  id?: string;
+  recordType: "family_care" | "kids" | "community";
+  title: string;
+  relatedPersonId?: string;
+  relatedPersonName?: string;
+  subType?: string;
+  description?: string;
+  institution?: string;
+  assignedPersonId?: string;
+  assignedPersonName?: string;
+  startDate?: string;
+  dueDate?: string;
+  priority?: "low" | "medium" | "high" | "urgent";
+  status?: "active" | "pending" | "action_required" | "completed";
+  notes?: string;
+  accessPermission?: "private" | "owner_only" | "family_shared" | "guardian_accessible";
+  attachments?: Array<{ name: string; url?: string; size?: string; date?: string; type?: string }>;
+}): Promise<{ success: boolean; id?: string; error?: string }> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return { success: false, error: "Forbidden: Unauthorized to save records." };
+    }
+
+    let personName = data.relatedPersonName?.trim() || "";
+    if (data.relatedPersonId && !personName) {
+      const person = await LifePerson.findById(data.relatedPersonId).lean();
+      if (person) personName = (person as any).name;
+    }
+
+    const payload: Record<string, any> = {
+      recordType: data.recordType,
+      title: data.title.trim(),
+      relatedPersonId: data.relatedPersonId && data.relatedPersonId !== "none" ? data.relatedPersonId : undefined,
+      relatedPersonName: personName,
+      subType: data.subType?.trim() || "",
+      description: data.description?.trim() || "",
+      institution: data.institution?.trim() || "",
+      assignedPersonId: data.assignedPersonId && data.assignedPersonId !== "none" ? data.assignedPersonId : undefined,
+      assignedPersonName: data.assignedPersonName?.trim() || "",
+      startDate: data.startDate ? new Date(data.startDate) : undefined,
+      dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
+      priority: data.priority || "medium",
+      status: data.status || "active",
+      notes: data.notes?.trim() || "",
+      accessPermission: data.accessPermission || "private",
+    };
+
+    if (data.attachments) {
+      payload.attachments = data.attachments;
+    }
+
+    let savedDoc: any;
+    if (data.id) {
+      payload.$push = {
+        history: {
+          action: "Updated",
+          performedBy: auth.name || auth.email || "Admin",
+          timestamp: new Date(),
+          details: `Updated ${data.title}`,
+        },
+      };
+      savedDoc = await LifeFamilyCommunityRecord.findByIdAndUpdate(data.id, payload, { new: true });
+    } else {
+      payload.createdBy = auth.userId || "owner";
+      payload.history = [
+        {
+          action: "Created",
+          performedBy: auth.name || auth.email || "Admin",
+          timestamp: new Date(),
+          details: `Created new ${data.recordType} record`,
+        },
+      ];
+      savedDoc = await LifeFamilyCommunityRecord.create(payload);
+    }
+
+    await logLifeActivity({
+      action: data.id ? "UPDATE_WORKSPACE_RECORD" : "CREATE_WORKSPACE_RECORD",
+      resourceType: data.recordType,
+      resourceId: String(savedDoc._id),
+      resourceName: data.title,
+      details: `${data.id ? "Updated" : "Created"} ${data.recordType} record: ${data.title}`,
+    });
+
+    revalidatePath("/workspace");
+    revalidatePath("/");
+    return { success: true, id: String(savedDoc._id) };
+  } catch (err: any) {
+    console.error("saveFamilyCommunityRecord error:", err);
+    return { success: false, error: err.message || "Failed to save record" };
+  }
+}
+
+export async function deleteFamilyCommunityRecord(id: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return { success: false, error: "Forbidden: Unauthorized to delete records." };
+    }
+
+    const doc = await LifeFamilyCommunityRecord.findByIdAndDelete(id);
+    if (doc) {
+      await logLifeActivity({
+        action: "DELETE_WORKSPACE_RECORD",
+        resourceType: doc.recordType,
+        resourceId: id,
+        resourceName: doc.title,
+        details: `Deleted ${doc.recordType} record: ${doc.title}`,
+      });
+    }
+
+    revalidatePath("/workspace");
+    revalidatePath("/");
+    return { success: true };
+  } catch (err: any) {
+    console.error("deleteFamilyCommunityRecord error:", err);
+    return { success: false, error: err.message || "Failed to delete record" };
+  }
+}
+
+export async function updateFamilyCommunityStatus(
+  id: string,
+  status: "active" | "pending" | "action_required" | "completed"
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth) return { success: false, error: "Unauthorized" };
+
+    const doc = await LifeFamilyCommunityRecord.findByIdAndUpdate(
+      id,
+      {
+        status,
+        $push: {
+          history: {
+            action: `Status changed to ${status}`,
+            performedBy: auth.name || auth.email || "User",
+            timestamp: new Date(),
+          },
+        },
+      },
+      { new: true }
+    );
+
+    if (doc) {
+      await logLifeActivity({
+        action: "STATUS_CHANGE_WORKSPACE_RECORD",
+        resourceType: doc.recordType,
+        resourceId: id,
+        resourceName: doc.title,
+        details: `Changed status to ${status} for ${doc.title}`,
+      });
+    }
+
+    revalidatePath("/workspace");
+    revalidatePath("/");
+    return { success: true };
+  } catch (err: any) {
+    console.error("updateFamilyCommunityStatus error:", err);
+    return { success: false, error: err.message || "Failed to update status" };
+  }
+}
+

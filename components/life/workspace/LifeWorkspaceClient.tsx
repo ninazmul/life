@@ -20,6 +20,7 @@ import { WorkspaceCategoryView } from "./screens/WorkspaceCategoryView";
 import { WorkspaceRecordListView } from "./screens/WorkspaceRecordListView";
 import { WorkspaceRecordDetailView } from "./screens/WorkspaceRecordDetailView";
 import { WorkspaceRecordFormView } from "./screens/WorkspaceRecordFormView";
+import { FamilyCommunityPage } from "./family-community/FamilyCommunityPage";
 
 interface LifeWorkspaceClientProps {
   initialCategoryId?: string;
@@ -250,6 +251,21 @@ export function LifeWorkspaceClient({
   // ─────────────────────────────────────────────────────────────
   // Screen Router (1 to 5)
   // ─────────────────────────────────────────────────────────────
+
+  // Special Case: Family & Community (Single Unified Management Page)
+  if (activeCategory?.id === "people_family") {
+    const validTypes = ["family_care", "kids", "community"];
+    const initialType = validTypes.includes(queryModule)
+      ? (queryModule as "family_care" | "kids" | "community")
+      : "all";
+
+    return (
+      <FamilyCommunityPage
+        onBack={handleBackFromCategory}
+        initialRecordType={initialType}
+      />
+    );
+  }
 
   // Screen 5: Add / Edit Record Page
   if (

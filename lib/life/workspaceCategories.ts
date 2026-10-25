@@ -55,20 +55,21 @@ export interface WorkspaceCategoryConfig {
 }
 
 export const WORKSPACE_CATEGORIES: WorkspaceCategoryConfig[] = [
-  // 1. People & Family
+  // 1. Family & Community
   {
     id: "people_family",
-    title: "People & Family",
-    description: "Family, relationships, contacts, invitations and permissions.",
-    icon: Users,
-    color: "text-[#6366F1] bg-[#EEF2FF] dark:bg-indigo-950/40 border-indigo-100",
+    title: "Family & Community",
+    description: "Family care, children, relationships and social support.",
+    icon: HeartPulse,
+    color: "text-[#E11D48] bg-[#FFE4E6] dark:bg-rose-950/40 border-rose-100",
+    badgeColor: "bg-rose-50 text-rose-600 border border-rose-100",
     subcategories: [
       {
         id: "family_care",
         title: "Family Care",
         description: "Family members, relationships, dependency & care",
         icon: HeartPulse,
-        color: "text-[#6366F1] bg-[#EEF2FF] dark:bg-indigo-950/40 border-indigo-100",
+        color: "text-[#E11D48] bg-[#FFE4E6] dark:bg-rose-950/40 border-rose-100",
         unitLabel: "Care Record",
         filterTabs: [
           { id: "all", label: "All" },
@@ -111,7 +112,7 @@ export const WORKSPACE_CATEGORIES: WorkspaceCategoryConfig[] = [
   {
     id: "work_business",
     title: "Work & Business",
-    description: "Work, projects, business records and professional information.",
+    description: "Staff, office, business records and projects.",
     icon: Briefcase,
     color: "text-[#0284C7] bg-[#E0F2FE] dark:bg-sky-950/40 border-sky-100",
     subcategories: [
@@ -163,7 +164,7 @@ export const WORKSPACE_CATEGORIES: WorkspaceCategoryConfig[] = [
   {
     id: "finance_assets",
     title: "Finance & Assets",
-    description: "Income, expenses, assets, liabilities and financial records.",
+    description: "Income, expenses, assets, liabilities and investments.",
     icon: BarChart3,
     color: "text-[#16A34A] bg-[#DCFCE7] dark:bg-emerald-950/40 border-emerald-100",
     subcategories: [
@@ -349,7 +350,7 @@ export const WORKSPACE_CATEGORIES: WorkspaceCategoryConfig[] = [
   {
     id: "life_continuity",
     title: "Life Continuity",
-    description: "Plans, wishes, responsibilities and legacy & handover.",
+    description: "Responsibilities, instructions and legacy planning.",
     icon: Sprout,
     color: "text-[#E11D48] bg-[#FFE4E6] dark:bg-rose-950/40 border-rose-100",
     subcategories: [
