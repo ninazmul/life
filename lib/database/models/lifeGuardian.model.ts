@@ -7,6 +7,11 @@ export interface ILifeGuardianDoc extends Document {
   isActive: boolean;
   assignedDate: Date;
   notes?: string;
+  isRecoveryGuardian?: boolean;
+  isContinuityGuardian?: boolean;
+  invitationStatus?: "invited" | "accepted" | "declined" | "removed";
+  approvalRule?: string;
+  waitingPeriodHours?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -38,6 +43,30 @@ const LifeGuardianSchema = new Schema<ILifeGuardianDoc>(
     notes: {
       type: String,
       default: "",
+    },
+    isRecoveryGuardian: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
+    isContinuityGuardian: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
+    invitationStatus: {
+      type: String,
+      enum: ["invited", "accepted", "declined", "removed"],
+      default: "accepted",
+      index: true,
+    },
+    approvalRule: {
+      type: String,
+      default: "2_of_3",
+    },
+    waitingPeriodHours: {
+      type: Number,
+      default: 72,
     },
   },
   { timestamps: true }

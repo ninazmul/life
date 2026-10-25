@@ -25,6 +25,7 @@ import { WorkBusinessPage } from "./work-business/WorkBusinessPage";
 import { FinanceAssetsPage } from "./finance-assets/FinanceAssetsPage";
 import { SecureVaultPage } from "./secure-vault/SecureVaultPage";
 import { LifeContinuityPage } from "./life-continuity/LifeContinuityPage";
+import { ToolsSupportPage } from "./tools-support/ToolsSupportPage";
 
 interface LifeWorkspaceClientProps {
   initialCategoryId?: string;
@@ -312,6 +313,17 @@ export function LifeWorkspaceClient({
       <LifeContinuityPage
         onBack={handleBackFromCategory}
         initialRecordType={queryModule || "all"}
+      />
+    );
+  }
+
+  // Special Case: Tools & Support (Single Unified Management Page)
+  if (activeCategory?.id === "tools_support") {
+    return (
+      <ToolsSupportPage
+        onBack={handleBackFromCategory}
+        initialSection={queryModule || "overview"}
+        initialFilter={queryFilter}
       />
     );
   }
