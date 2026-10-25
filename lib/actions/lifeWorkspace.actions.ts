@@ -20,6 +20,7 @@ import LifeVaultItem from "@/lib/database/models/lifeVaultItem.model";
 import LifeRecordPermission from "@/lib/database/models/lifeRecordPermission.model";
 import LifeFamilyCommunityRecord from "@/lib/database/models/lifeFamilyCommunityRecord.model";
 import LifeWorkBusinessRecord from "@/lib/database/models/lifeWorkBusinessRecord.model";
+import LifeSisCareRecord from "@/lib/database/models/lifeSisCareRecord.model";
 import { WORKSPACE_CATEGORIES } from "@/lib/life/workspaceCategories";
 
 export interface WorkspaceRecordItem {
@@ -1986,5 +1987,879 @@ export async function updateWorkBusinessStatus(
     return { success: false, error: err.message || "Failed to update status" };
   }
 }
+
+// ─────────────────────────────────────────────────────────────
+// Finance & Assets / SiS Care Server Actions
+// ─────────────────────────────────────────────────────────────
+
+export interface SisCareRecordDTO {
+  id: string;
+  personId?: string;
+  personName: string;
+  personAvatar?: string;
+  supportType: "flexible_support" | "gift";
+  title: string;
+  totalGiven: number;
+  totalReturned: number;
+  totalForgiven: number;
+  remainingBalance: number;
+  currency: string;
+  status: "active" | "closed";
+  isShared: boolean;
+  isVerifiedAccount: boolean;
+  paidFromAccount?: string;
+  purpose?: string;
+  ownerPrivateNotes?: string;
+  futureInstructions?: string;
+  transactions: Array<{
+    id?: string;
+    type: "support" | "return" | "forgiveness" | "gift";
+    amount: number;
+    date: string;
+    account?: string;
+    currency?: string;
+    notes?: string;
+    isShared?: boolean;
+    performedBy: string;
+  }>;
+  forgivenessHistory: Array<{
+    amount: number;
+    date: string;
+    reason?: string;
+    performedBy: string;
+  }>;
+  sharedSettings: {
+    isProfileAccessEnabled: boolean;
+    visibleRecordIds: string[];
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface UnifiedFinanceItem {
+  id: string;
+  recordType:
+    | "cash_bank"
+    | "income"
+    | "expenses"
+    | "loans_given"
+    | "sis_care"
+    | "liabilities"
+    | "assets"
+    | "investments"
+    | "other";
+  title: string;
+  subtitle: string;
+  amount: number;
+  currency: string;
+  date?: string;
+  status: string;
+  statusColor?: string;
+  iconType: string;
+  isShared?: boolean;
+  sisDetails?: SisCareRecordDTO;
+}
+
+export interface FinanceAssetsResponse {
+  records: UnifiedFinanceItem[];
+  sisSummary: {
+    flexibleBalance: number;
+    giftsSupport: number;
+    flexibleCount: number;
+    giftsCount: number;
+  };
+  counts: {
+    all: number;
+    active: number;
+    closed: number;
+  };
+  accountsList: Array<{
+    id: string;
+    name: string;
+    type: string;
+    balance: number;
+  }>;
+  peopleList: Array<{
+    id: string;
+    name: string;
+    relation?: string;
+    avatarUrl?: string;
+  }>;
+}
+
+async function ensureSisCareSeed(userId: string) {
+  const count = await LifeSisCareRecord.countDocuments();
+  if (count > 0) return;
+
+  const seedRecords = [
+    {
+      personName: "Rahim",
+      supportType: "flexible_support",
+      title: "Support for Rahim",
+      totalGiven: 30000,
+      totalReturned: 10000,
+      totalForgiven: 0,
+      remainingBalance: 20000,
+      currency: "BDT",
+      status: "active",
+      isShared: true,
+      isVerifiedAccount: true,
+      paidFromAccount: "Cash • BDT",
+      purpose: "Personal assistance and business transition buffer",
+      ownerPrivateNotes: "Flexible support without fixed dates. Rahim can return whenever he is capable.",
+      futureInstructions: "If incapacitated, forgive the remaining balance completely.",
+      transactions: [
+        {
+          type: "support",
+          amount: 30000,
+          date: new Date("2026-10-24"),
+          account: "Cash • BDT",
+          currency: "BDT",
+          notes: "Initial personal support buffer",
+          isShared: true,
+          performedBy: "Shahidul (Owner)",
+        },
+        {
+          type: "return",
+          amount: 10000,
+          date: new Date("2027-01-10"),
+          account: "Cash • BDT",
+          currency: "BDT",
+          notes: "First installment voluntary return",
+          isShared: true,
+          performedBy: "Shahidul (Owner)",
+        },
+      ],
+      forgivenessHistory: [],
+      sharedSettings: {
+        isProfileAccessEnabled: true,
+        visibleRecordIds: [],
+      },
+      createdBy: userId,
+    },
+    {
+      personName: "Ahmed",
+      supportType: "flexible_support",
+      title: "Support for Ahmed",
+      totalGiven: 15000,
+      totalReturned: 0,
+      totalForgiven: 0,
+      remainingBalance: 15000,
+      currency: "BDT",
+      status: "active",
+      isShared: false,
+      isVerifiedAccount: false,
+      paidFromAccount: "Cash • BDT",
+      purpose: "Family assistance",
+      ownerPrivateNotes: "Strictly private record. Do not share unless Ahmed requests verification.",
+      futureInstructions: "",
+      transactions: [
+        {
+          type: "support",
+          amount: 15000,
+          date: new Date("2026-09-15"),
+          account: "Cash • BDT",
+          currency: "BDT",
+          notes: "Support given",
+          isShared: false,
+          performedBy: "Shahidul (Owner)",
+        },
+      ],
+      forgivenessHistory: [],
+      sharedSettings: {
+        isProfileAccessEnabled: false,
+        visibleRecordIds: [],
+      },
+      createdBy: userId,
+    },
+    {
+      personName: "Family",
+      supportType: "gift",
+      title: "Family support",
+      totalGiven: 5000,
+      totalReturned: 0,
+      totalForgiven: 0,
+      remainingBalance: 0,
+      currency: "BDT",
+      status: "closed",
+      isShared: false,
+      isVerifiedAccount: false,
+      paidFromAccount: "Cash • BDT",
+      purpose: "Monthly living grant and medical care assistance",
+      ownerPrivateNotes: "Non-repayable family gift.",
+      transactions: [
+        {
+          type: "gift",
+          amount: 5000,
+          date: new Date("2026-10-01"),
+          account: "Cash • BDT",
+          currency: "BDT",
+          notes: "Family grant",
+          isShared: false,
+          performedBy: "Shahidul (Owner)",
+        },
+      ],
+      forgivenessHistory: [],
+      sharedSettings: {
+        isProfileAccessEnabled: false,
+        visibleRecordIds: [],
+      },
+      createdBy: userId,
+    },
+  ];
+
+  await LifeSisCareRecord.insertMany(seedRecords);
+}
+
+export async function getFinanceAssetsRecords(params?: {
+  recordType?: string;
+  status?: string;
+  search?: string;
+}): Promise<FinanceAssetsResponse> {
+  await connectToDatabase();
+  const auth = await getLifeAuthContext();
+  if (!auth) {
+    return {
+      records: [],
+      sisSummary: { flexibleBalance: 0, giftsSupport: 0, flexibleCount: 0, giftsCount: 0 },
+      counts: { all: 0, active: 0, closed: 0 },
+      accountsList: [],
+      peopleList: [],
+    };
+  }
+
+  // Ensure demonstration SiS Care records exist
+  await ensureSisCareSeed(auth.userId || "owner");
+
+  const { recordType = "all", status = "all", search } = params || {};
+  const searchRegex = search?.trim() ? new RegExp(search.trim(), "i") : null;
+
+  // 1. Fetch SiS Care records
+  const sisQuery: Record<string, any> = {};
+  if (searchRegex) {
+    sisQuery.$or = [{ personName: searchRegex }, { title: searchRegex }, { purpose: searchRegex }];
+  }
+  const allSisDocs = await LifeSisCareRecord.find(sisQuery).sort({ createdAt: -1 }).lean();
+
+  // Compute SiS Care summaries
+  let flexibleBalance = 0;
+  let giftsSupport = 0;
+  let flexibleCount = 0;
+  let giftsCount = 0;
+
+  for (const s of allSisDocs as any[]) {
+    if (s.supportType === "flexible_support") {
+      flexibleBalance += Number(s.remainingBalance || 0);
+      flexibleCount++;
+    } else {
+      giftsSupport += Number(s.totalGiven || 0);
+      giftsCount++;
+    }
+  }
+
+  const sisDTOs: SisCareRecordDTO[] = (allSisDocs as any[]).map((d) => ({
+    id: String(d._id),
+    personId: d.personId ? String(d.personId) : undefined,
+    personName: d.personName,
+    personAvatar: d.personAvatar,
+    supportType: d.supportType,
+    title: d.title,
+    totalGiven: d.totalGiven || 0,
+    totalReturned: d.totalReturned || 0,
+    totalForgiven: d.totalForgiven || 0,
+    remainingBalance: d.remainingBalance || 0,
+    currency: d.currency || "BDT",
+    status: d.status || "active",
+    isShared: Boolean(d.isShared),
+    isVerifiedAccount: Boolean(d.isVerifiedAccount),
+    paidFromAccount: d.paidFromAccount,
+    purpose: d.purpose,
+    ownerPrivateNotes: d.ownerPrivateNotes,
+    futureInstructions: d.futureInstructions,
+    transactions: (d.transactions || []).map((t: any) => ({
+      id: String(t._id || Math.random()),
+      type: t.type,
+      amount: t.amount,
+      date: t.date ? new Date(t.date).toISOString() : new Date().toISOString(),
+      account: t.account,
+      currency: t.currency || "BDT",
+      notes: t.notes,
+      isShared: Boolean(t.isShared),
+      performedBy: t.performedBy || "Owner",
+    })),
+    forgivenessHistory: (d.forgivenessHistory || []).map((f: any) => ({
+      amount: f.amount,
+      date: f.date ? new Date(f.date).toISOString() : new Date().toISOString(),
+      reason: f.reason,
+      performedBy: f.performedBy || "Owner",
+    })),
+    sharedSettings: {
+      isProfileAccessEnabled: Boolean(d.sharedSettings?.isProfileAccessEnabled),
+      visibleRecordIds: d.sharedSettings?.visibleRecordIds || [],
+    },
+    createdAt: d.createdAt ? new Date(d.createdAt).toISOString() : undefined,
+    updatedAt: d.updatedAt ? new Date(d.updatedAt).toISOString() : undefined,
+  }));
+
+  // 2. Fetch People List
+  const people = await LifePerson.find({ status: { $ne: "archived" } })
+    .select("_id name relation avatarUrl")
+    .sort({ name: 1 })
+    .lean();
+
+  const peopleList = people.map((p: any) => ({
+    id: String(p._id),
+    name: p.name,
+    relation: p.relation,
+    avatarUrl: p.avatarUrl,
+  }));
+
+  // 3. Fetch Accounts List (Cash & Bank from LifeAsset)
+  const assetAccounts = await LifeAsset.find({
+    category: { $in: ["bank_balance", "cash"] },
+    status: { $ne: "disposed" },
+  })
+    .select("_id name category value currency")
+    .sort({ value: -1 })
+    .lean();
+
+  const accountsList = [
+    { id: "cash_bdt", name: "Cash • BDT", type: "cash", balance: 50000 },
+    ...assetAccounts.map((a: any) => ({
+      id: String(a._id),
+      name: a.name,
+      type: a.category,
+      balance: Number(a.value || 0),
+    })),
+  ];
+
+  // 4. Construct unified record list based on recordType
+  const records: UnifiedFinanceItem[] = [];
+
+  // When "sis_care" is selected:
+  if (recordType === "sis_care") {
+    let filteredSis = sisDTOs;
+    if (status === "active") {
+      filteredSis = sisDTOs.filter((s) => s.status === "active");
+    } else if (status === "closed") {
+      filteredSis = sisDTOs.filter((s) => s.status === "closed");
+    }
+
+    for (const s of filteredSis) {
+      records.push({
+        id: s.id,
+        recordType: "sis_care",
+        title: s.personName,
+        subtitle: s.supportType === "gift" ? "Gift" : "Flexible support",
+        amount: s.supportType === "gift" ? s.totalGiven : s.remainingBalance,
+        currency: s.currency,
+        date: s.createdAt,
+        status: s.status,
+        iconType: s.supportType === "gift" ? "gift" : "heart",
+        isShared: s.isShared,
+        sisDetails: s,
+      });
+    }
+  } else if (recordType === "all") {
+    // Show Mockup Screen 1 entries:
+    // - BRAC Bank (৳ 250,000)
+    // - Personal Loan (৳ 50,000)
+    // - SiS Care (৳ 20,000)
+    // Plus actual assets, loans, and sis records!
+
+    // Cash & Bank cards
+    if (assetAccounts.length > 0) {
+      for (const a of assetAccounts as any[]) {
+        records.push({
+          id: String(a._id),
+          recordType: "cash_bank",
+          title: a.name,
+          subtitle: "Cash & Bank",
+          amount: Number(a.value || 0),
+          currency: a.currency || "BDT",
+          status: "active",
+          iconType: "bank",
+        });
+      }
+    } else {
+      records.push({
+        id: "mock_bank_1",
+        recordType: "cash_bank",
+        title: "BRAC Bank",
+        subtitle: "Cash & Bank",
+        amount: 250000,
+        currency: "BDT",
+        status: "active",
+        iconType: "bank",
+      });
+    }
+
+    // Loans Given
+    const loans = await LifeMoneyRecord.find({ type: "given", status: { $ne: "fully_returned" } })
+      .sort({ date: -1 })
+      .limit(5)
+      .lean();
+
+    if (loans.length > 0) {
+      for (const l of loans as any[]) {
+        records.push({
+          id: String(l._id),
+          recordType: "loans_given",
+          title: l.purpose || "Personal Loan",
+          subtitle: l.personName || "Borrower",
+          amount: Number(l.remainingAmount ?? l.amount) || 0,
+          currency: l.currency || "BDT",
+          status: l.status || "active",
+          iconType: "loan",
+        });
+      }
+    } else {
+      records.push({
+        id: "mock_loan_1",
+        recordType: "loans_given",
+        title: "Personal Loan",
+        subtitle: "Ahmed",
+        amount: 50000,
+        currency: "BDT",
+        status: "active",
+        iconType: "loan",
+      });
+    }
+
+    // SiS Care active items
+    const topSis = sisDTOs.filter((s) => s.supportType === "flexible_support").slice(0, 3);
+    for (const s of topSis) {
+      records.push({
+        id: s.id,
+        recordType: "sis_care",
+        title: "SiS Care",
+        subtitle: s.personName,
+        amount: s.remainingBalance,
+        currency: s.currency,
+        status: s.status,
+        iconType: "heart",
+        isShared: s.isShared,
+        sisDetails: s,
+      });
+    }
+
+    // Assets & Property
+    const properties = await LifeAsset.find({
+      category: { $in: ["property", "vehicle", "valuable"] },
+      status: "active",
+    })
+      .limit(3)
+      .lean();
+
+    for (const p of properties as any[]) {
+      records.push({
+        id: String(p._id),
+        recordType: "assets",
+        title: p.name,
+        subtitle: "Asset & Property",
+        amount: Number(p.value || 0),
+        currency: p.currency || "BDT",
+        status: "active",
+        iconType: "property",
+      });
+    }
+
+    // Liabilities
+    const debts = await LifeMoneyRecord.find({ type: "taken", status: { $ne: "fully_returned" } })
+      .limit(3)
+      .lean();
+
+    for (const d of debts as any[]) {
+      records.push({
+        id: String(d._id),
+        recordType: "liabilities",
+        title: d.purpose || "Borrowing",
+        subtitle: `Lender: ${d.personName || "Lender"}`,
+        amount: Number(d.remainingAmount ?? d.amount) || 0,
+        currency: d.currency || "BDT",
+        status: "active",
+        iconType: "liability",
+      });
+    }
+  } else if (recordType === "cash_bank") {
+    for (const a of accountsList) {
+      records.push({
+        id: a.id,
+        recordType: "cash_bank",
+        title: a.name,
+        subtitle: a.type === "cash" ? "Physical Cash" : "Savings / Current Account",
+        amount: a.balance,
+        currency: "BDT",
+        status: "active",
+        iconType: a.type === "cash" ? "wallet" : "bank",
+      });
+    }
+  } else if (recordType === "loans_given") {
+    const loans = await LifeMoneyRecord.find({ type: "given" }).sort({ date: -1 }).lean();
+    for (const l of loans as any[]) {
+      records.push({
+        id: String(l._id),
+        recordType: "loans_given",
+        title: l.personName || "Borrower",
+        subtitle: l.purpose || "Personal Loan",
+        amount: Number(l.remainingAmount ?? l.amount) || 0,
+        currency: l.currency || "BDT",
+        status: l.status || "active",
+        iconType: "loan",
+      });
+    }
+  } else if (recordType === "liabilities") {
+    const debts = await LifeMoneyRecord.find({ type: "taken" }).sort({ date: -1 }).lean();
+    for (const d of debts as any[]) {
+      records.push({
+        id: String(d._id),
+        recordType: "liabilities",
+        title: d.purpose || "Payable Loan",
+        subtitle: `Lender: ${d.personName || "Lender"}`,
+        amount: Number(d.remainingAmount ?? d.amount) || 0,
+        currency: d.currency || "BDT",
+        status: d.status || "active",
+        iconType: "liability",
+      });
+    }
+  } else if (recordType === "income" || recordType === "expenses") {
+    const type = recordType === "income" ? "income" : "expense";
+    const txs = await LifeTransaction.find({ type }).sort({ date: -1 }).limit(20).lean();
+    for (const t of txs as any[]) {
+      records.push({
+        id: String(t._id),
+        recordType,
+        title: t.category || (type === "income" ? "Income" : "Expense"),
+        subtitle: t.paymentMethod || "Bank Transfer",
+        amount: Number(t.amount || 0),
+        currency: "BDT",
+        date: t.date ? new Date(t.date).toISOString() : undefined,
+        status: "completed",
+        iconType: type === "income" ? "income" : "expense",
+      });
+    }
+  } else if (recordType === "assets" || recordType === "investments") {
+    const category = recordType === "investments" ? "business_investment" : { $in: ["property", "vehicle", "valuable"] };
+    const assets = await LifeAsset.find({ category, status: { $ne: "disposed" } }).sort({ value: -1 }).lean();
+    for (const a of assets as any[]) {
+      records.push({
+        id: String(a._id),
+        recordType,
+        title: a.name,
+        subtitle: recordType === "investments" ? "Business Investment" : "Property / Valuable",
+        amount: Number(a.value || 0),
+        currency: a.currency || "BDT",
+        status: "active",
+        iconType: recordType === "investments" ? "investment" : "property",
+      });
+    }
+  }
+
+  // Calculate status counts
+  const counts = {
+    all: records.length,
+    active: records.filter((r) => r.status === "active").length,
+    closed: records.filter((r) => r.status === "closed" || r.status === "fully_returned").length,
+  };
+
+  return {
+    records: JSON.parse(JSON.stringify(records)),
+    sisSummary: {
+      flexibleBalance,
+      giftsSupport,
+      flexibleCount,
+      giftsCount,
+    },
+    counts,
+    accountsList: JSON.parse(JSON.stringify(accountsList)),
+    peopleList: JSON.parse(JSON.stringify(peopleList)),
+  };
+}
+
+export async function saveSisCareRecord(data: {
+  id?: string;
+  personId?: string;
+  personName: string;
+  supportType: "flexible_support" | "gift";
+  amount: number;
+  date?: string;
+  paidFromAccount?: string;
+  purpose?: string;
+  ownerPrivateNotes?: string;
+  isShared?: boolean;
+}): Promise<{ success: boolean; id?: string; error?: string }> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const amount = Number(data.amount) || 0;
+    const isGift = data.supportType === "gift";
+
+    if (data.id) {
+      const existing = await LifeSisCareRecord.findById(data.id);
+      if (!existing) return { success: false, error: "Record not found" };
+
+      existing.personName = data.personName;
+      existing.personId = data.personId && data.personId !== "none" ? data.personId : undefined;
+      existing.purpose = data.purpose || existing.purpose;
+      existing.ownerPrivateNotes = data.ownerPrivateNotes ?? existing.ownerPrivateNotes;
+      if (typeof data.isShared === "boolean") existing.isShared = data.isShared;
+
+      await existing.save();
+      revalidatePath("/workspace");
+      revalidatePath("/");
+      return { success: true, id: String(existing._id) };
+    }
+
+    // New record
+    const newDoc = await LifeSisCareRecord.create({
+      personId: data.personId && data.personId !== "none" ? data.personId : undefined,
+      personName: data.personName.trim(),
+      supportType: data.supportType,
+      title: isGift ? `Gift for ${data.personName}` : `Support for ${data.personName}`,
+      totalGiven: amount,
+      totalReturned: 0,
+      totalForgiven: 0,
+      remainingBalance: isGift ? 0 : amount,
+      currency: "BDT",
+      status: "active",
+      isShared: Boolean(data.isShared),
+      isVerifiedAccount: true,
+      paidFromAccount: data.paidFromAccount || "Cash • BDT",
+      purpose: data.purpose || "Personal support",
+      ownerPrivateNotes: data.ownerPrivateNotes || "",
+      transactions: [
+        {
+          type: isGift ? "gift" : "support",
+          amount,
+          date: data.date ? new Date(data.date) : new Date(),
+          account: data.paidFromAccount || "Cash • BDT",
+          currency: "BDT",
+          notes: data.purpose || "Initial support",
+          isShared: Boolean(data.isShared),
+          performedBy: auth.name || auth.email || "Owner",
+        },
+      ],
+      forgivenessHistory: [],
+      sharedSettings: {
+        isProfileAccessEnabled: Boolean(data.isShared),
+        visibleRecordIds: [],
+      },
+      createdBy: auth.userId || "owner",
+    });
+
+    await logLifeActivity({
+      action: "CREATE_SIS_CARE_RECORD",
+      resourceType: "sis_care",
+      resourceId: String(newDoc._id),
+      resourceName: newDoc.title,
+      details: `Created SiS Care ${data.supportType} of ৳ ${amount.toLocaleString()} for ${data.personName}`,
+    });
+
+    revalidatePath("/workspace");
+    revalidatePath("/");
+    return { success: true, id: String(newDoc._id) };
+  } catch (err: any) {
+    console.error("saveSisCareRecord error:", err);
+    return { success: false, error: err.message || "Failed to save SiS Care record" };
+  }
+}
+
+export async function recordSisCareReturn(params: {
+  recordId: string;
+  amount: number;
+  date?: string;
+  account?: string;
+  notes?: string;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const { recordId, amount, date, account, notes } = params;
+    const doc = await LifeSisCareRecord.findById(recordId);
+    if (!doc) return { success: false, error: "Record not found" };
+
+    const returnAmt = Number(amount) || 0;
+    if (returnAmt <= 0) return { success: false, error: "Amount must be greater than zero" };
+    if (returnAmt > doc.remainingBalance) {
+      return { success: false, error: `Return amount cannot exceed remaining balance (৳ ${doc.remainingBalance.toLocaleString()})` };
+    }
+
+    doc.totalReturned = (doc.totalReturned || 0) + returnAmt;
+    doc.remainingBalance = Math.max(0, (doc.remainingBalance || 0) - returnAmt);
+    if (doc.remainingBalance === 0) {
+      doc.status = "closed";
+    }
+
+    doc.transactions.push({
+      type: "return",
+      amount: returnAmt,
+      date: date ? new Date(date) : new Date(),
+      account: account || "Cash • BDT",
+      currency: "BDT",
+      notes: notes || "Voluntary return",
+      isShared: doc.isShared,
+      performedBy: auth.name || auth.email || "Owner",
+    } as any);
+
+    await doc.save();
+
+    await logLifeActivity({
+      action: "SIS_CARE_RETURN_RECORDED",
+      resourceType: "sis_care",
+      resourceId: recordId,
+      resourceName: doc.title,
+      details: `Recorded voluntary return of ৳ ${returnAmt.toLocaleString()} from ${doc.personName}`,
+    });
+
+    revalidatePath("/workspace");
+    revalidatePath("/");
+    return { success: true };
+  } catch (err: any) {
+    console.error("recordSisCareReturn error:", err);
+    return { success: false, error: err.message || "Failed to record return" };
+  }
+}
+
+export async function recordSisCareForgive(params: {
+  recordId: string;
+  amount: number;
+  reason?: string;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const { recordId, amount, reason } = params;
+    const doc = await LifeSisCareRecord.findById(recordId);
+    if (!doc) return { success: false, error: "Record not found" };
+
+    const forgiveAmt = Number(amount) || 0;
+    if (forgiveAmt <= 0) return { success: false, error: "Amount must be greater than zero" };
+    if (forgiveAmt > doc.remainingBalance) {
+      return { success: false, error: `Forgive amount cannot exceed remaining balance (৳ ${doc.remainingBalance.toLocaleString()})` };
+    }
+
+    doc.totalForgiven = (doc.totalForgiven || 0) + forgiveAmt;
+    doc.remainingBalance = Math.max(0, (doc.remainingBalance || 0) - forgiveAmt);
+    if (doc.remainingBalance === 0) {
+      doc.status = "closed";
+    }
+
+    doc.transactions.push({
+      type: "forgiveness",
+      amount: forgiveAmt,
+      date: new Date(),
+      account: "Forgiveness (No cash)",
+      currency: "BDT",
+      notes: reason || "Private forgiveness decision by owner",
+      isShared: false,
+      performedBy: auth.name || auth.email || "Owner",
+    } as any);
+
+    doc.forgivenessHistory.push({
+      amount: forgiveAmt,
+      date: new Date(),
+      reason: reason || "Private forgiveness",
+      performedBy: auth.name || auth.email || "Owner",
+    } as any);
+
+    await doc.save();
+
+    await logLifeActivity({
+      action: "SIS_CARE_FORGIVENESS_APPLIED",
+      resourceType: "sis_care",
+      resourceId: recordId,
+      resourceName: doc.title,
+      details: `Forgave ৳ ${forgiveAmt.toLocaleString()} for ${doc.personName}. Remaining: ৳ ${doc.remainingBalance.toLocaleString()}`,
+    });
+
+    revalidatePath("/workspace");
+    revalidatePath("/");
+    return { success: true };
+  } catch (err: any) {
+    console.error("recordSisCareForgive error:", err);
+    return { success: false, error: err.message || "Failed to forgive amount" };
+  }
+}
+
+export async function toggleSisCareProfileAccess(
+  recordId: string,
+  isEnabled: boolean
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const doc = await LifeSisCareRecord.findById(recordId);
+    if (!doc) return { success: false, error: "Record not found" };
+
+    doc.isShared = isEnabled;
+    if (!doc.sharedSettings) {
+      doc.sharedSettings = { isProfileAccessEnabled: isEnabled, visibleRecordIds: [] };
+    } else {
+      doc.sharedSettings.isProfileAccessEnabled = isEnabled;
+    }
+
+    await doc.save();
+
+    await logLifeActivity({
+      action: "TOGGLE_SIS_CARE_SHARING",
+      resourceType: "sis_care",
+      resourceId: recordId,
+      resourceName: doc.title,
+      details: `Turned ${isEnabled ? "ON" : "OFF"} profile sharing access for ${doc.personName}`,
+    });
+
+    revalidatePath("/workspace");
+    revalidatePath("/");
+    return { success: true };
+  } catch (err: any) {
+    console.error("toggleSisCareProfileAccess error:", err);
+    return { success: false, error: err.message || "Failed to toggle profile access" };
+  }
+}
+
+export async function deleteSisCareRecord(recordId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const doc = await LifeSisCareRecord.findByIdAndDelete(recordId);
+    if (doc) {
+      await logLifeActivity({
+        action: "DELETE_SIS_CARE_RECORD",
+        resourceType: "sis_care",
+        resourceId: recordId,
+        resourceName: doc.title,
+        details: `Deleted SiS Care record for ${doc.personName}`,
+      });
+    }
+
+    revalidatePath("/workspace");
+    revalidatePath("/");
+    return { success: true };
+  } catch (err: any) {
+    console.error("deleteSisCareRecord error:", err);
+    return { success: false, error: err.message || "Failed to delete record" };
+  }
+}
+
 
 

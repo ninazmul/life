@@ -22,6 +22,7 @@ import { WorkspaceRecordDetailView } from "./screens/WorkspaceRecordDetailView";
 import { WorkspaceRecordFormView } from "./screens/WorkspaceRecordFormView";
 import { FamilyCommunityPage } from "./family-community/FamilyCommunityPage";
 import { WorkBusinessPage } from "./work-business/WorkBusinessPage";
+import { FinanceAssetsPage } from "./finance-assets/FinanceAssetsPage";
 
 interface LifeWorkspaceClientProps {
   initialCategoryId?: string;
@@ -279,6 +280,16 @@ export function LifeWorkspaceClient({
       <WorkBusinessPage
         onBack={handleBackFromCategory}
         initialRecordType={initialType}
+      />
+    );
+  }
+
+  // Special Case: Finance & Assets (Single Unified Management Page)
+  if (activeCategory?.id === "finance_assets") {
+    return (
+      <FinanceAssetsPage
+        onBack={handleBackFromCategory}
+        initialRecordType={queryModule || "all"}
       />
     );
   }
