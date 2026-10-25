@@ -13,6 +13,18 @@ export interface ILifeDocumentDoc extends Document {
   assignedToPersonIds: mongoose.Types.ObjectId[];
   visibility: LifeVisibility;
   notes?: string;
+  documentNumber?: string;
+  issueDate?: Date;
+  expiryDate?: Date;
+  issuingAuthority?: string;
+  isShared?: boolean;
+  versions?: Array<{
+    fileUrl: string;
+    fileType: string;
+    fileSize?: number;
+    uploadedAt: Date;
+    uploadedBy: string;
+  }>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -69,6 +81,20 @@ const LifeDocumentSchema = new Schema<ILifeDocumentDoc>(
       index: true,
     },
     notes: { type: String, default: "" },
+    documentNumber: { type: String, trim: true },
+    issueDate: { type: Date },
+    expiryDate: { type: Date, index: true },
+    issuingAuthority: { type: String, trim: true },
+    isShared: { type: Boolean, default: false },
+    versions: [
+      {
+        fileUrl: { type: String, required: true },
+        fileType: { type: String, default: "application/pdf" },
+        fileSize: { type: Number, default: 0 },
+        uploadedAt: { type: Date, default: Date.now },
+        uploadedBy: { type: String, default: "Owner" },
+      },
+    ],
   },
   { timestamps: true }
 );

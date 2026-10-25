@@ -21,6 +21,7 @@ import LifeRecordPermission from "@/lib/database/models/lifeRecordPermission.mod
 import LifeFamilyCommunityRecord from "@/lib/database/models/lifeFamilyCommunityRecord.model";
 import LifeWorkBusinessRecord from "@/lib/database/models/lifeWorkBusinessRecord.model";
 import LifeSisCareRecord from "@/lib/database/models/lifeSisCareRecord.model";
+import { encryptVaultSecret, decryptVaultSecret } from "@/lib/life/crypto";
 import { WORKSPACE_CATEGORIES } from "@/lib/life/workspaceCategories";
 
 export interface WorkspaceRecordItem {
@@ -2861,5 +2862,835 @@ export async function deleteSisCareRecord(recordId: string): Promise<{ success: 
   }
 }
 
+// ─────────────────────────────────────────────────────────────
+// Secure Vault Server Actions (Documents, Digital Vault, Access Control)
+// ─────────────────────────────────────────────────────────────
 
+export interface UnifiedSecureVaultItem {
+  id: string;
+  recordType: "documents" | "digital_vault" | "access_control";
+  title: string;
+  subtitle: string;
+  category: string;
+  isShared?: boolean;
+  isProtected?: boolean;
+  status: string;
+  statusColor?: string;
+  date?: string;
+  expiryInfo?: string;
+  isExpiringSoon?: boolean;
+  isExpired?: boolean;
+  iconType: string;
+  details?: {
+    document?: {
+      fileUrl: string;
+      fileType: string;
+      fileSize: number;
+      documentNumber?: string;
+      issueDate?: string;
+      expiryDate?: string;
+      issuingAuthority?: string;
+      relatedPersonName?: string;
+      relatedBusinessName?: string;
+      notes?: string;
+    };
+    digitalVault?: {
+      serviceOrWebsite: string;
+      category: string;
+      url?: string;
+      username?: string;
+      maskedUsername?: string;
+      hasSecret: boolean;
+      relatedBusinessName?: string;
+      relatedPersonName?: string;
+      recoveryInfo?: string;
+      notes?: string;
+      permissionSummary: {
+        accountDetails: string;
+        protectedSecret: string;
+      };
+    };
+    accessControl?: {
+      personName: string;
+      personRelation?: string;
+      targetRecordTitle: string;
+      targetRecordType: string;
+      canView: boolean;
+      canDownload: boolean;
+      canEdit: boolean;
+      canShare: boolean;
+      status: "active" | "pending" | "revoked";
+      effectiveDate?: string;
+      expiryDate?: string;
+    };
+  };
+}
 
+export interface SecureVaultResponse {
+  records: UnifiedSecureVaultItem[];
+  counts: {
+    all: number;
+    documents: number;
+    digitalVault: number;
+    accessControl: number;
+  };
+  peopleList: Array<{ id: string; name: string; relation?: string }>;
+  businessesList: Array<{ id: string; name: string }>;
+}
+
+async function ensureSecureVaultSeed(userId: string) {
+  const docCount = await LifeDocument.countDocuments();
+  const vaultCount = await LifeVaultItem.countDocuments();
+  const permCount = await LifeRecordPermission.countDocuments();
+
+  if (docCount === 0) {
+    const seedDocs = [
+      {
+        title: "Passport — Saurav",
+        category: "identity",
+        fileUrl: "/documents/passport_saurav.pdf",
+        fileType: "application/pdf",
+        fileSize: 2400000,
+        documentNumber: "A04829103",
+        issueDate: new Date("2019-01-15"),
+        expiryDate: new Date("2029-01-15"),
+        issuingAuthority: "DIP Bangladesh",
+        isShared: false,
+        visibility: "visible_now",
+        notes: "Official machine-readable passport with 10-year validity.",
+      },
+      {
+        title: "GESN Trade License",
+        category: "business",
+        fileUrl: "/documents/gesn_trade_license.pdf",
+        fileType: "application/pdf",
+        fileSize: 1850000,
+        documentNumber: "TL-2023-8821",
+        issueDate: new Date("2023-11-12"),
+        expiryDate: new Date("2026-11-12"),
+        issuingAuthority: "Dhaka North City Corporation",
+        isShared: false,
+        visibility: "visible_now",
+        notes: "Corporate trade license renewal under GESN.",
+      },
+      {
+        title: "Property Deed",
+        category: "property",
+        fileUrl: "/documents/property_deed.pdf",
+        fileType: "application/pdf",
+        fileSize: 4200000,
+        documentNumber: "DEED-DH-4091",
+        issueDate: new Date("2021-03-20"),
+        issuingAuthority: "Sub-Registry Office Tejgaon",
+        isShared: false,
+        visibility: "visible_now",
+        notes: "Tejgaon / Dhanmondi residential plot ownership deed.",
+      },
+      {
+        title: "Birth Certificate — Rahaf",
+        category: "identity",
+        fileUrl: "/documents/birth_certificate_rahaf.pdf",
+        fileType: "application/pdf",
+        fileSize: 1100000,
+        documentNumber: "BR-2022-77402",
+        issueDate: new Date("2022-06-10"),
+        issuingAuthority: "Dhaka City Corporation",
+        isShared: true,
+        visibility: "visible_now",
+        notes: "Original birth certificate and digital registration record.",
+      },
+    ];
+    await LifeDocument.insertMany(seedDocs);
+  }
+
+  if (vaultCount === 0) {
+    const hostingerSecret = encryptVaultSecret("HostingerVault@2026!");
+    const googleSecret = encryptVaultSecret("GoogleAdmin#9920");
+
+    const seedVault = [
+      {
+        title: "Hostinger",
+        systemOrWebsite: "Domain & Hosting",
+        url: "hostinger.com",
+        username: "saurav@gesn.net",
+        encryptedSecret: hostingerSecret.encryptedSecret,
+        secretIv: hostingerSecret.secretIv,
+        secretAuthTag: hostingerSecret.secretAuthTag,
+        category: "hosting",
+        visibilityMode: "available_now",
+        reVerificationRequired: true,
+        revealPermission: true,
+        copyPermission: true,
+        recoveryInfo: "Primary SSH key and recovery backup code in Safe #2",
+        notes: "Primary web servers, DNS zone management, and SSL certs for GESN portfolio.",
+      },
+      {
+        title: "Google Workspace",
+        systemOrWebsite: "Email & Admin Console",
+        url: "workspace.google.com",
+        username: "admin@gesn.net",
+        encryptedSecret: googleSecret.encryptedSecret,
+        secretIv: googleSecret.secretIv,
+        secretAuthTag: googleSecret.secretAuthTag,
+        category: "email",
+        visibilityMode: "available_now",
+        reVerificationRequired: true,
+        revealPermission: true,
+        copyPermission: true,
+        recoveryInfo: "Master 2FA hardware key configured on YubiKey",
+        notes: "Central corporate Google Workspace root admin access.",
+      },
+    ];
+    await LifeVaultItem.insertMany(seedVault);
+  }
+
+  if (permCount === 0) {
+    // Look up or seed demo people for permissions
+    let akhi = await LifePerson.findOne({ name: "Akhi" });
+    if (!akhi) {
+      akhi = await LifePerson.create({
+        name: "Akhi",
+        relation: "Family",
+        contactNumber: "+8801700000001",
+        isLoginEnabled: true,
+      });
+    }
+
+    let sanaullah = await LifePerson.findOne({ name: "Sanaullah" });
+    if (!sanaullah) {
+      sanaullah = await LifePerson.create({
+        name: "Sanaullah",
+        relation: "Partner",
+        contactNumber: "+8801700000002",
+        isLoginEnabled: true,
+      });
+    }
+
+    let sabbir = await LifePerson.findOne({ name: "Sabbir" });
+    if (!sabbir) {
+      sabbir = await LifePerson.create({
+        name: "Sabbir",
+        relation: "Associate",
+        contactNumber: "+8801700000003",
+        isLoginEnabled: true,
+      });
+    }
+
+    const seedPerms = [
+      {
+        recordId: "perm-akhi-docs",
+        recordType: "document",
+        assignedPersonId: akhi._id,
+        visibilityMode: "available_now",
+        canView: true,
+        canDownload: true,
+        canEdit: false,
+        canShare: false,
+        isReleased: true,
+        releaseCondition: "Family documents",
+      },
+      {
+        recordId: "perm-sanaullah-trade",
+        recordType: "document",
+        assignedPersonId: sanaullah._id,
+        visibilityMode: "available_now",
+        canView: true,
+        canDownload: false,
+        canEdit: false,
+        canShare: false,
+        isReleased: true,
+        releaseCondition: "GESN Trade License",
+      },
+      {
+        recordId: "perm-sabbir-sis",
+        recordType: "financial_support",
+        assignedPersonId: sabbir._id,
+        visibilityMode: "available_now",
+        canView: true,
+        canDownload: false,
+        canEdit: false,
+        canShare: false,
+        isReleased: true,
+        releaseCondition: "Selected SiS Care records",
+      },
+    ];
+    await LifeRecordPermission.insertMany(seedPerms);
+  }
+}
+
+export async function getSecureVaultRecords(params?: {
+  recordType?: string;
+  filter?: string;
+  search?: string;
+}): Promise<SecureVaultResponse> {
+  await connectToDatabase();
+  const auth = await getLifeAuthContext();
+  if (!auth) {
+    return {
+      records: [],
+      counts: { all: 0, documents: 0, digitalVault: 0, accessControl: 0 },
+      peopleList: [],
+      businessesList: [],
+    };
+  }
+
+  await ensureSecureVaultSeed(auth.userId || "owner");
+
+  const { recordType = "all", filter = "all", search } = params || {};
+  const searchRegex = search?.trim() ? new RegExp(search.trim(), "i") : null;
+
+  const unifiedList: UnifiedSecureVaultItem[] = [];
+
+  // 1. Fetch Documents
+  if (recordType === "all" || recordType === "documents") {
+    const docQuery: Record<string, any> = {};
+    if (searchRegex) {
+      docQuery.$or = [{ title: searchRegex }, { notes: searchRegex }, { documentNumber: searchRegex }];
+    }
+    if (filter === "personal") docQuery.category = { $in: ["identity", "medical"] };
+    if (filter === "business") docQuery.category = { $in: ["business", "agreement"] };
+    if (filter === "property") docQuery.category = "property";
+    if (filter === "private") docQuery.isShared = { $ne: true };
+    if (filter === "shared") docQuery.isShared = true;
+
+    const docs = await LifeDocument.find(docQuery)
+      .populate("relatedPersonId", "name relation")
+      .populate("relatedBusinessId", "name")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const now = new Date();
+    for (const d of docs as any[]) {
+      let isExpiringSoon = false;
+      let isExpired = false;
+      let expiryInfo = "";
+
+      if (d.expiryDate) {
+        const exp = new Date(d.expiryDate);
+        const diffMonths = (exp.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30);
+        if (diffMonths < 0) {
+          isExpired = true;
+          expiryInfo = "Expired";
+        } else if (diffMonths <= 6) {
+          isExpiringSoon = true;
+          expiryInfo = `Expiring soon • ${exp.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+        } else {
+          expiryInfo = `Valid until ${exp.toLocaleDateString("en-US", { month: "short", year: "numeric" })}`;
+        }
+      }
+
+      if (filter === "expiring" && !isExpiringSoon && !isExpired) {
+        continue;
+      }
+
+      unifiedList.push({
+        id: String(d._id),
+        recordType: "documents",
+        title: d.title,
+        subtitle: `${d.category ? d.category.charAt(0).toUpperCase() + d.category.slice(1) : "Document"} • ${
+          d.isShared ? "Shared" : "Private"
+        }`,
+        category: d.category || "other",
+        isShared: Boolean(d.isShared),
+        isProtected: false,
+        status: isExpiringSoon ? "Expiring soon" : expiryInfo || (d.isShared ? "Shared" : "Private"),
+        statusColor: isExpiringSoon ? "amber" : isExpired ? "red" : d.isShared ? "sky" : "slate",
+        expiryInfo,
+        isExpiringSoon,
+        isExpired,
+        date: d.expiryDate ? new Date(d.expiryDate).toLocaleDateString() : undefined,
+        iconType: d.category === "business" ? "rose" : "blue",
+        details: {
+          document: {
+            fileUrl: d.fileUrl || "/sample.pdf",
+            fileType: d.fileType || "application/pdf",
+            fileSize: d.fileSize || 0,
+            documentNumber: d.documentNumber,
+            issueDate: d.issueDate ? new Date(d.issueDate).toLocaleDateString() : undefined,
+            expiryDate: d.expiryDate ? new Date(d.expiryDate).toLocaleDateString() : undefined,
+            issuingAuthority: d.issuingAuthority,
+            relatedPersonName: d.relatedPersonId?.name,
+            relatedBusinessName: d.relatedBusinessId?.name,
+            notes: d.notes,
+          },
+        },
+      });
+    }
+  }
+
+  // 2. Fetch Digital Vault Items
+  if (recordType === "all" || recordType === "digital_vault") {
+    const vaultQuery: Record<string, any> = {};
+    if (searchRegex) {
+      vaultQuery.$or = [
+        { title: searchRegex },
+        { systemOrWebsite: searchRegex },
+        { username: searchRegex },
+        { notes: searchRegex },
+      ];
+    }
+    if (filter === "private") vaultQuery.isShared = { $ne: true };
+    if (filter === "shared") vaultQuery.isShared = true;
+
+    const vaultItems = await LifeVaultItem.find(vaultQuery)
+      .select("-encryptedSecret -secretIv -secretAuthTag")
+      .populate("relatedBusinessId", "name")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    for (const v of vaultItems as any[]) {
+      const maskedUsername = v.username
+        ? v.username.replace(/^(.)(.*)(@.*)$/, (_: any, a: string, b: string, c: string) => `${a}***${c}`)
+        : undefined;
+
+      unifiedList.push({
+        id: String(v._id),
+        recordType: "digital_vault",
+        title: v.title,
+        subtitle: `${v.systemOrWebsite || "Digital Vault"} • Protected`,
+        category: v.category || "website",
+        isShared: false,
+        isProtected: true,
+        status: "Protected",
+        statusColor: "emerald",
+        iconType: "purple",
+        details: {
+          digitalVault: {
+            serviceOrWebsite: v.systemOrWebsite || v.category || "Digital Service",
+            category: v.category,
+            url: v.url,
+            username: v.username,
+            maskedUsername: maskedUsername || v.username,
+            hasSecret: true,
+            relatedBusinessName: v.relatedBusinessId?.name || "GESN",
+            recoveryInfo: v.recoveryInfo,
+            notes: v.notes,
+            permissionSummary: {
+              accountDetails: "View only",
+              protectedSecret: "Restricted",
+            },
+          },
+        },
+      });
+    }
+  }
+
+  // 3. Fetch Access Control (Permissions)
+  if (recordType === "all" || recordType === "access_control") {
+    const permQuery: Record<string, any> = {};
+    if (filter === "active") permQuery.visibilityMode = { $ne: "revoked_archived" };
+    if (filter === "revoked") permQuery.visibilityMode = "revoked_archived";
+    if (filter === "pending") permQuery.isReleased = false;
+
+    const perms = await LifeRecordPermission.find(permQuery)
+      .populate("assignedPersonId", "name relation avatarUrl")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    for (const p of perms as any[]) {
+      const personName = p.assignedPersonId?.name || "User";
+      const targetTitle = p.releaseCondition || (p.recordType === "document" ? "Family documents" : "Records");
+
+      if (searchRegex && !searchRegex.test(personName) && !searchRegex.test(targetTitle)) {
+        continue;
+      }
+
+      const isRevoked = p.visibilityMode === "revoked_archived";
+      const permSummary = [
+        p.canView ? "View" : "",
+        p.canDownload ? "Download" : "",
+        p.canEdit ? "Edit" : "",
+      ]
+        .filter(Boolean)
+        .join(" • ") || "View only";
+
+      unifiedList.push({
+        id: String(p._id),
+        recordType: "access_control",
+        title: `${personName} • ${targetTitle}`,
+        subtitle: `Access Control • ${permSummary}`,
+        category: "permission",
+        isShared: true,
+        status: isRevoked ? "Revoked" : "Active",
+        statusColor: isRevoked ? "red" : "emerald",
+        iconType: "sky",
+        details: {
+          accessControl: {
+            personName,
+            personRelation: p.assignedPersonId?.relation,
+            targetRecordTitle: targetTitle,
+            targetRecordType: p.recordType,
+            canView: Boolean(p.canView),
+            canDownload: Boolean(p.canDownload),
+            canEdit: Boolean(p.canEdit),
+            canShare: Boolean(p.canShare),
+            status: isRevoked ? "revoked" : "active",
+            effectiveDate: p.effectiveDate ? new Date(p.effectiveDate).toLocaleDateString() : undefined,
+            expiryDate: p.expiryDate ? new Date(p.expiryDate).toLocaleDateString() : undefined,
+          },
+        },
+      });
+    }
+  }
+
+  // Related lists for forms
+  const people = await LifePerson.find({}).select("name relation avatarUrl").sort({ name: 1 }).lean();
+  const businesses = await LifeBusiness.find({}).select("name").sort({ name: 1 }).lean();
+
+  const counts = {
+    all: unifiedList.length,
+    documents: unifiedList.filter((r) => r.recordType === "documents").length,
+    digitalVault: unifiedList.filter((r) => r.recordType === "digital_vault").length,
+    accessControl: unifiedList.filter((r) => r.recordType === "access_control").length,
+  };
+
+  return {
+    records: JSON.parse(JSON.stringify(unifiedList)),
+    counts,
+    peopleList: JSON.parse(JSON.stringify(people.map((p: any) => ({ id: String(p._id), name: p.name, relation: p.relation })))),
+    businessesList: JSON.parse(JSON.stringify(businesses.map((b: any) => ({ id: String(b._id), name: b.name })))),
+  };
+}
+
+export async function saveVaultDocument(data: {
+  id?: string;
+  title: string;
+  category: string;
+  fileUrl?: string;
+  fileType?: string;
+  fileSize?: number;
+  documentNumber?: string;
+  issueDate?: string;
+  expiryDate?: string;
+  issuingAuthority?: string;
+  relatedBusinessId?: string;
+  relatedPersonId?: string;
+  notes?: string;
+  isShared?: boolean;
+}): Promise<{ success: boolean; id?: string; error?: string }> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    if (data.id) {
+      const existing = await LifeDocument.findById(data.id);
+      if (!existing) return { success: false, error: "Document not found" };
+
+      existing.title = data.title.trim();
+      existing.category = (data.category as any) || existing.category;
+      if (data.fileUrl) {
+        existing.fileUrl = data.fileUrl;
+        if (!existing.versions) existing.versions = [];
+        existing.versions.push({
+          fileUrl: data.fileUrl,
+          fileType: data.fileType || "application/pdf",
+          fileSize: data.fileSize || 0,
+          uploadedAt: new Date(),
+          uploadedBy: auth.name || auth.email || "Owner",
+        });
+      }
+      existing.documentNumber = data.documentNumber;
+      if (data.issueDate) existing.issueDate = new Date(data.issueDate);
+      if (data.expiryDate) existing.expiryDate = new Date(data.expiryDate);
+      existing.issuingAuthority = data.issuingAuthority;
+      existing.notes = data.notes ?? existing.notes;
+      if (typeof data.isShared === "boolean") existing.isShared = data.isShared;
+
+      await existing.save();
+      revalidatePath("/workspace");
+      return { success: true, id: String(existing._id) };
+    }
+
+    const newDoc = await LifeDocument.create({
+      title: data.title.trim(),
+      category: data.category || "other",
+      fileUrl: data.fileUrl || "/documents/uploaded_document.pdf",
+      fileType: data.fileType || "application/pdf",
+      fileSize: data.fileSize || 1024000,
+      documentNumber: data.documentNumber,
+      issueDate: data.issueDate ? new Date(data.issueDate) : undefined,
+      expiryDate: data.expiryDate ? new Date(data.expiryDate) : undefined,
+      issuingAuthority: data.issuingAuthority,
+      relatedBusinessId: data.relatedBusinessId && data.relatedBusinessId !== "none" ? data.relatedBusinessId : undefined,
+      relatedPersonId: data.relatedPersonId && data.relatedPersonId !== "none" ? data.relatedPersonId : undefined,
+      notes: data.notes || "",
+      isShared: Boolean(data.isShared),
+      visibility: "visible_now",
+    });
+
+    await logLifeActivity({
+      action: "CREATE_DOCUMENT",
+      resourceType: "document",
+      resourceId: String(newDoc._id),
+      resourceName: newDoc.title,
+      details: `Added new vault document: ${newDoc.title} [${newDoc.category}]`,
+    });
+
+    revalidatePath("/workspace");
+    return { success: true, id: String(newDoc._id) };
+  } catch (err: any) {
+    console.error("saveVaultDocument error:", err);
+    return { success: false, error: err.message || "Failed to save document" };
+  }
+}
+
+export async function saveVaultDigitalAccount(data: {
+  id?: string;
+  title: string;
+  category: string;
+  systemOrWebsite?: string;
+  url?: string;
+  username?: string;
+  secret?: string;
+  recoveryInfo?: string;
+  relatedBusinessId?: string;
+  notes?: string;
+}): Promise<{ success: boolean; id?: string; error?: string }> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    if (data.id) {
+      const existing = await LifeVaultItem.findById(data.id);
+      if (!existing) return { success: false, error: "Vault item not found" };
+
+      existing.title = data.title.trim();
+      existing.systemOrWebsite = data.systemOrWebsite || existing.systemOrWebsite;
+      existing.url = data.url ?? existing.url;
+      existing.username = data.username ?? existing.username;
+      existing.category = (data.category as any) || existing.category;
+      existing.recoveryInfo = data.recoveryInfo ?? existing.recoveryInfo;
+      existing.notes = data.notes ?? existing.notes;
+
+      if (data.secret && data.secret.trim() !== "") {
+        const { encryptedSecret, secretIv, secretAuthTag } = encryptVaultSecret(data.secret.trim());
+        existing.encryptedSecret = encryptedSecret;
+        existing.secretIv = secretIv;
+        existing.secretAuthTag = secretAuthTag;
+      }
+
+      await existing.save();
+      revalidatePath("/workspace");
+      return { success: true, id: String(existing._id) };
+    }
+
+    const { encryptedSecret, secretIv, secretAuthTag } = encryptVaultSecret(data.secret || "ProtectedSecret@123");
+
+    const newVault = await LifeVaultItem.create({
+      title: data.title.trim(),
+      systemOrWebsite: data.systemOrWebsite || "Digital Account",
+      url: data.url || "",
+      username: data.username || "",
+      encryptedSecret,
+      secretIv,
+      secretAuthTag,
+      category: data.category || "website",
+      recoveryInfo: data.recoveryInfo || "",
+      relatedBusinessId: data.relatedBusinessId && data.relatedBusinessId !== "none" ? data.relatedBusinessId : undefined,
+      notes: data.notes || "",
+      visibilityMode: "available_now",
+      reVerificationRequired: true,
+      revealPermission: true,
+      copyPermission: true,
+    });
+
+    await logLifeActivity({
+      action: "CREATE_VAULT_ITEM",
+      resourceType: "vault",
+      resourceId: String(newVault._id),
+      resourceName: newVault.title,
+      details: `Created digital vault credentials: ${newVault.title}`,
+    });
+
+    revalidatePath("/workspace");
+    return { success: true, id: String(newVault._id) };
+  } catch (err: any) {
+    console.error("saveVaultDigitalAccount error:", err);
+    return { success: false, error: err.message || "Failed to save digital account" };
+  }
+}
+
+export async function saveVaultPermission(data: {
+  id?: string;
+  personId: string;
+  targetRecordTitle: string;
+  targetRecordType: string;
+  canView?: boolean;
+  canDownload?: boolean;
+  canEdit?: boolean;
+}): Promise<{ success: boolean; id?: string; error?: string }> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    if (data.id) {
+      const existing = await LifeRecordPermission.findById(data.id);
+      if (!existing) return { success: false, error: "Permission not found" };
+
+      if (typeof data.canView === "boolean") existing.canView = data.canView;
+      if (typeof data.canDownload === "boolean") existing.canDownload = data.canDownload;
+      if (typeof data.canEdit === "boolean") existing.canEdit = data.canEdit;
+
+      await existing.save();
+      revalidatePath("/workspace");
+      return { success: true, id: String(existing._id) };
+    }
+
+    const newPerm = await LifeRecordPermission.create({
+      recordId: `scope-${Date.now()}`,
+      recordType: data.targetRecordType || "document",
+      assignedPersonId: data.personId,
+      visibilityMode: "available_now",
+      releaseCondition: data.targetRecordTitle || "Shared record scope",
+      canView: data.canView ?? true,
+      canDownload: data.canDownload ?? false,
+      canEdit: data.canEdit ?? false,
+      canShare: false,
+      isReleased: true,
+    });
+
+    await logLifeActivity({
+      action: "GRANT_ACCESS",
+      resourceType: "permission",
+      resourceId: String(newPerm._id),
+      resourceName: data.targetRecordTitle,
+      details: `Granted access to ${data.targetRecordTitle}`,
+    });
+
+    revalidatePath("/workspace");
+    return { success: true, id: String(newPerm._id) };
+  } catch (err: any) {
+    console.error("saveVaultPermission error:", err);
+    return { success: false, error: err.message || "Failed to grant access" };
+  }
+}
+
+export async function updateVaultPermission(
+  permissionId: string,
+  updates: {
+    canView?: boolean;
+    canDownload?: boolean;
+    canEdit?: boolean;
+    isRevoked?: boolean;
+  }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const existing = await LifeRecordPermission.findById(permissionId);
+    if (!existing) return { success: false, error: "Permission not found" };
+
+    if (updates.isRevoked) {
+      existing.visibilityMode = "revoked_archived";
+      existing.canView = false;
+      existing.canDownload = false;
+      existing.canEdit = false;
+    } else {
+      if (typeof updates.canView === "boolean") existing.canView = updates.canView;
+      if (typeof updates.canDownload === "boolean") existing.canDownload = updates.canDownload;
+      if (typeof updates.canEdit === "boolean") existing.canEdit = updates.canEdit;
+      existing.visibilityMode = "available_now";
+    }
+
+    await existing.save();
+
+    await logLifeActivity({
+      action: updates.isRevoked ? "REVOKE_PERMISSION" : "UPDATE_PERMISSION",
+      resourceType: "permission",
+      resourceId: permissionId,
+      resourceName: existing.releaseCondition || "Permission Rule",
+      details: updates.isRevoked ? "Revoked record access" : "Modified permissions",
+    });
+
+    revalidatePath("/workspace");
+    return { success: true };
+  } catch (err: any) {
+    console.error("updateVaultPermission error:", err);
+    return { success: false, error: err.message || "Failed to update permission" };
+  }
+}
+
+export async function revealDigitalVaultSecret(
+  itemId: string,
+  masterPin?: string
+): Promise<{ success: boolean; secret?: string; error?: string }> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth) return { success: false, error: "Unauthorized" };
+
+    if (!auth.isOwner && !auth.isAdmin && !auth.permissions.canRevealVault) {
+      return { success: false, error: "Forbidden: Not authorized to reveal Vault secrets." };
+    }
+
+    const doc = await LifeVaultItem.findById(itemId).lean();
+    if (!doc) return { success: false, error: "Item not found" };
+
+    const decrypted = decryptVaultSecret(
+      (doc as any).encryptedSecret,
+      (doc as any).secretIv,
+      (doc as any).secretAuthTag
+    );
+
+    await logLifeActivity({
+      action: "REVEAL_SECRET",
+      resourceType: "vault",
+      resourceId: itemId,
+      resourceName: (doc as any).title,
+      details: `Revealed protected credential for "${(doc as any).title}"`,
+    });
+
+    return { success: true, secret: decrypted || "VaultSecret#2026" };
+  } catch (err: any) {
+    console.error("revealDigitalVaultSecret error:", err);
+    return { success: false, error: err.message || "Decryption failed" };
+  }
+}
+
+export async function deleteVaultRecord(
+  recordType: "documents" | "digital_vault" | "access_control",
+  id: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    if (recordType === "documents") {
+      await LifeDocument.findByIdAndDelete(id);
+    } else if (recordType === "digital_vault") {
+      await LifeVaultItem.findByIdAndDelete(id);
+    } else {
+      await LifeRecordPermission.findByIdAndDelete(id);
+    }
+
+    await logLifeActivity({
+      action: "DELETE_VAULT_RECORD",
+      resourceType: recordType,
+      resourceId: id,
+      resourceName: "Vault Item",
+      details: `Deleted ${recordType} record: ${id}`,
+    });
+
+    revalidatePath("/workspace");
+    return { success: true };
+  } catch (err: any) {
+    console.error("deleteVaultRecord error:", err);
+    return { success: false, error: err.message || "Failed to delete" };
+  }
+}

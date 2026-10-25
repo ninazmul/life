@@ -23,6 +23,7 @@ import { WorkspaceRecordFormView } from "./screens/WorkspaceRecordFormView";
 import { FamilyCommunityPage } from "./family-community/FamilyCommunityPage";
 import { WorkBusinessPage } from "./work-business/WorkBusinessPage";
 import { FinanceAssetsPage } from "./finance-assets/FinanceAssetsPage";
+import { SecureVaultPage } from "./secure-vault/SecureVaultPage";
 
 interface LifeWorkspaceClientProps {
   initialCategoryId?: string;
@@ -288,6 +289,16 @@ export function LifeWorkspaceClient({
   if (activeCategory?.id === "finance_assets") {
     return (
       <FinanceAssetsPage
+        onBack={handleBackFromCategory}
+        initialRecordType={queryModule || "all"}
+      />
+    );
+  }
+
+  // Special Case: Secure Vault (Single Unified Management Page)
+  if (activeCategory?.id === "secure_vault") {
+    return (
+      <SecureVaultPage
         onBack={handleBackFromCategory}
         initialRecordType={queryModule || "all"}
       />
