@@ -24,6 +24,7 @@ import { FamilyCommunityPage } from "./family-community/FamilyCommunityPage";
 import { WorkBusinessPage } from "./work-business/WorkBusinessPage";
 import { FinanceAssetsPage } from "./finance-assets/FinanceAssetsPage";
 import { SecureVaultPage } from "./secure-vault/SecureVaultPage";
+import { LifeContinuityPage } from "./life-continuity/LifeContinuityPage";
 
 interface LifeWorkspaceClientProps {
   initialCategoryId?: string;
@@ -299,6 +300,16 @@ export function LifeWorkspaceClient({
   if (activeCategory?.id === "secure_vault") {
     return (
       <SecureVaultPage
+        onBack={handleBackFromCategory}
+        initialRecordType={queryModule || "all"}
+      />
+    );
+  }
+
+  // Special Case: Life Continuity (Single Unified Management Page)
+  if (activeCategory?.id === "life_continuity") {
+    return (
+      <LifeContinuityPage
         onBack={handleBackFromCategory}
         initialRecordType={queryModule || "all"}
       />

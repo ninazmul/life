@@ -23,6 +23,7 @@ import LifeWorkBusinessRecord from "@/lib/database/models/lifeWorkBusinessRecord
 import LifeSisCareRecord from "@/lib/database/models/lifeSisCareRecord.model";
 import { encryptVaultSecret, decryptVaultSecret } from "@/lib/life/crypto";
 import { WORKSPACE_CATEGORIES } from "@/lib/life/workspaceCategories";
+import LifeContinuityRecord from "@/lib/database/models/lifeContinuityRecord.model";
 
 export interface WorkspaceRecordItem {
   id: string;
@@ -3691,6 +3692,303 @@ export async function deleteVaultRecord(
     return { success: true };
   } catch (err: any) {
     console.error("deleteVaultRecord error:", err);
+    return { success: false, error: err.message || "Failed to delete" };
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// LIFE CONTINUITY — Unified Management Page Actions
+// ═══════════════════════════════════════════════════════════════════
+
+export type ContinuityRecordType = "responsibilities" | "instructions" | "emergency" | "legacy_legal";
+
+export interface UnifiedContinuityItem {
+  id: string;
+  recordType: ContinuityRecordType;
+  ownerTitle: string;
+  recipientTitle: string;
+  recipientDescription?: string;
+  mainContent: string;
+  assignedPersonId?: string;
+  assignedPersonName?: string;
+  assignedRole?: string;
+  priority?: "low" | "medium" | "high" | "critical";
+  applicableSituation?: string;
+  linkedItems: Array<{ title: string; type: string; refId?: string }>;
+  ownerPrivateNotes?: string;
+  status: string;
+  workStatus: string;
+  accessPolicy: {
+    method: "immediate" | "timed_request" | "guardian_verified";
+    waitingPeriodDays: number;
+    waitingPeriodLabel: string;
+    notifyApp: boolean;
+    notifyEmail: boolean;
+    releaseScope: string[];
+    requiredApprovals: number;
+    guardians: Array<{ guardianId: string; name: string }>;
+    isActivated: boolean;
+    accessStatus: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ContinuityResponse {
+  records: UnifiedContinuityItem[];
+  counts: {
+    all: number;
+    responsibilities: number;
+    instructions: number;
+    emergency: number;
+    legacy_legal: number;
+  };
+  peopleList: Array<{ id: string; name: string; relation?: string }>;
+}
+
+export async function getLifeContinuityRecords(params?: {
+  recordType?: string;
+  filter?: string;
+  search?: string;
+}): Promise<ContinuityResponse> {
+  await connectToDatabase();
+  const auth = await getLifeAuthContext();
+  if (!auth) {
+    return {
+      records: [],
+      counts: { all: 0, responsibilities: 0, instructions: 0, emergency: 0, legacy_legal: 0 },
+      peopleList: [],
+    };
+  }
+
+  const { recordType = "all", filter = "all", search } = params || {};
+  const searchRegex = search?.trim() ? new RegExp(search.trim(), "i") : null;
+
+  // Build query
+  const query: Record<string, any> = {};
+  if (recordType !== "all") {
+    query.recordType = recordType;
+  }
+  if (filter === "active") query.status = "active";
+  else if (filter === "draft") query.status = "draft";
+  else if (filter === "archived") query.status = "archived";
+  else if (filter === "assigned") query.assignedPersonId = { $exists: true, $ne: null };
+  else if (filter === "in_progress") query.workStatus = { $in: ["accepted", "in_progress"] };
+  else if (filter === "completed") query.workStatus = "completed";
+  else if (filter === "critical") query.priority = "critical";
+  else if (filter === "high") query.priority = "high";
+  else if (filter === "immediate") query["accessPolicy.method"] = "immediate";
+  else if (filter === "timed") query["accessPolicy.method"] = "timed_request";
+  else if (filter === "guardian") query["accessPolicy.method"] = "guardian_verified";
+
+  if (searchRegex) {
+    query.$or = [
+      { ownerTitle: searchRegex },
+      { recipientTitle: searchRegex },
+      { mainContent: searchRegex },
+      { assignedPersonName: searchRegex },
+    ];
+  }
+
+  const docs = await LifeContinuityRecord.find(query)
+    .populate("assignedPersonId", "name relation")
+    .sort({ priority: -1, createdAt: -1 })
+    .lean();
+
+  const records: UnifiedContinuityItem[] = (docs as any[]).map((d) => ({
+    id: String(d._id),
+    recordType: d.recordType,
+    ownerTitle: d.ownerTitle,
+    recipientTitle: d.recipientTitle,
+    recipientDescription: d.recipientDescription || "",
+    mainContent: d.mainContent,
+    assignedPersonId: d.assignedPersonId ? String(d.assignedPersonId._id || d.assignedPersonId) : undefined,
+    assignedPersonName: typeof d.assignedPersonId === "object" ? d.assignedPersonId?.name : d.assignedPersonName,
+    assignedRole: d.assignedRole,
+    priority: d.priority || "medium",
+    applicableSituation: d.applicableSituation || "",
+    linkedItems: d.linkedItems || [],
+    ownerPrivateNotes: d.ownerPrivateNotes || "",
+    status: d.status || "active",
+    workStatus: d.workStatus || "not_started",
+    accessPolicy: {
+      method: d.accessPolicy?.method || "timed_request",
+      waitingPeriodDays: d.accessPolicy?.waitingPeriodDays ?? 7,
+      waitingPeriodLabel: d.accessPolicy?.waitingPeriodLabel || "7 days",
+      notifyApp: d.accessPolicy?.notifyApp ?? true,
+      notifyEmail: d.accessPolicy?.notifyEmail ?? true,
+      releaseScope: d.accessPolicy?.releaseScope || [],
+      requiredApprovals: d.accessPolicy?.requiredApprovals ?? 2,
+      guardians: d.accessPolicy?.guardians || [],
+      isActivated: d.accessPolicy?.isActivated ?? true,
+      accessStatus: d.accessPolicy?.accessStatus || "locked",
+    },
+    createdAt: d.createdAt ? new Date(d.createdAt).toISOString() : new Date().toISOString(),
+    updatedAt: d.updatedAt ? new Date(d.updatedAt).toISOString() : new Date().toISOString(),
+  }));
+
+  // Count by type
+  const counts = {
+    all: records.length,
+    responsibilities: records.filter((r) => r.recordType === "responsibilities").length,
+    instructions: records.filter((r) => r.recordType === "instructions").length,
+    emergency: records.filter((r) => r.recordType === "emergency").length,
+    legacy_legal: records.filter((r) => r.recordType === "legacy_legal").length,
+  };
+
+  // People list for forms
+  const people = await LifePerson.find({}).select("name relation").sort({ name: 1 }).lean();
+
+  return {
+    records: JSON.parse(JSON.stringify(records)),
+    counts,
+    peopleList: JSON.parse(JSON.stringify(people.map((p: any) => ({ id: String(p._id), name: p.name, relation: p.relation })))),
+  };
+}
+
+export async function saveContinuityRecord(data: {
+  id?: string;
+  recordType: ContinuityRecordType;
+  ownerTitle: string;
+  recipientTitle: string;
+  recipientDescription?: string;
+  mainContent: string;
+  assignedPersonId?: string;
+  assignedPersonName?: string;
+  assignedRole?: string;
+  priority?: string;
+  applicableSituation?: string;
+  linkedItems?: Array<{ title: string; type: string; refId?: string }>;
+  ownerPrivateNotes?: string;
+  status?: string;
+  workStatus?: string;
+  accessMethod?: string;
+  waitingPeriodDays?: number;
+}): Promise<{ success: boolean; id?: string; error?: string }> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const waitingDays = data.waitingPeriodDays ?? 7;
+    const waitingLabel = waitingDays === 1 ? "1 day" : `${waitingDays} days`;
+
+    if (data.id) {
+      // Update existing
+      const existing = await LifeContinuityRecord.findById(data.id);
+      if (!existing) return { success: false, error: "Record not found" };
+
+      existing.recordType = data.recordType;
+      existing.ownerTitle = data.ownerTitle.trim();
+      existing.recipientTitle = data.recipientTitle.trim();
+      existing.recipientDescription = data.recipientDescription || "";
+      existing.mainContent = data.mainContent.trim();
+      if (data.assignedPersonId && data.assignedPersonId !== "none") {
+        existing.assignedPersonId = data.assignedPersonId as any;
+      } else {
+        existing.assignedPersonId = undefined;
+      }
+      existing.assignedPersonName = data.assignedPersonName || "";
+      existing.assignedRole = data.assignedRole || "";
+      existing.priority = (data.priority as any) || "medium";
+      existing.applicableSituation = data.applicableSituation || "";
+      existing.linkedItems = data.linkedItems || [];
+      existing.ownerPrivateNotes = data.ownerPrivateNotes || "";
+      existing.status = (data.status as any) || "active";
+      existing.workStatus = (data.workStatus as any) || existing.workStatus;
+      existing.accessPolicy = {
+        ...existing.accessPolicy,
+        method: (data.accessMethod as any) || existing.accessPolicy?.method || "timed_request",
+        waitingPeriodDays: waitingDays,
+        waitingPeriodLabel: waitingLabel,
+      };
+
+      await existing.save();
+
+      await logLifeActivity({
+        action: "UPDATE_CONTINUITY_RECORD",
+        resourceType: "continuity",
+        resourceId: String(existing._id),
+        resourceName: data.ownerTitle,
+        details: `Updated ${data.recordType} record: ${data.ownerTitle}`,
+      });
+
+      revalidatePath("/workspace");
+      return { success: true, id: String(existing._id) };
+    }
+
+    // Create new
+    const newRec = await LifeContinuityRecord.create({
+      ownerId: auth.userId || "owner",
+      recordType: data.recordType,
+      ownerTitle: data.ownerTitle.trim(),
+      recipientTitle: data.recipientTitle.trim(),
+      recipientDescription: data.recipientDescription || "",
+      mainContent: data.mainContent.trim(),
+      assignedPersonId: data.assignedPersonId && data.assignedPersonId !== "none" ? data.assignedPersonId : undefined,
+      assignedPersonName: data.assignedPersonName || "",
+      assignedRole: data.assignedRole || "",
+      priority: data.priority || "medium",
+      applicableSituation: data.applicableSituation || "",
+      linkedItems: data.linkedItems || [],
+      ownerPrivateNotes: data.ownerPrivateNotes || "",
+      status: data.status || "active",
+      workStatus: data.workStatus || "not_started",
+      accessPolicy: {
+        method: data.accessMethod || "timed_request",
+        waitingPeriodDays: waitingDays,
+        waitingPeriodLabel: waitingLabel,
+        notifyApp: true,
+        notifyEmail: true,
+        releaseScope: [],
+        requiredApprovals: 2,
+        guardians: [],
+        isActivated: true,
+        accessStatus: "locked",
+      },
+    });
+
+    await logLifeActivity({
+      action: "CREATE_CONTINUITY_RECORD",
+      resourceType: "continuity",
+      resourceId: String(newRec._id),
+      resourceName: data.ownerTitle,
+      details: `Created ${data.recordType} record: ${data.ownerTitle}`,
+    });
+
+    revalidatePath("/workspace");
+    return { success: true, id: String(newRec._id) };
+  } catch (err: any) {
+    console.error("saveContinuityRecord error:", err);
+    return { success: false, error: err.message || "Failed to save record" };
+  }
+}
+
+export async function deleteContinuityRecord(id: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const rec = await LifeContinuityRecord.findByIdAndDelete(id);
+    if (!rec) return { success: false, error: "Record not found" };
+
+    await logLifeActivity({
+      action: "DELETE_CONTINUITY_RECORD",
+      resourceType: "continuity",
+      resourceId: id,
+      resourceName: rec.ownerTitle || "Continuity Record",
+      details: `Deleted ${rec.recordType} record: ${rec.ownerTitle}`,
+    });
+
+    revalidatePath("/workspace");
+    return { success: true };
+  } catch (err: any) {
+    console.error("deleteContinuityRecord error:", err);
     return { success: false, error: err.message || "Failed to delete" };
   }
 }
