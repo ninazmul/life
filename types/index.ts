@@ -144,6 +144,7 @@ export interface ILifePerson {
   lastActivity?: Date | string;
   isLoginEnabled?: boolean;
   isRecordOnly?: boolean;
+  clerkUserId?: string;
   socialLinks?: {
     facebook?: string;
     messenger?: string;
