@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { getLifeAuthContext } from "@/lib/life/auth";
 import { getProfileData } from "@/lib/actions/lifeProfile.actions";
 import { ProfileClient } from "@/components/life/profile/ProfileClient";
-import { LifeVaultBottomNav } from "@/components/life/layout/LifeVaultBottomNav";
 import LifePerson from "@/lib/database/models/lifePerson.model";
 import { connectToDatabase } from "@/lib/database";
 
@@ -22,5 +21,5 @@ export default async function ProfilePage() {
     redirect("/");
   }
 
-  return <ProfileClient initialData={profileRes.data} />;
+  return <ProfileClient initialData={profileRes.data} peopleCount={peopleCount} />;
 }

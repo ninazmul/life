@@ -17,6 +17,25 @@ export interface ILifePersonDoc extends Document {
   dateOfBirth?: string;
   avatarUrl?: string;
   profilePhoto?: string;
+  nationality?: string;
+  about?: string;
+  preferredName?: string;
+  bloodGroup?: string;
+  allergies?: string;
+  hasNoAllergies?: boolean;
+  medicalConditions?: string;
+  currentMedicines?: string;
+  medicalHistory?: Array<{
+    id: string;
+    title: string;
+    condition: string;
+    dateRange: string;
+    hospitalOrDoctor?: string;
+    notes?: string;
+    linkedReportId?: string;
+  }>;
+  emergencyRelationship?: string;
+  isEmergencyPrimary?: boolean;
   status: PersonStatus;
   accountStatus?: AccountStatus;
   role: LifeRole;
@@ -95,6 +114,27 @@ const LifePersonSchema = new Schema<ILifePersonDoc>(
     dateOfBirth: { type: String, trim: true, default: "" },
     avatarUrl: { type: String, default: "" },
     profilePhoto: { type: String, default: "" },
+    nationality: { type: String, trim: true, default: "" },
+    about: { type: String, trim: true, default: "" },
+    preferredName: { type: String, trim: true, default: "" },
+    bloodGroup: { type: String, trim: true, default: "" },
+    allergies: { type: String, trim: true, default: "" },
+    hasNoAllergies: { type: Boolean, default: false },
+    medicalConditions: { type: String, trim: true, default: "" },
+    currentMedicines: { type: String, trim: true, default: "" },
+    medicalHistory: [
+      {
+        id: { type: String },
+        title: { type: String },
+        condition: { type: String },
+        dateRange: { type: String },
+        hospitalOrDoctor: { type: String },
+        notes: { type: String },
+        linkedReportId: { type: String },
+      },
+    ],
+    emergencyRelationship: { type: String, trim: true, default: "" },
+    isEmergencyPrimary: { type: Boolean, default: false },
     category: {
       type: String,
       enum: [

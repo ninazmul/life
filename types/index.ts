@@ -121,6 +121,25 @@ export interface ILifePerson {
   businessInstructions?: string[];
   notes?: string;
   generalNotes?: string;
+  nationality?: string;
+  about?: string;
+  preferredName?: string;
+  bloodGroup?: string;
+  allergies?: string;
+  hasNoAllergies?: boolean;
+  medicalConditions?: string;
+  currentMedicines?: string;
+  medicalHistory?: Array<{
+    id: string;
+    title: string;
+    condition: string;
+    dateRange: string;
+    hospitalOrDoctor?: string;
+    notes?: string;
+    linkedReportId?: string;
+  }>;
+  emergencyRelationship?: string;
+  isEmergencyPrimary?: boolean;
   lastLogin?: Date | string;
   lastActivity?: Date | string;
   isLoginEnabled?: boolean;
@@ -944,7 +963,11 @@ export type RecordType =
   | "contact"
   | "asset"
   | "money_record"
-  | "transaction";
+  | "transaction"
+  | "profile_personal"
+  | "profile_health"
+  | "profile_emergency"
+  | "health_report";
 
 export interface ILifeRecordPermission {
   _id?: string;
