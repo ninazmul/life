@@ -26,12 +26,13 @@ export function LifeLayoutClient({
 
   const isProfile = pathname === "/profile";
   const isDashboard = pathname === "/";
+  const isOwnerOrAdmin = Boolean(userAccess?.isOwner || userAccess?.isAdmin);
 
   return (
     <PWAProvider>
       <div className="lv-shell flex min-h-screen bg-[#F7F6FC] transition-colors">
-        {/* Desktop Responsive Sidebar */}
-        <LifeSidebar userAccess={userAccess} />
+        {/* Desktop Responsive Sidebar - only for owner/admin */}
+        {isOwnerOrAdmin && <LifeSidebar userAccess={userAccess} />}
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-h-screen min-w-0 overflow-x-hidden">
@@ -55,8 +56,8 @@ export function LifeLayoutClient({
             {children}
           </main>
 
-          {/* Mobile Native Bottom Navigation — Always visible on mobile */}
-          <LifeVaultBottomNav peopleCount={peopleCount} />
+          {/* Mobile Native Bottom Navigation — Only visible for owner/admin on mobile */}
+          {isOwnerOrAdmin && <LifeVaultBottomNav peopleCount={peopleCount} />}
         </div>
       </div>
     </PWAProvider>
