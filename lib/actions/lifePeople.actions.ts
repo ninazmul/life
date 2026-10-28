@@ -437,113 +437,132 @@ export async function createPerson(data: {
   emergencyPriority?: number;
   isRecordOnly?: boolean;
   permissions?: Record<string, boolean>;
-}) {
-  await connectToDatabase();
-  const auth = await getLifeAuthContext();
-  if (!auth || (!auth.isOwner && !auth.isAdmin)) {
-    throw new Error(
-      "Forbidden: Only Owners/Admins can add new People profiles.",
-    );
-  }
-
-  const cleanEmail = data.email?.toLowerCase().trim() || "";
-
-  // Prevent duplicate Person records with the same email in this owner directory
-  if (cleanEmail) {
-    const existing = await LifePerson.findOne({
-      email: cleanEmail,
-      isDeleted: { $ne: true },
-    });
-    if (existing) {
-      throw new Error(`A person profile with the email "${cleanEmail}" already exists in your directory.`);
-    }
-  }
-
-  const isSuper = data.role === "super_admin" || data.role === "owner";
-  const finalRole = data.role || "individual";
-  const isRecordOnly = Boolean(data.isRecordOnly);
-  const finalPerms = isSuper
-    ? DEFAULT_OWNER_PERMS
-    : data.permissions || {
-        canViewPersonal: false,
-        canViewBusiness: false,
-        canViewFinancial: false,
-        canViewSensitive: false,
-        canRevealVault: false,
-        canManageAccess: false,
-        canAccessEmergency: false,
+}): Promise<{ success: boolean; data?: any; error?: string }> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return {
+        success: false,
+        error: "Forbidden: Only Owners/Admins can add new People profiles.",
       };
-
-  const clerkAvatar = cleanEmail
-    ? await getClerkAvatar({ email: cleanEmail })
-    : undefined;
-
-  const photo = data.profilePhoto || data.avatarUrl || clerkAvatar || "";
-
-  const person = await LifePerson.create({
-    name: data.name.trim(),
-    category: data.category || "Family Member",
-    relation: data.relation.trim(),
-    phone: data.phone?.trim() || "",
-    whatsapp: data.whatsapp?.trim() || data.phone?.trim() || "",
-    email: cleanEmail,
-    address: (data.address || data.location || "").trim(),
-    shortNote: data.shortNote?.trim() || "",
-    tags: data.tags || [],
-    isImportant: Boolean(data.isImportant),
-    isEmergencyContact: Boolean(data.isEmergencyContact),
-    registrationStatus: "not_invited",
-    avatarUrl: photo,
-    profilePhoto: photo,
-    role: finalRole,
-    userRole: finalRole,
-    status: data.status || "active",
-    accountStatus: data.accountStatus || "active",
-    isLoginEnabled: isRecordOnly ? false : (data.isLoginEnabled ?? true),
-    isRecordOnly,
-    personalMessage: data.personalMessage || "",
-    responsibilities: data.responsibilities || [],
-    businessInstructions: data.businessInstructions || [],
-    notes: data.notes || data.shortNote || "",
-    emergencyPriority: data.isEmergencyContact ? 1 : (data.emergencyPriority || 0),
-    permissions: finalPerms,
-  });
-
-  // If Invite as User toggle is enabled, send invitation now
-  if (data.inviteAsUser && cleanEmail) {
-    const inviteRes = await sendPersonInvitation(String(person._id), cleanEmail);
-    if (!inviteRes.success) {
-      console.warn("Failed to deliver invitation during createPerson:", inviteRes.message);
     }
-  }
 
-  if (isSuper && person.email) {
-    const targetEmail = person.email.toLowerCase().trim();
-    await Admin.findOneAndUpdate(
-      { email: new RegExp(`^${targetEmail}$`, "i") },
-      {
-        $set: {
-          email: targetEmail,
-          name: person.name,
-          role: "super_admin",
-          isActive: true,
+    const cleanEmail = data.email?.toLowerCase().trim() || "";
+
+    // Prevent duplicate Person records with the same email in this owner directory
+    if (cleanEmail) {
+      const existing = await LifePerson.findOne({
+        email: cleanEmail,
+        isDeleted: { $ne: true },
+      });
+      if (existing) {
+        return {
+          success: false,
+          error: `A person profile with the email "${cleanEmail}" already exists in your directory.`,
+        };
+      }
+    }
+
+    const isSuper = data.role === "super_admin" || data.role === "owner";
+    const finalRole = data.role || "individual";
+    const isRecordOnly = Boolean(data.isRecordOnly);
+    const finalPerms = isSuper
+      ? DEFAULT_OWNER_PERMS
+      : data.permissions || {
+          canViewPersonal: false,
+          canViewBusiness: false,
+          canViewFinancial: false,
+          canViewSensitive: false,
+          canRevealVault: false,
+          canManageAccess: false,
+          canAccessEmergency: false,
+        };
+
+    const clerkAvatar = cleanEmail
+      ? await getClerkAvatar({ email: cleanEmail })
+      : undefined;
+
+    const photo = data.profilePhoto || data.avatarUrl || clerkAvatar || "";
+
+    const person = await LifePerson.create({
+      name: data.name.trim(),
+      category: data.category || "Family Member",
+      relation: data.relation.trim(),
+      phone: data.phone?.trim() || "",
+      whatsapp: data.whatsapp?.trim() || data.phone?.trim() || "",
+      email: cleanEmail,
+      address: (data.address || data.location || "").trim(),
+      shortNote: data.shortNote?.trim() || "",
+      tags: data.tags || [],
+      isImportant: Boolean(data.isImportant),
+      isEmergencyContact: Boolean(data.isEmergencyContact),
+      registrationStatus: "not_invited",
+      avatarUrl: photo,
+      profilePhoto: photo,
+      role: finalRole,
+      userRole: finalRole,
+      status: data.status || "active",
+      accountStatus: data.accountStatus || "active",
+      isLoginEnabled: isRecordOnly ? false : (data.isLoginEnabled ?? true),
+      isRecordOnly,
+      personalMessage: data.personalMessage || "",
+      responsibilities: data.responsibilities || [],
+      businessInstructions: data.businessInstructions || [],
+      notes: data.notes || data.shortNote || "",
+      emergencyPriority: data.isEmergencyContact ? 1 : (data.emergencyPriority || 0),
+      permissions: finalPerms,
+    });
+
+    // If Invite as User toggle is enabled, send invitation now
+    if (data.inviteAsUser && cleanEmail) {
+      const inviteRes = await sendPersonInvitation(String(person._id), cleanEmail);
+      if (!inviteRes.success) {
+        console.warn("Failed to deliver invitation during createPerson:", inviteRes.message);
+      }
+    }
+
+    if (isSuper && person.email) {
+      const targetEmail = person.email.toLowerCase().trim();
+      await Admin.findOneAndUpdate(
+        { email: new RegExp(`^${targetEmail}$`, "i") },
+        {
+          $set: {
+            email: targetEmail,
+            name: person.name,
+            role: "super_admin",
+            isActive: true,
+          },
         },
-      },
-      { upsert: true },
-    ).catch(() => {});
+        { upsert: true },
+      ).catch(() => {});
+    }
+
+    await logLifeActivity({
+      action: "CREATE_PERSON",
+      resourceType: "people",
+      resourceId: String(person._id),
+      resourceName: person.name,
+      details: `Added new person profile: ${person.name} (${person.relation} • ${person.category || "Family Member"})${data.inviteAsUser ? " with invitation" : ""}`,
+    });
+
+    revalidatePath("/people");
+    revalidatePath("/");
+    return { success: true, data: JSON.parse(JSON.stringify(person)) };
+  } catch (err: any) {
+    console.error("createPerson error:", err);
+    // Handle MongoDB duplicate key error
+    if (err.code === 11000) {
+      return {
+        success: false,
+        error: "A person with this email already exists in the directory.",
+      };
+    }
+    return {
+      success: false,
+      error: err.message || "Failed to create person profile.",
+    };
   }
-
-  await logLifeActivity({
-    action: "CREATE_PERSON",
-    resourceType: "people",
-    resourceId: String(person._id),
-    resourceName: person.name,
-    details: `Added new person profile: ${person.name} (${person.relation} • ${person.category || "Family Member"})${data.inviteAsUser ? " with invitation" : ""}`,
-  });
-
-  revalidatePath("/people");
-  revalidatePath("/");
-  return JSON.parse(JSON.stringify(person));
 }
 
 export async function updatePerson(

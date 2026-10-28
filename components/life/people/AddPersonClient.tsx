@@ -149,7 +149,7 @@ export function AddPersonClient({
       if (isImportantTag) tags.push("important");
       if (isEmergencyContactTag) tags.push("emergency_contact");
 
-      const created = await createPerson({
+      const result = await createPerson({
         name: fullName.trim(),
         category,
         relation: effectiveRelation,
@@ -168,14 +168,19 @@ export function AddPersonClient({
         status: isActiveTag ? "active" : "locked",
       });
 
+      if (!result.success) {
+        toast.error(result.error || "Failed to save person.");
+        return;
+      }
+
       toast.success(
         shouldInvite
           ? `Person created and invitation sent to ${emailAddress}!`
-          : `Profile for ${created.name} saved!`
+          : `Profile for ${result.data.name} saved!`
       );
 
       if (onSuccess) {
-        onSuccess(created);
+        onSuccess(result.data);
       } else {
         router.push("/people");
       }
