@@ -15,6 +15,8 @@ import LifeAsset from "@/lib/database/models/lifeAsset.model";
 import LifeGuardian from "@/lib/database/models/lifeGuardian.model";
 import LifeNote from "@/lib/database/models/lifeNote.model";
 import LifeInvitation from "@/lib/database/models/lifeInvitation.model";
+import LifeBusiness from "@/lib/database/models/lifeBusiness.model";
+import LifeRecordPermission from "@/lib/database/models/lifeRecordPermission.model";
 import Admin from "@/lib/database/models/admin.model";
 import {
   getLifeAuthContext,
@@ -235,9 +237,48 @@ export async function getPeople(params?: {
       }
     }
 
+    // Determine multiple connections
+    let connections: string[] = Array.isArray(p.connections) && p.connections.length > 0 ? [...p.connections] : [];
+    if (connections.length === 0) {
+      if (cat) {
+        if (cat === "Family Member") connections.push("Family");
+        else connections.push(cat);
+      }
+      if (Array.isArray(p.tags)) {
+        for (const t of p.tags) {
+          if (!connections.includes(t)) connections.push(t);
+        }
+      }
+    }
+
+    // Determine account connection status
+    let accountStatusType: "connected" | "invite_pending" | "contact_only" = "contact_only";
+    if (p.clerkUserId || regStatus === "active_user") {
+      accountStatusType = "connected";
+    } else if (regStatus === "invitation_sent") {
+      accountStatusType = "invite_pending";
+    }
+
+    // Determine concise indicator only when relevant info exists (no 0 counters!)
+    let conciseIndicator = "";
+    if (nDuties > 0) {
+      conciseIndicator = `${nDuties} responsibilit${nDuties === 1 ? "y" : "ies"}`;
+    } else if (nLoans > 0) {
+      conciseIndicator = "SiS Care linked";
+    } else if (connections.includes("Staff") || cat === "Staff") {
+      conciseIndicator = "1 employment record";
+    } else if (nFiles > 0) {
+      conciseIndicator = `${nFiles} shared document${nFiles === 1 ? "" : "s"}`;
+    } else if (nNotes > 0) {
+      conciseIndicator = `${nNotes} instruction${nNotes === 1 ? "" : "s"}`;
+    }
+
     return {
       ...p,
       category: cat,
+      connections,
+      accountStatusType,
+      conciseIndicator,
       registrationStatus: regStatus,
       notesCount: nNotes,
       dutiesCount: nDuties,
@@ -283,6 +324,9 @@ export async function getPersonById(id: string) {
     responsibilities,
     messages,
     assets,
+    guardianRecord,
+    businessRecords,
+    recordPermissions,
   ] = await Promise.all([
     LifeFinancialSupport.find(
       isOwnerOrSuper && canViewOwnerDetails ? {} : { recipientPersonId: id },
@@ -328,6 +372,14 @@ export async function getPersonById(id: string) {
     isOwnerOrSuper && canViewOwnerDetails
       ? LifeAsset.find({ status: { $ne: "disposed" } }).lean()
       : LifeAsset.find({ relatedPersonId: id }).lean(),
+    LifeGuardian.findOne({ personId: id, isActive: true }).lean(),
+    LifeBusiness.find({
+      $or: [
+        { "partners.personId": id },
+        { "engineerContact.personId": id },
+      ],
+    }).lean(),
+    LifeRecordPermission.find({ assignedPersonId: id }).lean(),
   ]);
 
   // If caller is an individual, filter unreleased legacy messages
@@ -386,9 +438,33 @@ export async function getPersonById(id: string) {
     }
   }
 
+  // Determine multiple connections
+  let connections: string[] = Array.isArray(person.connections) && person.connections.length > 0 ? [...person.connections] : [];
+  if (connections.length === 0) {
+    if (cat) {
+      if (cat === "Family Member") connections.push("Family");
+      else connections.push(cat);
+    }
+    if (Array.isArray(person.tags)) {
+      for (const t of person.tags) {
+        if (!connections.includes(t)) connections.push(t);
+      }
+    }
+  }
+
+  // Determine account connection status
+  let accountStatusType: "connected" | "invite_pending" | "contact_only" = "contact_only";
+  if (person.clerkUserId || regStatus === "active_user") {
+    accountStatusType = "connected";
+  } else if (regStatus === "invitation_sent") {
+    accountStatusType = "invite_pending";
+  }
+
   const enrichedPerson = {
     ...person,
     category: cat,
+    connections,
+    accountStatusType,
     registrationStatus: regStatus,
     notesCount: notes.length,
     dutiesCount: instructions.length + responsibilities.length,
@@ -407,18 +483,80 @@ export async function getPersonById(id: string) {
     responsibilities: JSON.parse(JSON.stringify(responsibilities)),
     messages: JSON.parse(JSON.stringify(filteredMessages)),
     assets: JSON.parse(JSON.stringify(assets || [])),
+    guardianRecord: guardianRecord ? JSON.parse(JSON.stringify(guardianRecord)) : null,
+    businessRecords: JSON.parse(JSON.stringify(businessRecords || [])),
+    recordPermissions: JSON.parse(JSON.stringify(recordPermissions || [])),
   };
+}
+
+export async function checkPersonDuplicate(params: {
+  name?: string;
+  email?: string;
+  phone?: string;
+  excludeId?: string;
+}): Promise<{
+  hasPotentialMatch: boolean;
+  matches: Array<{ _id: string; name: string; email?: string; phone?: string; relation?: string }>;
+}> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth) return { hasPotentialMatch: false, matches: [] };
+
+    const conditions: any[] = [];
+    const cleanName = params.name?.trim();
+    const cleanEmail = params.email?.trim().toLowerCase();
+    const cleanPhone = params.phone?.trim();
+
+    if (cleanName && cleanName.length >= 2) {
+      conditions.push({ name: { $regex: new RegExp(`^${cleanName}$`, "i") } });
+    }
+    if (cleanEmail) {
+      conditions.push({ email: cleanEmail });
+    }
+    if (cleanPhone && cleanPhone.length >= 6) {
+      conditions.push({ phone: cleanPhone });
+    }
+
+    if (conditions.length === 0) {
+      return { hasPotentialMatch: false, matches: [] };
+    }
+
+    const query: any = {
+      $or: conditions,
+      isDeleted: { $ne: true },
+    };
+    if (params.excludeId) {
+      query._id = { $ne: params.excludeId };
+    }
+
+    const found = await LifePerson.find(query)
+      .select("name email phone relation category connections")
+      .limit(3)
+      .lean();
+
+    return {
+      hasPotentialMatch: found.length > 0,
+      matches: JSON.parse(JSON.stringify(found)),
+    };
+  } catch (err) {
+    console.error("checkPersonDuplicate error:", err);
+    return { hasPotentialMatch: false, matches: [] };
+  }
 }
 
 export async function createPerson(data: {
   name: string;
   category?: string;
-  relation: string;
+  relation?: string;
+  connections?: string[];
+  ownerNote?: string;
   phone?: string;
   whatsapp?: string;
   email?: string;
   address?: string;
   location?: string;
+  dateOfBirth?: string;
   shortNote?: string;
   tags?: string[];
   isImportant?: boolean;
@@ -437,7 +575,16 @@ export async function createPerson(data: {
   emergencyPriority?: number;
   isRecordOnly?: boolean;
   permissions?: Record<string, boolean>;
-}): Promise<{ success: boolean; data?: any; error?: string }> {
+  forceCreate?: boolean;
+}): Promise<{
+  success: boolean;
+  data?: any;
+  error?: string;
+  duplicateFound?: boolean;
+  existingPerson?: any;
+  inviteSent?: boolean;
+  inviteMessage?: string;
+}> {
   try {
     await connectToDatabase();
     const auth = await getLifeAuthContext();
@@ -450,8 +597,8 @@ export async function createPerson(data: {
 
     const cleanEmail = data.email?.toLowerCase().trim() || "";
 
-    // Prevent duplicate Person records with the same email in this owner directory
-    if (cleanEmail) {
+    // Duplicate check for existing email
+    if (cleanEmail && !data.forceCreate) {
       const existing = await LifePerson.findOne({
         email: cleanEmail,
         isDeleted: { $ne: true },
@@ -460,6 +607,13 @@ export async function createPerson(data: {
         return {
           success: false,
           error: `A person profile with the email "${cleanEmail}" already exists in your directory.`,
+          duplicateFound: true,
+          existingPerson: {
+            _id: String(existing._id),
+            name: existing.name,
+            email: existing.email,
+            relation: existing.relation,
+          },
         };
       }
     }
@@ -485,16 +639,26 @@ export async function createPerson(data: {
 
     const photo = data.profilePhoto || data.avatarUrl || clerkAvatar || "";
 
+    // Multiple connections determination
+    const finalConnections = Array.isArray(data.connections) && data.connections.length > 0
+      ? data.connections
+      : data.category
+      ? [data.category]
+      : ["Family"];
+
     const person = await LifePerson.create({
       name: data.name.trim(),
-      category: data.category || "Family Member",
-      relation: data.relation.trim(),
+      category: finalConnections[0] || data.category || "Family Member",
+      connections: finalConnections,
+      relation: (data.relation || "").trim(),
       phone: data.phone?.trim() || "",
       whatsapp: data.whatsapp?.trim() || data.phone?.trim() || "",
       email: cleanEmail,
       address: (data.address || data.location || "").trim(),
+      dateOfBirth: data.dateOfBirth?.trim() || "",
       shortNote: data.shortNote?.trim() || "",
-      tags: data.tags || [],
+      ownerNote: (data.ownerNote || data.shortNote || "").trim(),
+      tags: data.tags || finalConnections,
       isImportant: Boolean(data.isImportant),
       isEmergencyContact: Boolean(data.isEmergencyContact),
       registrationStatus: "not_invited",
@@ -509,16 +673,22 @@ export async function createPerson(data: {
       personalMessage: data.personalMessage || "",
       responsibilities: data.responsibilities || [],
       businessInstructions: data.businessInstructions || [],
-      notes: data.notes || data.shortNote || "",
+      notes: data.notes || data.ownerNote || data.shortNote || "",
       emergencyPriority: data.isEmergencyContact ? 1 : (data.emergencyPriority || 0),
       permissions: finalPerms,
     });
 
-    // If Invite as User toggle is enabled, send invitation now
+    // If Invite as User toggle is enabled, send invitation separately
+    let inviteSent = false;
+    let inviteMessage = "";
     if (data.inviteAsUser && cleanEmail) {
-      const inviteRes = await sendPersonInvitation(String(person._id), cleanEmail);
-      if (!inviteRes.success) {
-        console.warn("Failed to deliver invitation during createPerson:", inviteRes.message);
+      try {
+        const inviteRes = await sendPersonInvitation(String(person._id), cleanEmail);
+        inviteSent = inviteRes.success;
+        inviteMessage = inviteRes.message || "";
+      } catch (err: any) {
+        inviteSent = false;
+        inviteMessage = err.message || "Failed to deliver email invitation";
       }
     }
 
@@ -543,15 +713,19 @@ export async function createPerson(data: {
       resourceType: "people",
       resourceId: String(person._id),
       resourceName: person.name,
-      details: `Added new person profile: ${person.name} (${person.relation} • ${person.category || "Family Member"})${data.inviteAsUser ? " with invitation" : ""}`,
+      details: `Added new person profile: ${person.name} (${finalConnections.join(", ")})${data.inviteAsUser ? " with invitation" : ""}`,
     });
 
     revalidatePath("/people");
     revalidatePath("/");
-    return { success: true, data: JSON.parse(JSON.stringify(person)) };
+    return {
+      success: true,
+      data: JSON.parse(JSON.stringify(person)),
+      inviteSent,
+      inviteMessage,
+    };
   } catch (err: any) {
     console.error("createPerson error:", err);
-    // Handle MongoDB duplicate key error
     if (err.code === 11000) {
       return {
         success: false,
@@ -571,6 +745,9 @@ export async function updatePerson(
     name: string;
     category: string;
     relation: string;
+    connections: string[];
+    ownerNote: string;
+    dateOfBirth: string;
     phone: string;
     whatsapp: string;
     email: string;
@@ -627,6 +804,18 @@ export async function updatePerson(
   const updateData: Record<string, unknown> = {};
   if (isOwnerOrAdmin) {
     Object.assign(updateData, data);
+    if (data.connections && data.connections.length > 0) {
+      updateData.connections = data.connections;
+      updateData.category = data.connections[0];
+      updateData.tags = data.connections;
+    }
+    if (data.ownerNote !== undefined) {
+      updateData.ownerNote = data.ownerNote;
+      updateData.shortNote = data.ownerNote;
+    }
+    if (data.dateOfBirth !== undefined) {
+      updateData.dateOfBirth = data.dateOfBirth;
+    }
     const isSuper = data.role === "super_admin" || data.role === "owner";
     if (data.role) {
       updateData.userRole = data.role;
@@ -727,6 +916,139 @@ export async function archivePerson(id: string) {
   revalidatePath("/people");
   revalidatePath("/");
   return { success: true };
+}
+
+export async function checkPersonArchiveSummary(id: string): Promise<{
+  success: boolean;
+  dutiesCount: number;
+  financialCount: number;
+  activeResponsibilitiesCount: number;
+  isGuardian: boolean;
+  hasSharedAccess: boolean;
+  isConnectedUser: boolean;
+}> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return {
+        success: false,
+        dutiesCount: 0,
+        financialCount: 0,
+        activeResponsibilitiesCount: 0,
+        isGuardian: false,
+        hasSharedAccess: false,
+        isConnectedUser: false,
+      };
+    }
+
+    const [respCount, finSupportCount, moneyCount, guardian, permCount, person] = await Promise.all([
+      LifeResponsibility.countDocuments({
+        assignedPersonId: id,
+        completionStatus: { $ne: "completed" },
+      }),
+      LifeFinancialSupport.countDocuments({ recipientPersonId: id }),
+      LifeMoneyRecord.countDocuments({ personId: id }),
+      LifeGuardian.findOne({ personId: id, isActive: true }),
+      LifeRecordPermission.countDocuments({ assignedPersonId: id, canView: true }),
+      LifePerson.findById(id).select("clerkUserId registrationStatus"),
+    ]);
+
+    const totalFin = finSupportCount + moneyCount;
+
+    return {
+      success: true,
+      dutiesCount: respCount,
+      financialCount: totalFin,
+      activeResponsibilitiesCount: respCount,
+      isGuardian: Boolean(guardian),
+      hasSharedAccess: permCount > 0,
+      isConnectedUser: Boolean(person?.clerkUserId || person?.registrationStatus === "active_user"),
+    };
+  } catch (err) {
+    console.error("checkPersonArchiveSummary error:", err);
+    return {
+      success: false,
+      dutiesCount: 0,
+      financialCount: 0,
+      activeResponsibilitiesCount: 0,
+      isGuardian: false,
+      hasSharedAccess: false,
+      isConnectedUser: false,
+    };
+  }
+}
+
+export async function disconnectPersonAccount(id: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const person = await LifePerson.findById(id);
+    if (!person) return { success: false, error: "Person not found" };
+
+    await LifePerson.findByIdAndUpdate(id, {
+      $unset: { clerkUserId: 1 },
+      $set: {
+        registrationStatus: "not_invited",
+        isLoginEnabled: false,
+      },
+    });
+
+    await logLifeActivity({
+      action: "DISCONNECT_ACCOUNT",
+      resourceType: "people",
+      resourceId: id,
+      resourceName: person.name,
+      details: `Disconnected verified account link for ${person.name}`,
+    });
+
+    revalidatePath("/people");
+    revalidatePath(`/people/${id}`);
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to disconnect account" };
+  }
+}
+
+export async function cancelPersonInvitation(id: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    await connectToDatabase();
+    const auth = await getLifeAuthContext();
+    if (!auth || (!auth.isOwner && !auth.isAdmin)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const person = await LifePerson.findById(id);
+    if (!person) return { success: false, error: "Person not found" };
+
+    await LifePerson.findByIdAndUpdate(id, {
+      $set: {
+        registrationStatus: "not_invited",
+      },
+      $unset: {
+        invitationToken: 1,
+        invitationExpiresAt: 1,
+      },
+    });
+
+    await logLifeActivity({
+      action: "CANCEL_INVITATION",
+      resourceType: "people",
+      resourceId: id,
+      resourceName: person.name,
+      details: `Cancelled invitation for ${person.name}`,
+    });
+
+    revalidatePath("/people");
+    revalidatePath(`/people/${id}`);
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to cancel invitation" };
+  }
 }
 
 export async function setPersonAccountStatus(

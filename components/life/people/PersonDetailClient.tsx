@@ -1,4084 +1,1331 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Phone,
-  MessageCircle,
+  MessageSquare,
   Mail,
   FileText,
-  FolderLock,
-  CheckCircle2,
   Lock,
-  Unlock,
   Shield,
   Clock,
   Wallet,
-  Coins,
-  HeartHandshake,
   AlertCircle,
-  UserCheck,
-  UserX,
   ExternalLink,
-  MoreVertical,
+  MoreHorizontal,
   Pencil,
-  Building2,
-  User,
-  Loader2,
-  Share2,
-  HeartPulse,
-  Stethoscope,
-  Sparkles,
-  ScrollText,
-  StickyNote,
-  Plus,
-  Pin,
-  Archive,
-  History,
-  Timer,
-  ShieldAlert,
-  Check,
-  X,
-  Paperclip,
-  Calendar,
-  Eye,
-  MapPin,
-  ClipboardList,
-  LayoutGrid,
+  Briefcase,
   Users,
-  Info,
   ChevronRight,
+  ChevronDown,
+  Eye,
+  EyeOff,
+  Copy,
+  Check,
+  ClipboardList,
+  Heart,
+  Landmark,
+  UserX,
+  Send,
+  Loader2,
+  X,
+  AlertTriangle,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import {
-  updatePerson,
-  setPersonAccountStatus,
-  updatePersonAccessAndPermissions,
-} from "@/lib/actions/lifePeople.actions";
-import { getCategoriesAndSubcategories } from "@/lib/actions/lifeCategory.actions";
-import {
-  getPersonNotes,
-  createNote,
-  updateNote,
-  requestNoteUnlock,
-  approveNoteUnlock,
-  rejectNoteUnlock,
-  cancelNoteUnlock,
-  extendNoteUnlock,
-  relockNote,
-  recordNoteUserAction,
-  archiveNote,
-} from "@/lib/actions/lifeNote.actions";
 import toast from "react-hot-toast";
-import type {
-  ILifeDocument,
-  ILifeContact,
-  ILifePerson,
-  ILifeNote,
-  ILifeCategory,
-  NoteType,
-  NoteStatus,
-  AccountStatus,
-  LifeRole,
-  LifePermission,
-} from "@/types";
-
-// ============================================================
-// Brand SVG Icons (Matching Reference UI)
-// ============================================================
-
-function FacebookIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="12" fill="#1877F2" />
-      <path
-        d="M15.5 12.05h-2.35v8.4h-3.48v-8.4H7.85v-2.97h1.82V7.12c0-1.8 1.1-2.78 2.7-2.78.77 0 1.58.07 1.97.12v2.29h-1.35c-.87 0-1.04.41-1.04 1.02v1.31h2.53l-.33 2.97z"
-        fill="#FFFFFF"
-      />
-    </svg>
-  );
-}
-
-function MessengerIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="12" fill="#0084FF" />
-      <path
-        d="M12 4.5c-4.14 0-7.5 3.13-7.5 7 0 2.21 1.09 4.17 2.8 5.42v2.58l2.48-1.36c.7.2 1.45.31 2.22.31 4.14 0 7.5-3.13 7.5-7s-3.36-6.95-7.5-6.95zm.77 9.42l-1.96-2.09-3.83 2.09 4.21-4.47 2.01 2.09 3.78-2.09-4.21 4.47z"
-        fill="#FFFFFF"
-      />
-    </svg>
-  );
-}
-
-function InstagramIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none">
-      <defs>
-        <linearGradient id="igGradient" x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#FD5949" />
-          <stop offset="50%" stopColor="#D6249F" />
-          <stop offset="100%" stopColor="#285AEB" />
-        </linearGradient>
-      </defs>
-      <rect width="24" height="24" rx="6" fill="url(#igGradient)" />
-      <path
-        d="M12 7a5 5 0 100 10 5 5 0 000-10zm0 8.2a3.2 3.2 0 110-6.4 3.2 3.2 0 010 6.4zm5.2-8.6a1.2 1.2 0 11-2.4 0 1.2 1.2 0 012.4 0z"
-        fill="#FFFFFF"
-      />
-      <rect
-        x="3.5"
-        y="3.5"
-        width="17"
-        height="17"
-        rx="4.5"
-        stroke="#FFFFFF"
-        strokeWidth="1.6"
-      />
-    </svg>
-  );
-}
-
-function TikTokIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="12" fill="#000000" />
-      <path
-        d="M16.5 8.2c-.85-.5-1.42-1.35-1.54-2.35h-2.1v9.65a2.15 2.15 0 11-2.15-2.15c.24 0 .47.04.68.12V11.3a4.28 4.28 0 00-.68-.05 4.28 4.28 0 104.28 4.28V9.82c1.03.73 2.3 1.18 3.66 1.18V8.87c-.82 0-1.59-.25-2.15-.67z"
-        fill="#FFFFFF"
-      />
-    </svg>
-  );
-}
-
-function TelegramIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="12" fill="#229ED9" />
-      <path
-        d="M6.2 11.9l9.9-4.1c.5-.2.9.1.7.7l-1.7 8c-.1.6-.5.7-1 .4l-2.7-2-1.3 1.2c-.1.2-.3.3-.6.3l.2-2.8 5-4.5c.2-.2 0-.3-.3-.1l-6.2 3.9-2.7-.8c-.6-.2-.6-.6.1-.8z"
-        fill="#FFFFFF"
-      />
-    </svg>
-  );
-}
-
-function LinkedInIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none">
-      <rect width="24" height="24" rx="4" fill="#0A66C2" />
-      <path
-        d="M6.8 9.3h2.6v8.4H6.8V9.3zM8.1 5.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM11.2 9.3h2.5v1.2h.04c.35-.66 1.22-1.36 2.5-1.36 2.68 0 3.17 1.76 3.17 4.05v4.5h-2.6v-4c0-.95-.02-2.18-1.33-2.18-1.33 0-1.54 1.04-1.54 2.11v4.07h-2.6V9.3z"
-        fill="#FFFFFF"
-      />
-    </svg>
-  );
-}
-
-function YouTubeIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none">
-      <rect width="24" height="24" rx="6" fill="#FF0000" />
-      <path d="M10 8.5l5.5 3.5-5.5 3.5V8.5z" fill="#FFFFFF" />
-    </svg>
-  );
-}
-
-function WebsiteIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="12" fill="#10B981" />
-      <path
-        d="M12 4.5a7.5 7.5 0 100 15 7.5 7.5 0 000-15zm5.9 7H14.7c-.1-1.6-.5-3.1-1.1-4.2 2 .7 3.5 2.3 4.3 4.2zm-4.7 0H10.8c.1-1.5.5-3 1.2-4.1.7 1.1 1.1 2.6 1.2 4.1zm-3.4 0H6.1c.8-1.9 2.3-3.5 4.3-4.2-.6 1.1-1 2.6-1.1 4.2zm-1.1 1.5h3.2c.1 1.5.5 3 1.1 4.2-2-.7-3.5-2.3-4.3-4.2zm4.5 0h2.4c-.1 1.5-.5 3-1.2 4.1-.7-1.1-1.1-2.6-1.2-4.1zm3.7 0h3.2c-.8 1.9-2.3 3.5-4.3 4.2.6-1.1 1-2.6 1.1-4.2z"
-        fill="#FFFFFF"
-      />
-    </svg>
-  );
-}
-
-// ============================================================
-// Types & Interface
-// ============================================================
-
-interface PersonData {
-  person: ILifePerson & {
-    personalMessage?: string;
-    responsibilities?: string[];
-    businessInstructions?: string[];
-    isLoginEnabled?: boolean;
-    accountStatus?: string;
-  };
-  financialCare: any[];
-  moneyRecords: any[];
-  documents: ILifeDocument[];
-  contacts: ILifeContact[];
-  notes: any[];
-  instructions: any[];
-  responsibilities: any[];
-  messages: any[];
-  assets?: any[];
-}
+import { AddEditPersonModal } from "./AddEditPersonModal";
+import {
+  archivePerson,
+  disconnectPersonAccount,
+  cancelPersonInvitation,
+  checkPersonArchiveSummary,
+  updatePerson,
+} from "@/lib/actions/lifePeople.actions";
+import { sendPersonInvitation } from "@/lib/actions/lifeInvitation.actions";
+import type { ILifePerson } from "@/types";
 
 interface PersonDetailClientProps {
-  personData: PersonData;
-  currentUser?: {
+  personData: {
+    person: ILifePerson;
+    financialCare: any[];
+    moneyRecords: any[];
+    documents: any[];
+    contacts: any[];
+    notes: any[];
+    instructions: any[];
+    responsibilities: any[];
+    messages: any[];
+    assets: any[];
+    guardianRecord?: any;
+    businessRecords?: any[];
+    recordPermissions?: any[];
+  };
+  currentUser: {
     isOwner: boolean;
     isAdmin: boolean;
     personId?: string;
   };
 }
 
-interface PersonNoteAttachment {
-  name: string;
-  url: string;
-  type: string;
-  size?: number;
+// Avatar color helper
+function getInitials(name: string): string {
+  if (!name) return "P";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return name.slice(0, 1).toUpperCase();
+}
+
+function getShortName(name: string): string {
+  if (!name) return "";
+  const parts = name.trim().split(/\s+/);
+  return parts[parts.length - 1] || parts[0];
+}
+
+// Masking helper: +880 17*****
+function maskPhone(phone: string): string {
+  if (!phone) return "";
+  if (phone.length <= 6) return phone;
+  const prefix = phone.slice(0, 7);
+  return `${prefix}*****`;
+}
+
+// Masking helper: sabbir.a***@gmail.com
+function maskEmail(email: string): string {
+  if (!email) return "";
+  const [user, domain] = email.split("@");
+  if (!domain) return email;
+  const visible = user.slice(0, Math.min(8, user.length));
+  return `${visible}***@${domain}`;
 }
 
 export function PersonDetailClient({
   personData,
   currentUser,
 }: PersonDetailClientProps) {
-  const isOwnerProfile =
-    personData.person.role === "owner" ||
-    personData.person.role === "super_admin";
-  const [person, setPerson] = useState(personData.person);
-  const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("overview");
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [savingEdit, setSavingEdit] = useState(false);
+  const router = useRouter();
+  const [person, setPerson] = useState<ILifePerson>(personData.person);
 
-  const isSuperUser = Boolean(currentUser?.isOwner || currentUser?.isAdmin);
-  const isSelf = Boolean(
-    currentUser?.personId &&
-    String(currentUser.personId) === String(person._id),
+  // Section Selector: "overview" (Screen 2) | "linked_records" (Screen 3) | "access_roles" (Screen 4)
+  const [activeSection, setActiveSection] = useState<
+    "overview" | "linked_records" | "access_roles"
+  >("overview");
+
+  // Filter for Linked Records screen
+  const [recordTypeFilter, setRecordTypeFilter] = useState<string>("all");
+
+  // Privacy Eye Toggles
+  const [revealPhone, setRevealPhone] = useState(false);
+  const [revealEmail, setRevealEmail] = useState(false);
+
+  // Modals state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [ownerNoteDraft, setOwnerNoteDraft] = useState(
+    person.ownerNote || person.shortNote || person.notes || ""
   );
-  const canEdit = isSuperUser || isSelf;
+  const [savingNote, setSavingNote] = useState(false);
 
-  // Profile & Access Management Modal state
-  const [accessModalOpen, setAccessModalOpen] = useState(false);
-  const [accessStep, setAccessStep] = useState<"edit" | "review">("edit");
-  const [allCategories, setAllCategories] = useState<
-    Record<string, ILifeCategory[]>
-  >({});
-  const [accessSaving, setAccessSaving] = useState(false);
-  const [accessForm, setAccessForm] = useState({
-    name: person.name || "",
-    relation: person.relation || "",
-    designation: person.designation || "",
-    phone: person.phone || "",
-    whatsapp: person.whatsapp || "",
-    email: person.email || "",
-    role: (person.role || "individual") as LifeRole,
-    isRecordOnly: Boolean(person.isRecordOnly),
-    isLoginEnabled: person.isLoginEnabled !== false && !person.isRecordOnly,
-    accountStatus: (person.accountStatus || "active") as AccountStatus,
-    emergencyPriority: person.emergencyPriority ?? 0,
-    canViewPersonal: Boolean(person.permissions?.canViewPersonal),
-    canViewBusiness: Boolean(person.permissions?.canViewBusiness),
-    canViewFinancial: Boolean(person.permissions?.canViewFinancial),
-    canViewSensitive: Boolean(person.permissions?.canViewSensitive),
-    canRevealVault: Boolean(person.permissions?.canRevealVault),
-    canManageAccess: Boolean(person.permissions?.canManageAccess),
-    canAccessEmergency: Boolean(person.permissions?.canAccessEmergency),
-    canManageSecretNotes: Boolean(person.permissions?.canManageSecretNotes),
-    notesAccessScope: person.permissions?.notesAccessScope || "assigned_only",
-    allowedCategoryKeys: person.permissions?.allowedCategoryKeys || [],
-    allowedSubcategoryIds: person.permissions?.allowedSubcategoryIds || [],
-  });
+  // Archive safety modal
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
+  const [archiveSummary, setArchiveSummary] = useState<any | null>(null);
+  const [archiving, setArchiving] = useState(false);
 
-  // Edit contact & social links form state
-  const [editForm, setEditForm] = useState({
-    phone: person.phone || "",
-    whatsapp: person.whatsapp || "",
-    email: person.email || "",
-    facebook: person.socialLinks?.facebook || "",
-    messenger: person.socialLinks?.messenger || "",
-    instagram: person.socialLinks?.instagram || "",
-    tiktok: person.socialLinks?.tiktok || "",
-    telegram: person.socialLinks?.telegram || "",
-    linkedin: person.socialLinks?.linkedin || "",
-    youtube: person.socialLinks?.youtube || "",
-    website: person.socialLinks?.website || "",
-  });
-
-  // Notes state
-  const [notes, setNotes] = useState<ILifeNote[]>([]);
-
-  const [notesLoading, setNotesLoading] = useState(false);
-  const [noteModalOpen, setNoteModalOpen] = useState(false);
-  const [noteSaving, setNoteSaving] = useState(false);
-  const [noteFilter, setNoteFilter] = useState<string>("all");
-  const [editingNote, setEditingNote] = useState<ILifeNote | null>(null);
-  const [noteForm, setNoteForm] = useState({
-    title: "",
-    content: "",
-    instructions: "",
-    noteType: "always_visible" as NoteType,
-    priority: "normal" as
-      | "normal"
-      | "important"
-      | "emergency"
-      | "low"
-      | "medium"
-      | "high"
-      | "critical",
-    category: "",
-    tags: "",
-    isPinned: false,
-    waitingPeriodHours: 48,
-    deliveryType: "immediate" as "immediate" | "future",
-    scheduledReleaseDate: "" as string,
-    needHelpAllowed: true,
-    confirmReadRequired: false,
-  });
-  const [pendingNoteAttachments, setPendingNoteAttachments] = useState<
-    PersonNoteAttachment[]
-  >([]);
-  const noteFileInputRef = useRef<HTMLInputElement | null>(null);
-  const [noteHistoryModal, setNoteHistoryModal] = useState<ILifeNote | null>(
-    null,
+  // Account status check
+  const isConnected = Boolean(
+    person.clerkUserId || person.registrationStatus === "active_user"
   );
-  const [noteResponseText, setNoteResponseText] = useState("");
+  const isInvitePending = person.registrationStatus === "invitation_sent";
 
-  const loadNotes = async () => {
-    setNotesLoading(true);
+  // Connections and relationship tags
+  const tags: string[] = [];
+  if (person.relation && person.relation.toLowerCase() !== "other") {
+    tags.push(person.relation);
+  }
+  const conns =
+    Array.isArray(person.connections) && person.connections.length > 0
+      ? person.connections
+      : person.category
+      ? [person.category === "Family Member" ? "Family" : person.category]
+      : [];
+
+  for (const c of conns) {
+    if (!tags.includes(c)) tags.push(c);
+  }
+
+  // Handle Note Save
+  const handleSaveOwnerNote = async () => {
+    setSavingNote(true);
     try {
-      const data = await getPersonNotes(person._id);
-      setNotes(Array.isArray(data) ? data : []);
-    } catch {
-      // silent
-    } finally {
-      setNotesLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadNotes();
-  }, [person._id]);
-
-  const openAccessModal = async () => {
-    setAccessForm({
-      name: person.name || "",
-      relation: person.relation || "",
-      designation: person.designation || "",
-      phone: person.phone || "",
-      whatsapp: person.whatsapp || "",
-      email: person.email || "",
-      role: (person.role || "individual") as LifeRole,
-      isRecordOnly: Boolean(person.isRecordOnly),
-      isLoginEnabled: person.isLoginEnabled !== false && !person.isRecordOnly,
-      accountStatus: (person.accountStatus || "active") as AccountStatus,
-      emergencyPriority: person.emergencyPriority ?? 0,
-      canViewPersonal: Boolean(person.permissions?.canViewPersonal),
-      canViewBusiness: Boolean(person.permissions?.canViewBusiness),
-      canViewFinancial: Boolean(person.permissions?.canViewFinancial),
-      canViewSensitive: Boolean(person.permissions?.canViewSensitive),
-      canRevealVault: Boolean(person.permissions?.canRevealVault),
-      canManageAccess: Boolean(person.permissions?.canManageAccess),
-      canAccessEmergency: Boolean(person.permissions?.canAccessEmergency),
-      canManageSecretNotes: Boolean(person.permissions?.canManageSecretNotes),
-      notesAccessScope: person.permissions?.notesAccessScope || "assigned_only",
-      allowedCategoryKeys: person.permissions?.allowedCategoryKeys || [],
-      allowedSubcategoryIds: person.permissions?.allowedSubcategoryIds || [],
-    });
-    setAccessStep("edit");
-    setAccessModalOpen(true);
-    try {
-      const cats = await getCategoriesAndSubcategories();
-      setAllCategories(cats);
-    } catch {
-      // silent
-    }
-  };
-
-  const getPermissionDiff = () => {
-    const added: string[] = [];
-    const removed: string[] = [];
-
-    const prevPerms = person.permissions || {};
-    const checkPerm = (label: string, prevVal: boolean, newVal: boolean) => {
-      if (!prevVal && newVal) added.push(label);
-      if (prevVal && !newVal) removed.push(label);
-    };
-
-    checkPerm(
-      "View Personal Data",
-      Boolean(prevPerms.canViewPersonal),
-      accessForm.canViewPersonal,
-    );
-    checkPerm(
-      "View Business Continuity",
-      Boolean(prevPerms.canViewBusiness),
-      accessForm.canViewBusiness,
-    );
-    checkPerm(
-      "View Financial Care",
-      Boolean(prevPerms.canViewFinancial),
-      accessForm.canViewFinancial,
-    );
-    checkPerm(
-      "View Sensitive Records",
-      Boolean(prevPerms.canViewSensitive),
-      accessForm.canViewSensitive,
-    );
-    checkPerm(
-      "Reveal Vault Secrets",
-      Boolean(prevPerms.canRevealVault),
-      accessForm.canRevealVault,
-    );
-    checkPerm(
-      "Manage Access Control",
-      Boolean(prevPerms.canManageAccess),
-      accessForm.canManageAccess,
-    );
-    checkPerm(
-      "Access Emergency Mode",
-      Boolean(prevPerms.canAccessEmergency),
-      accessForm.canAccessEmergency,
-    );
-    checkPerm(
-      "Manage Secret Notes",
-      Boolean(prevPerms.canManageSecretNotes),
-      accessForm.canManageSecretNotes,
-    );
-
-    if (person.role !== accessForm.role) {
-      added.push(`Role upgraded/changed to ${accessForm.role.toUpperCase()}`);
-      removed.push(`Previous role: ${person.role.toUpperCase()}`);
-    }
-
-    if (person.isLoginEnabled !== accessForm.isLoginEnabled) {
-      if (accessForm.isLoginEnabled) added.push("Login Access Enabled");
-      else removed.push("Login Access Disabled");
-    }
-
-    if (Boolean(person.isRecordOnly) !== accessForm.isRecordOnly) {
-      if (accessForm.isRecordOnly)
-        added.push("Set to Record-Only (Reference Only)");
-      else removed.push("Record-Only status removed");
-    }
-
-    return { added, removed };
-  };
-
-  const handleSaveAccess = async () => {
-    setAccessSaving(true);
-    try {
-      const diff = getPermissionDiff();
-      await updatePersonAccessAndPermissions(person._id, {
-        name: accessForm.name.trim(),
-        relation: accessForm.relation.trim(),
-        designation: accessForm.designation.trim(),
-        phone: accessForm.phone.trim(),
-        whatsapp: accessForm.whatsapp.trim(),
-        email: accessForm.email.trim(),
-        role: accessForm.role,
-        isRecordOnly: accessForm.isRecordOnly,
-        isLoginEnabled: accessForm.isLoginEnabled,
-        accountStatus: accessForm.accountStatus,
-        emergencyPriority: accessForm.emergencyPriority,
-        allowedCategoryKeys: accessForm.allowedCategoryKeys,
-        allowedSubcategoryIds: accessForm.allowedSubcategoryIds,
-        permissions: {
-          canViewPersonal: accessForm.canViewPersonal,
-          canViewBusiness: accessForm.canViewBusiness,
-          canViewFinancial: accessForm.canViewFinancial,
-          canViewSensitive: accessForm.canViewSensitive,
-          canRevealVault: accessForm.canRevealVault,
-          canManageAccess: accessForm.canManageAccess,
-          canAccessEmergency: accessForm.canAccessEmergency,
-          canManageSecretNotes: accessForm.canManageSecretNotes,
-          notesAccessScope: accessForm.notesAccessScope,
-          allowedCategoryKeys: accessForm.allowedCategoryKeys,
-          allowedSubcategoryIds: accessForm.allowedSubcategoryIds,
-        },
-        addedDiffSummary: diff.added,
-        removedDiffSummary: diff.removed,
+      await updatePerson(String(person._id), {
+        ownerNote: ownerNoteDraft.trim(),
+        shortNote: ownerNoteDraft.trim(),
       });
-
       setPerson((prev) => ({
         ...prev,
-        name: accessForm.name.trim(),
-        relation: accessForm.relation.trim(),
-        designation: accessForm.designation.trim(),
-        phone: accessForm.phone.trim(),
-        whatsapp: accessForm.whatsapp.trim(),
-        email: accessForm.email.trim(),
-        role: accessForm.role,
-        isRecordOnly: accessForm.isRecordOnly,
-        isLoginEnabled: accessForm.isLoginEnabled,
-        accountStatus: accessForm.accountStatus,
-        emergencyPriority: accessForm.emergencyPriority,
-        permissions: {
-          ...prev.permissions,
-          canViewPersonal: accessForm.canViewPersonal,
-          canViewBusiness: accessForm.canViewBusiness,
-          canViewFinancial: accessForm.canViewFinancial,
-          canViewSensitive: accessForm.canViewSensitive,
-          canRevealVault: accessForm.canRevealVault,
-          canManageAccess: accessForm.canManageAccess,
-          canAccessEmergency: accessForm.canAccessEmergency,
-          canManageSecretNotes: accessForm.canManageSecretNotes,
-          notesAccessScope: accessForm.notesAccessScope,
-          allowedCategoryKeys: accessForm.allowedCategoryKeys,
-          allowedSubcategoryIds: accessForm.allowedSubcategoryIds,
-        },
+        ownerNote: ownerNoteDraft.trim(),
+        shortNote: ownerNoteDraft.trim(),
       }));
-
-      toast.success("Profile & access permissions updated successfully!");
-      setAccessModalOpen(false);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update permissions.");
-    } finally {
-      setAccessSaving(false);
-    }
-  };
-
-  const handlePersonNoteAttachmentChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    const maxSize = 8 * 1024 * 1024;
-    Array.from(files).forEach((file) => {
-      if (file.size > maxSize) {
-        toast.error(`File "${file.name}" exceeds 8MB limit.`);
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const url = event.target?.result as string;
-        if (url) {
-          setPendingNoteAttachments((prev) => [
-            ...prev,
-            {
-              name: file.name,
-              url,
-              type: file.type || "application/octet-stream",
-              size: file.size,
-            },
-          ]);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-    if (noteFileInputRef.current) noteFileInputRef.current.value = "";
-  };
-
-  const removePersonNoteAttachment = (index: number) => {
-    setPendingNoteAttachments((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleSaveNote = async () => {
-    if (!noteForm.title.trim() || !noteForm.content.trim()) {
-      toast.error("Title and content are required.");
-      return;
-    }
-    setNoteSaving(true);
-    try {
-      const tagsArr = noteForm.tags
-        ? noteForm.tags
-            .split(",")
-            .map((t) => t.trim())
-            .filter(Boolean)
-        : [];
-      const attachmentUrls = pendingNoteAttachments.map((a) => a.url);
-      if (editingNote) {
-        await updateNote(editingNote._id, {
-          title: noteForm.title,
-          content: noteForm.content,
-          instructions: noteForm.instructions,
-          noteType: noteForm.noteType,
-          priority: noteForm.priority,
-          category: noteForm.category,
-          tags: tagsArr,
-          attachments: attachmentUrls,
-          isPinned: noteForm.isPinned,
-          waitingPeriodHours: noteForm.waitingPeriodHours,
-          deliveryType: noteForm.deliveryType,
-          scheduledReleaseDate: noteForm.scheduledReleaseDate || undefined,
-          needHelpAllowed: noteForm.needHelpAllowed,
-          confirmReadRequired: noteForm.confirmReadRequired,
-        });
-        toast.success("Note updated.");
-      } else {
-        await createNote({
-          title: noteForm.title,
-          content: noteForm.content,
-          instructions: noteForm.instructions,
-          noteType: noteForm.noteType,
-          assignedPersonId: person._id,
-          priority: noteForm.priority,
-          category: noteForm.category,
-          tags: tagsArr,
-          attachments: attachmentUrls,
-          isPinned: noteForm.isPinned,
-          waitingPeriodHours: noteForm.waitingPeriodHours,
-          deliveryType: noteForm.deliveryType,
-          scheduledReleaseDate: noteForm.scheduledReleaseDate || undefined,
-          needHelpAllowed: noteForm.needHelpAllowed,
-          confirmReadRequired: noteForm.confirmReadRequired,
-        });
-        toast.success("Note created.");
-      }
-      setNoteModalOpen(false);
-      setEditingNote(null);
-      resetNoteForm();
-      await loadNotes();
+      toast.success("Owner-only note saved.");
+      setShowNoteModal(false);
     } catch (err: any) {
       toast.error(err.message || "Failed to save note.");
     } finally {
-      setNoteSaving(false);
+      setSavingNote(false);
     }
   };
 
-  const resetNoteForm = () => {
-    setNoteForm({
-      title: "",
-      content: "",
-      instructions: "",
-      noteType: "always_visible",
-      priority: "normal",
-      category: "",
-      tags: "",
-      isPinned: false,
-      waitingPeriodHours: 48,
-      deliveryType: "immediate",
-      scheduledReleaseDate: "",
-      needHelpAllowed: true,
-      confirmReadRequired: false,
-    });
-    setPendingNoteAttachments([]);
+  // Open Archive Confirm
+  const handleOpenArchive = async () => {
+    setShowMoreMenu(false);
+    const summary = await checkPersonArchiveSummary(String(person._id));
+    setArchiveSummary(summary);
+    setShowArchiveConfirm(true);
   };
 
-  const openEditNote = (note: ILifeNote) => {
-    setEditingNote(note);
-    const existing: PersonNoteAttachment[] = Array.isArray(
-      (note as any).attachments,
-    )
-      ? (note as any).attachments
-          .map((a: any) =>
-            typeof a === "string"
-              ? { name: "attachment", url: a, type: "application/octet-stream" }
-              : {
-                  name: a?.name || "attachment",
-                  url: a?.url || "",
-                  type: a?.type || "application/octet-stream",
-                },
-          )
-          .filter((a: PersonNoteAttachment) => a.url)
-      : [];
-    setNoteForm({
-      title: note.title,
-      content: note.content,
-      instructions: (note as any).instructions || "",
-      noteType: note.noteType,
-      priority: note.priority || "normal",
-      category: note.category || "",
-      tags: (note.tags || []).join(", "),
-      isPinned: note.isPinned,
-      waitingPeriodHours: note.waitingPeriodHours,
-      deliveryType:
-        (note as any).deliveryType ||
-        (note.noteType === "scheduled_release" ? "future" : "immediate"),
-      scheduledReleaseDate: note.scheduledReleaseDate
-        ? new Date(note.scheduledReleaseDate).toISOString().slice(0, 16)
-        : "",
-      needHelpAllowed: (note as any).needHelpAllowed !== false,
-      confirmReadRequired: Boolean((note as any).confirmReadRequired),
-    });
-    setPendingNoteAttachments(existing);
-    setNoteModalOpen(true);
-  };
-
-  const handleNoteAction = async (
-    noteId: string,
-    action: string,
-    text?: string,
-  ) => {
+  // Confirm Archive
+  const handleConfirmArchive = async () => {
+    setArchiving(true);
     try {
-      switch (action) {
-        case "request_unlock":
-          await requestNoteUnlock(noteId);
-          toast.success("Unlock request submitted.");
-          break;
-        case "approve":
-          await approveNoteUnlock(noteId);
-          toast.success("Note approved and released.");
-          break;
-        case "reject":
-          await rejectNoteUnlock(noteId, "Rejected by admin");
-          toast.success("Request rejected.");
-          break;
-        case "cancel":
-          await cancelNoteUnlock(noteId);
-          toast.success("Request cancelled.");
-          break;
-        case "extend":
-          await extendNoteUnlock(noteId, 24);
-          toast.success("Countdown extended by 24 hours.");
-          break;
-        case "relock":
-          await relockNote(noteId);
-          toast.success("Note re-locked.");
-          break;
-        case "read":
-          await recordNoteUserAction(noteId, "read");
-          toast.success("Marked as read.");
-          break;
-        case "acknowledge":
-          await recordNoteUserAction(noteId, "acknowledge");
-          toast.success("Acknowledged.");
-          break;
-        case "followup":
-          await recordNoteUserAction(noteId, "followup");
-          toast.success("Follow-up required flagged.");
-          break;
-        case "completed":
-          await recordNoteUserAction(noteId, "completed");
-          toast.success("Marked as completed.");
-          break;
-        case "response":
-          if (text) {
-            await recordNoteUserAction(noteId, "response", text);
-            toast.success("Response submitted.");
-          }
-          break;
-        case "archive":
-          await archiveNote(noteId);
-          toast.success("Note archived.");
-          break;
-      }
-      await loadNotes();
+      await archivePerson(String(person._id));
+      toast.success(`${person.name} has been archived.`);
+      router.push("/people");
     } catch (err: any) {
-      toast.error(err.message || "Action failed.");
+      toast.error(err.message || "Failed to archive person.");
+    } finally {
+      setArchiving(false);
     }
   };
 
-  const formatCountdown = (deadline: string | Date) => {
-    const now = new Date();
-    const dl = new Date(deadline);
-    const diff = dl.getTime() - now.getTime();
-    if (diff <= 0) return "Expired";
-    const hours = Math.floor(diff / 3600000);
-    const mins = Math.floor((diff % 3600000) / 60000);
-    return `${hours}h ${mins}m remaining`;
-  };
-
-  const getNoteStatusColor = (status: NoteStatus) => {
-    const colors: Record<string, string> = {
-      locked: "bg-slate-500/10 text-slate-600 border-slate-500/20",
-      unlock_requested: "bg-amber-500/10 text-amber-600 border-amber-500/20",
-      countdown_active: "bg-orange-500/10 text-orange-600 border-orange-500/20",
-      approved: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
-      released: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
-      request_cancelled: "bg-slate-500/10 text-slate-600 border-slate-500/20",
-      request_rejected: "bg-rose-500/10 text-rose-600 border-rose-500/20",
-      relocked: "bg-slate-500/10 text-slate-600 border-slate-500/20",
-      archived: "bg-slate-500/10 text-slate-500 border-slate-500/20",
-    };
-    return (
-      colors[status] || "bg-slate-500/10 text-slate-600 border-slate-500/20"
-    );
-  };
-
-  const getNoteTypeLabel = (noteType: NoteType) => {
-    const labels: Record<string, string> = {
-      internal_admin: "Internal Admin",
-      always_visible: "Always Visible",
-      manual_release: "Manual Release",
-      scheduled_release: "Scheduled Release",
-      secret_emergency: "Secret Note",
-    };
-    return labels[noteType] || noteType;
-  };
-
-  const handleToggleLock = async () => {
-    const newStatus = person.status === "locked" ? "active" : "locked";
-    setLoading(true);
-    try {
-      const updated = await updatePerson(person._id, {
-        status: newStatus as any,
-        accountStatus: newStatus as any,
-      });
+  // Disconnect Account
+  const handleDisconnectAccount = async () => {
+    setShowMoreMenu(false);
+    if (
+      !confirm(
+        `Are you sure you want to unlink the verified login account for ${person.name}?`
+      )
+    )
+      return;
+    const res = await disconnectPersonAccount(String(person._id));
+    if (res.success) {
+      toast.success("Account unlinked.");
       setPerson((prev) => ({
         ...prev,
-        status: newStatus as any,
-        accountStatus: newStatus as any,
+        clerkUserId: undefined,
+        registrationStatus: "not_invited",
+        isLoginEnabled: false,
       }));
-      toast.success(
-        newStatus === "locked"
-          ? `${person.name} access has been locked.`
-          : `${person.name} access has been unlocked.`,
-      );
-    } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : "Failed to update status.";
-      toast.error(msg);
-    } finally {
-      setLoading(false);
+    } else {
+      toast.error(res.error || "Failed to disconnect account.");
     }
   };
 
-  const handleToggleLogin = async () => {
-    const newLoginState = person.isLoginEnabled === false;
-    setLoading(true);
-    try {
-      await updatePerson(person._id, {
-        isLoginEnabled: newLoginState,
-      });
+  // Cancel Invitation
+  const handleCancelInvitation = async () => {
+    setShowMoreMenu(false);
+    const res = await cancelPersonInvitation(String(person._id));
+    if (res.success) {
+      toast.success("Invitation cancelled.");
       setPerson((prev) => ({
         ...prev,
-        isLoginEnabled: newLoginState,
+        registrationStatus: "not_invited",
       }));
-      toast.success(
-        newLoginState
-          ? `Login enabled for ${person.name}.`
-          : `Login disabled for ${person.name}.`,
-      );
-    } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : "Failed to update login status.";
-      toast.error(msg);
-    } finally {
-      setLoading(false);
+    } else {
+      toast.error(res.error || "Failed to cancel invitation.");
     }
   };
 
-  const handleAccountStatusChange = async (newStatus: AccountStatus) => {
-    setLoading(true);
-    try {
-      await setPersonAccountStatus(person._id, newStatus);
+  // Send / Resend Invitation
+  const handleSendInvitation = async () => {
+    setShowMoreMenu(false);
+    if (!person.email) {
+      toast.error("An email address is required to send an invitation.");
+      return;
+    }
+    const res = await sendPersonInvitation(String(person._id), person.email);
+    if (res.success) {
+      toast.success(`Invitation sent to ${person.email}!`);
       setPerson((prev) => ({
         ...prev,
-        accountStatus: newStatus,
-        status:
-          newStatus === "archived"
-            ? "archived"
-            : newStatus === "locked"
-              ? "locked"
-              : "active",
-        isLoginEnabled: newStatus === "active",
+        registrationStatus: "invitation_sent",
       }));
-      toast.success(`Account status set to ${newStatus.replace("_", " ")}.`);
-    } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : "Failed to update status.";
-      toast.error(msg);
-    } finally {
-      setLoading(false);
+    } else {
+      toast.error(res.message || "Failed to send invitation.");
     }
   };
 
-  const handleSaveContactSocial = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSavingEdit(true);
-    try {
-      const socialPayload = {
-        facebook: editForm.facebook.trim(),
-        messenger: editForm.messenger.trim(),
-        instagram: editForm.instagram.trim(),
-        tiktok: editForm.tiktok.trim(),
-        telegram: editForm.telegram.trim(),
-        linkedin: editForm.linkedin.trim(),
-        youtube: editForm.youtube.trim(),
-        website: editForm.website.trim(),
-      };
-
-      await updatePerson(person._id, {
-        phone: editForm.phone.trim(),
-        whatsapp: editForm.whatsapp.trim(),
-        email: editForm.email.trim(),
-        socialLinks: socialPayload,
-      });
-
-      setPerson((prev) => ({
-        ...prev,
-        phone: editForm.phone.trim(),
-        whatsapp: editForm.whatsapp.trim(),
-        email: editForm.email.trim(),
-        socialLinks: socialPayload,
-      }));
-
-      toast.success("Contact & social links updated successfully.");
-      setEditModalOpen(false);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to save links.";
-      toast.error(msg);
-    } finally {
-      setSavingEdit(false);
-    }
+  // Copy to clipboard helper
+  const handleCopy = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied to clipboard!`);
   };
 
-  const getPriorityLabel = (p?: number) => {
-    if (p === 1) return "Priority 1 (Primary)";
-    if (p === 2) return "Priority 2 (Secondary)";
-    if (p === 3) return "Priority 3 (Tertiary)";
-    return "Not Assigned";
-  };
+  // Build Linked Records List
+  const allLinkedRecords: any[] = [];
 
-  const getSocialUrl = (platform: string, rawValue?: string): string => {
-    if (!rawValue) return "#";
-    const val = rawValue.trim();
-    if (val.startsWith("http://") || val.startsWith("https://")) return val;
+  // 1. Business
+  const businessList = personData.businessRecords || [];
+  for (const b of businessList) {
+    allLinkedRecords.push({
+      id: b._id,
+      title: b.name || "GESN employment",
+      type: "work_business",
+      categoryLabel: "Work & Business",
+      icon: Briefcase,
+      iconBg: "bg-sky-50 text-sky-600",
+      tags: ["Linked • Private"],
+      link: "/business",
+      actionLabel: "Open record",
+    });
+  }
+  if (conns.includes("Staff") && businessList.length === 0) {
+    allLinkedRecords.push({
+      id: "staff-record",
+      title: "GESN employment",
+      type: "work_business",
+      categoryLabel: "Work & Business",
+      icon: Briefcase,
+      iconBg: "bg-sky-50 text-sky-600",
+      tags: ["Linked • Private"],
+      link: "/business",
+      actionLabel: "Open record",
+    });
+  }
 
-    const clean = val.replace(/^@/, "");
-    switch (platform) {
-      case "facebook":
-        return `https://facebook.com/${clean}`;
-      case "messenger":
-        return `https://m.me/${clean}`;
-      case "instagram":
-        return `https://instagram.com/${clean}`;
-      case "tiktok":
-        return `https://www.tiktok.com/@${clean}`;
-      case "telegram":
-        return `https://t.me/${clean}`;
-      case "linkedin":
-        return `https://www.linkedin.com/in/${clean}`;
-      case "youtube":
-        return `https://www.youtube.com/${val.startsWith("@") ? val : "@" + val}`;
-      case "website":
-        return `https://${val}`;
-      default:
-        return `https://${val}`;
-    }
-  };
+  // 2. Finance / SiS Care
+  const financialList = personData.financialCare || [];
+  const moneyList = personData.moneyRecords || [];
+  if (financialList.length > 0 || moneyList.length > 0) {
+    allLinkedRecords.push({
+      id: "sis-care-record",
+      title: "SiS Care",
+      type: "finance_assets",
+      categoryLabel: "Finance & Assets",
+      icon: Wallet,
+      iconBg: "bg-emerald-50 text-emerald-600",
+      tags: ["Shared selected records"],
+      link: "/finance",
+      actionLabel: "Open record",
+    });
+  }
 
-  // Supported Social Platforms (Only shown if value exists!)
-  const socialPlatforms = [
-    {
-      id: "facebook",
-      name: "Facebook",
-      icon: FacebookIcon,
-      value: person.socialLinks?.facebook,
-    },
-    {
-      id: "messenger",
-      name: "Messenger",
-      icon: MessengerIcon,
-      value: person.socialLinks?.messenger,
-    },
-    {
-      id: "instagram",
-      name: "Instagram",
-      icon: InstagramIcon,
-      value: person.socialLinks?.instagram,
-    },
-    {
-      id: "tiktok",
-      name: "TikTok",
-      icon: TikTokIcon,
-      value: person.socialLinks?.tiktok,
-    },
-    {
-      id: "telegram",
-      name: "Telegram",
-      icon: TelegramIcon,
-      value: person.socialLinks?.telegram,
-    },
-    {
-      id: "linkedin",
-      name: "LinkedIn",
-      icon: LinkedInIcon,
-      value: person.socialLinks?.linkedin,
-    },
-    {
-      id: "youtube",
-      name: "YouTube",
-      icon: YouTubeIcon,
-      value: person.socialLinks?.youtube,
-    },
-    {
-      id: "website",
-      name: "Website",
-      icon: WebsiteIcon,
-      value: person.socialLinks?.website,
-    },
-  ];
+  // 3. Responsibilities
+  for (const r of personData.responsibilities || []) {
+    allLinkedRecords.push({
+      id: r._id,
+      title: r.title || "Essential service operations",
+      type: "responsibilities",
+      categoryLabel: "Responsibilities",
+      icon: ClipboardList,
+      iconBg: "bg-indigo-50 text-[#4F46E5]",
+      tags: [
+        "Available now",
+        r.completionStatus === "completed" ? "Completed" : "In progress",
+      ],
+      link: "/instructions",
+      actionLabel: "Open record",
+    });
+  }
 
-  // STRICT RULE: Only show an icon/link when that information exists.
-  const activeSocials = socialPlatforms.filter((p) =>
-    Boolean(p.value && p.value.trim() !== ""),
-  );
+  // 4. Instructions
+  for (const inst of personData.instructions || []) {
+    allLinkedRecords.push({
+      id: inst._id,
+      title: inst.title || "Business continuity instructions",
+      type: "instructions",
+      categoryLabel: "Instructions",
+      icon: FileText,
+      iconBg: "bg-amber-50 text-amber-600",
+      tags: ["Locked for recipient • Timed request"],
+      link: "/instructions",
+      actionLabel: "Open record",
+    });
+  }
 
-  const isSuperAdmin =
-    person.role === "super_admin" ||
-    person.role === "owner" ||
-    (person.userRole as string) === "super_admin";
+  // 5. Emergency Contacts
+  for (const c of personData.contacts || []) {
+    allLinkedRecords.push({
+      id: c._id,
+      title: c.name || "Emergency contacts",
+      type: "emergency",
+      categoryLabel: "Emergency",
+      icon: Users,
+      iconBg: "bg-red-50 text-red-600",
+      tags: ["Available now"],
+      link: "/contacts",
+      actionLabel: "Open record",
+    });
+  }
 
-  const getSubTitle = () => {
-    if (person.designation) return person.designation;
-    if (person.role === "super_admin" || person.role === "owner")
-      return "Super Admin";
-    if (person.role === "admin") return "Administrator";
-    if (person.role === "guardian") return "Guardian";
-    if (person.relation) return person.relation;
-    return "Individual User";
-  };
+  // 6. Legacy & Legal
+  for (const m of personData.messages || []) {
+    allLinkedRecords.push({
+      id: m._id,
+      title: m.title || "Future handover",
+      type: "legacy_legal",
+      categoryLabel: "Legacy & Legal",
+      icon: Landmark,
+      iconBg: "bg-purple-50 text-purple-600",
+      tags: ["Guardian approval"],
+      link: "/legacy",
+      actionLabel: "Open record",
+    });
+  }
+
+  // Filter linked records by type
+  const filteredRecords = allLinkedRecords.filter((rec) => {
+    if (recordTypeFilter === "all") return true;
+    return rec.type === recordTypeFilter;
+  });
+
+  const initials = getInitials(person.name);
+  const shortName = getShortName(person.name);
 
   return (
-    <div className="space-y-5 max-w-4xl mx-auto pb-16">
-      {/* ============================================================ */}
-      {/* ============================================================ */}
-      {/* Top Bar (Matching Reference Design)                           */}
-      {/* ============================================================ */}
-      <div className="flex items-center justify-between pt-1">
-        <Link
-          href="/people"
-          className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-600 hover:text-[#4F46E5] transition-colors cursor-pointer"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back</span>
-        </Link>
-
-        <div className="flex items-center gap-2">
-          {canEdit && (
-            <button
-              type="button"
-              onClick={openAccessModal}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs transition-all cursor-pointer"
-            >
-              <Pencil className="w-3.5 h-3.5" />
-              <span>Edit</span>
-            </button>
-          )}
+    <div className="w-full max-w-lg mx-auto space-y-3.5 pb-24 pt-1 sm:pt-2">
+      {/* ══════════════════════════════════════════════════════════ */}
+      {/* TOP HEADER: Dynamic per Screen (Screen 2 vs 3 vs 4)        */}
+      {/* ══════════════════════════════════════════════════════════ */}
+      {activeSection === "overview" ? (
+        /* Screen 2 Top Subheader: < People */
+        <div className="flex items-center justify-between gap-2">
           <button
             type="button"
-            onClick={openAccessModal}
-            className="w-8 h-8 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-600 flex items-center justify-center shadow-2xs transition-all cursor-pointer"
+            onClick={() => router.push("/people")}
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-[#4F46E5] transition-colors py-1 cursor-pointer"
           >
-            <MoreVertical className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4" />
+            <span>People</span>
           </button>
         </div>
-      </div>
+      ) : (
+        /* Screen 3 & 4 Top Subheader: < [AS] [Sabbir] [Connected] [...] */
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <button
+              type="button"
+              onClick={() => setActiveSection("overview")}
+              className="text-slate-600 hover:text-[#4F46E5] transition-colors p-1 cursor-pointer shrink-0"
+              title="Back to Overview"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
 
-      {/* ============================================================ */}
-      {/* Person Header Card (Exact Match to Reference UI)             */}
-      {/* ============================================================ */}
-      <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-100 shadow-[0_2px_12px_rgba(30,27,75,0.04)] space-y-4">
-        <div className="flex items-start gap-4">
-          {/* Avatar with Status Dot */}
-          <div className="relative shrink-0">
-            <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-[#EEF2FF] border-2 border-indigo-100 flex items-center justify-center overflow-hidden shadow-2xs">
+            {/* Small circle avatar */}
+            <div className="w-7 h-7 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden shadow-2xs">
               {person.profilePhoto || person.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={person.profilePhoto || person.avatarUrl}
                   alt={person.name}
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="text-[#4F46E5] font-extrabold text-2xl">
-                  {person.name ? person.name.charAt(0).toUpperCase() : "U"}
-                </span>
+                initials
               )}
             </div>
-            {/* Status Dot */}
-            <span
-              className={`absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full border-2 border-white ${
-                person.registrationStatus === "active_user" || person.accountStatus === "active"
-                  ? "bg-emerald-500"
-                  : person.registrationStatus === "invitation_sent"
-                  ? "bg-amber-400"
-                  : "bg-slate-300"
-              }`}
-            />
-          </div>
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-lg sm:text-xl font-bold text-[#1E1B4B] truncate">
-                {person.name}
-              </h1>
-              <span
-                className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
-                  person.registrationStatus === "active_user" || person.accountStatus === "active"
-                    ? "bg-[#DCFCE7] text-[#16A34A] border-emerald-200"
-                    : person.registrationStatus === "invitation_sent"
-                    ? "bg-[#E0F2FE] text-[#0284C7] border-sky-200"
-                    : "bg-slate-100 text-slate-600 border-slate-200"
-                }`}
-              >
-                {person.registrationStatus === "active_user" || person.accountStatus === "active"
-                  ? "Active User"
-                  : person.registrationStatus === "invitation_sent"
-                  ? "Invitation Sent"
-                  : "Not Invited"}
+            {/* Short name */}
+            <span className="font-bold text-xs sm:text-sm text-[#1E1B4B] truncate">
+              {shortName}
+            </span>
+
+            {/* Connected badge */}
+            {isConnected ? (
+              <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                Connected
               </span>
-            </div>
-
-            {/* Subtitle: Relation • Category */}
-            <p className="text-xs text-slate-500 font-medium flex items-center gap-1.5 mt-0.5">
-              <Users className="w-3.5 h-3.5 text-slate-400" />
-              <span>{person.relation} • {person.category || "Family Member"}</span>
-            </p>
-
-            {/* Contact Details Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 gap-x-4 mt-2.5 text-xs text-slate-600 font-medium">
-              {person.email && (
-                <div className="flex items-center gap-2 truncate">
-                  <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                  <span className="truncate">{person.email}</span>
-                </div>
-              )}
-              {person.phone && (
-                <div className="flex items-center gap-2">
-                  <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                  <span>{person.phone}</span>
-                </div>
-              )}
-              <div className="flex items-center gap-2 truncate">
-                <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <span className="truncate">{person.address || "Dhaka, Bangladesh"}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <span>
-                  {person.dateOfBirth ||
-                    (person.createdAt
-                      ? new Date(person.createdAt).toLocaleDateString("en-GB", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })
-                      : "12 Jan 2024")}
-                </span>
-              </div>
-            </div>
+            ) : isInvitePending ? (
+              <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
+                Invite pending
+              </span>
+            ) : (
+              <span className="inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200/60 shrink-0">
+                Contact only
+              </span>
+            )}
           </div>
-        </div>
 
-        {/* Action Buttons Row: Message, Call, View Access */}
-        <div className="grid grid-cols-3 gap-2.5 pt-1">
-          <button
-            type="button"
-            onClick={() => setActiveTab("contact_social")}
-            className="h-10 rounded-2xl bg-[#F5F3FF] hover:bg-purple-100/80 active:scale-98 text-[#6D28D9] font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer"
-          >
-            <MessageCircle className="w-4 h-4" />
-            <span>Message</span>
-          </button>
-
-          <a
-            href={person.phone ? `tel:${person.phone}` : undefined}
-            onClick={(e) => {
-              if (!person.phone) {
-                e.preventDefault();
-                toast.error("No phone number saved for this person.");
-              }
-            }}
-            className={`h-10 rounded-2xl bg-[#DCFCE7] hover:bg-emerald-100/80 active:scale-98 text-[#16A34A] font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all shadow-2xs ${
-              !person.phone ? "opacity-60 cursor-not-allowed" : "cursor-pointer"
-            }`}
-          >
-            <Phone className="w-4 h-4" />
-            <span>Call</span>
-          </a>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("access")}
-            className="h-10 rounded-2xl bg-[#E0F2FE] hover:bg-sky-100/80 active:scale-98 text-[#0284C7] font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer"
-          >
-            <Shield className="w-4 h-4" />
-            <span>View Access</span>
-          </button>
-        </div>
-      </div>
-
-      {/* ============================================================ */}
-      {/* 5 Profile Tabs                                                */}
-      {/* ============================================================ */}
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="space-y-4"
-      >
-        <TabsList className="bg-white p-1 rounded-2xl border border-slate-200/80 flex overflow-x-auto scrollbar-none max-w-full justify-start h-auto gap-1 shadow-2xs">
-          {isOwnerProfile && (
-            <TabsTrigger
-              value="owner_dossier"
-              className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#6D28D9] data-[state=active]:text-white whitespace-nowrap flex items-center gap-1.5 transition-all"
+          {/* More Menu */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowMoreMenu((v) => !v)}
+              className="w-7 h-7 rounded-lg hover:bg-slate-100 text-slate-500 flex items-center justify-center transition-colors"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>Owner Life Dossier</span>
-            </TabsTrigger>
-          )}
-          <TabsTrigger
-            value="overview"
-            className="rounded-xl px-3.5 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#6D28D9] data-[state=active]:text-white whitespace-nowrap transition-all"
-          >
-            Overview
-          </TabsTrigger>
-          <TabsTrigger
-            value="notes"
-            className="rounded-xl px-3.5 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#6D28D9] data-[state=active]:text-white whitespace-nowrap transition-all"
-          >
-            Notes ({notes.length})
-          </TabsTrigger>
-          <TabsTrigger
-            value="duties"
-            className="rounded-xl px-3.5 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#6D28D9] data-[state=active]:text-white whitespace-nowrap transition-all"
-          >
-            Duties (
-            {(personData.instructions?.length || 0) +
-              (person.responsibilities?.length || 0)}
-            )
-          </TabsTrigger>
-          <TabsTrigger
-            value="loans"
-            className="rounded-xl px-3.5 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#6D28D9] data-[state=active]:text-white whitespace-nowrap transition-all"
-          >
-            Loans (
-            {(personData.financialCare?.length || 0) +
-              (personData.moneyRecords?.length || 0)}
-            )
-          </TabsTrigger>
-          <TabsTrigger
-            value="access"
-            className="rounded-xl px-3.5 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#6D28D9] data-[state=active]:text-white whitespace-nowrap flex items-center gap-1.5 transition-all"
-          >
-            <Shield className="w-3.5 h-3.5" />
-            <span>Access</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="contact_social"
-            className="rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 data-[state=active]:bg-[#6D28D9] data-[state=active]:text-white whitespace-nowrap transition-all"
-          >
-            Social
-          </TabsTrigger>
-        </TabsList>
+              <MoreHorizontal className="w-4 h-4" />
+            </button>
 
-        {/* ============================================================ */}
-        {/* OWNER LIFE DOSSIER TAB (Primary Hub for Owner)                */}
-        {/* ============================================================ */}
-        {isOwnerProfile && (
-          <TabsContent value="owner_dossier" className="space-y-5 outline-none">
-            {/* Header Banner */}
-            <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-indigo-500/10 via-white to-slate-50 border border-indigo-100 shadow-xs">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[#4F46E5] text-white flex items-center justify-center shrink-0 shadow-xs">
-                    <Sparkles className="w-5 h-5 text-amber-300" />
-                  </div>
-                  <div>
-                    <h2 className="text-base sm:text-lg font-black text-[#1E1B4B] tracking-tight flex items-center gap-2">
-                      <span>My Life Profile Dossier</span>
-                    </h2>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Personal · Medical · Life History · Private Records ·
-                      Wasiyyah · Assets
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Link href="/information">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-8.5 rounded-xl text-xs font-bold gap-1.5 border-slate-200/90 bg-white text-slate-700 hover:bg-[#EEF2FF] hover:text-[#4F46E5] hover:border-indigo-200 shadow-xs transition-all"
-                    >
-                      <Pencil className="w-3 h-3" />
-                      <span>Manage Records</span>
-                    </Button>
-                  </Link>
-                  <Link href="/documents">
-                    <Button
-                      size="sm"
-                      className="h-8.5 rounded-xl text-xs font-bold gap-1.5 bg-[#4F46E5] hover:bg-indigo-700 text-white shadow-xs transition-all active:scale-95"
-                    >
-                      <FileText className="w-3 h-3" />
-                      <span>Add Documents</span>
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* Grid of Master Dossier Sections */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* 1. Personal Information & Identity */}
-              <div className="p-4 sm:p-5 rounded-3xl bg-card border border-border space-y-3.5 shadow-xs">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <User className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Personal Information & Identity</span>
-                  </h3>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-                    Verified
-                  </span>
-                </div>
-                <div className="space-y-2 text-xs">
-                  <p className="flex justify-between border-b border-border/50 pb-1.5">
-                    <span className="text-muted-foreground">
-                      Full Legal Name:
-                    </span>
-                    <span className="font-bold text-foreground">
-                      {person.name}
-                    </span>
-                  </p>
-                  <p className="flex justify-between border-b border-border/50 pb-1.5">
-                    <span className="text-muted-foreground">
-                      Designation / Role:
-                    </span>
-                    <span className="font-semibold text-foreground">
-                      {person.designation || person.relation || "Account Owner"}
-                    </span>
-                  </p>
-                  <p className="flex justify-between border-b border-border/50 pb-1.5">
-                    <span className="text-muted-foreground">
-                      Primary Mobile:
-                    </span>
-                    <span className="font-mono text-foreground">
-                      {person.phone || "Not provided"}
-                    </span>
-                  </p>
-                  <p className="flex justify-between border-b border-border/50 pb-1.5">
-                    <span className="text-muted-foreground">WhatsApp:</span>
-                    <span className="font-mono text-foreground">
-                      {person.whatsapp || person.phone || "Not provided"}
-                    </span>
-                  </p>
-                  <p className="flex justify-between border-b border-border/50 pb-1.5">
-                    <span className="text-muted-foreground">
-                      Primary Email:
-                    </span>
-                    <span className="font-mono text-foreground break-all">
-                      {person.email || "Not linked"}
-                    </span>
-                  </p>
-                  {person.address && (
-                    <p className="flex justify-between border-b border-border/50 pb-1.5">
-                      <span className="text-muted-foreground">
-                        Residential Address:
-                      </span>
-                      <span className="font-medium text-foreground text-right">
-                        {person.address}
-                      </span>
-                    </p>
-                  )}
-                  {person.country && (
-                    <p className="flex justify-between border-b border-border/50 pb-1.5">
-                      <span className="text-muted-foreground">Country:</span>
-                      <span className="font-medium text-foreground">
-                        {person.country}
-                      </span>
-                    </p>
-                  )}
-                </div>
-
-                {/* Identity Documents Sub-card */}
-                <div className="pt-2">
-                  <p className="text-[11px] font-bold text-foreground mb-1.5 flex items-center justify-between">
-                    <span>Identity Documents & Proofs</span>
-                    <Link
-                      href="/documents"
-                      className="text-emerald-600 hover:underline text-[10px]"
-                    >
-                      View All
-                    </Link>
-                  </p>
-                  {personData.documents?.filter(
-                    (d) => d.category === "identity",
-                  ).length === 0 ? (
-                    <p className="text-[11px] text-muted-foreground italic bg-secondary/50 p-2.5 rounded-xl border border-border">
-                      No identity documents added yet. Upload passport or
-                      national ID in Documents.
-                    </p>
-                  ) : (
-                    <div className="space-y-1.5">
-                      {personData.documents
-                        ?.filter((d) => d.category === "identity")
-                        .slice(0, 3)
-                        .map((doc) => (
-                          <div
-                            key={doc._id}
-                            className="p-2 rounded-xl bg-secondary/50 border border-border flex items-center justify-between text-xs"
-                          >
-                            <span className="font-medium truncate max-w-[200px]">
-                              {doc.title}
-                            </span>
-                            <a
-                              href={doc.fileUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-emerald-600 font-semibold hover:underline text-[11px] shrink-0"
-                            >
-                              Download
-                            </a>
-                          </div>
-                        ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* 2. Medical & Health Status */}
-              <div className="p-4 sm:p-5 rounded-3xl bg-card border border-border space-y-3.5 shadow-xs">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <HeartPulse className="w-3.5 h-3.5 text-rose-500" />
-                    <span>Medical & Health Records</span>
-                  </h3>
-                  <Link
-                    href="/information"
-                    className="text-emerald-600 hover:underline text-[10px] font-bold"
-                  >
-                    + Add Health Note
-                  </Link>
-                </div>
-
-                {/* Medical Overview Cards */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="p-2.5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-center">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
-                      Blood Group
-                    </p>
-                    <p className="text-sm font-extrabold text-foreground mt-0.5">
-                      {personData.notes?.find((n) =>
-                        n.title.toLowerCase().includes("blood"),
-                      )?.content || "On Record"}
-                    </p>
-                  </div>
-                  <div className="p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-center">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-                      Allergies Status
-                    </p>
-                    <p className="text-sm font-extrabold text-foreground mt-0.5">
-                      {personData.notes?.find((n) =>
-                        n.title.toLowerCase().includes("allergy"),
-                      )?.content || "Documented"}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Current Health Conditions & Medicines */}
-                <div className="space-y-2 text-xs">
-                  <p className="font-bold text-foreground text-[11px]">
-                    Current Health & Treatments
-                  </p>
-                  {personData.notes?.filter(
-                    (n) =>
-                      n.category === "personal" &&
-                      (n.title.toLowerCase().includes("medic") ||
-                        n.title.toLowerCase().includes("health") ||
-                        n.tags?.includes("medical")),
-                  ).length === 0 ? (
-                    <p className="text-[11px] text-muted-foreground italic bg-secondary/50 p-2.5 rounded-xl border border-border">
-                      No active medical conditions or medication logs recorded.
-                      Add via Personal Information.
-                    </p>
-                  ) : (
-                    <div className="space-y-1.5">
-                      {personData.notes
-                        ?.filter(
-                          (n) =>
-                            n.category === "personal" &&
-                            (n.title.toLowerCase().includes("medic") ||
-                              n.title.toLowerCase().includes("health") ||
-                              n.tags?.includes("medical")),
-                        )
-                        .slice(0, 3)
-                        .map((note) => (
-                          <div
-                            key={note._id}
-                            className="p-2.5 rounded-xl bg-secondary/50 border border-border space-y-1"
-                          >
-                            <p className="font-bold text-foreground text-xs">
-                              {note.title}
-                            </p>
-                            <p className="text-xs text-muted-foreground line-clamp-2">
-                              {note.content}
-                            </p>
-                          </div>
-                        ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Doctors & Preferred Hospitals */}
-                <div className="pt-1">
-                  <p className="font-bold text-foreground text-[11px] mb-1.5 flex items-center justify-between">
-                    <span className="flex items-center gap-1">
-                      <Stethoscope className="w-3.5 h-3.5 text-blue-500" />
-                      <span>Doctors & Preferred Hospitals</span>
-                    </span>
-                    <Link
-                      href="/contacts"
-                      className="text-emerald-600 hover:underline text-[10px]"
-                    >
-                      Manage (
-                      {personData.contacts?.filter(
-                        (c) =>
-                          c.category === "doctor" ||
-                          (c.category as string) === "medical" ||
-                          c.role?.toLowerCase().includes("doctor"),
-                      ).length || 0}
-                      )
-                    </Link>
-                  </p>
-                  {personData.contacts?.filter(
-                    (c) =>
-                      c.category === "doctor" ||
-                      (c.category as string) === "medical" ||
-                      c.role?.toLowerCase().includes("doctor"),
-                  ).length === 0 ? (
-                    <p className="text-[11px] text-muted-foreground italic bg-secondary/50 p-2 rounded-xl border border-border">
-                      No doctors or hospitals linked. Add doctor contacts in
-                      Important Contacts.
-                    </p>
-                  ) : (
-                    <div className="space-y-1.5">
-                      {personData.contacts
-                        ?.filter(
-                          (c) =>
-                            c.category === "doctor" ||
-                            (c.category as string) === "medical" ||
-                            c.role?.toLowerCase().includes("doctor"),
-                        )
-                        .slice(0, 2)
-                        .map((doc) => (
-                          <div
-                            key={doc._id}
-                            className="p-2 rounded-xl bg-secondary/50 border border-border flex items-center justify-between text-xs"
-                          >
-                            <div>
-                              <p className="font-bold text-foreground">
-                                {doc.name}
-                              </p>
-                              <p className="text-[11px] text-muted-foreground">
-                                {doc.role || doc.company || "Medical"}
-                              </p>
-                            </div>
-                            <a
-                              href={`tel:${doc.phone}`}
-                              className="text-emerald-600 font-bold hover:underline text-xs"
-                            >
-                              {doc.phone}
-                            </a>
-                          </div>
-                        ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* 3. Assets & Properties */}
-              <div className="p-4 sm:p-5 rounded-3xl bg-card border border-border space-y-3.5 shadow-xs">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <Building2 className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Assets & Properties</span>
-                  </h3>
-                  <Link
-                    href="/assets"
-                    className="text-emerald-600 hover:underline text-[10px] font-bold"
-                  >
-                    View Registry ({personData.assets?.length || 0})
-                  </Link>
-                </div>
-
-                {personData.assets?.length === 0 ? (
-                  <p className="text-[11px] text-muted-foreground italic bg-secondary/50 p-3 rounded-xl border border-border">
-                    No physical or financial assets registered. Add properties,
-                    bank accounts, or investments in Assets.
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {personData.assets?.slice(0, 4).map((asset: any) => (
-                      <div
-                        key={asset._id}
-                        className="p-2.5 rounded-xl bg-secondary/50 border border-border flex items-center justify-between text-xs"
-                      >
-                        <div>
-                          <p className="font-bold text-foreground">
-                            {asset.name}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground uppercase">
-                            {asset.category}{" "}
-                            {asset.location ? `· ${asset.location}` : ""}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold text-emerald-600">
-                            {asset.currency || "BDT"}{" "}
-                            {Number(asset.value || 0).toLocaleString()}
-                          </p>
-                          <span className="text-[10px] text-muted-foreground">
-                            {asset.ownershipPercentage || 100}% ownership
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* 4. Financial Records: Loans, Gifts & Financial Help */}
-              <div className="p-4 sm:p-5 rounded-3xl bg-card border border-border space-y-3.5 shadow-xs">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <Wallet className="w-3.5 h-3.5 text-blue-600" />
-                    <span>Loans, Gifts & Financial Care</span>
-                  </h3>
-                  <Link
-                    href="/finance"
-                    className="text-emerald-600 hover:underline text-[10px] font-bold"
-                  >
-                    Open Finance Hub
-                  </Link>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 text-center">
-                  <div className="p-2.5 rounded-2xl bg-secondary/50 border border-border">
-                    <p className="text-[10px] font-bold uppercase text-muted-foreground">
-                      Support Programs
-                    </p>
-                    <p className="text-base font-extrabold text-foreground mt-0.5">
-                      {personData.financialCare?.length || 0}
-                    </p>
-                  </div>
-                  <div className="p-2.5 rounded-2xl bg-secondary/50 border border-border">
-                    <p className="text-[10px] font-bold uppercase text-muted-foreground">
-                      Money Records
-                    </p>
-                    <p className="text-base font-extrabold text-foreground mt-0.5">
-                      {personData.moneyRecords?.length || 0}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5 text-xs">
-                  {personData.moneyRecords?.slice(0, 3).map((record: any) => (
-                    <div
-                      key={record._id}
-                      className="p-2 rounded-xl bg-secondary/50 border border-border flex items-center justify-between"
-                    >
-                      <div>
-                        <span className="font-bold capitalize text-foreground">
-                          {record.type?.replace("_", " ")}
-                        </span>
-                        <p className="text-[10px] text-muted-foreground">
-                          {record.notes || "Financial transaction"}
-                        </p>
-                      </div>
-                      <span className="font-bold text-foreground">
-                        {record.currency || "BDT"}{" "}
-                        {Number(record.amount || 0).toLocaleString()}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* 5. Important Life Events, History & Family */}
-              <div className="p-4 sm:p-5 rounded-3xl bg-card border border-border space-y-3.5 shadow-xs">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-purple-500" />
-                    <span>Life Events & Family History</span>
-                  </h3>
-                  <Link
-                    href="/people"
-                    className="text-emerald-600 hover:underline text-[10px] font-bold"
-                  >
-                    People Directory
-                  </Link>
-                </div>
-
-                <div className="space-y-2 text-xs">
-                  <div className="p-2.5 rounded-xl bg-secondary/50 border border-border space-y-1">
-                    <p className="font-bold text-foreground">Family Circle</p>
-                    <p className="text-muted-foreground text-xs">
-                      Family records and trusted relations registered across the
-                      Life platform.
-                    </p>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-secondary/50 border border-border space-y-1">
-                    <p className="font-bold text-foreground">
-                      Important Relationships
-                    </p>
-                    <p className="text-muted-foreground text-xs">
-                      Key advisors, legal counsel, and business partners
-                      designated for continuity.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* 6. Emergency Readiness & Safety */}
-              <div className="p-4 sm:p-5 rounded-3xl bg-card border border-border space-y-3.5 shadow-xs">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <Shield className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Emergency Safety & Continuity</span>
-                  </h3>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20">
-                    {person.emergencyPriority || "Normal"}
-                  </span>
-                </div>
-
-                <div className="space-y-2 text-xs">
-                  <p className="flex justify-between border-b border-border/50 pb-1.5">
-                    <span className="text-muted-foreground">
-                      Emergency Protocols:
-                    </span>
-                    <span className="font-semibold text-foreground">
-                      Active & Configured
-                    </span>
-                  </p>
-                  <p className="flex justify-between border-b border-border/50 pb-1.5">
-                    <span className="text-muted-foreground">
-                      Critical Instructions:
-                    </span>
-                    <span className="font-bold text-foreground">
-                      {personData.instructions?.filter(
-                        (i: any) => i.priority === "critical" || i.isEmergency,
-                      ).length || 0}{" "}
-                      logged
-                    </span>
-                  </p>
-                  <p className="flex justify-between border-b border-border/50 pb-1.5">
-                    <span className="text-muted-foreground">
-                      Verified Emergency Contacts:
-                    </span>
-                    <span className="font-bold text-foreground">
-                      {personData.contacts?.filter(
-                        (c: any) =>
-                          c.category === "emergency" || c.whenToContact,
-                      ).length || 0}{" "}
-                      designated
-                    </span>
-                  </p>
-                </div>
-              </div>
-
-              {/* 7. Wasiyyah & Legacy */}
-              <div className="p-4 sm:p-5 rounded-3xl bg-card border border-border space-y-3.5 shadow-xs">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <ScrollText className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Estate, Wasiyyah & Legacy</span>
-                  </h3>
-                  <Link
-                    href="/legacy"
-                    className="text-emerald-600 hover:underline text-[10px] font-bold"
-                  >
-                    Open Wasiyyah Hub ({personData.messages?.length || 0})
-                  </Link>
-                </div>
-
-                <div className="space-y-2 text-xs">
-                  <p className="text-muted-foreground">
-                    Confidential testamentary directives, final wishes, and
-                    time-locked beneficiary messages.
-                  </p>
-                  {personData.messages?.length === 0 ? (
-                    <p className="text-[11px] text-muted-foreground italic bg-secondary/50 p-2.5 rounded-xl border border-border">
-                      No legacy messages created yet. Draft Wasiyyah notes in
-                      Estate & Wasiyyah.
-                    </p>
-                  ) : (
-                    <div className="space-y-1.5">
-                      {personData.messages?.slice(0, 3).map((msg: any) => (
-                        <div
-                          key={msg._id}
-                          className="p-2 rounded-xl bg-secondary/50 border border-border flex items-center justify-between"
-                        >
-                          <span className="font-bold text-foreground truncate max-w-[200px]">
-                            {msg.title}
-                          </span>
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600">
-                            {msg.visibility || "Protected"}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* 8. Private Notes & Confidential Records */}
-              <div className="p-4 sm:p-5 rounded-3xl bg-card border border-border space-y-3.5 shadow-xs">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <Lock className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Private Notes & Records</span>
-                  </h3>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary text-muted-foreground border border-border">
-                    Confidential
-                  </span>
-                </div>
-
-                <div className="space-y-2 text-xs">
-                  {person.notes && (
-                    <div className="p-2.5 rounded-xl bg-secondary/50 border border-border space-y-1">
-                      <p className="font-bold text-foreground text-[11px]">
-                        Personal Profile Note
-                      </p>
-                      <p className="text-muted-foreground text-xs">
-                        {person.notes}
-                      </p>
-                    </div>
-                  )}
-                  {person.generalNotes && (
-                    <div className="p-2.5 rounded-xl bg-secondary/50 border border-border space-y-1">
-                      <p className="font-bold text-foreground text-[11px]">
-                        General Directive
-                      </p>
-                      <p className="text-muted-foreground text-xs">
-                        {person.generalNotes}
-                      </p>
-                    </div>
-                  )}
-                  {!person.notes && !person.generalNotes && (
-                    <p className="text-[11px] text-muted-foreground italic bg-secondary/50 p-3 rounded-xl border border-border">
-                      No private notes recorded. Use Private Information to
-                      document confidential accounts or instructions.
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-        )}
-
-        {/* ============================================================ */}
-        {/* TAB 1: OVERVIEW                                              */}
-        {/* ============================================================ */}
-        {/* ============================================================ */}
-        {/* TAB 1: OVERVIEW (Matching Reference UI)                      */}
-        {/* ============================================================ */}
-        <TabsContent value="overview" className="space-y-4 outline-none">
-          {/* Overview Card */}
-          <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-100 shadow-[0_2px_12px_rgba(30,27,75,0.04)] space-y-3.5">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100/90">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
-                  <Info className="w-4 h-4" />
-                </div>
-                <h3 className="text-sm font-bold text-[#1E1B4B]">Overview</h3>
-              </div>
-              <ChevronRight className="w-4 h-4 text-slate-400" />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Left Column: Properties */}
-              <div className="space-y-3 text-xs">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 text-slate-500 flex items-center justify-center shrink-0">
-                    <Users className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] text-slate-400 font-medium">Relationship</p>
-                    <p className="font-bold text-[#1E1B4B] text-sm">{person.relation}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 text-slate-500 flex items-center justify-center shrink-0">
-                    <LayoutGrid className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] text-slate-400 font-medium">Category</p>
-                    <p className="font-bold text-[#1E1B4B] text-sm">{person.category || "Family Member"}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] text-slate-400 font-medium">Status</p>
-                    <p className="font-bold text-emerald-600 text-sm">
-                      {person.registrationStatus === "active_user" || person.accountStatus === "active"
-                        ? "Active User"
-                        : person.registrationStatus === "invitation_sent"
-                        ? "Invitation Sent"
-                        : "Not Invited"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 text-slate-500 flex items-center justify-center shrink-0">
-                    <Calendar className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] text-slate-400 font-medium">Joined</p>
-                    <p className="font-bold text-[#1E1B4B] text-sm">
-                      {person.createdAt
-                        ? new Date(person.createdAt).toLocaleDateString("en-GB", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })
-                        : "12 Jan 2024"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column: Personal Notes Card */}
-              <div className="p-4 rounded-2xl bg-[#F5F3FF] border border-[#DDD6FE] space-y-2 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#6D28D9]">
-                    <FileText className="w-3.5 h-3.5" />
-                    <span>Personal Notes</span>
-                  </div>
-                  <p className="text-xs text-slate-600 font-medium mt-2 leading-relaxed">
-                    {person.shortNote ||
-                      person.notes ||
-                      "Handles server management and online systems. Can be given access to business and digital records when required."}
-                  </p>
-                </div>
-                {canEdit && (
+            {showMoreMenu && (
+              <div className="absolute right-0 top-full mt-1.5 w-48 bg-white rounded-2xl border border-slate-100 shadow-xl p-1.5 z-40 space-y-0.5 text-xs font-semibold text-slate-700 animate-in fade-in zoom-in-95">
+                {isInvitePending && (
                   <button
                     type="button"
-                    onClick={openAccessModal}
-                    className="text-[11px] font-bold text-[#6D28D9] hover:underline self-start mt-2 cursor-pointer"
+                    onClick={handleCancelInvitation}
+                    className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 flex items-center gap-2 text-amber-700"
                   >
-                    Edit Note
+                    <X className="w-3.5 h-3.5" />
+                    Cancel Invitation
+                  </button>
+                )}
+
+                {person.email && !isConnected && (
+                  <button
+                    type="button"
+                    onClick={handleSendInvitation}
+                    className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 flex items-center gap-2 text-[#4F46E5]"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    {isInvitePending ? "Resend Invitation" : "Send Invitation"}
+                  </button>
+                )}
+
+                {isConnected && (
+                  <button
+                    type="button"
+                    onClick={handleDisconnectAccount}
+                    className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 flex items-center gap-2 text-rose-600"
+                  >
+                    <UserX className="w-3.5 h-3.5" />
+                    Disconnect Account
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleOpenArchive}
+                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 flex items-center gap-2 text-slate-600 border-t border-slate-100 mt-1 pt-1.5"
+                >
+                  <AlertCircle className="w-3.5 h-3.5 text-slate-400" />
+                  Archive Person
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════ */}
+      {/* SCREEN 2 ONLY: Full Profile Card & 3 Action Buttons        */}
+      {/* ══════════════════════════════════════════════════════════ */}
+      {activeSection === "overview" && (
+        <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-100/90 shadow-[0_2px_12px_rgba(30,27,75,0.03)] space-y-3.5">
+          <div className="flex items-center gap-3.5">
+            {/* Avatar circle */}
+            <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center font-black text-base shrink-0 overflow-hidden shadow-2xs">
+              {person.profilePhoto || person.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={person.profilePhoto || person.avatarUrl}
+                  alt={person.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                initials
+              )}
+            </div>
+
+            {/* Name & Tags */}
+            <div className="min-w-0 flex-1 space-y-1">
+              <h1 className="text-base sm:text-lg font-extrabold text-[#1E1B4B] leading-tight truncate">
+                {person.name}
+              </h1>
+
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {tags.map((t) => (
+                  <span
+                    key={t}
+                    className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full"
+                  >
+                    {t}
+                  </span>
+                ))}
+
+                {isConnected ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    Connected
+                  </span>
+                ) : isInvitePending ? (
+                  <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                    Invite pending
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200/60">
+                    Contact only
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ── 3 Quick Action Buttons Row ── */}
+          <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100">
+            {/* Message Button */}
+            {isConnected ? (
+              <Link
+                href="/requests"
+                className="py-2 rounded-xl bg-[#4F46E5] text-white hover:bg-indigo-700 transition-colors flex items-center justify-center gap-1.5 font-bold text-xs shadow-xs"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>Message</span>
+              </Link>
+            ) : (
+              <button
+                type="button"
+                disabled
+                title="Internal messaging is available only for connected accounts."
+                className="py-2 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center gap-1.5 font-bold text-xs cursor-not-allowed"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>Message</span>
+              </button>
+            )}
+
+            {/* Edit Button */}
+            <button
+              type="button"
+              onClick={() => setShowEditModal(true)}
+              className="py-2 rounded-xl bg-white border border-slate-200/80 text-slate-700 hover:bg-slate-50 transition-colors flex items-center justify-center gap-1.5 font-bold text-xs shadow-2xs cursor-pointer"
+            >
+              <Pencil className="w-3.5 h-3.5 text-slate-500" />
+              <span>Edit</span>
+            </button>
+
+            {/* More Button */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowMoreMenu((v) => !v)}
+                className="w-full py-2 rounded-xl bg-white border border-slate-200/80 text-slate-700 hover:bg-slate-50 transition-colors flex items-center justify-center gap-1 font-bold text-xs shadow-2xs cursor-pointer"
+              >
+                <MoreHorizontal className="w-4 h-4 text-slate-500" />
+                <span>More</span>
+              </button>
+
+              {/* Dropdown Menu */}
+              {showMoreMenu && (
+                <div className="absolute right-0 top-full mt-1.5 w-48 bg-white rounded-2xl border border-slate-100 shadow-xl p-1.5 z-40 space-y-0.5 text-xs font-semibold text-slate-700 animate-in fade-in zoom-in-95">
+                  {isInvitePending && (
+                    <button
+                      type="button"
+                      onClick={handleCancelInvitation}
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 flex items-center gap-2 text-amber-700 cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      Cancel Invitation
+                    </button>
+                  )}
+
+                  {person.email && !isConnected && (
+                    <button
+                      type="button"
+                      onClick={handleSendInvitation}
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 flex items-center gap-2 text-[#4F46E5] cursor-pointer"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      {isInvitePending
+                        ? "Resend Invitation"
+                        : "Send Invitation"}
+                    </button>
+                  )}
+
+                  {isConnected && (
+                    <button
+                      type="button"
+                      onClick={handleDisconnectAccount}
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 flex items-center gap-2 text-rose-600 cursor-pointer"
+                    >
+                      <UserX className="w-3.5 h-3.5" />
+                      Disconnect Account
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleOpenArchive}
+                    className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 flex items-center gap-2 text-slate-600 border-t border-slate-100 mt-1 pt-1.5 cursor-pointer"
+                  >
+                    <AlertCircle className="w-3.5 h-3.5 text-slate-400" />
+                    Archive Person
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Section Selector Dropdown Row (Across all 3 screens) ── */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold text-slate-500">Profile</span>
+          <div className="relative">
+            <select
+              value={activeSection}
+              onChange={(e) => setActiveSection(e.target.value as any)}
+              className="text-xs font-bold appearance-none bg-white border border-slate-200/90 rounded-xl px-2.5 py-1.5 pr-6 text-[#1E1B4B] focus:outline-none focus:border-[#4F46E5] shadow-2xs cursor-pointer"
+            >
+              <option value="overview">Overview</option>
+              <option value="linked_records">Linked Records</option>
+              <option value="access_roles">Access & Roles</option>
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+        </div>
+
+        {activeSection === "overview" && (
+          <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+            Owner view
+          </span>
+        )}
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════ */}
+      {/* SCREEN 2: OVERVIEW SECTION                                */}
+      {/* ══════════════════════════════════════════════════════════ */}
+      {activeSection === "overview" && (
+        <div className="space-y-3">
+          {/* Card 1: Contact Information */}
+          <div className="bg-white rounded-2xl border border-slate-100/90 p-4 shadow-[0_2px_12px_rgba(30,27,75,0.02)] space-y-2.5">
+            <h2 className="text-xs font-bold text-[#1E1B4B]">
+              Contact information
+            </h2>
+
+            {/* Mobile Row: +880 17***** 👁️ */}
+            <div className="flex items-center justify-between text-xs font-medium text-slate-700 pt-0.5">
+              <div className="flex items-center gap-2">
+                <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span>
+                  {person.phone
+                    ? revealPhone
+                      ? person.phone
+                      : maskPhone(person.phone)
+                    : "No phone registered"}
+                </span>
+                {person.phone && (
+                  <button
+                    type="button"
+                    onClick={() => setRevealPhone((v) => !v)}
+                    className="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                    title={revealPhone ? "Mask phone" : "Reveal phone"}
+                  >
+                    {revealPhone ? (
+                      <EyeOff className="w-3.5 h-3.5" />
+                    ) : (
+                      <Eye className="w-3.5 h-3.5" />
+                    )}
                   </button>
                 )}
               </div>
-            </div>
-          </div>
 
-          {/* Quick Stats Section */}
-          <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-100 shadow-[0_2px_12px_rgba(30,27,75,0.04)] space-y-3.5">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100/90">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
-                  <Sparkles className="w-4 h-4" />
-                </div>
-                <h3 className="text-sm font-bold text-[#1E1B4B]">Quick Stats</h3>
-              </div>
-              <ChevronRight className="w-4 h-4 text-slate-400" />
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {/* Notes */}
-              <button
-                type="button"
-                onClick={() => setActiveTab("notes")}
-                className="p-3.5 rounded-2xl bg-[#F5F3FF] border border-[#DDD6FE] text-left hover:border-purple-300 transition-all cursor-pointer shadow-2xs"
-              >
-                <div className="w-8 h-8 rounded-xl bg-purple-200/80 text-[#6D28D9] flex items-center justify-center mb-2">
-                  <FileText className="w-4 h-4" />
-                </div>
-                <p className="text-xl font-extrabold text-[#1E1B4B]">{notes.length}</p>
-                <p className="text-xs font-semibold text-slate-500">Notes</p>
-              </button>
-
-              {/* Duties */}
-              <button
-                type="button"
-                onClick={() => setActiveTab("duties")}
-                className="p-3.5 rounded-2xl bg-[#DCFCE7] border border-emerald-200 text-left hover:border-emerald-300 transition-all cursor-pointer shadow-2xs"
-              >
-                <div className="w-8 h-8 rounded-xl bg-emerald-200 text-[#16A34A] flex items-center justify-center mb-2">
-                  <ClipboardList className="w-4 h-4" />
-                </div>
-                <p className="text-xl font-extrabold text-[#1E1B4B]">
-                  {(personData.instructions?.length || 0) + (person.responsibilities?.length || 0)}
-                </p>
-                <p className="text-xs font-semibold text-slate-500">Duties</p>
-              </button>
-
-              {/* Loan */}
-              <button
-                type="button"
-                onClick={() => setActiveTab("loans")}
-                className="p-3.5 rounded-2xl bg-[#FEF3C7] border border-amber-200 text-left hover:border-amber-300 transition-all cursor-pointer shadow-2xs"
-              >
-                <div className="w-8 h-8 rounded-xl bg-amber-200 text-[#D97706] flex items-center justify-center mb-2">
-                  <Wallet className="w-4 h-4" />
-                </div>
-                <p className="text-xl font-extrabold text-[#1E1B4B]">
-                  {(personData.financialCare?.length || 0) + (personData.moneyRecords?.length || 0)}
-                </p>
-                <p className="text-xs font-semibold text-slate-500">Loan</p>
-              </button>
-
-              {/* Shared Files */}
-              <button
-                type="button"
-                onClick={() => setActiveTab("documents")}
-                className="p-3.5 rounded-2xl bg-[#E0F2FE] border border-sky-200 text-left hover:border-sky-300 transition-all cursor-pointer shadow-2xs"
-              >
-                <div className="w-8 h-8 rounded-xl bg-sky-200 text-[#0284C7] flex items-center justify-center mb-2">
-                  <FileText className="w-4 h-4" />
-                </div>
-                <p className="text-xl font-extrabold text-[#1E1B4B]">
-                  {personData.documents?.length || 0}
-                </p>
-                <p className="text-xs font-semibold text-slate-500">Shared Files</p>
-              </button>
-            </div>
-          </div>
-
-          {/* Recent Activities Section */}
-          <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-100 shadow-[0_2px_12px_rgba(30,27,75,0.04)] space-y-3.5">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100/90">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
-                  <Clock className="w-4 h-4" />
-                </div>
-                <h3 className="text-sm font-bold text-[#1E1B4B]">Recent Activities</h3>
-              </div>
-              <Link
-                href="/activity"
-                className="text-xs font-bold text-[#6D28D9] hover:underline"
-              >
-                View All
-              </Link>
-            </div>
-
-            <div className="space-y-2.5">
-              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100/90 flex items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-xl bg-purple-100 text-[#6D28D9] flex items-center justify-center shrink-0">
-                    <FileText className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-bold text-[#1E1B4B] truncate">
-                      Viewed a shared note
-                    </p>
-                    <p className="text-[11px] text-slate-500 truncate mt-0.5">
-                      Server Management Instructions
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right shrink-0">
-                  <p className="font-semibold text-slate-600 text-[11px]">
-                    18 Oct 2026
-                  </p>
-                  <p className="text-[10px] text-slate-400">10:24 AM</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* ============================================================ */}
-        {/* TAB 2: CONTACT & SOCIAL (Exact Match to Reference UI)        */}
-        {/* ============================================================ */}
-        <TabsContent value="contact_social" className="space-y-5 outline-none">
-          {/* 1. Contact Information Card */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between px-1">
-              <h3 className="text-sm font-bold text-foreground">
-                Contact Information
-              </h3>
-              <span className="text-[11px] text-muted-foreground flex items-center gap-1 font-medium">
-                <Lock className="w-3 h-3 text-muted-foreground/70" />
-                <span>Visible to assigned users</span>
-              </span>
-            </div>
-
-            <div className="rounded-3xl bg-card border border-border shadow-xs overflow-hidden divide-y divide-border">
-              {/* Mobile Phone */}
-              {person.phone ? (
-                <div className="p-3.5 sm:p-4 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40 flex items-center justify-center shrink-0">
-                      <Phone className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-foreground">
-                        Mobile
-                      </p>
-                      <p className="text-xs text-muted-foreground font-medium truncate mt-0.5">
-                        {person.phone}
-                      </p>
-                    </div>
-                  </div>
-
+              {person.phone && (
+                <div className="flex items-center gap-1">
                   <a
                     href={`tel:${person.phone}`}
-                    className="h-8 px-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 text-xs font-bold flex items-center gap-1.5 transition-colors shrink-0"
+                    className="w-6 h-6 rounded-lg bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 transition-colors"
+                    title="Call"
                   >
-                    <Phone className="w-3.5 h-3.5" />
-                    <span>Call</span>
+                    <Phone className="w-3 h-3" />
                   </a>
-                </div>
-              ) : null}
-
-              {/* WhatsApp */}
-              {person.whatsapp || person.phone ? (
-                <div className="p-3.5 sm:p-4 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40 flex items-center justify-center shrink-0">
-                      <MessageCircle className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-foreground">
-                        WhatsApp
-                      </p>
-                      <p className="text-xs text-muted-foreground font-medium truncate mt-0.5">
-                        {person.whatsapp || person.phone}
-                      </p>
-                    </div>
-                  </div>
-
-                  <a
-                    href={`https://wa.me/${(person.whatsapp || person.phone || "").replace(/[^0-9]/g, "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="h-8 px-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 text-xs font-bold flex items-center gap-1.5 transition-colors shrink-0"
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(person.phone || "", "Phone number")}
+                    className="w-6 h-6 rounded-lg bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 transition-colors cursor-pointer"
+                    title="Copy phone"
                   >
-                    <MessageCircle className="w-3.5 h-3.5" />
-                    <span>Message</span>
-                  </a>
+                    <Copy className="w-3 h-3" />
+                  </button>
                 </div>
-              ) : null}
+              )}
+            </div>
 
-              {/* Email */}
-              {person.email ? (
-                <div className="p-3.5 sm:p-4 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40 flex items-center justify-center shrink-0">
-                      <Mail className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-foreground">
-                        Email
-                      </p>
-                      <p className="text-xs text-muted-foreground font-medium break-all mt-0.5">
-                        {person.email}
-                      </p>
-                    </div>
-                  </div>
+            {/* Email Row: sabbir.a***@gmail.com 👁️ */}
+            <div className="flex items-center justify-between text-xs font-medium text-slate-700 pt-1 border-t border-slate-100">
+              <div className="flex items-center gap-2">
+                <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span>
+                  {person.email
+                    ? revealEmail
+                      ? person.email
+                      : maskEmail(person.email)
+                    : "No email address"}
+                </span>
+                {person.email && (
+                  <button
+                    type="button"
+                    onClick={() => setRevealEmail((v) => !v)}
+                    className="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                    title={revealEmail ? "Mask email" : "Reveal email"}
+                  >
+                    {revealEmail ? (
+                      <EyeOff className="w-3.5 h-3.5" />
+                    ) : (
+                      <Eye className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                )}
+              </div>
 
+              {person.email && (
+                <div className="flex items-center gap-1">
                   <a
                     href={`mailto:${person.email}`}
-                    className="h-8 px-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 text-xs font-bold flex items-center gap-1.5 transition-colors shrink-0"
+                    className="w-6 h-6 rounded-lg bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 transition-colors"
+                    title="Send email"
                   >
-                    <Mail className="w-3.5 h-3.5" />
-                    <span>Email</span>
+                    <Mail className="w-3 h-3" />
                   </a>
-                </div>
-              ) : null}
-
-              {/* Fallback if no contact info */}
-              {!person.phone && !person.whatsapp && !person.email && (
-                <div className="p-6 text-center text-xs text-muted-foreground">
-                  No contact information provided yet. Click below to add
-                  details.
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(person.email || "", "Email address")}
+                    className="w-6 h-6 rounded-lg bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 transition-colors cursor-pointer"
+                    title="Copy email"
+                  >
+                    <Copy className="w-3 h-3" />
+                  </button>
                 </div>
               )}
             </div>
           </div>
 
-          {/* 2. Social Links Card */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between px-1">
-              <h3 className="text-sm font-bold text-foreground">
-                Social Links
-              </h3>
-              <span className="text-[11px] text-muted-foreground flex items-center gap-1 font-medium">
-                <Lock className="w-3 h-3 text-muted-foreground/70" />
-                <span>Visible to assigned users</span>
-              </span>
+          {/* Card 2: Work & Business Summary */}
+          <button
+            type="button"
+            onClick={() => {
+              setActiveSection("linked_records");
+              setRecordTypeFilter("work_business");
+            }}
+            className="w-full text-left bg-white rounded-2xl border border-slate-100/90 p-3.5 sm:p-4 shadow-[0_2px_12px_rgba(30,27,75,0.02)] hover:border-indigo-100 transition-all flex items-center justify-between gap-3 group cursor-pointer"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+                <Briefcase className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-[#1E1B4B]">
+                  Work & Business
+                </h3>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  {businessList.length > 0
+                    ? `${businessList.length} business record${
+                        businessList.length === 1 ? "" : "s"
+                      }`
+                    : conns.includes("Staff")
+                    ? "1 employment record"
+                    : "No active employment record"}
+                </p>
+              </div>
             </div>
+            <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#4F46E5] transition-colors shrink-0" />
+          </button>
 
-            {/* ONLY show linked platforms. If not linked, hide completely! */}
-            {activeSocials.length === 0 ? (
-              <div className="p-6 text-center rounded-3xl bg-card border border-dashed border-border text-xs text-muted-foreground space-y-1.5">
-                <Share2 className="w-8 h-8 mx-auto text-muted-foreground/40 mb-1" />
-                <p className="font-semibold text-foreground">
-                  No social profiles linked yet
-                </p>
-                <p className="text-[11px]">
-                  Add Facebook, Instagram, TikTok, Messenger, LinkedIn or
-                  Website links.
+          {/* Card 3: Finance & Assets Summary */}
+          <button
+            type="button"
+            onClick={() => {
+              setActiveSection("linked_records");
+              setRecordTypeFilter("finance_assets");
+            }}
+            className="w-full text-left bg-white rounded-2xl border border-slate-100/90 p-3.5 sm:p-4 shadow-[0_2px_12px_rgba(30,27,75,0.02)] hover:border-indigo-100 transition-all flex items-center justify-between gap-3 group cursor-pointer"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                <Wallet className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-[#1E1B4B]">
+                  Finance & Assets
+                </h3>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  {financialList.length > 0 || moneyList.length > 0
+                    ? "SiS Care linked"
+                    : "No shared financial ledger"}
                 </p>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {activeSocials.map((platform) => {
-                  const Icon = platform.icon;
-                  const targetUrl = getSocialUrl(platform.id, platform.value);
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#4F46E5] transition-colors shrink-0" />
+          </button>
 
-                  return (
-                    <a
-                      key={platform.id}
-                      href={targetUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-3.5 rounded-2xl bg-card border border-border hover:border-emerald-500/40 transition-all flex items-center justify-between shadow-xs group"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <Icon className="w-6 h-6 shrink-0" />
-                        <span className="text-xs font-bold text-foreground group-hover:text-emerald-600 transition-colors truncate">
-                          {platform.name}
-                        </span>
-                      </div>
-                      <ExternalLink className="w-4 h-4 text-muted-foreground/70 group-hover:text-foreground transition-colors shrink-0" />
-                    </a>
-                  );
-                })}
+          {/* Card 4: Life Continuity Summary */}
+          <button
+            type="button"
+            onClick={() => {
+              setActiveSection("linked_records");
+              setRecordTypeFilter("responsibilities");
+            }}
+            className="w-full text-left bg-white rounded-2xl border border-slate-100/90 p-3.5 sm:p-4 shadow-[0_2px_12px_rgba(30,27,75,0.02)] hover:border-indigo-100 transition-all flex items-center justify-between gap-3 group cursor-pointer"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <Shield className="w-4 h-4" />
               </div>
-            )}
+              <div>
+                <h3 className="text-xs font-bold text-[#1E1B4B]">
+                  Life Continuity
+                </h3>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  {(personData.responsibilities || []).length > 0
+                    ? `${(personData.responsibilities || []).length} responsibilities`
+                    : "0 active directives"}
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#4F46E5] transition-colors shrink-0" />
+          </button>
+
+          {/* Card 5: Owner-Only Note */}
+          <button
+            type="button"
+            onClick={() => setShowNoteModal(true)}
+            className="w-full text-left bg-[#EEF2FF] rounded-2xl border border-indigo-100 p-3.5 sm:p-4 shadow-[0_2px_12px_rgba(30,27,75,0.02)] hover:border-indigo-200 transition-all flex items-center justify-between gap-3 group cursor-pointer"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-[#4F46E5] text-white flex items-center justify-center shrink-0">
+                <Lock className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-[#1E1B4B]">
+                  Owner-only note
+                </h3>
+                <p className="text-[11px] text-slate-600 font-medium line-clamp-1">
+                  {person.ownerNote || person.shortNote || "Only visible to you."}
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-indigo-400 group-hover:text-[#4F46E5] transition-colors shrink-0" />
+          </button>
+
+          {/* Info Helper Note */}
+          <div className="flex items-center gap-1.5 px-1 text-[11px] text-slate-400 font-medium">
+            <span>ⓘ</span>
+            <span>Linking a record does not share it.</span>
           </div>
 
-          {/* 3. Edit Contact & Social Links Button (Exact Reference Match) */}
-          {canEdit && (
-            <button
-              onClick={() => {
-                setEditForm({
-                  phone: person.phone || "",
-                  whatsapp: person.whatsapp || "",
-                  email: person.email || "",
-                  facebook: person.socialLinks?.facebook || "",
-                  messenger: person.socialLinks?.messenger || "",
-                  instagram: person.socialLinks?.instagram || "",
-                  tiktok: person.socialLinks?.tiktok || "",
-                  telegram: person.socialLinks?.telegram || "",
-                  linkedin: person.socialLinks?.linkedin || "",
-                  youtube: person.socialLinks?.youtube || "",
-                  website: person.socialLinks?.website || "",
-                });
-                setEditModalOpen(true);
-              }}
-              className="w-full h-12 rounded-2xl bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-800/60 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
-            >
-              <Pencil className="w-4 h-4" />
-              <span>Edit Contact & Social Links</span>
-            </button>
-          )}
-        </TabsContent>
+          {/* Big Primary Action: View Linked Records */}
+          <button
+            type="button"
+            onClick={() => setActiveSection("linked_records")}
+            className="w-full py-3 rounded-2xl bg-[#4F46E5] text-white hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 font-bold text-xs shadow-xs cursor-pointer"
+          >
+            <Briefcase className="w-4 h-4" />
+            <span>View linked records</span>
+          </button>
+        </div>
+      )}
 
-        {/* ============================================================ */}
-        {/* TAB 3: PERSONAL MESSAGE                                      */}
-        {/* ============================================================ */}
-        <TabsContent value="message" className="outline-none">
-          <div className="p-5 sm:p-6 rounded-3xl bg-card border border-border space-y-3 shadow-xs">
-            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <MessageCircle className="w-4 h-4 text-emerald-600" />
-              <span>Private Message for {person.name}</span>
-            </h3>
-            {person.personalMessage ? (
-              <div className="p-4 rounded-2xl bg-secondary border border-border text-sm text-foreground leading-relaxed whitespace-pre-wrap font-serif">
-                {person.personalMessage}
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground italic">
-                No active personal message has been set yet for this profile.
+      {/* ══════════════════════════════════════════════════════════ */}
+      {/* SCREEN 3: LINKED RECORDS & CONTINUITY                     */}
+      {/* ══════════════════════════════════════════════════════════ */}
+      {activeSection === "linked_records" && (
+        <div className="space-y-3">
+          {/* Subheader & Type Filter Dropdown */}
+          <div className="flex items-center justify-between gap-2 pt-0.5">
+            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider px-1">
+              Connected Records ({filteredRecords.length})
+            </h2>
+
+            {/* Linked Type Filter Dropdown */}
+            <div className="relative">
+              <select
+                value={recordTypeFilter}
+                onChange={(e) => setRecordTypeFilter(e.target.value)}
+                className="text-xs font-bold appearance-none bg-white border border-slate-200/90 rounded-xl px-2.5 py-1.5 pr-6 text-[#1E1B4B] focus:outline-none focus:border-[#4F46E5] shadow-2xs cursor-pointer"
+              >
+                <option value="all">All linked types</option>
+                <option value="work_business">Work & Business</option>
+                <option value="finance_assets">Finance & Assets</option>
+                <option value="responsibilities">Responsibilities</option>
+                <option value="instructions">Instructions</option>
+                <option value="emergency">Emergency</option>
+                <option value="legacy_legal">Legacy & Legal</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          </div>
+
+          {filteredRecords.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center space-y-2">
+              <p className="text-xs font-bold text-[#1E1B4B]">
+                No linked records in this category
               </p>
-            )}
-          </div>
-        </TabsContent>
-
-        {/* ============================================================ */}
-        {/* TAB: DUTIES (INSTRUCTIONS & RESPONSIBILITIES)                */}
-        {/* ============================================================ */}
-        <TabsContent value="duties" className="space-y-4 outline-none">
-          <div className="p-5 rounded-3xl bg-card border border-border space-y-3 shadow-xs">
-            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <FileText className="w-4 h-4 text-sky-600" />
-              <span>Assigned Instructions & Duties</span>
-            </h3>
-            {personData.instructions?.length > 0 ||
-            person.responsibilities?.length ? (
-              <div className="space-y-2.5">
-                {personData.instructions?.map((inst: any) => (
-                  <div
-                    key={inst._id}
-                    className="p-3.5 rounded-xl bg-secondary border border-border flex items-start justify-between"
-                  >
-                    <div>
-                      <h4 className="text-xs font-bold text-foreground">
-                        {inst.title}
-                      </h4>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
-                        {inst.details || inst.summary}
-                      </p>
-                    </div>
-                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-sky-500/10 text-sky-600">
-                      {inst.priority || "Normal"}
-                    </span>
-                  </div>
-                ))}
-                {person.responsibilities?.map((r: string, idx: number) => (
+              <p className="text-[11px] text-slate-400 font-medium">
+                Records linked from Life Workspace will appear here automatically.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {filteredRecords.map((rec, idx) => {
+                const Icon = rec.icon;
+                return (
                   <div
                     key={idx}
-                    className="p-3 rounded-xl bg-secondary border border-border flex items-center gap-2 text-xs"
+                    onClick={() => router.push(rec.link)}
+                    className="bg-white rounded-2xl border border-slate-100/90 p-3.5 sm:p-4 shadow-[0_2px_12px_rgba(30,27,75,0.02)] hover:border-indigo-100 transition-all flex items-center justify-between gap-3 group cursor-pointer"
                   >
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                    <span>{r}</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground italic">
-                No instructions or responsibilities assigned.
-              </p>
-            )}
-          </div>
-        </TabsContent>
-
-        {/* ============================================================ */}
-        {/* TAB: LOANS & FINANCIAL CARE                                  */}
-        {/* ============================================================ */}
-        <TabsContent value="loans" className="outline-none space-y-3">
-          {(!personData.financialCare ||
-            personData.financialCare.length === 0) &&
-          (!personData.moneyRecords || personData.moneyRecords.length === 0) ? (
-            <div className="p-8 text-center rounded-3xl border border-dashed border-border text-xs text-muted-foreground">
-              No financial care records associated with {person.name}.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {personData.financialCare?.map((rec: any) => (
-                <div
-                  key={rec._id}
-                  className="p-4 rounded-2xl bg-card border border-border flex justify-between items-center shadow-xs"
-                >
-                  <div>
-                    <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-                      {(rec.supportType || "Financial Care").replace("_", " ")}
-                    </span>
-                    <h4 className="text-sm font-bold text-foreground mt-1">
-                      {rec.currency || "BDT"}{" "}
-                      {(rec.totalAmount || 0).toLocaleString()}
-                    </h4>
-                    <p className="text-xs text-muted-foreground">
-                      Remaining:{" "}
-                      <strong className="text-emerald-600">
-                        {rec.currency || "BDT"}{" "}
-                        {(rec.remainingBalance || 0).toLocaleString()}
-                      </strong>
-                    </p>
-                  </div>
-                  <span
-                    className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${
-                      rec.status === "active"
-                        ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-                        : "bg-secondary text-muted-foreground border-border"
-                    }`}
-                  >
-                    {(rec.status || "active").replace("_", " ")}
-                  </span>
-                </div>
-              ))}
-              {personData.moneyRecords?.map((rec: any) => (
-                <div
-                  key={rec._id}
-                  className="p-4 rounded-2xl bg-card border border-border flex justify-between items-center shadow-xs"
-                >
-                  <div>
-                    <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-600 border border-cyan-500/20">
-                      {rec.type === "given"
-                        ? "Care Provided"
-                        : rec.type === "taken"
-                          ? "Care Received"
-                          : rec.type}
-                    </span>
-                    <h4 className="text-sm font-bold text-foreground mt-1">
-                      {rec.currency || "BDT"}{" "}
-                      {(rec.amount || 0).toLocaleString()}
-                    </h4>
-                    <p className="text-xs text-muted-foreground">
-                      Outstanding:{" "}
-                      <strong className="text-cyan-600">
-                        {rec.currency || "BDT"}{" "}
-                        {(rec.remainingAmount || 0).toLocaleString()}
-                      </strong>
-                    </p>
-                  </div>
-                  <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-secondary border border-border">
-                    {rec.status}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        {/* ============================================================ */}
-        {/* TAB 6: IMPORTANT CONTACTS                                    */}
-        {/* ============================================================ */}
-        <TabsContent value="contacts" className="outline-none space-y-3">
-          {!personData.contacts || personData.contacts.length === 0 ? (
-            <div className="p-8 text-center rounded-3xl border border-dashed border-border text-xs text-muted-foreground">
-              No private contacts designated for {person.name}.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {personData.contacts.map((contact: any) => (
-                <div
-                  key={contact._id}
-                  className="p-3.5 rounded-2xl bg-card border border-border flex items-center justify-between shadow-xs"
-                >
-                  <div>
-                    <h4 className="text-xs font-bold text-foreground">
-                      {contact.name}
-                    </h4>
-                    <span className="text-[11px] text-muted-foreground">
-                      {contact.category || "General"}
-                    </span>
-                  </div>
-                  <div className="flex gap-1.5">
-                    {contact.phone && (
-                      <a
-                        href={`tel:${contact.phone}`}
-                        className="p-1.5 rounded-lg bg-secondary text-emerald-600 hover:bg-emerald-50 text-xs font-semibold"
+                    <div className="flex items-start gap-3 min-w-0 flex-1">
+                      <div
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${rec.iconBg}`}
                       >
-                        <Phone className="w-3.5 h-3.5" />
-                      </a>
-                    )}
-                    {contact.email && (
-                      <a
-                        href={`mailto:${contact.email}`}
-                        className="p-1.5 rounded-lg bg-secondary text-sky-600 hover:bg-sky-50 text-xs font-semibold"
-                      >
-                        <Mail className="w-3.5 h-3.5" />
-                      </a>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </TabsContent>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0 flex-1 space-y-0.5">
+                        <h3 className="text-xs sm:text-sm font-bold text-[#1E1B4B] truncate group-hover:text-[#4F46E5] transition-colors">
+                          {rec.title}
+                        </h3>
+                        <p className="text-[10px] text-slate-400 font-medium">
+                          {rec.categoryLabel}
+                        </p>
 
-        {/* ============================================================ */}
-        {/* TAB 7: DOCUMENTS                                             */}
-        {/* ============================================================ */}
-        <TabsContent value="documents" className="outline-none space-y-3">
-          {!personData.documents || personData.documents.length === 0 ? (
-            <div className="p-8 text-center rounded-3xl border border-dashed border-border text-xs text-muted-foreground">
-              No private documents assigned to {person.name}.
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {personData.documents.map((doc: any) => (
-                <div
-                  key={doc._id}
-                  className="p-3.5 rounded-2xl bg-card border border-border flex items-center justify-between shadow-xs"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <FolderLock className="w-5 h-5 text-indigo-600 shrink-0" />
-                    <div className="min-w-0">
-                      <h4 className="text-xs font-bold text-foreground truncate">
-                        {doc.title}
-                      </h4>
-                      <span className="text-[11px] text-muted-foreground">
-                        {doc.category}
-                      </span>
-                    </div>
-                  </div>
-                  <Button
-                    asChild
-                    size="sm"
-                    variant="ghost"
-                    className="text-xs text-indigo-600 font-semibold"
-                  >
-                    <a href={`/api/documents/${doc._id}/download`}>Download</a>
-                  </Button>
-                </div>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        {/* ============================================================ */}
-        {/* TAB: ACCESS INFORMATION & PERMISSIONS                        */}
-        {/* ============================================================ */}
-        <TabsContent value="access" className="outline-none">
-          <div className="p-5 rounded-3xl bg-card border border-border space-y-4 text-xs shadow-xs">
-            <h3 className="font-bold text-foreground flex items-center gap-2">
-              <Shield className="w-4 h-4 text-emerald-600" />
-              <span>Module & Feature Permissions</span>
-            </h3>
-
-            {isSuperUser && (
-              <div className="p-4 rounded-2xl bg-secondary/80 border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <p className="font-bold text-foreground">
-                    Login Access Control
-                  </p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">
-                    Toggle whether this account can log in via Clerk.
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleToggleLogin}
-                    disabled={loading}
-                    className="h-8 rounded-xl text-xs font-medium gap-1.5 border-border"
-                  >
-                    {person.isLoginEnabled === false ? (
-                      <>
-                        <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
-                        Enable Login
-                      </>
-                    ) : (
-                      <>
-                        <UserX className="w-3.5 h-3.5 text-amber-600" />
-                        Disable Login
-                      </>
-                    )}
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleToggleLock}
-                    disabled={loading}
-                    className={`h-8 rounded-xl text-xs font-medium gap-1.5 ${
-                      person.status === "locked"
-                        ? "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                        : "border-red-200 text-red-700 hover:bg-red-50"
-                    }`}
-                  >
-                    {person.status === "locked" ? (
-                      <>
-                        <Unlock className="w-3.5 h-3.5" />
-                        Unlock
-                      </>
-                    ) : (
-                      <>
-                        <Lock className="w-3.5 h-3.5" />
-                        Lock
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-foreground">
-              <div className="p-3 rounded-xl bg-secondary border border-border flex justify-between items-center">
-                <span>Personal Message & Notes</span>
-                <span
-                  className={
-                    person.permissions?.canViewPersonal
-                      ? "text-emerald-600 font-bold"
-                      : "text-muted-foreground"
-                  }
-                >
-                  {person.permissions?.canViewPersonal
-                    ? "Allowed ✓"
-                    : "Restricted ✕"}
-                </span>
-              </div>
-              <div className="p-3 rounded-xl bg-secondary border border-border flex justify-between items-center">
-                <span>Business Continuity Access</span>
-                <span
-                  className={
-                    person.permissions?.canViewBusiness
-                      ? "text-emerald-600 font-bold"
-                      : "text-muted-foreground"
-                  }
-                >
-                  {person.permissions?.canViewBusiness
-                    ? "Allowed ✓"
-                    : "Restricted ✕"}
-                </span>
-              </div>
-              <div className="p-3 rounded-xl bg-secondary border border-border flex justify-between items-center">
-                <span>Financial Care Access</span>
-                <span
-                  className={
-                    person.permissions?.canViewFinancial
-                      ? "text-emerald-600 font-bold"
-                      : "text-muted-foreground"
-                  }
-                >
-                  {person.permissions?.canViewFinancial
-                    ? "Allowed ✓"
-                    : "Restricted ✕"}
-                </span>
-              </div>
-              <div className="p-3 rounded-xl bg-secondary border border-border flex justify-between items-center">
-                <span>Vault Secrets Reveal</span>
-                <span
-                  className={
-                    person.permissions?.canRevealVault
-                      ? "text-emerald-600 font-bold"
-                      : "text-muted-foreground"
-                  }
-                >
-                  {person.permissions?.canRevealVault
-                    ? "Allowed ✓"
-                    : "Restricted ✕"}
-                </span>
-              </div>
-            </div>
-            <p className="text-[11px] text-muted-foreground italic">
-              Authorization is enforced server-side. Non-owner accounts cannot
-              bypass restrictions.
-            </p>
-          </div>
-        </TabsContent>
-
-        {/* ============================================================ */}
-        {/* NOTES & SECRET NOTES TAB                                      */}
-        {/* ============================================================ */}
-        <TabsContent value="notes" className="space-y-4 outline-none">
-          {/* Header Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-3xl bg-card border border-border">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                Filter:
-              </span>
-              {[
-                "all",
-                "pinned",
-                "always_visible",
-                "secret_emergency",
-                "internal_admin",
-                "archived",
-              ].map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setNoteFilter(f)}
-                  className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all ${
-                    noteFilter === f
-                      ? "bg-[#4F46E5] text-white shadow-xs font-bold"
-                      : "bg-slate-100 text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  {f === "all"
-                    ? "All"
-                    : f === "pinned"
-                      ? "Pinned"
-                      : f === "always_visible"
-                        ? "Always Visible"
-                        : f === "secret_emergency"
-                          ? "Secret Notes"
-                          : f === "internal_admin"
-                            ? "Internal Admin"
-                            : "Archived"}
-                </button>
-              ))}
-            </div>
-
-            {canEdit && (
-              <Button
-                onClick={() => {
-                  resetNoteForm();
-                  setEditingNote(null);
-                  setNoteModalOpen(true);
-                }}
-                className="h-8.5 px-3 rounded-xl bg-[#4F46E5] hover:bg-indigo-700 text-white text-xs font-bold gap-1.5 shadow-xs transition-all active:scale-95"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Add Note</span>
-              </Button>
-            )}
-          </div>
-
-          {/* Notes List */}
-          {notesLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
-            </div>
-          ) : notes.length === 0 ? (
-            <div className="text-center py-16 p-6 rounded-3xl border border-dashed border-border bg-card/50">
-              <StickyNote className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-              <h3 className="text-sm font-bold text-foreground">
-                No notes recorded
-              </h3>
-              <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
-                Keep vital instructions, directives, and secret emergency notes
-                tied to this person.
-              </p>
-              {canEdit && (
-                <Button
-                  onClick={() => {
-                    resetNoteForm();
-                    setEditingNote(null);
-                    setNoteModalOpen(true);
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="mt-4 rounded-xl text-xs font-semibold gap-1.5"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Create First Note
-                </Button>
-              )}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {notes
-                .filter((n) => {
-                  if (noteFilter === "pinned") return n.isPinned;
-                  if (noteFilter === "always_visible")
-                    return n.noteType === "always_visible";
-                  if (noteFilter === "secret_emergency")
-                    return n.noteType === "secret_emergency";
-                  if (noteFilter === "internal_admin")
-                    return n.noteType === "internal_admin";
-                  if (noteFilter === "archived")
-                    return n.isArchived || n.status === "archived";
-                  return !n.isArchived && n.status !== "archived";
-                })
-                .map((note) => {
-                  const isSecret = note.noteType === "secret_emergency";
-                  const isLocked =
-                    isSecret && !note.isReleased && note.status !== "approved";
-                  const isCountdown =
-                    note.status === "unlock_requested" ||
-                    note.status === "countdown_active";
-
-                  return (
-                    <div
-                      key={note._id}
-                      className={`p-4 rounded-3xl border transition-all flex flex-col justify-between ${
-                        note.isPinned
-                          ? "bg-card border-emerald-500/40 shadow-sm"
-                          : "bg-card border-border hover:border-border/80"
-                      }`}
-                    >
-                      <div>
-                        {/* Note Header */}
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            {note.isPinned && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 text-[10px] font-bold">
-                                <Pin className="w-2.5 h-2.5" /> Pinned
-                              </span>
-                            )}
+                        <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                          {rec.tags.map((t: string) => (
                             <span
-                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase border ${
-                                isSecret
-                                  ? "bg-rose-500/10 text-rose-600 border-rose-500/20"
-                                  : "bg-teal-500/10 text-teal-600 border-teal-500/20"
+                              key={t}
+                              className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                                t === "Available now"
+                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                                  : t === "In progress"
+                                  ? "bg-sky-50 text-sky-700 border border-sky-100"
+                                  : t.includes("Locked")
+                                  ? "bg-amber-50 text-amber-700 border border-amber-100"
+                                  : t === "Guardian approval"
+                                  ? "bg-purple-50 text-purple-700 border border-purple-100"
+                                  : t.includes("Shared")
+                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                                  : "bg-slate-100 text-slate-600"
                               }`}
                             >
-                              {isSecret ? (
-                                <Lock className="w-2.5 h-2.5" />
-                              ) : (
-                                <Eye className="w-2.5 h-2.5" />
-                              )}
-                              {getNoteTypeLabel(note.noteType)}
+                              {t}
                             </span>
-                            <span
-                              className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase border ${getNoteStatusColor(
-                                note.status,
-                              )}`}
-                            >
-                              {note.status.replace("_", " ")}
-                            </span>
-                          </div>
-
-                          {note.category && (
-                            <span className="text-[10px] font-semibold text-muted-foreground bg-secondary px-2 py-0.5 rounded-md truncate max-w-[120px]">
-                              {note.category}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Note Title */}
-                        <h4 className="text-sm font-bold text-foreground mb-1">
-                          {note.title}
-                        </h4>
-
-                        {/* Secret Note Locked State */}
-                        {isLocked ? (
-                          <div className="p-4 rounded-2xl bg-secondary/70 border border-border/80 my-3 text-center space-y-2">
-                            <Lock className="w-6 h-6 text-amber-500 mx-auto" />
-                            <p className="text-xs font-semibold text-foreground">
-                              Confidential / Emergency Sealed Note
-                            </p>
-                            <p className="text-[11px] text-muted-foreground">
-                              Content is encrypted and concealed until
-                              authorized release or emergency protocol
-                              activation.
-                            </p>
-
-                            {isCountdown && note.unlockDeadline && (
-                              <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400 text-xs font-bold">
-                                <Timer className="w-4 h-4 animate-spin" />
-                                <span>
-                                  {formatCountdown(note.unlockDeadline)}
-                                </span>
-                              </div>
-                            )}
-
-                            {/* Unlock Actions */}
-                            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-                              {!isCountdown && (
-                                <Button
-                                  size="sm"
-                                  onClick={() =>
-                                    handleNoteAction(note._id, "request_unlock")
-                                  }
-                                  className="h-7 px-3 text-[11px] rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold"
-                                >
-                                  <Unlock className="w-3 h-3 mr-1" />
-                                  Request to Unlock
-                                </Button>
-                              )}
-
-                              {isSuperUser && (
-                                <>
-                                  <Button
-                                    size="sm"
-                                    onClick={() =>
-                                      handleNoteAction(note._id, "approve")
-                                    }
-                                    className="h-7 px-2.5 text-[11px] rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
-                                  >
-                                    Approve Release
-                                  </Button>
-                                  {isCountdown && (
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() =>
-                                        handleNoteAction(note._id, "extend")
-                                      }
-                                      className="h-7 px-2 text-[11px] rounded-xl"
-                                    >
-                                      +24h
-                                    </Button>
-                                  )}
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() =>
-                                      handleNoteAction(note._id, "cancel")
-                                    }
-                                    className="h-7 px-2 text-[11px] rounded-xl text-rose-600 border-rose-200 dark:border-rose-900"
-                                  >
-                                    Cancel
-                                  </Button>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="my-2 text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                            {note.content}
-                          </div>
-                        )}
-
-                        {/* Tags */}
-                        {Array.isArray(note.tags) && note.tags.length > 0 && (
-                          <div className="flex items-center gap-1 flex-wrap my-2">
-                            {note.tags.map((t, idx) => (
-                              <span
-                                key={idx}
-                                className="text-[10px] font-medium bg-secondary text-muted-foreground px-2 py-0.5 rounded-full"
-                              >
-                                #{t}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* User Action Responses / Acknowledgment */}
-                        {!isLocked && (
-                          <div className="mt-3 pt-2 border-t border-border flex flex-wrap items-center gap-1.5">
-                            <button
-                              onClick={() => handleNoteAction(note._id, "read")}
-                              className="px-2 py-1 rounded-lg bg-secondary hover:bg-accent text-[10px] font-semibold text-muted-foreground transition-colors flex items-center gap-1"
-                            >
-                              <Check className="w-2.5 h-2.5 text-emerald-600" />{" "}
-                              Read
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleNoteAction(note._id, "acknowledge")
-                              }
-                              className="px-2 py-1 rounded-lg bg-secondary hover:bg-accent text-[10px] font-semibold text-muted-foreground transition-colors flex items-center gap-1"
-                            >
-                              <CheckCircle2 className="w-2.5 h-2.5 text-blue-600" />{" "}
-                              Acknowledge
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleNoteAction(note._id, "followup")
-                              }
-                              className="px-2 py-1 rounded-lg bg-secondary hover:bg-accent text-[10px] font-semibold text-muted-foreground transition-colors flex items-center gap-1"
-                            >
-                              <Clock className="w-2.5 h-2.5 text-amber-600" />{" "}
-                              Follow-up
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleNoteAction(note._id, "completed")
-                              }
-                              className="px-2 py-1 rounded-lg bg-secondary hover:bg-accent text-[10px] font-semibold text-muted-foreground transition-colors flex items-center gap-1"
-                            >
-                              <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" />{" "}
-                              Completed
-                            </button>
-                            {isSuperUser && isSecret && note.isReleased && (
-                              <button
-                                onClick={() =>
-                                  handleNoteAction(note._id, "relock")
-                                }
-                                className="px-2 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-[10px] font-semibold text-rose-600 transition-colors flex items-center gap-1 ml-auto"
-                              >
-                                <Lock className="w-2.5 h-2.5" /> Re-lock
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Card Footer Controls */}
-                      <div className="flex items-center justify-between pt-3 mt-2 border-t border-border text-[11px] text-muted-foreground">
-                        <span className="text-[10px]">
-                          {new Date(note.createdAt).toLocaleDateString()}
-                        </span>
-
-                        <div className="flex items-center gap-1">
-                          {note.history && note.history.length > 0 && (
-                            <button
-                              onClick={() => setNoteHistoryModal(note)}
-                              className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
-                              title="Version History"
-                            >
-                              <History className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                          {canEdit && (
-                            <>
-                              <button
-                                onClick={() => openEditNote(note)}
-                                className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
-                                title="Edit Note"
-                              >
-                                <Pencil className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleNoteAction(note._id, "archive")
-                                }
-                                className="p-1 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
-                                title="Archive Note"
-                              >
-                                <Archive className="w-3.5 h-3.5" />
-                              </button>
-                            </>
-                          )}
+                          ))}
                         </div>
                       </div>
                     </div>
-                  );
-                })}
+
+                    {/* Open Action (Button or Arrow) */}
+                    {rec.type === "finance_assets" ? (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(rec.link);
+                        }}
+                        className="px-2.5 py-1.5 rounded-xl border border-slate-200/80 hover:bg-slate-50 text-[#4F46E5] font-bold text-xs flex items-center gap-1 shrink-0 transition-colors shadow-2xs cursor-pointer"
+                      >
+                        <span>Open record</span>
+                      </button>
+                    ) : (
+                      <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#4F46E5] transition-colors shrink-0" />
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
-        </TabsContent>
-      </Tabs>
 
-      {/* ============================================================ */}
-      {/* Edit Contact & Social Links Modal                            */}
-      {/* ============================================================ */}
-      <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-        <DialogContent className="life-dialog sm:max-w-lg rounded-3xl border border-border bg-card text-foreground shadow-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
-              <Pencil className="w-4 h-4 text-emerald-600" />
-              <span>Edit Contact & Social Links</span>
-            </DialogTitle>
-          </DialogHeader>
+          {/* Helper Callout */}
+          <div className="flex items-center gap-1.5 px-1 text-[11px] text-slate-400 font-medium pt-1">
+            <span>ⓘ</span>
+            <span>Opens the original workspace record.</span>
+          </div>
+        </div>
+      )}
 
-          <form
-            onSubmit={handleSaveContactSocial}
-            className="space-y-4 pt-2 text-xs"
-          >
-            {/* Direct Contact Fields */}
-            <div className="space-y-3 pb-3 border-b border-border">
-              <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">
-                Primary Contact
-              </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground">
-                    Mobile Phone Number
-                  </label>
-                  <Input
-                    placeholder="+8801700000000"
-                    value={editForm.phone}
-                    onChange={(e) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        phone: e.target.value,
-                      }))
-                    }
-                    className="h-9 rounded-xl text-xs"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground">
-                    WhatsApp Number
-                  </label>
-                  <Input
-                    placeholder="+8801700000000"
-                    value={editForm.whatsapp}
-                    onChange={(e) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        whatsapp: e.target.value,
-                      }))
-                    }
-                    className="h-9 rounded-xl text-xs"
-                  />
-                </div>
+      {/* ══════════════════════════════════════════════════════════ */}
+      {/* SCREEN 4: ACCESS & ROLES SECTION                          */}
+      {/* ══════════════════════════════════════════════════════════ */}
+      {activeSection === "access_roles" && (
+        <div className="space-y-3">
+          {/* Section 1: Shared Access */}
+          <div className="bg-white rounded-2xl border border-slate-100/90 p-4 shadow-[0_2px_12px_rgba(30,27,75,0.02)] space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-xl bg-indigo-50 text-[#4F46E5] flex items-center justify-center">
+                <Users className="w-4 h-4" />
               </div>
+              <h3 className="text-xs font-bold text-[#1E1B4B]">Shared access</h3>
+            </div>
 
-              <div className="space-y-1">
-                <label className="font-semibold text-muted-foreground">
-                  Email Address
-                </label>
-                <Input
-                  type="email"
-                  placeholder="name@example.com"
-                  value={editForm.email}
-                  onChange={(e) =>
-                    setEditForm((prev) => ({ ...prev, email: e.target.value }))
-                  }
-                  className="h-9 rounded-xl text-xs"
-                />
+            <div className="space-y-2 text-xs">
+              <div className="flex items-center justify-between py-1 border-b border-slate-100 text-slate-700">
+                <span>GESN agreement</span>
+                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                  View only
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-1 text-slate-700">
+                <span>Selected business records</span>
+                <span className="text-[10px] font-bold text-[#4F46E5] bg-[#EEF2FF] px-2 py-0.5 rounded-md">
+                  View
+                </span>
               </div>
             </div>
 
-            {/* Social Links Fields */}
-            <div className="space-y-3">
-              <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">
-                Social Profiles & Links
-              </h4>
-              <p className="text-[11px] text-muted-foreground">
-                Leave empty to hide the platform from your profile.
+            <Link
+              href="/access"
+              className="w-full py-2 rounded-xl bg-[#EEF2FF] text-[#4F46E5] hover:bg-indigo-100 transition-colors flex items-center justify-center font-bold text-xs"
+            >
+              Manage shared access
+            </Link>
+          </div>
+
+          {/* Section 2: Future Access */}
+          <div className="bg-white rounded-2xl border border-slate-100/90 p-4 shadow-[0_2px_12px_rgba(30,27,75,0.02)] space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                <Clock className="w-4 h-4" />
+              </div>
+              <h3 className="text-xs font-bold text-[#1E1B4B]">Future access</h3>
+            </div>
+
+            <div className="space-y-1.5">
+              <p className="text-xs font-bold text-slate-800">
+                Business continuity instructions
               </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground flex items-center gap-1.5">
-                    <FacebookIcon className="w-4 h-4" />
-                    <span>Facebook</span>
-                  </label>
-                  <Input
-                    placeholder="username or profile link"
-                    value={editForm.facebook}
-                    onChange={(e) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        facebook: e.target.value,
-                      }))
-                    }
-                    className="h-9 rounded-xl text-xs"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground flex items-center gap-1.5">
-                    <MessengerIcon className="w-4 h-4" />
-                    <span>Messenger</span>
-                  </label>
-                  <Input
-                    placeholder="username or link"
-                    value={editForm.messenger}
-                    onChange={(e) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        messenger: e.target.value,
-                      }))
-                    }
-                    className="h-9 rounded-xl text-xs"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground flex items-center gap-1.5">
-                    <InstagramIcon className="w-4 h-4" />
-                    <span>Instagram</span>
-                  </label>
-                  <Input
-                    placeholder="@username or profile link"
-                    value={editForm.instagram}
-                    onChange={(e) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        instagram: e.target.value,
-                      }))
-                    }
-                    className="h-9 rounded-xl text-xs"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground flex items-center gap-1.5">
-                    <TikTokIcon className="w-4 h-4" />
-                    <span>TikTok</span>
-                  </label>
-                  <Input
-                    placeholder="@username or link"
-                    value={editForm.tiktok}
-                    onChange={(e) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        tiktok: e.target.value,
-                      }))
-                    }
-                    className="h-9 rounded-xl text-xs"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground flex items-center gap-1.5">
-                    <TelegramIcon className="w-4 h-4" />
-                    <span>Telegram</span>
-                  </label>
-                  <Input
-                    placeholder="@username or link"
-                    value={editForm.telegram}
-                    onChange={(e) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        telegram: e.target.value,
-                      }))
-                    }
-                    className="h-9 rounded-xl text-xs"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground flex items-center gap-1.5">
-                    <LinkedInIcon className="w-4 h-4" />
-                    <span>LinkedIn</span>
-                  </label>
-                  <Input
-                    placeholder="profile URL or username"
-                    value={editForm.linkedin}
-                    onChange={(e) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        linkedin: e.target.value,
-                      }))
-                    }
-                    className="h-9 rounded-xl text-xs"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground flex items-center gap-1.5">
-                    <YouTubeIcon className="w-4 h-4" />
-                    <span>YouTube</span>
-                  </label>
-                  <Input
-                    placeholder="@channel or URL"
-                    value={editForm.youtube}
-                    onChange={(e) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        youtube: e.target.value,
-                      }))
-                    }
-                    className="h-9 rounded-xl text-xs"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground flex items-center gap-1.5">
-                    <WebsiteIcon className="w-4 h-4" />
-                    <span>Website</span>
-                  </label>
-                  <Input
-                    placeholder="https://example.com"
-                    value={editForm.website}
-                    onChange={(e) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        website: e.target.value,
-                      }))
-                    }
-                    className="h-9 rounded-xl text-xs"
-                  />
-                </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                  ⚠️ 7-day request policy
+                </span>
               </div>
             </div>
 
-            <DialogFooter className="pt-3 gap-2 sm:gap-0">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setEditModalOpen(false)}
-                disabled={savingEdit}
-                className="rounded-xl text-xs"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                size="sm"
-                disabled={savingEdit}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold gap-1.5"
-              >
-                {savingEdit ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                )}
-                Save Changes
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+            <Link
+              href="/instructions"
+              className="inline-flex items-center gap-1 text-xs font-bold text-[#4F46E5] hover:underline pt-1"
+            >
+              <span>Open release rules</span>
+              <ExternalLink className="w-3 h-3" />
+            </Link>
+          </div>
 
-      {/* ============================================================ */}
-      {/* Note Creation / Editing Modal                                */}
-      {/* ============================================================ */}
-      <Dialog open={noteModalOpen} onOpenChange={setNoteModalOpen}>
-        <DialogContent className="life-dialog sm:max-w-lg rounded-3xl border border-border bg-card text-foreground shadow-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
-              <StickyNote className="w-4 h-4 text-emerald-600" />
-              <span>{editingNote ? "Edit Note" : "Create New Note"}</span>
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-4 pt-2 text-xs">
-            <div className="space-y-1">
-              <label className="font-semibold text-muted-foreground">
-                Title *
-              </label>
-              <Input
-                placeholder="Note title or directive subject..."
-                value={noteForm.title}
-                onChange={(e) =>
-                  setNoteForm((prev) => ({ ...prev, title: e.target.value }))
-                }
-                className="h-9 rounded-xl text-xs"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="font-semibold text-muted-foreground">
-                  Note Type
-                </label>
-                <select
-                  value={noteForm.noteType}
-                  onChange={(e) =>
-                    setNoteForm((prev) => ({
-                      ...prev,
-                      noteType: e.target.value as NoteType,
-                    }))
-                  }
-                  className="w-full h-9 px-3 rounded-xl border border-border bg-secondary text-foreground text-xs focus:outline-none"
-                >
-                  <option value="always_visible">Always Visible</option>
-                  <option value="secret_emergency">
-                    Secret Emergency Note (Sealed)
-                  </option>
-                  <option value="internal_admin">Internal Admin Only</option>
-                  <option value="manual_release">Manual Release</option>
-                  <option value="scheduled_release">Scheduled Release</option>
-                </select>
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-semibold text-muted-foreground">
-                  Priority
-                </label>
-                <select
-                  value={noteForm.priority}
-                  onChange={(e) =>
-                    setNoteForm((prev) => ({
-                      ...prev,
-                      priority: e.target.value as any,
-                    }))
-                  }
-                  className="w-full h-9 px-3 rounded-xl border border-border bg-secondary text-foreground text-xs focus:outline-none"
-                >
-                  <option value="normal">Normal</option>
-                  <option value="important">Important</option>
-                  <option value="emergency">🚨 Emergency</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="font-semibold text-muted-foreground">
-                  Delivery Type
-                </label>
-                <select
-                  value={noteForm.deliveryType}
-                  onChange={(e) =>
-                    setNoteForm((prev) => ({
-                      ...prev,
-                      deliveryType: e.target.value as "immediate" | "future",
-                    }))
-                  }
-                  className="w-full h-9 px-3 rounded-xl border border-border bg-secondary text-foreground text-xs focus:outline-none"
-                >
-                  <option value="immediate">⚡ Immediate</option>
-                  <option value="future">📅 Future / Scheduled</option>
-                </select>
-              </div>
-              {noteForm.deliveryType === "future" ? (
-                <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground">
-                    Auto-Release Date &amp; Time
-                  </label>
-                  <Input
-                    type="datetime-local"
-                    value={noteForm.scheduledReleaseDate}
-                    onChange={(e) =>
-                      setNoteForm((prev) => ({
-                        ...prev,
-                        scheduledReleaseDate: e.target.value,
-                      }))
-                    }
-                    className="h-9 rounded-xl text-xs"
-                  />
+          {/* Section 3: Recovery Guardian */}
+          <div className="bg-white rounded-2xl border border-slate-100/90 p-4 shadow-[0_2px_12px_rgba(30,27,75,0.02)] space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <Shield className="w-4 h-4" />
                 </div>
-              ) : (
-                <div className="space-y-1">
-                  <label className="font-semibold text-muted-foreground">
-                    Category
-                  </label>
-                  <Input
-                    placeholder="e.g. Legal, Medical, Financial..."
-                    value={noteForm.category}
-                    onChange={(e) =>
-                      setNoteForm((prev) => ({
-                        ...prev,
-                        category: e.target.value,
-                      }))
-                    }
-                    className="h-9 rounded-xl text-xs"
-                  />
-                </div>
-              )}
-            </div>
-
-            {noteForm.deliveryType === "future" && (
-              <div className="space-y-1">
-                <label className="font-semibold text-muted-foreground">
-                  Category
-                </label>
-                <Input
-                  placeholder="e.g. Legal, Medical, Financial..."
-                  value={noteForm.category}
-                  onChange={(e) =>
-                    setNoteForm((prev) => ({
-                      ...prev,
-                      category: e.target.value,
-                    }))
-                  }
-                  className="h-9 rounded-xl text-xs"
-                />
-              </div>
-            )}
-
-            {noteForm.noteType === "secret_emergency" && (
-              <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-2">
-                <div className="flex items-center gap-1.5 text-amber-600 font-bold text-xs">
-                  <ShieldAlert className="w-4 h-4" />
-                  <span>Secret Emergency Settings</span>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-amber-700 dark:text-amber-300">
-                    Unlock Waiting Period (Hours)
-                  </label>
-                  <Input
-                    type="number"
-                    min={1}
-                    value={noteForm.waitingPeriodHours}
-                    onChange={(e) =>
-                      setNoteForm((prev) => ({
-                        ...prev,
-                        waitingPeriodHours: parseInt(e.target.value) || 48,
-                      }))
-                    }
-                    className="h-8 rounded-xl text-xs bg-card"
-                  />
-                  <p className="text-[10px] text-amber-600/80">
-                    When unlock is requested, a countdown of this duration will
-                    run before the note is released.
+                <div>
+                  <h3 className="text-xs font-bold text-[#1E1B4B]">
+                    Recovery Guardian
+                  </h3>
+                  <p className="text-[10px] text-slate-400 font-medium">
+                    Helps verify account recovery
                   </p>
                 </div>
               </div>
-            )}
 
-            <div className="space-y-1">
-              <label className="font-semibold text-muted-foreground">
-                Tags (comma-separated)
-              </label>
-              <Input
-                placeholder="urgent, insurance, password"
-                value={noteForm.tags}
-                onChange={(e) =>
-                  setNoteForm((prev) => ({ ...prev, tags: e.target.value }))
-                }
-                className="h-9 rounded-xl text-xs"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="font-semibold text-muted-foreground">
-                Content *
-              </label>
-              <textarea
-                placeholder="Write note contents, instructions, or secret directives..."
-                value={noteForm.content}
-                onChange={(e) =>
-                  setNoteForm((prev) => ({ ...prev, content: e.target.value }))
-                }
-                rows={4}
-                className="w-full p-3 rounded-2xl border border-border bg-secondary text-foreground text-xs focus:outline-none resize-none leading-relaxed"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="font-semibold text-muted-foreground">
-                Responsibilities / Instructions
-              </label>
-              <textarea
-                placeholder="Specific responsibilities or step-by-step instructions the recipient must follow..."
-                value={noteForm.instructions}
-                onChange={(e) =>
-                  setNoteForm((prev) => ({
-                    ...prev,
-                    instructions: e.target.value,
-                  }))
-                }
-                rows={3}
-                className="w-full p-3 rounded-2xl border border-border bg-secondary text-foreground text-xs focus:outline-none resize-none leading-relaxed"
-              />
-            </div>
-
-            {/* Attachments */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="font-semibold text-muted-foreground">
-                  Attachments
-                </label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => noteFileInputRef.current?.click()}
-                  className="h-7 px-2.5 rounded-lg text-[11px] font-semibold gap-1 border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10"
-                >
-                  <Paperclip className="w-3 h-3" />
-                  Attach Files
-                </Button>
-                <input
-                  ref={noteFileInputRef}
-                  type="file"
-                  multiple
-                  className="hidden"
-                  onChange={handlePersonNoteAttachmentChange}
-                />
-              </div>
-              {pendingNoteAttachments.length > 0 && (
-                <div className="space-y-1.5">
-                  {pendingNoteAttachments.map((att, idx) => {
-                    const isImg =
-                      att.type?.startsWith("image/") ||
-                      att.name.match(/\.(png|jpe?g|gif|webp|svg)$/i);
-                    return (
-                      <div
-                        key={idx}
-                        className="flex items-center justify-between gap-2 p-2 rounded-xl bg-muted/40 border border-border/60"
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          {isImg ? (
-                            <img
-                              src={att.url}
-                              alt={att.name}
-                              className="w-9 h-9 rounded-lg object-cover shrink-0"
-                            />
-                          ) : (
-                            <div className="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-                              <FileText className="w-4 h-4" />
-                            </div>
-                          )}
-                          <div className="min-w-0">
-                            <div className="text-[11px] font-semibold text-foreground truncate">
-                              {att.name}
-                            </div>
-                            {att.size !== undefined && (
-                              <div className="text-[10px] text-muted-foreground">
-                                {(att.size / 1024).toFixed(1)} KB
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removePersonNoteAttachment(idx)}
-                          className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 shrink-0"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
+              {personData.guardianRecord?.isRecoveryGuardian ? (
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  Accepted
+                </span>
+              ) : (
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                  Not assigned
+                </span>
               )}
             </div>
 
-            {/* Additional Toggles */}
-            <div className="space-y-2 p-3 rounded-2xl bg-muted/30 border border-border/50">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                Additional Settings
+            <Link
+              href="/guardians"
+              className="w-full py-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors flex items-center justify-center font-bold text-xs"
+            >
+              Open recovery settings
+            </Link>
+          </div>
+
+          {/* Section 4: Continuity Reviewer */}
+          <div className="bg-white rounded-2xl border border-slate-100/90 p-4 shadow-[0_2px_12px_rgba(30,27,75,0.02)] space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-[#1E1B4B]">
+                    Continuity Reviewer
+                  </h3>
+                  <p className="text-[10px] text-slate-400 font-medium">
+                    Separate appointment required
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center justify-between gap-2">
-                <label className="text-xs cursor-pointer select-none">
-                  Need Help Allowed
-                </label>
-                <input
-                  type="checkbox"
-                  checked={noteForm.needHelpAllowed}
-                  onChange={(e) =>
-                    setNoteForm((prev) => ({
-                      ...prev,
-                      needHelpAllowed: e.target.checked,
-                    }))
-                  }
-                  className="rounded border-border w-4 h-4"
-                />
-              </div>
-              <div className="flex items-center justify-between gap-2">
-                <label className="text-xs cursor-pointer select-none">
-                  Confirm Read Required
-                </label>
-                <input
-                  type="checkbox"
-                  checked={noteForm.confirmReadRequired}
-                  onChange={(e) =>
-                    setNoteForm((prev) => ({
-                      ...prev,
-                      confirmReadRequired: e.target.checked,
-                    }))
-                  }
-                  className="rounded border-border w-4 h-4"
-                />
-              </div>
-              <div className="flex items-center justify-between gap-2">
-                <label className="text-xs cursor-pointer select-none flex items-center gap-1">
-                  <Pin className="w-3 h-3 text-emerald-600" /> Pin to top
-                </label>
-                <input
-                  type="checkbox"
-                  checked={noteForm.isPinned}
-                  onChange={(e) =>
-                    setNoteForm((prev) => ({
-                      ...prev,
-                      isPinned: e.target.checked,
-                    }))
-                  }
-                  className="rounded border-border text-emerald-600 focus:ring-0 w-4 h-4"
-                />
-              </div>
+
+              {personData.guardianRecord?.isContinuityGuardian &&
+              personData.guardianRecord?.invitationStatus === "accepted" ? (
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  Accepted
+                </span>
+              ) : (
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                  Not assigned
+                </span>
+              )}
             </div>
 
-            <DialogFooter className="pt-3 gap-2 sm:gap-0">
-              <Button
+            <Link
+              href="/guardians"
+              className="inline-flex items-center gap-1 text-xs font-bold text-[#4F46E5] hover:underline pt-1"
+            >
+              <span>Open continuity settings</span>
+              <ExternalLink className="w-3 h-3" />
+            </Link>
+          </div>
+
+          {/* Helper Callout */}
+          <div className="flex items-center gap-1.5 px-1 text-[11px] text-slate-400 font-medium pt-1">
+            <span>ⓘ</span>
+            <span>Relationship tags do not grant permissions.</span>
+          </div>
+        </div>
+      )}
+
+      {/* ── Screen 5: Edit Person Modal ── */}
+      {showEditModal && (
+        <AddEditPersonModal
+          isOpen={showEditModal}
+          personToEdit={person}
+          onClose={() => setShowEditModal(false)}
+          onSuccess={(updated) => {
+            setPerson(updated);
+          }}
+        />
+      )}
+
+      {/* ── Owner-Only Note Edit Modal ── */}
+      {showNoteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl w-full max-w-md p-5 sm:p-6 space-y-4 shadow-xl border border-slate-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-[#4F46E5] text-white flex items-center justify-center">
+                  <Lock className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-bold text-[#1E1B4B]">
+                  Owner-Only Private Note
+                </h3>
+              </div>
+              <button
                 type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setNoteModalOpen(false)}
-                disabled={noteSaving}
-                className="rounded-xl text-xs"
+                onClick={() => setShowNoteModal(false)}
+                className="w-7 h-7 rounded-lg hover:bg-slate-100 text-slate-400 flex items-center justify-center"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-[11px] text-slate-500 font-medium">
+              This note is private and strictly visible to you. It will never be
+              shared with the connected user or third parties.
+            </p>
+
+            <textarea
+              value={ownerNoteDraft}
+              onChange={(e) => setOwnerNoteDraft(e.target.value)}
+              placeholder="Write a private note regarding this individual..."
+              rows={4}
+              className="w-full text-xs border border-slate-200/90 rounded-2xl p-3 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#4F46E5] font-medium resize-none shadow-2xs"
+            />
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowNoteModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors"
               >
                 Cancel
-              </Button>
-              <Button
+              </button>
+              <button
                 type="button"
-                size="sm"
-                onClick={handleSaveNote}
-                disabled={noteSaving}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold gap-1.5 shadow-xs"
+                disabled={savingNote}
+                onClick={handleSaveOwnerNote}
+                className="px-5 py-2 rounded-xl text-xs font-bold bg-[#4F46E5] hover:bg-indigo-700 text-white transition-all shadow-xs flex items-center gap-1.5 disabled:opacity-50"
               >
-                {noteSaving ? (
+                {savingNote ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                )}
-                {editingNote ? "Save Changes" : "Create Note"}
-              </Button>
-            </DialogFooter>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* ============================================================ */}
-      {/* Note Version History Modal                                    */}
-      {/* ============================================================ */}
-      <Dialog
-        open={Boolean(noteHistoryModal)}
-        onOpenChange={(open) => !open && setNoteHistoryModal(null)}
-      >
-        <DialogContent className="life-dialog sm:max-w-lg rounded-3xl border border-border bg-card text-foreground shadow-2xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
-              <History className="w-4 h-4 text-emerald-600" />
-              <span>Version History — {noteHistoryModal?.title}</span>
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-3 pt-2 text-xs">
-            {!noteHistoryModal?.history ||
-            noteHistoryModal.history.length === 0 ? (
-              <p className="text-xs text-muted-foreground py-6 text-center">
-                No past revisions recorded.
-              </p>
-            ) : (
-              noteHistoryModal.history.map((h, idx) => (
-                <div
-                  key={idx}
-                  className="p-3 rounded-2xl bg-secondary/60 border border-border space-y-1.5"
-                >
-                  <div className="flex items-center justify-between text-[11px] text-muted-foreground font-semibold">
-                    <span>{h.changedBy || "User"}</span>
-                    <span>{new Date(h.changedAt).toLocaleString()}</span>
-                  </div>
-                  {h.action && (
-                    <span className="inline-block px-1.5 py-0.5 rounded bg-card text-[10px] font-bold uppercase text-foreground">
-                      {h.action}
-                    </span>
-                  )}
-                  {h.previousContent && (
-                    <div className="p-2 rounded-xl bg-card/80 text-[11px] text-muted-foreground border border-border line-through opacity-80">
-                      {h.previousContent}
-                    </div>
-                  )}
-                  {h.newContent && (
-                    <div className="p-2 rounded-xl bg-card text-[11px] text-foreground border border-border font-medium">
-                      {h.newContent}
-                    </div>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* ============================================================ */}
-      {/* Edit Profile & Access Permissions Modal                      */}
-      {/* ============================================================ */}
-      <Dialog open={accessModalOpen} onOpenChange={setAccessModalOpen}>
-        <DialogContent className="life-dialog sm:max-w-2xl rounded-3xl border border-border bg-card text-foreground shadow-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-base font-bold text-foreground flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Shield className="w-4.5 h-4.5 text-[#4F46E5]" />
-                <span className="text-[#1E1B4B]">Profile & Granular Access Control</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs font-bold">
-                <span
-                  className={`px-2 py-0.5 rounded-full ${accessStep === "edit" ? "bg-[#4F46E5] text-white" : "bg-slate-100 text-slate-500"}`}
-                >
-                  1. Configure
-                </span>
-                <span
-                  className={`px-2 py-0.5 rounded-full ${accessStep === "review" ? "bg-[#4F46E5] text-white" : "bg-slate-100 text-slate-500"}`}
-                >
-                  2. Review Diff
-                </span>
-              </div>
-            </DialogTitle>
-          </DialogHeader>
-
-          {accessStep === "edit" ? (
-            <div className="space-y-4 pt-2 text-xs">
-              {/* Personal Information */}
-              <div className="space-y-2.5 pb-3 border-b border-border">
-                <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">
-                  Personal Information
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground">
-                      Full Name *
-                    </label>
-                    <Input
-                      value={accessForm.name}
-                      onChange={(e) =>
-                        setAccessForm((p) => ({ ...p, name: e.target.value }))
-                      }
-                      className="h-9 rounded-xl text-xs"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground">
-                      Relationship
-                    </label>
-                    <Input
-                      value={accessForm.relation}
-                      onChange={(e) =>
-                        setAccessForm((p) => ({
-                          ...p,
-                          relation: e.target.value,
-                        }))
-                      }
-                      className="h-9 rounded-xl text-xs"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground">
-                      Designation
-                    </label>
-                    <Input
-                      value={accessForm.designation}
-                      onChange={(e) =>
-                        setAccessForm((p) => ({
-                          ...p,
-                          designation: e.target.value,
-                        }))
-                      }
-                      className="h-9 rounded-xl text-xs"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground">
-                      Phone
-                    </label>
-                    <Input
-                      value={accessForm.phone}
-                      onChange={(e) =>
-                        setAccessForm((p) => ({ ...p, phone: e.target.value }))
-                      }
-                      className="h-9 rounded-xl text-xs"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground">
-                      Email
-                    </label>
-                    <Input
-                      value={accessForm.email}
-                      onChange={(e) =>
-                        setAccessForm((p) => ({ ...p, email: e.target.value }))
-                      }
-                      className="h-9 rounded-xl text-xs"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Account & Role Configuration */}
-              <div className="space-y-3 pb-3 border-b border-border">
-                <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">
-                  Role & Account Mode
-                </h4>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground">
-                      System Role
-                    </label>
-                    <select
-                      value={accessForm.role}
-                      onChange={(e) =>
-                        setAccessForm((p) => ({
-                          ...p,
-                          role: e.target.value as LifeRole,
-                        }))
-                      }
-                      className="w-full h-9 px-3 rounded-xl border border-border bg-secondary text-foreground text-xs focus:outline-none"
-                    >
-                      <option value="individual">
-                        Individual User (Assigned info only)
-                      </option>
-                      <option value="guardian">
-                        Guardian (Family members, emergency, medical)
-                      </option>
-                      <option value="business_staff">
-                        Business Staff (Assigned business area)
-                      </option>
-                      <option value="business_partner">
-                        Business Partner (Selected business)
-                      </option>
-                      <option value="admin">
-                        Administrator (Permitted records)
-                      </option>
-                      <option value="super_admin">
-                        Super Admin (Full access)
-                      </option>
-                      <option value="read_only">
-                        Read Only (View-only access)
-                      </option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="font-semibold text-muted-foreground">
-                      Account Status
-                    </label>
-                    <select
-                      value={accessForm.accountStatus}
-                      onChange={(e) =>
-                        setAccessForm((p) => ({
-                          ...p,
-                          accountStatus: e.target.value as AccountStatus,
-                        }))
-                      }
-                      className="w-full h-9 px-3 rounded-xl border border-border bg-secondary text-foreground text-xs focus:outline-none"
-                    >
-                      <option value="active">Active</option>
-                      <option value="locked">Locked</option>
-                      <option value="disabled">Disabled</option>
-                      <option value="archived">Archived</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Record-Only & Login Toggles */}
-                <div className="p-3 rounded-2xl bg-secondary/60 border border-border space-y-2">
-                  <label className="flex items-center justify-between cursor-pointer">
-                    <div>
-                      <span className="font-bold text-foreground text-xs">
-                        Record-Only Person
-                      </span>
-                      <p className="text-[11px] text-muted-foreground">
-                        Reference-only record (gifts, loans, emergency); login
-                        is permanently disabled.
-                      </p>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={accessForm.isRecordOnly}
-                      onChange={(e) => {
-                        const rec = e.target.checked;
-                        setAccessForm((p) => ({
-                          ...p,
-                          isRecordOnly: rec,
-                          isLoginEnabled: rec ? false : p.isLoginEnabled,
-                        }));
-                      }}
-                      className="rounded border-border text-emerald-600 focus:ring-0"
-                    />
-                  </label>
-
-                  {!accessForm.isRecordOnly && (
-                    <label className="flex items-center justify-between cursor-pointer pt-2 border-t border-border">
-                      <div>
-                        <span className="font-bold text-foreground text-xs">
-                          Login Allowed
-                        </span>
-                        <p className="text-[11px] text-muted-foreground">
-                          Allow this user to sign in to their dedicated Life
-                          Vault dashboard.
-                        </p>
-                      </div>
-                      <input
-                        type="checkbox"
-                        checked={accessForm.isLoginEnabled}
-                        onChange={(e) =>
-                          setAccessForm((p) => ({
-                            ...p,
-                            isLoginEnabled: e.target.checked,
-                          }))
-                        }
-                        className="rounded border-border text-emerald-600 focus:ring-0"
-                      />
-                    </label>
-                  )}
-                </div>
-              </div>
-
-              {/* Capability Permissions */}
-              <div className="space-y-3 pb-3 border-b border-border">
-                <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">
-                  Core Module Capabilities
-                </h4>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {[
-                    { key: "canViewPersonal", label: "View Personal Data" },
-                    {
-                      key: "canViewBusiness",
-                      label: "View Business Continuity",
-                    },
-                    { key: "canViewFinancial", label: "View Financial Care" },
-                    {
-                      key: "canViewSensitive",
-                      label: "View Sensitive Records",
-                    },
-                    { key: "canRevealVault", label: "Reveal Vault Secrets" },
-                    { key: "canManageAccess", label: "Manage Access Control" },
-                    {
-                      key: "canAccessEmergency",
-                      label: "Access Emergency Mode",
-                    },
-                    {
-                      key: "canManageSecretNotes",
-                      label: "Manage Secret Notes",
-                    },
-                  ].map((perm) => (
-                    <label
-                      key={perm.key}
-                      className="flex items-center gap-2 p-2 rounded-xl bg-secondary/50 border border-border cursor-pointer hover:bg-accent transition-colors"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={Boolean((accessForm as any)[perm.key])}
-                        onChange={(e) =>
-                          setAccessForm((p) => ({
-                            ...p,
-                            [perm.key]: e.target.checked,
-                          }))
-                        }
-                        className="rounded border-border text-emerald-600 focus:ring-0"
-                      />
-                      <span className="font-semibold text-foreground text-xs">
-                        {perm.label}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-
-                <div className="space-y-1 pt-1">
-                  <label className="font-semibold text-muted-foreground">
-                    Notes Access Scope
-                  </label>
-                  <select
-                    value={accessForm.notesAccessScope}
-                    onChange={(e) =>
-                      setAccessForm((p) => ({
-                        ...p,
-                        notesAccessScope: e.target.value as any,
-                      }))
-                    }
-                    className="w-full h-8 px-3 rounded-xl border border-border bg-secondary text-foreground text-xs focus:outline-none"
-                  >
-                    <option value="assigned_only">Assigned Notes Only</option>
-                    <option value="all">All Notes</option>
-                    <option value="none">No Notes Access</option>
-                  </select>
-                </div>
-              </div>
-
-              <DialogFooter className="pt-2 gap-2 sm:gap-0">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setAccessModalOpen(false)}
-                  className="rounded-xl text-xs"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => setAccessStep("review")}
-                  className="bg-[#4F46E5] hover:bg-indigo-700 text-white rounded-xl text-xs font-bold gap-1.5 shadow-xs transition-all active:scale-95"
-                >
-                  Review Changes →
-                </Button>
-              </DialogFooter>
+                ) : null}
+                <span>Save Note</span>
+              </button>
             </div>
-          ) : (
-            /* Review Step with Diff Summary */
-            <div className="space-y-4 pt-2 text-xs">
-              <div className="p-3 rounded-2xl bg-secondary/60 border border-border">
-                <h4 className="font-bold text-xs text-foreground mb-1">
-                  Confirmation & Audit Preview
-                </h4>
-                <p className="text-[11px] text-muted-foreground">
-                  The following changes will be applied and permanently logged
-                  in the audit trail.
+          </div>
+        </div>
+      )}
+
+      {/* ── Archive Confirmation Modal ── */}
+      {showArchiveConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl w-full max-w-md p-5 sm:p-6 space-y-4 shadow-xl border border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-[#1E1B4B]">
+                  Archive {person.name}?
+                </h3>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  Controlled directory status change
                 </p>
               </div>
-
-              {/* Added Diff */}
-              <div className="p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 space-y-2">
-                <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-xs">
-                  <Check className="w-4 h-4" />
-                  <span>[+ Permissions & Access Added]</span>
-                </div>
-                {getPermissionDiff().added.length === 0 ? (
-                  <p className="text-[11px] text-muted-foreground italic pl-5">
-                    None
-                  </p>
-                ) : (
-                  <ul className="space-y-1 pl-5 list-disc text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
-                    {getPermissionDiff().added.map((item, idx) => (
-                      <li key={idx}>{item}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              {/* Removed Diff */}
-              <div className="p-3.5 rounded-2xl border border-rose-500/30 bg-rose-500/5 space-y-2">
-                <div className="flex items-center gap-1.5 text-rose-600 font-bold text-xs">
-                  <X className="w-4 h-4" />
-                  <span>[- Permissions & Access Revoked]</span>
-                </div>
-                {getPermissionDiff().removed.length === 0 ? (
-                  <p className="text-[11px] text-muted-foreground italic pl-5">
-                    None
-                  </p>
-                ) : (
-                  <ul className="space-y-1 pl-5 list-disc text-[11px] text-rose-700 dark:text-rose-400 font-medium">
-                    {getPermissionDiff().removed.map((item, idx) => (
-                      <li key={idx}>{item}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              <DialogFooter className="pt-3 gap-2 sm:gap-0">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setAccessStep("edit")}
-                  disabled={accessSaving}
-                  className="rounded-xl text-xs"
-                >
-                  ← Back to Edit
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={handleSaveAccess}
-                  disabled={accessSaving}
-                  className="bg-[#4F46E5] hover:bg-indigo-700 text-white rounded-xl text-xs font-bold gap-1.5 shadow-xs transition-all active:scale-95"
-                >
-                  {accessSaving ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                  )}
-                  Confirm & Apply Permissions
-                </Button>
-              </DialogFooter>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+
+            <div className="text-xs text-slate-600 space-y-2 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/60 font-medium">
+              <p>
+                Archiving removes this person from the main directory while
+                preserving all historical records, linked finances, and document
+                references.
+              </p>
+              {archiveSummary && (
+                <div className="pt-2 border-t border-slate-200/80 space-y-1 text-[11px]">
+                  <p>
+                    • Active Duties/Instructions:{" "}
+                    <span className="font-bold text-slate-800">
+                      {archiveSummary.dutiesCount}
+                    </span>
+                  </p>
+                  <p>
+                    • Financial/SiS Care Records:{" "}
+                    <span className="font-bold text-slate-800">
+                      {archiveSummary.financialCount}
+                    </span>
+                  </p>
+                  <p>
+                    • Guardian Appointments:{" "}
+                    <span className="font-bold text-slate-800">
+                      {archiveSummary.isGuardian ? "Active" : "None"}
+                    </span>
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowArchiveConfirm(false)}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={archiving}
+                onClick={handleConfirmArchive}
+                className="px-5 py-2 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white transition-all shadow-xs flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {archiving ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : null}
+                <span>Confirm Archive</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

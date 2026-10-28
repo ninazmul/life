@@ -88,9 +88,11 @@ export interface ILifePersonDoc extends Document {
     | "active_user"
     | "disabled";
   tags?: string[];
+  connections?: string[];
   isImportant?: boolean;
   isEmergencyContact?: boolean;
   shortNote?: string;
+  ownerNote?: string;
   invitationSentAt?: Date;
   invitationExpiresAt?: Date;
   invitationToken?: string;
@@ -101,7 +103,7 @@ export interface ILifePersonDoc extends Document {
 const LifePersonSchema = new Schema<ILifePersonDoc>(
   {
     name: { type: String, required: true, trim: true },
-    relation: { type: String, required: true, trim: true },
+    relation: { type: String, trim: true, default: "" },
     designation: { type: String, trim: true, default: "" },
     phone: { type: String, trim: true, default: "" },
     whatsapp: { type: String, trim: true, default: "" },
@@ -162,9 +164,11 @@ const LifePersonSchema = new Schema<ILifePersonDoc>(
       index: true,
     },
     tags: [{ type: String }],
+    connections: [{ type: String }],
     isImportant: { type: Boolean, default: false },
     isEmergencyContact: { type: Boolean, default: false },
     shortNote: { type: String, trim: true, default: "" },
+    ownerNote: { type: String, trim: true, default: "" },
     invitationSentAt: { type: Date },
     invitationExpiresAt: { type: Date },
     invitationToken: { type: String },

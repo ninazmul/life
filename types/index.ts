@@ -161,10 +161,14 @@ export interface ILifePerson {
     | "invite_expired"
     | "active_user"
     | "disabled";
+  accountStatusType?: "connected" | "invite_pending" | "contact_only";
+  conciseIndicator?: string;
   tags?: string[];
+  connections?: string[];
   isImportant?: boolean;
   isEmergencyContact?: boolean;
   shortNote?: string;
+  ownerNote?: string;
   invitationSentAt?: Date | string;
   invitationExpiresAt?: Date | string;
   invitationToken?: string;
