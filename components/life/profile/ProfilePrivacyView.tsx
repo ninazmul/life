@@ -249,6 +249,7 @@ export function ProfilePrivacyView({
         <Sheet open={Boolean(activeSection)} onOpenChange={(open) => !open && setActiveSection(null)}>
           <SheetContent
             side="bottom"
+            hideCloseButton
             className="rounded-t-[32px] max-h-[92vh] sm:max-w-xl mx-auto p-0 border-0 bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden"
           >
             <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-slate-100 dark:border-slate-800">

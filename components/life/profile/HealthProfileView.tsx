@@ -521,6 +521,7 @@ export function HealthProfileView({
       <Sheet open={editOverviewOpen} onOpenChange={setEditOverviewOpen}>
         <SheetContent
           side="bottom"
+          hideCloseButton
           className="rounded-t-[32px] max-h-[92vh] sm:max-w-xl mx-auto p-0 border-0 bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden"
         >
           <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -639,6 +640,7 @@ export function HealthProfileView({
       <Sheet open={medicalHistoryDrawerOpen} onOpenChange={setMedicalHistoryDrawerOpen}>
         <SheetContent
           side="bottom"
+          hideCloseButton
           className="rounded-t-[32px] max-h-[92vh] sm:max-w-xl mx-auto p-0 border-0 bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden"
         >
           <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -744,6 +746,7 @@ export function HealthProfileView({
       <Sheet open={addHistoryOpen} onOpenChange={setAddHistoryOpen}>
         <SheetContent
           side="bottom"
+          hideCloseButton
           className="rounded-t-[32px] max-h-[90vh] sm:max-w-xl mx-auto p-0 border-0 bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden"
         >
           <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -851,6 +854,7 @@ export function HealthProfileView({
       <Sheet open={addReportOpen} onOpenChange={setAddReportOpen}>
         <SheetContent
           side="bottom"
+          hideCloseButton
           className="rounded-t-[32px] max-h-[92vh] sm:max-w-xl mx-auto p-0 border-0 bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden"
         >
           <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -1016,6 +1020,7 @@ export function HealthProfileView({
         <Sheet open={Boolean(selectedReport)} onOpenChange={(open) => !open && setSelectedReport(null)}>
           <SheetContent
             side="bottom"
+            hideCloseButton
             className="rounded-t-[32px] max-h-[92vh] sm:max-w-xl mx-auto p-0 border-0 bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden"
           >
             <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-slate-100 dark:border-slate-800">

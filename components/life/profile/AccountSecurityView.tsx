@@ -388,6 +388,7 @@ export function AccountSecurityView({
       <Sheet open={changePasswordOpen} onOpenChange={setChangePasswordOpen}>
         <SheetContent
           side="bottom"
+          hideCloseButton
           className="rounded-t-[32px] max-h-[90vh] sm:max-w-xl mx-auto p-0 border-0 bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden"
         >
           <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -483,6 +484,7 @@ export function AccountSecurityView({
       <Sheet open={activeSessionsOpen} onOpenChange={setActiveSessionsOpen}>
         <SheetContent
           side="bottom"
+          hideCloseButton
           className="rounded-t-[32px] max-h-[90vh] sm:max-w-xl mx-auto p-0 border-0 bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden"
         >
           <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-slate-100 dark:border-slate-800">
