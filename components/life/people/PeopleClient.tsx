@@ -89,7 +89,7 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
       if (connectionFilter !== "All") {
         const pConns =
           Array.isArray(p.connections) && p.connections.length > 0
-            ? p.connections.map((c) => c.toLowerCase())
+            ? p.connections.map((c) => (c && typeof c === "string" ? c.toLowerCase() : ""))
             : [((p as any).category || "").toLowerCase()];
         const pRel = (p.relation || "").toLowerCase();
 
@@ -180,7 +180,7 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
         const phoneMatch = (p.phone || "").toLowerCase().includes(q);
         const relMatch = (p.relation || "").toLowerCase().includes(q);
         const connMatch = (p.connections || []).some((c) =>
-          c.toLowerCase().includes(q)
+          c && typeof c === "string" && c.toLowerCase().includes(q)
         );
         if (!nameMatch && !emailMatch && !phoneMatch && !relMatch && !connMatch)
           return false;
@@ -374,7 +374,7 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
 
             // Determine visible tags: relationship and primary connection
             const tags: string[] = [];
-            if (person.relation && person.relation.toLowerCase() !== "other") {
+            if (person.relation && typeof person.relation === "string" && person.relation.toLowerCase() !== "other") {
               tags.push(person.relation);
             }
             const rawConns =
@@ -385,7 +385,7 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
                 : [];
 
             for (const c of rawConns) {
-              if (!tags.includes(c) && tags.length < 2) {
+              if (c && typeof c === "string" && !tags.includes(c) && tags.length < 2) {
                 tags.push(c);
               }
             }
@@ -493,7 +493,9 @@ export function PeopleClient({ initialPeople }: PeopleClientProps) {
           isOpen={showAddModal}
           onClose={() => setShowAddModal(false)}
           onSuccess={(newPerson) => {
-            setPeople((prev) => [newPerson, ...prev]);
+            if (newPerson && newPerson._id) {
+              setPeople((prev) => [newPerson, ...prev]);
+            }
           }}
         />
       )}

@@ -94,8 +94,12 @@ export async function sendPersonInvitation(
       details: `Sent Life VAULT invitation to ${person.name} (${email}). Expires on ${expiresAt.toLocaleDateString()}.`,
     });
 
-    revalidatePath("/people");
-    revalidatePath(`/people/${personId}`);
+    try {
+      revalidatePath("/people");
+      revalidatePath(`/people/${personId}`);
+    } catch {
+      // Revalidation must never crash the invitation flow
+    }
 
     return {
       success: true,

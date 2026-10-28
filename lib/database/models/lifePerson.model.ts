@@ -139,16 +139,7 @@ const LifePersonSchema = new Schema<ILifePersonDoc>(
     isEmergencyPrimary: { type: Boolean, default: false },
     category: {
       type: String,
-      enum: [
-        "Guardian",
-        "Family Member",
-        "Staff",
-        "Business Partner",
-        "Friend",
-        "General User",
-        "Other",
-      ],
-      default: "Family Member",
+      default: "Family",
       index: true,
     },
     registrationStatus: {

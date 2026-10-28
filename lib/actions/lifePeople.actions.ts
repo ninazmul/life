@@ -633,22 +633,31 @@ export async function createPerson(data: {
           canAccessEmergency: false,
         };
 
-    const clerkAvatar = cleanEmail
-      ? await getClerkAvatar({ email: cleanEmail })
-      : undefined;
+    let clerkAvatar: string | undefined;
+    try {
+      clerkAvatar = cleanEmail
+        ? await getClerkAvatar({ email: cleanEmail })
+        : undefined;
+    } catch {
+      clerkAvatar = undefined;
+    }
 
     const photo = data.profilePhoto || data.avatarUrl || clerkAvatar || "";
 
-    // Multiple connections determination
-    const finalConnections = Array.isArray(data.connections) && data.connections.length > 0
-      ? data.connections
-      : data.category
-      ? [data.category]
-      : ["Family"];
+    // Multiple connections determination — ensure all items are strings
+    const finalConnections: string[] = (
+      Array.isArray(data.connections) && data.connections.length > 0
+        ? data.connections
+        : data.category
+        ? [data.category]
+        : ["Family"]
+    ).filter((c): c is string => typeof c === "string" && c.trim().length > 0);
+
+    if (finalConnections.length === 0) finalConnections.push("Family");
 
     const person = await LifePerson.create({
       name: data.name.trim(),
-      category: finalConnections[0] || data.category || "Family Member",
+      category: finalConnections[0] || "Family",
       connections: finalConnections,
       relation: (data.relation || "").trim(),
       phone: data.phone?.trim() || "",
@@ -677,6 +686,8 @@ export async function createPerson(data: {
       emergencyPriority: data.isEmergencyContact ? 1 : (data.emergencyPriority || 0),
       permissions: finalPerms,
     });
+
+    // ── Post-creation steps: wrapped individually so none can crash the action ──
 
     // If Invite as User toggle is enabled, send invitation separately
     let inviteSent = false;
@@ -708,19 +719,46 @@ export async function createPerson(data: {
       ).catch(() => {});
     }
 
-    await logLifeActivity({
-      action: "CREATE_PERSON",
-      resourceType: "people",
-      resourceId: String(person._id),
-      resourceName: person.name,
-      details: `Added new person profile: ${person.name} (${finalConnections.join(", ")})${data.inviteAsUser ? " with invitation" : ""}`,
-    });
+    try {
+      await logLifeActivity({
+        action: "CREATE_PERSON",
+        resourceType: "people",
+        resourceId: String(person._id),
+        resourceName: person.name,
+        details: `Added new person profile: ${person.name} (${finalConnections.join(", ")})${data.inviteAsUser ? " with invitation" : ""}`,
+      });
+    } catch {
+      // Activity logging must never crash the action
+    }
 
-    revalidatePath("/people");
-    revalidatePath("/");
+    try {
+      revalidatePath("/people");
+    } catch {
+      // Revalidation must never crash the action
+    }
+
+    // Build enriched data matching the shape PeopleClient expects
+    const accountStatusType = person.clerkUserId
+      ? "connected"
+      : person.registrationStatus === "invitation_sent"
+      ? "invite_pending"
+      : "contact_only";
+
+    const serialized = JSON.parse(JSON.stringify(person));
+
     return {
       success: true,
-      data: JSON.parse(JSON.stringify(person)),
+      data: {
+        ...serialized,
+        connections: finalConnections,
+        accountStatusType,
+        conciseIndicator: "",
+        registrationStatus: serialized.registrationStatus || "not_invited",
+        notesCount: 0,
+        dutiesCount: 0,
+        loansCount: 0,
+        sharedFilesCount: 0,
+      },
       inviteSent,
       inviteMessage,
     };
