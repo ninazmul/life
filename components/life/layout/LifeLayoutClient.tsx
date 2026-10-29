@@ -1,9 +1,12 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { LifeSidebar } from "./LifeSidebar";
 import { LifeHeader } from "./LifeHeader";
 import { LifeVaultBottomNav } from "./LifeVaultBottomNav";
+import { LifeBottomNav } from "./LifeBottomNav";
+import { LifeMoreSheet } from "./LifeMoreSheet";
 import { PWAProvider } from "../PWAProvider";
 import { UserModuleAccess } from "@/lib/life/module-access";
 
@@ -27,12 +30,13 @@ export function LifeLayoutClient({
   const isProfile = pathname === "/profile";
   const isDashboard = pathname === "/";
   const isOwnerOrAdmin = Boolean(userAccess?.isOwner || userAccess?.isAdmin);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
 
   return (
     <PWAProvider>
       <div className="lv-shell flex min-h-screen bg-[#F7F6FC] transition-colors">
-        {/* Desktop Responsive Sidebar - only for owner/admin */}
-        {isOwnerOrAdmin && <LifeSidebar userAccess={userAccess} />}
+        {/* The sidebar filters modules using the same permissions enforced by each route. */}
+        <LifeSidebar userAccess={userAccess} />
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-h-screen min-w-0 overflow-x-hidden">
@@ -56,8 +60,15 @@ export function LifeLayoutClient({
             {children}
           </main>
 
-          {/* Mobile Native Bottom Navigation — Only visible for owner/admin on mobile */}
-          {isOwnerOrAdmin && <LifeVaultBottomNav peopleCount={peopleCount} />}
+          {/* Keep the established owner navigation; invited users get their permission-filtered modules. */}
+          {isOwnerOrAdmin ? (
+            <LifeVaultBottomNav peopleCount={peopleCount} />
+          ) : (
+            <>
+              <LifeBottomNav userAccess={userAccess} onOpenMore={() => setIsMoreOpen(true)} />
+              <LifeMoreSheet open={isMoreOpen} onOpenChange={setIsMoreOpen} userAccess={userAccess} />
+            </>
+          )}
         </div>
       </div>
     </PWAProvider>
