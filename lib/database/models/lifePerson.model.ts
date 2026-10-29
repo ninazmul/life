@@ -96,6 +96,7 @@ export interface ILifePersonDoc extends Document {
   invitationSentAt?: Date;
   invitationExpiresAt?: Date;
   invitationToken?: string;
+  invitationUrl?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -163,6 +164,7 @@ const LifePersonSchema = new Schema<ILifePersonDoc>(
     invitationSentAt: { type: Date },
     invitationExpiresAt: { type: Date },
     invitationToken: { type: String },
+    invitationUrl: { type: String, trim: true, default: "" },
     status: {
       type: String,
       enum: ["active", "locked", "disabled", "archived"],

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { clerkClient } from "@clerk/nextjs/server";
 import { connectToDatabase } from "@/lib/database";
 import LifePerson from "@/lib/database/models/lifePerson.model";
 import LifeFinancialSupport from "@/lib/database/models/lifeFinancialSupport.model";
@@ -692,11 +693,13 @@ export async function createPerson(data: {
     // If Invite as User toggle is enabled, send invitation separately
     let inviteSent = false;
     let inviteMessage = "";
+    let invitationUrl = "";
     if (data.inviteAsUser && cleanEmail) {
       try {
         const inviteRes = await sendPersonInvitation(String(person._id), cleanEmail);
         inviteSent = inviteRes.success;
         inviteMessage = inviteRes.message || "";
+        invitationUrl = inviteRes.data?.invitationUrl || "";
       } catch (err: any) {
         inviteSent = false;
         inviteMessage = err.message || "Failed to deliver email invitation";
@@ -753,6 +756,7 @@ export async function createPerson(data: {
         connections: finalConnections,
         accountStatusType,
         conciseIndicator: "",
+        invitationUrl: invitationUrl || serialized.invitationUrl || "",
         registrationStatus: serialized.registrationStatus || "not_invited",
         notesCount: 0,
         dutiesCount: 0,
@@ -1063,6 +1067,27 @@ export async function cancelPersonInvitation(id: string): Promise<{ success: boo
     const person = await LifePerson.findById(id);
     if (!person) return { success: false, error: "Person not found" };
 
+    // Revoke pending LifeInvitation in MongoDB
+    await LifeInvitation.updateMany(
+      { personId: person._id, status: "pending" },
+      { $set: { status: "revoked" } }
+    ).catch(() => {});
+
+    // Revoke in Clerk if email exists
+    if (person.email) {
+      try {
+        const client = await clerkClient();
+        const existingInvites = await client.invitations.getInvitationList({ status: "pending" });
+        for (const inv of existingInvites.data || []) {
+          if (inv.emailAddress?.toLowerCase().trim() === person.email.toLowerCase().trim()) {
+            await client.invitations.revokeInvitation(inv.id).catch(() => {});
+          }
+        }
+      } catch (e) {
+        console.warn("Notice: could not revoke Clerk invitation on cancel:", e);
+      }
+    }
+
     await LifePerson.findByIdAndUpdate(id, {
       $set: {
         registrationStatus: "not_invited",
@@ -1070,6 +1095,7 @@ export async function cancelPersonInvitation(id: string): Promise<{ success: boo
       $unset: {
         invitationToken: 1,
         invitationExpiresAt: 1,
+        invitationUrl: 1,
       },
     });
 

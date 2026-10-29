@@ -65,16 +65,36 @@ export async function sendPersonInvitation(
 
     // Attempt Clerk invitation if clerkClient is configured
     let clerkInviteCreated = false;
+    const origin = process.env.NEXT_PUBLIC_APP_URL || "https://life.gesn.net";
+    let invitationUrl = `${origin}/sign-up?invite_token=${token}`;
+
     try {
       const client = await clerkClient();
-      const origin = process.env.NEXT_PUBLIC_APP_URL || "https://life.gesn.net";
-      await client.invitations.createInvitation({
+
+      // Revoke any existing pending invitations in Clerk for this email to prevent 422 duplicates
+      try {
+        const existingClerkInvites = await client.invitations.getInvitationList({ status: "pending" });
+        for (const inv of existingClerkInvites.data || []) {
+          if (inv.emailAddress?.toLowerCase().trim() === email) {
+            await client.invitations.revokeInvitation(inv.id).catch(() => {});
+          }
+        }
+      } catch (revokeErr) {
+        console.warn("Notice: could not inspect existing Clerk invitations:", revokeErr);
+      }
+
+      const clerkInvite = await (client.invitations as any).createInvitation({
         emailAddress: email,
         redirectUrl: `${origin}/sign-up?invite_token=${token}`,
+        notify: true,
+        ignoreExisting: true,
       });
+
       clerkInviteCreated = true;
+      if (clerkInvite?.url) {
+        invitationUrl = clerkInvite.url;
+      }
     } catch (clerkErr: any) {
-      // In development or if duplicate invite exists in Clerk, record warning but proceed
       console.warn("Clerk invitation notice:", clerkErr?.message || clerkErr);
     }
 
@@ -84,6 +104,7 @@ export async function sendPersonInvitation(
     person.invitationSentAt = new Date();
     person.invitationExpiresAt = expiresAt;
     person.invitationToken = token;
+    person.invitationUrl = invitationUrl;
     await person.save();
 
     await logLifeActivity({
@@ -106,6 +127,7 @@ export async function sendPersonInvitation(
       message: `Invitation successfully sent to ${email}`,
       data: {
         token,
+        invitationUrl,
         expiresAt: expiresAt.toISOString(),
         clerkInviteCreated,
       },

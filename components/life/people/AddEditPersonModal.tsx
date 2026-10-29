@@ -277,9 +277,16 @@ export function AddEditPersonModal({
         }
 
         if (res.inviteSent) {
-          toast.success(
-            `Contact saved and invitation sent to ${emailAddress}!`
-          );
+          if (res.data?.invitationUrl) {
+            navigator.clipboard.writeText(res.data.invitationUrl).catch(() => {});
+            toast.success(
+              `Contact saved! Invitation created & link copied to clipboard.`
+            );
+          } else {
+            toast.success(
+              `Contact saved and invitation sent to ${emailAddress}!`
+            );
+          }
         } else if (inviteToVault && res.inviteMessage) {
           toast.success(`Contact saved! (Note: ${res.inviteMessage})`);
         } else {

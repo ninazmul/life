@@ -173,6 +173,7 @@ export interface ILifePerson {
   invitationSentAt?: Date | string;
   invitationExpiresAt?: Date | string;
   invitationToken?: string;
+  invitationUrl?: string;
   notesCount?: number;
   dutiesCount?: number;
   loansCount?: number;

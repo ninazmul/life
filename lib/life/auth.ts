@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { connectToDatabase } from "@/lib/database";
 import Admin from "@/lib/database/models/admin.model";
 import LifePerson from "@/lib/database/models/lifePerson.model";
+import LifeInvitation from "@/lib/database/models/lifeInvitation.model";
 import LifeActivityLog from "@/lib/database/models/lifeActivityLog.model";
 import LifeEmergencyAccess from "@/lib/database/models/lifeEmergencyAccess.model";
 import { LifeRole, LifePermission, CrudAreaKey } from "@/types";
@@ -371,11 +372,20 @@ export const getLifeAuthContext = cache(async function getLifeAuthContext(): Pro
       if (Date.now() - lastActivityTime > 5 * 60 * 1000) {
         updates.lastActivity = new Date();
       }
-      if (!personDoc.clerkUserId) {
+      if (!personDoc.clerkUserId || personDoc.clerkUserId !== userId) {
         updates.clerkUserId = userId;
       }
       if (!personDoc.lastLogin) {
         updates.lastLogin = new Date();
+      }
+      if (personDoc.registrationStatus !== "active_user") {
+        updates.registrationStatus = "active_user";
+      }
+      if (personDoc.accountStatus !== "active") {
+        updates.accountStatus = "active";
+      }
+      if (!personDoc.isLoginEnabled) {
+        updates.isLoginEnabled = true;
       }
       if (avatarUrl && (!personDoc.avatarUrl || personDoc.avatarUrl !== avatarUrl)) {
         updates.avatarUrl = avatarUrl;
@@ -384,6 +394,24 @@ export const getLifeAuthContext = cache(async function getLifeAuthContext(): Pro
       if (Object.keys(updates).length > 0) {
         await LifePerson.updateOne({ _id: personDoc._id }, { $set: updates });
       }
+
+      // Automatically mark any pending invitations as accepted
+      await LifeInvitation.updateMany(
+        {
+          $or: [
+            { personId: personDoc._id },
+            ...(emailRegexes.length > 0 ? [{ email: { $in: emailRegexes } }] : email ? [{ email: new RegExp(`^${email}$`, "i") }] : []),
+          ],
+          status: "pending",
+        },
+        {
+          $set: {
+            status: "accepted",
+            acceptedAt: new Date(),
+            acceptedByClerkUserId: userId,
+          },
+        }
+      ).catch(() => {});
     }
 
     // Check Emergency Protocol state and designated emergency delegation

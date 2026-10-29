@@ -133,6 +133,7 @@ export function PersonDetailClient({
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
   const [archiveSummary, setArchiveSummary] = useState<any | null>(null);
   const [archiving, setArchiving] = useState(false);
+  const [sendingInvite, setSendingInvite] = useState(false);
 
   // Account status check
   const isConnected = Boolean(
@@ -245,16 +246,49 @@ export function PersonDetailClient({
       toast.error("An email address is required to send an invitation.");
       return;
     }
-    const res = await sendPersonInvitation(String(person._id), person.email);
-    if (res.success) {
-      toast.success(`Invitation sent to ${person.email}!`);
-      setPerson((prev) => ({
-        ...prev,
-        registrationStatus: "invitation_sent",
-      }));
-    } else {
-      toast.error(res.message || "Failed to send invitation.");
+    setSendingInvite(true);
+    try {
+      const res = await sendPersonInvitation(String(person._id), person.email);
+      if (res.success) {
+        const link =
+          res.data?.invitationUrl ||
+          (res.data?.token
+            ? `${window.location.origin}/sign-up?invite_token=${res.data.token}`
+            : "");
+        if (link) {
+          navigator.clipboard.writeText(link).catch(() => {});
+          toast.success("Invitation resent! Link copied to clipboard.");
+        } else {
+          toast.success(`Invitation sent to ${person.email}!`);
+        }
+        setPerson((prev) => ({
+          ...prev,
+          registrationStatus: "invitation_sent",
+          invitationUrl: res.data?.invitationUrl || prev.invitationUrl,
+          invitationToken: res.data?.token || prev.invitationToken,
+        }));
+      } else {
+        toast.error(res.message || "Failed to send invitation.");
+      }
+    } finally {
+      setSendingInvite(false);
     }
+  };
+
+  // Copy invitation link directly to clipboard
+  const handleCopyInvitationLink = () => {
+    setShowMoreMenu(false);
+    const origin =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : "https://life.gesn.net";
+    const link =
+      person.invitationUrl ||
+      (person.invitationToken
+        ? `${origin}/sign-up?invite_token=${person.invitationToken}`
+        : `${origin}/sign-up`);
+    navigator.clipboard.writeText(link);
+    toast.success("Invitation link copied to clipboard!");
   };
 
   // Copy to clipboard helper
@@ -610,14 +644,24 @@ export function PersonDetailClient({
               {showMoreMenu && (
                 <div className="absolute right-0 top-full mt-1.5 w-48 bg-white rounded-2xl border border-slate-100 shadow-xl p-1.5 z-40 space-y-0.5 text-xs font-semibold text-slate-700 animate-in fade-in zoom-in-95">
                   {isInvitePending && (
-                    <button
-                      type="button"
-                      onClick={handleCancelInvitation}
-                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 flex items-center gap-2 text-amber-700 cursor-pointer"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                      Cancel Invitation
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleCopyInvitationLink}
+                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 flex items-center gap-2 text-[#4F46E5] font-bold cursor-pointer"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        Copy Invitation Link
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancelInvitation}
+                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 flex items-center gap-2 text-amber-700 cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        Cancel Invitation
+                      </button>
+                    </>
                   )}
 
                   {person.email && !isConnected && (
@@ -655,6 +699,40 @@ export function PersonDetailClient({
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Pending Invitation Banner with 1-Tap Copy Link & Resend ── */}
+      {isInvitePending && (
+        <div className="bg-amber-50/80 border border-amber-200 rounded-2xl p-3 flex items-center justify-between gap-2 shadow-2xs">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 text-amber-900 font-bold text-xs">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+              <span>Invitation Pending</span>
+            </div>
+            <p className="text-[11px] text-amber-700 truncate mt-0.5 font-medium">
+              Invited as {person.email || "user"}
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={handleCopyInvitationLink}
+              className="px-2.5 py-1.5 rounded-xl bg-white border border-amber-300 text-amber-900 hover:bg-amber-100/60 font-bold text-[11px] flex items-center gap-1 shadow-2xs cursor-pointer transition-colors"
+            >
+              <Copy className="w-3 h-3 text-amber-700" />
+              <span>Copy Link</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleSendInvitation}
+              disabled={sendingInvite}
+              className="px-2.5 py-1.5 rounded-xl bg-[#4F46E5] text-white hover:bg-indigo-700 font-bold text-[11px] flex items-center gap-1 shadow-2xs cursor-pointer transition-colors disabled:opacity-50"
+            >
+              <Send className="w-3 h-3" />
+              <span>{sendingInvite ? "Sending..." : "Resend"}</span>
+            </button>
           </div>
         </div>
       )}
